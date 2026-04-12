@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/simplifier",
+    "crates/io",
+    "crates/cli",
+    "crates/python",
+]
+resolver = "3"

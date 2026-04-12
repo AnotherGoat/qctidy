@@ -1,0 +1,8 @@
+[package]
+name = "qsimplify-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+qsimplify = { path = "../simplifier" }
+qsimplify-io = { path = "../io" }
