@@ -1,9 +1,8 @@
 [package]
-name = "qsimplify-python"
+name = "qsimplify-qiskit"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-qsimplify = { path = "../simplifier" }
-qsimplify-io = { path = "../io" }
+qsimplify-facade = { path = "../facade" }
 pyo3 = { version = "0.28", features = ["extension-module"] }

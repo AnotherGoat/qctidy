@@ -1,8 +1,14 @@
 [workspace]
 members = [
-    "crates/simplifier",
-    "crates/io",
     "crates/cli",
-    "crates/python",
+    "crates/codegen",
+    "crates/converter",
+    "crates/estimator",
+    "crates/facade",
+    "crates/library",
+    "crates/presenter",
+    "crates/qiskit",
+    "crates/server",
+    "crates/storage",
 ]
 resolver = "3"

@@ -199,12 +199,18 @@ dependencies = [
 name = "qsimplify-cli"
 version = "0.1.0"
 dependencies = [
- "qsimplify",
- "qsimplify-io",
+ "qsimplify-facade",
 ]
 
 [[package]]
-name = "qsimplify-io"
+name = "qsimplify-codegen"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
+]
+
+[[package]]
+name = "qsimplify-converter"
 version = "0.1.0"
 dependencies = [
  "qsimplify",
@@ -213,12 +219,51 @@ dependencies = [
 ]
 
 [[package]]
-name = "qsimplify-python"
+name = "qsimplify-estimator"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
+]
+
+[[package]]
+name = "qsimplify-facade"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
+ "qsimplify-codegen",
+ "qsimplify-converter",
+ "qsimplify-estimator",
+ "qsimplify-presenter",
+ "qsimplify-storage",
+]
+
+[[package]]
+name = "qsimplify-presenter"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
+]
+
+[[package]]
+name = "qsimplify-qiskit"
 version = "0.1.0"
 dependencies = [
  "pyo3",
- "qsimplify",
- "qsimplify-io",
+ "qsimplify-facade",
+]
+
+[[package]]
+name = "qsimplify-server"
+version = "0.1.0"
+dependencies = [
+ "qsimplify-facade",
+]
+
+[[package]]
+name = "qsimplify-storage"
+version = "0.1.0"
+dependencies = [
+ "qsimplify-converter",
 ]
 
 [[package]]

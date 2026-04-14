@@ -1,0 +1,12 @@
+[package]
+name = "qsimplify-facade"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+qsimplify = { path = "../library" }
+qsimplify-codegen = { path = "../codegen" }
+qsimplify-converter = { path = "../converter" }
+qsimplify-estimator = { path = "../estimator" }
+qsimplify-presenter = { path = "../presenter" }
+qsimplify-storage = { path = "../storage" }
