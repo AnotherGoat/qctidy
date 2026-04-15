@@ -234,6 +234,43 @@ fn remove_node_removes_associated_edges() {
 }
 
 #[test]
+fn removing_middle_node_reconnects_neighbors() {
+    let mut graph = QuantumGraph::new();
+
+    let first = Position::new(0, 0);
+    let second = Position::new(0, 1);
+    let third = Position::new(0, 2);
+
+    graph.replace_node(X, first, None, None);
+    graph.replace_node(Y, second, None, None);
+    graph.replace_node(Z, third, None, None);
+
+    graph.add_edge(Right, first, second).unwrap();
+    graph.add_edge(Left, second, first).unwrap();
+
+    graph.add_edge(Right, second, third).unwrap();
+    graph.add_edge(Left, third, second).unwrap();
+
+    graph.remove_node(second);
+
+    assert!(!graph.has_node_at(second));
+
+    let edges = graph.edges();
+
+    assert!(edges.contains(&GraphEdgeView::new(
+        Right,
+        graph.get_node_view(first).unwrap(),
+        graph.get_node_view(third).unwrap()
+    )));
+
+    assert!(edges.contains(&GraphEdgeView::new(
+        Left,
+        graph.get_node_view(third).unwrap(),
+        graph.get_node_view(first).unwrap()
+    )));
+}
+
+#[test]
 #[allow(unused_variables)]
 fn move_nonexistent_node_fails() {
     let mut graph = QuantumGraph::new();

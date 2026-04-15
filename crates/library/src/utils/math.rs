@@ -2,6 +2,8 @@ use std::f64::consts::PI;
 
 use num_rational::Ratio;
 
+pub(crate) const FULL_CYCLE: f64 = 4.0 * PI;
+
 const MAX_DENOMINATOR: i64 = 16;
 const RELATIVE_TOLERANCE: f64 = 1e-5;
 const ABSOLUTE_TOLERANCE: f64 = 1e-8;

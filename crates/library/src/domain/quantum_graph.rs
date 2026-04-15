@@ -1,3 +1,6 @@
+mod schema;
+mod validator;
+
 use std::{
     collections::{HashMap, HashSet},
     fmt,
@@ -12,10 +15,10 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-struct NodeData {
-    gate: GateType,
-    angle: Option<f64>,
-    bit: Option<usize>,
+pub(self) struct NodeData {
+    pub(self) gate: GateType,
+    pub(self) angle: Option<f64>,
+    pub(self) bit: Option<usize>,
 }
 
 impl PartialEq for NodeData {
@@ -29,9 +32,9 @@ impl PartialEq for NodeData {
 impl Eq for NodeData {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct EdgeData {
-    edge_type: EdgeType,
-    other: Position,
+pub(self) struct EdgeData {
+    pub(self) edge_type: EdgeType,
+    pub(self) other: Position,
 }
 
 /// Error that can occur while working with a `QuantumGraph`.
@@ -43,6 +46,41 @@ pub enum GraphError {
     NodeNotFound { position: Position },
     #[error("Start and end positions cannot be equal")]
     NullMove,
+    #[error("An edge starts from a non-existent node at {from}")]
+    DanglingStartNode { from: Position },
+    #[error("An edge of type {edge_type} end points to a non-existent node at {from} to {to}")]
+    DanglingEndNode {
+        edge_type: EdgeType,
+        from: Position,
+        to: Position,
+    },
+    #[error(
+        "An edge of type {edge_type} from {from} to {to} is missing its symmetrical counterpart"
+    )]
+    MissingReverseEdge {
+        edge_type: EdgeType,
+        from: Position,
+        to: Position,
+    },
+    #[error("An edge of type {edge_type} from {from} to {to} exists more than once")]
+    DuplicateEdge {
+        edge_type: EdgeType,
+        from: Position,
+        to: Position,
+    },
+    #[error("Invalid edge {edge_type:?} from {from} to {to} for gate {gate:?}")]
+    InvalidEdgeForGate {
+        gate: GateType,
+        edge_type: EdgeType,
+        from: Position,
+        to: Position,
+    },
+    #[error("Invalid angle for gate {gate:?} at {position}")]
+    InvalidAngle { gate: GateType, position: Position },
+    #[error("Invalid bit for gate {gate:?} at {position}")]
+    InvalidBit { gate: GateType, position: Position },
+    #[error("Invalid gate structure")]
+    InvalidGateStructure,
 }
 
 /// Represents a quantum circuit as a hybrid of a directed graph and a 2D matrix.
@@ -56,9 +94,11 @@ pub enum GraphError {
 /// It's recommended to use the graph builder to build the graph with ease.
 #[derive(Default, Debug, Clone)]
 pub struct QuantumGraph {
-    nodes: HashMap<Position, NodeData>,
-    edges_out: HashMap<Position, Vec<EdgeData>>,
-    edges_in: HashMap<Position, Vec<EdgeData>>,
+    pub(self) nodes: HashMap<Position, NodeData>,
+    // Note: `edges_out` is the single source of truth for a graph's edges
+    pub(self) edges_out: HashMap<Position, Vec<EdgeData>>,
+    // Note: `edges_in` is only used for fast lookups and should always mirror `edges_out`
+    pub(self) edges_in: HashMap<Position, Vec<EdgeData>>,
 }
 
 impl PartialEq for QuantumGraph {
@@ -67,6 +107,7 @@ impl PartialEq for QuantumGraph {
     /// Node positions and data must match, as well as edges.
     /// Edge insertion order is not taken into account.
     /// Floating point values are compared using a relative tolerance of 1e-5 and an absolute tolerance of 1e-8.
+    /// This means that graph equality is non-transitive, but in practice this should be fine because floats are already non-deterministic across different hardware.
     fn eq(&self, other: &Self) -> bool {
         if self.nodes.len() != other.nodes.len() {
             return false;
@@ -111,11 +152,12 @@ impl Eq for QuantumGraph {}
 impl fmt::Display for QuantumGraph {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(formatter, "Nodes:")?;
-        for node in self.iter_nodes() {
+        for node in self.iter_nodes_by_row() {
             writeln!(formatter, "{node}")?;
         }
 
         writeln!(formatter, "\nEdges:")?;
+
         for edge in self.iter_edges() {
             writeln!(formatter, "{edge}")?;
         }
@@ -205,10 +247,16 @@ impl QuantumGraph {
     /// Remove the node at the specified position and all its edges.
     ///
     /// If the node does not exist, nothing happens.
+    /// If the removed node is horizontally between two nodes, these two nodes are joined.
     pub fn remove_node(&mut self, position: Position) {
+        use EdgeType::{Left, Right};
+
         if !self.has_node_at(position) {
             return;
         }
+
+        let previous = self.previous_in_row(position);
+        let next = self.next_in_row(position);
 
         if let Some(out_edges) = self.edges_out.remove(&position) {
             for outgoing_edge in out_edges {
@@ -232,12 +280,20 @@ impl QuantumGraph {
 
         self.nodes.remove(&position);
 
+        if let (Some(left), Some(right)) = (previous, next) {
+            self.add_edge(Right, left, right)
+                .expect("Both nodes should exist");
+            self.add_edge(Left, right, left)
+                .expect("Both nodes should exist");
+        }
+
         #[cfg(debug_assertions)]
-        self.validate();
+        self.validate_internal();
     }
 
     /// Move the node at the specified position to another position, removing the node at the destination and its edges.
     ///
+    /// Using this with multi-qubit gates will most likely break the graph's semantic integrity.
     /// If no node exists at the start position, an error is returned.
     /// An error is also returned if the start and end positions are the same.
     pub fn move_node(&mut self, start: Position, end: Position) -> Result<(), GraphError> {
@@ -282,7 +338,7 @@ impl QuantumGraph {
         }
 
         #[cfg(debug_assertions)]
-        self.validate();
+        self.validate_internal();
 
         Ok(())
     }
@@ -332,7 +388,7 @@ impl QuantumGraph {
         self.add_edge_internal(edge_type, start, end);
 
         #[cfg(debug_assertions)]
-        self.validate();
+        self.validate_internal();
         Ok(())
     }
 
@@ -367,7 +423,7 @@ impl QuantumGraph {
         self.remove_edge_internal(edge_type, start, end);
 
         #[cfg(debug_assertions)]
-        self.validate();
+        self.validate_internal();
     }
 
     fn remove_edge_internal(&mut self, edge_type: EdgeType, start: Position, end: Position) {
@@ -659,28 +715,50 @@ impl QuantumGraph {
         rows.join("\n")
     }
 
-    #[cfg(debug_assertions)]
-    fn validate(&self) {
-        self.check_dangling_nodes();
-        self.check_symmetry();
-        self.check_duplicates();
+    /// Validate the graph and confirm that it is internally consistent.
+    ///
+    /// This is only needed for graphs that are built manually.
+    /// Building the graph using the `GraphBuilder` and using only the `push_*` methods will never result in an invalid graph.
+    pub fn validate(&self) -> Result<(), GraphError> {
+        self.check_dangling_nodes()?;
+        self.check_edge_symmetry()?;
+        self.check_duplicate_edges()?;
+        validator::validate_graph_structure(self)?;
+        Ok(())
     }
 
     #[cfg(debug_assertions)]
-    fn check_dangling_nodes(&self) {
+    fn validate_internal(&self) {
+        self.check_dangling_nodes().unwrap();
+        self.check_edge_symmetry().unwrap();
+        self.check_duplicate_edges().unwrap();
+        validator::validate_graph_structure(self).unwrap();
+    }
+
+    fn check_dangling_nodes(&self) -> Result<(), GraphError> {
         for (start, edges) in &self.edges_out {
-            assert!(self.nodes.contains_key(start));
+            if !self.nodes.contains_key(start) {
+                return Err(GraphError::DanglingStartNode { from: *start });
+            }
+
             for edge in edges {
-                assert!(self.nodes.contains_key(&edge.other));
+                if !self.nodes.contains_key(&edge.other) {
+                    return Err(GraphError::DanglingEndNode {
+                        edge_type: edge.edge_type,
+                        from: *start,
+                        to: edge.other,
+                    });
+                }
             }
         }
+
+        Ok(())
     }
 
-    #[cfg(debug_assertions)]
-    fn check_symmetry(&self) {
+    fn check_edge_symmetry(&self) -> Result<(), GraphError> {
         for (start, edges) in &self.edges_out {
             for edge in edges {
-                let back = self
+                let is_symmetric = self
                     .edges_in
                     .get(&edge.other)
                     .map(|other_edges| {
@@ -690,25 +768,71 @@ impl QuantumGraph {
                     })
                     .unwrap_or(false);
 
-                assert!(
-                    back,
-                    "Missing reverse edge for {:?} -> {:?}",
-                    start, edge.other
-                );
+                if !is_symmetric {
+                    return Err(GraphError::MissingReverseEdge {
+                        from: *start,
+                        to: edge.other,
+                        edge_type: edge.edge_type,
+                    });
+                }
             }
         }
+
+        Ok(())
     }
 
-    #[cfg(debug_assertions)]
-    fn check_duplicates(&self) {
-        for edges in self.edges_out.values() {
+    fn check_duplicate_edges(&self) -> Result<(), GraphError> {
+        for (start, edges) in &self.edges_out {
             let mut seen = HashSet::new();
+
             for edge in edges {
-                assert!(
-                    seen.insert((edge.edge_type, edge.other)),
-                    "Duplicate edge detected"
-                );
+                if !seen.insert((edge.edge_type, edge.other)) {
+                    return Err(GraphError::DuplicateEdge {
+                        from: *start,
+                        to: edge.other,
+                        edge_type: edge.edge_type,
+                    });
+                }
             }
         }
+
+        Ok(())
+    }
+
+    pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {
+        let mut new_nodes = HashMap::with_capacity(self.nodes.len());
+        let mut new_edges_out = HashMap::new();
+        let mut new_edges_in = HashMap::<Position, Vec<EdgeData>>::new();
+
+        for (position, node) in self.nodes.drain() {
+            let new_position = function(position);
+            new_nodes.insert(new_position, node);
+        }
+
+        for (start, edges) in self.edges_out.drain() {
+            let new_start = function(start);
+            let new_edges = edges
+                .into_iter()
+                .map(|edge| EdgeData {
+                    edge_type: edge.edge_type,
+                    other: function(edge.other),
+                })
+                .collect::<Vec<_>>();
+
+            new_edges_out.insert(new_start, new_edges);
+        }
+
+        for (start, edges) in &new_edges_out {
+            for edge in edges {
+                new_edges_in.entry(edge.other).or_default().push(EdgeData {
+                    edge_type: edge.edge_type,
+                    other: *start,
+                });
+            }
+        }
+
+        self.nodes = new_nodes;
+        self.edges_out = new_edges_out;
+        self.edges_in = new_edges_in;
     }
 }

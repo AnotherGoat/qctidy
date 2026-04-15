@@ -1,6 +1,7 @@
 mod edge_type;
 mod gate_type;
 mod graph_builder;
+mod normalizer;
 mod position;
 mod quantum_graph;
 
