@@ -5,7 +5,7 @@ use crate::domain::{EdgeType, GateType, Position, QuantumGraph};
 /// Provides an interface for easily building `QuantumGraphs`.
 ///
 /// This is the recommended way to build a `QuantumGraph`, because it automatically builds the required nodes and edges.
-/// Prefer using the `push_*` methods over the `put_*` methods, since the last ones may break the graph when used incorrectly.
+// Note: Prefer using the `push_*` methods over the `put_*` methods, since the last ones may break the graph when used incorrectly.
 #[derive(Default, Debug)]
 pub struct GraphBuilder {
     graph: QuantumGraph,

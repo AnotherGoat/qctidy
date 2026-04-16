@@ -13,6 +13,7 @@ pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 pub fn build_graph(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
     let operations = extractor::extract_operations(circuit)?;
     let graph = mapper::build_graph_from_operations(operations);
+    let result = graph.display_grid();
 
-    Ok(graph.draw_grid())
+    Ok(result)
 }

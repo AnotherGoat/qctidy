@@ -1,10 +1,7 @@
-use std::fmt;
-
-use strum_macros::EnumString;
+use std::{fmt, str::FromStr};
 
 /// Type of a quantum gate supported by this library.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString)]
-#[strum(serialize_all = "lowercase", ascii_case_insensitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GateType {
     /// The identity gate. It has no practical effect.
     ID,
@@ -59,8 +56,79 @@ pub enum GateType {
 }
 
 impl fmt::Display for GateType {
+    /// Obtain the name of this gate type as a lowercase string.
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.to_string())
+        use GateType::*;
+
+        let name = match self {
+            ID => "id",
+            H => "h",
+            X => "x",
+            Y => "y",
+            Z => "z",
+            P => "p",
+            RX => "rx",
+            RY => "ry",
+            RZ => "rz",
+            S => "s",
+            SDG => "sdg",
+            SX => "sx",
+            SY => "sy",
+            T => "t",
+            TDG => "tdg",
+            Measure => "m",
+            Swap => "swap",
+            CH => "ch",
+            CX => "cx",
+            CY => "cy",
+            CZ => "cz",
+            CP => "cp",
+            CSwap => "cswap",
+            CCX => "ccx",
+            CCZ => "ccz",
+        };
+
+        write!(formatter, "{}", name)
+    }
+}
+
+impl FromStr for GateType {
+    type Err = String;
+
+    /// Create a gate type from a string written in any case combination.
+    ///
+    /// Fails if the string is not a known gate type.
+    fn from_str(name: &str) -> Result<Self, Self::Err> {
+        use GateType::*;
+
+        match name.to_ascii_lowercase().as_str() {
+            "i" | "id" | "identity" => Ok(ID),
+            "h" | "hadamard" => Ok(H),
+            "x" | "not" => Ok(X),
+            "y" => Ok(Y),
+            "z" => Ok(Z),
+            "p" | "phase" => Ok(P),
+            "rx" => Ok(RX),
+            "ry" => Ok(RY),
+            "rz" => Ok(RZ),
+            "s" | "sz" | "sqrtz" => Ok(S),
+            "sd" | "sdg" | "szd" | "szdg" | "sqrtzd" | "sqrtzdg" => Ok(SDG),
+            "sx" | "sqrtx" => Ok(SX),
+            "sy" | "sqrty" => Ok(SY),
+            "t" => Ok(T),
+            "td" | "tdg" => Ok(TDG),
+            "m" | "measure" => Ok(Measure),
+            "swap" => Ok(Swap),
+            "ch" => Ok(CH),
+            "cx" | "cnot" => Ok(CX),
+            "cy" => Ok(CY),
+            "cz" => Ok(CZ),
+            "cp" | "cphase" => Ok(CP),
+            "cswap" | "fredkin" => Ok(CSwap),
+            "ccx" | "ccnot" => Ok(CCX),
+            "ccz" | "toffoli" => Ok(CCZ),
+            _ => Err(format!("Unknown gate type: {}", name)),
+        }
     }
 }
 

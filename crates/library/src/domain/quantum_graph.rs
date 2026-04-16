@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     domain::{EdgeType, GateType, Position},
-    utils::math,
+    utils::{format, math},
     view::{GraphEdgeView, GraphNodeView, NodeEdgeView},
 };
 
@@ -664,7 +664,11 @@ impl QuantumGraph {
     }
 
     /// Get an alternative string representation of the graph, as a 2D grid.
-    pub fn draw_grid(&self) -> String {
+    pub fn display_grid(&self) -> String {
+        if self.is_empty() {
+            return "(empty)".to_owned();
+        }
+
         let height = self.height();
         let width = self.width();
 
@@ -672,29 +676,48 @@ impl QuantumGraph {
 
         for position in self.iter_positions_by_row() {
             if let Some(node) = self.get_node_view(position) {
-                grid[position.row()][position.column()] = node.r#type().to_string();
+                let mut label = node.r#type().to_string().to_ascii_uppercase();
+
+                if let Some(angle) = node.angle() {
+                    label.push('(');
+                    label.push_str(&format::format_angle(angle));
+                    label.push(')');
+                }
+
+                if let Some(bit) = node.bit() {
+                    label.push('(');
+                    label.push_str(&bit.to_string());
+                    label.push(')');
+                }
+
+                grid[position.row()][position.column()] = label;
             }
         }
 
         let mut column_widths = vec![0; width];
+
         for column in 0..width {
-            let max_len = (0..height)
+            let max_length = (0..height)
                 .map(|row| grid[row][column].len())
                 .max()
                 .unwrap_or(0);
-            column_widths[column] = max_len;
+
+            column_widths[column] = max_length;
         }
 
         let mut rows = Vec::new();
 
-        for (row_idx, row) in grid.iter().enumerate() {
+        for (row_index, row) in grid.iter().enumerate() {
             let formatted: Vec<String> = row
                 .iter()
                 .enumerate()
-                .map(|(column, val)| format!("{:<width$}", val, width = column_widths[column]))
+                .map(|(column, value)| format!("{:<width$}", value, width = column_widths[column]))
                 .collect();
 
-            rows.push(format!("{row_idx}: {}", formatted.join("   ")));
+            let line = formatted.join("   ");
+            let trimmed = line.trim_end();
+
+            rows.push(format!("{row_index}: {}", trimmed));
         }
 
         rows.join("\n")
@@ -703,7 +726,8 @@ impl QuantumGraph {
     /// Validate the graph and confirm that it is internally consistent.
     ///
     /// This is only needed for graphs that are built manually.
-    /// Building the graph using the `GraphBuilder` and using only the `push_*` methods will never result in an invalid graph.
+    /// Building the graph using the `GraphBuilder` will never result in an invalid graph.
+    // Note: The only exception to this is using the `put_*` methods from the builder.
     pub fn validate(&self) -> Result<(), GraphError> {
         self.check_dangling_nodes()?;
         self.check_edge_symmetry()?;

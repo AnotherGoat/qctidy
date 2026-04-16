@@ -1,4 +1,4 @@
-use std::f64::consts::FRAC_PI_2;
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
 use super::quantum_graph::*;
 use crate::{
@@ -628,4 +628,184 @@ fn node_edge_view_collects_edges_correctly() {
 
     assert!(right_view.right().is_none());
     assert!(right_view.left().is_some());
+}
+
+#[test]
+fn display_grid_empty_graph() {
+    let graph = QuantumGraph::new();
+
+    let result = graph.display_grid();
+
+    assert_eq!(result, "(empty)");
+}
+
+#[test]
+fn display_grid_single_gate() {
+    let graph = GraphBuilder::new().push_h(0).build();
+
+    let result = graph.display_grid();
+
+    let expected = "0: H";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_skipping_first_row() {
+    let graph = GraphBuilder::new().push_h(1).build();
+
+    let result = graph.display_grid();
+
+    let expected = "\
+0: .
+1: H";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_multiple_rows_single_column() {
+    let graph = GraphBuilder::new().push_h(0).push_x(1).push_z(2).build();
+
+    let result = graph.display_grid();
+
+    let expected = "\
+0: H
+1: X
+2: Z";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_sparse_columns() {
+    let mut graph = QuantumGraph::new();
+
+    graph
+        .add_node(GateType::H, Position::new(0, 0), None, None)
+        .unwrap();
+    graph
+        .add_node(GateType::X, Position::new(0, 2), None, None)
+        .unwrap();
+
+    let result = graph.display_grid();
+
+    let expected = "0: H   .   X";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_multiple_rows_and_columns() {
+    let mut graph = QuantumGraph::new();
+
+    graph
+        .add_node(GateType::H, Position::new(0, 0), None, None)
+        .unwrap();
+    graph
+        .add_node(GateType::X, Position::new(1, 1), None, None)
+        .unwrap();
+    graph
+        .add_node(GateType::Z, Position::new(0, 2), None, None)
+        .unwrap();
+
+    let result = graph.display_grid();
+
+    let expected = "\
+0: H   .   Z
+1: .   X   .";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_with_angle() {
+    let graph = GraphBuilder::new()
+        .push_rx(FRAC_PI_2, 0)
+        .push_ry(3.0 * PI, 1)
+        .push_rz(2.0 * FRAC_PI_3, 2)
+        .build();
+
+    let result = graph.display_grid();
+
+    let expected = "\
+0: RX(π/2)
+1: RY(3π)
+2: RZ(2π/3)";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_with_multiple_angles_alignment() {
+    let graph = GraphBuilder::new()
+        .push_rx(FRAC_PI_2, 0)
+        .push_rz(0.0, 0)
+        .build();
+
+    let result = graph.display_grid();
+
+    let expected = "0: RX(π/2)    RZ(0)";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_mixed_angle_and_normal() {
+    let graph = GraphBuilder::new()
+        .push_h(0)
+        .push_rx(std::f64::consts::FRAC_PI_2, 0)
+        .build();
+
+    let result = graph.display_grid();
+
+    let expected = "0: H   RX(π/2)";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_measure_with_bit() {
+    let graph = GraphBuilder::new().push_measure(0, 3).build();
+
+    let result = graph.display_grid();
+
+    let expected = "0: M(3)";
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_column_alignment() {
+    let graph = GraphBuilder::new()
+        .push_h(0)
+        .push_x(0)
+        .push_measure(1, 0)
+        .push_z(1)
+        .build();
+
+    let result = graph.display_grid();
+
+    let expected = "\
+0: H      X
+1: M(0)   Z";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn display_grid_sparse_with_angles() {
+    let mut graph = QuantumGraph::new();
+
+    graph
+        .add_node(
+            GateType::RX,
+            Position::new(0, 0),
+            Some(std::f64::consts::FRAC_PI_2),
+            None,
+        )
+        .unwrap();
+
+    graph
+        .add_node(GateType::Measure, Position::new(0, 2), None, Some(2))
+        .unwrap();
+
+    let result = graph.display_grid();
+
+    let expected = "0: RX(π/2)    .   M(2)";
+    assert_eq!(result, expected);
 }
