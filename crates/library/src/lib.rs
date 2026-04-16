@@ -2,6 +2,7 @@
 
 /// Contains domain structures used to represent a QuantumGraph.
 pub mod domain;
+pub mod dto;
 /// Contains general logic and text display utilities.
 pub(crate) mod utils;
 /// Provides views for nodes and edges inside a QuantumGraph.

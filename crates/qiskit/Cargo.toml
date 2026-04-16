@@ -3,6 +3,11 @@ name = "qsimplify-qiskit"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "qsimplify_qiskit"
+crate-type = ["cdylib"]
+
 [dependencies]
+qsimplify = { path = "../library" }
 qsimplify-facade = { path = "../facade" }
 pyo3 = { version = "0.28", features = ["extension-module"] }
