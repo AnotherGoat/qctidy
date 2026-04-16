@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::FRAC_PI_2;
 
 use super::quantum_graph::*;
 use crate::{
@@ -122,10 +122,10 @@ fn graph_is_equal_with_angles() {
     let second = Position::new(0, 1);
 
     graph1.replace_node(RX, first, Some(0.0), None);
-    graph1.replace_node(P, second, Some(PI / 2.0), None);
+    graph1.replace_node(P, second, Some(FRAC_PI_2), None);
 
     graph2.replace_node(RX, first, Some(1e-8), None);
-    graph2.replace_node(P, second, Some(1e-8 + PI / 2.0), None);
+    graph2.replace_node(P, second, Some(1e-8 + FRAC_PI_2), None);
 
     assert_eq!(graph1, graph2);
 }

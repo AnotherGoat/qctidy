@@ -6,6 +6,10 @@ mod position;
 mod quantum_graph;
 
 #[cfg(test)]
+mod graph_asserter;
+#[cfg(test)]
+mod graph_builder_tests;
+#[cfg(test)]
 mod quantum_graph_tests;
 
 pub use edge_type::EdgeType;

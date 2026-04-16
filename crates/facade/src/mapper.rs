@@ -9,8 +9,6 @@ pub fn build_graph_from_operations(operations: Vec<GateOperation>) -> QuantumGra
     let mut builder = GraphBuilder::new();
 
     for operation in operations {
-        //println!("{}", operation.r#type);
-
         match operation.r#type {
             H => builder.push_h(operation.qubits[0]),
             X => builder.push_x(operation.qubits[0]),

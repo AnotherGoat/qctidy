@@ -286,9 +286,6 @@ impl QuantumGraph {
             self.add_edge(Left, right, left)
                 .expect("Both nodes should exist");
         }
-
-        #[cfg(debug_assertions)]
-        self.validate_internal();
     }
 
     /// Move the node at the specified position to another position, removing the node at the destination and its edges.
@@ -337,9 +334,6 @@ impl QuantumGraph {
             self.add_edge_internal(edge.edge_type, edge.other, end);
         }
 
-        #[cfg(debug_assertions)]
-        self.validate_internal();
-
         Ok(())
     }
 
@@ -387,8 +381,6 @@ impl QuantumGraph {
 
         self.add_edge_internal(edge_type, start, end);
 
-        #[cfg(debug_assertions)]
-        self.validate_internal();
         Ok(())
     }
 
@@ -420,13 +412,6 @@ impl QuantumGraph {
     ///
     /// If the edge does not exist, nothing happens.
     pub fn remove_edge(&mut self, edge_type: EdgeType, start: Position, end: Position) {
-        self.remove_edge_internal(edge_type, start, end);
-
-        #[cfg(debug_assertions)]
-        self.validate_internal();
-    }
-
-    fn remove_edge_internal(&mut self, edge_type: EdgeType, start: Position, end: Position) {
         if let Some(outgoing_edges) = self.edges_out.get_mut(&start) {
             outgoing_edges.retain(|edge| !(edge.edge_type == edge_type && edge.other == end));
         }
@@ -728,7 +713,7 @@ impl QuantumGraph {
     }
 
     #[cfg(debug_assertions)]
-    fn validate_internal(&self) {
+    pub(super) fn validate_internal(&self) {
         self.check_dangling_nodes().unwrap();
         self.check_edge_symmetry().unwrap();
         self.check_duplicate_edges().unwrap();

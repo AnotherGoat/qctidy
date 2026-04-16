@@ -196,27 +196,27 @@ impl GraphBuilder {
     }
 
     /// Put a ID gate directly into the graph, which effectively does nothing.
-    pub fn put_id(&mut self, _qubit: usize, _columnn: usize) -> &mut Self {
+    pub(crate) fn put_id(&mut self, _qubit: usize, _columnn: usize) -> &mut Self {
         self
     }
 
     /// Put a H gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_h(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_h(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::H, qubit, column)
     }
 
     /// Put a X gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_x(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_x(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::X, qubit, column)
     }
 
     /// Put a Y gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_y(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_y(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::Y, qubit, column)
     }
 
     /// Put a Z gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_z(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_z(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::Z, qubit, column)
     }
 
@@ -228,26 +228,28 @@ impl GraphBuilder {
             .connect_row_neighbors(position)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a P gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_p(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_p(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
         self.put_rotation(GateType::P, angle, qubit, column)
     }
 
     /// Put a RX gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_rx(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_rx(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
         self.put_rotation(GateType::RX, angle, qubit, column)
     }
 
     /// Put a RY gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_ry(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_ry(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
         self.put_rotation(GateType::RY, angle, qubit, column)
     }
 
     /// Put a RZ gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_rz(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_rz(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
         self.put_rotation(GateType::RZ, angle, qubit, column)
     }
 
@@ -265,41 +267,43 @@ impl GraphBuilder {
             .connect_row_neighbors(position)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a S gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_s(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_s(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::S, qubit, column)
     }
 
     /// Put a SDG gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_sdg(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_sdg(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::SDG, qubit, column)
     }
 
     /// Put a SX gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_sx(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_sx(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::SX, qubit, column)
     }
 
     /// Put a SY gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_sy(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_sy(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::SY, qubit, column)
     }
 
     /// Put a T gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_t(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_t(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::T, qubit, column)
     }
 
     /// Put a TDG gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_tdg(&mut self, qubit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_tdg(&mut self, qubit: usize, column: usize) -> &mut Self {
         self.put_single(GateType::TDG, qubit, column)
     }
 
     /// Put a Measure gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_measure(&mut self, qubit: usize, bit: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_measure(&mut self, qubit: usize, bit: usize, column: usize) -> &mut Self {
         let position = Position::new(qubit, column);
 
         self.graph
@@ -308,11 +312,13 @@ impl GraphBuilder {
             .connect_row_neighbors(position)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a Swap gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_swap(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_swap(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
         let first = Position::new(qubit, column);
         let second = Position::new(qubit2, column);
 
@@ -330,11 +336,13 @@ impl GraphBuilder {
             .connect_row_neighbors(second)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CH gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_ch(
+    pub(crate) fn put_ch(
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
@@ -344,7 +352,7 @@ impl GraphBuilder {
     }
 
     /// Put a CX gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_cx(
+    pub(crate) fn put_cx(
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
@@ -354,7 +362,7 @@ impl GraphBuilder {
     }
 
     /// Put a CY gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_cy(
+    pub(crate) fn put_cy(
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
@@ -390,11 +398,13 @@ impl GraphBuilder {
             .connect_row_neighbors(target)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CZ gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_cz(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
+    pub(crate) fn put_cz(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
         let first = Position::new(qubit, column);
         let second = Position::new(qubit2, column);
 
@@ -412,11 +422,13 @@ impl GraphBuilder {
             .connect_row_neighbors(second)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CP gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_cp(
+    pub(crate) fn put_cp(
         &mut self,
         angle: f64,
         control_qubit: usize,
@@ -444,11 +456,13 @@ impl GraphBuilder {
             .connect_row_neighbors(target)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CSwap gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_cswap(
+    pub(crate) fn put_cswap(
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
@@ -491,11 +505,13 @@ impl GraphBuilder {
             .connect_row_neighbors(target2)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CCX gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_ccx(
+    pub(crate) fn put_ccx(
         &mut self,
         control_qubit: usize,
         control_qubit2: usize,
@@ -536,11 +552,13 @@ impl GraphBuilder {
             .connect_row_neighbors(target)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
     /// Put a CCZ gate directly into the graph, which may break it when used incorrectly.
-    pub fn put_ccz(
+    pub(crate) fn put_ccz(
         &mut self,
         qubit: usize,
         qubit2: usize,
@@ -575,6 +593,8 @@ impl GraphBuilder {
             .connect_row_neighbors(third)
             .expect("The added node should exist");
 
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
         self
     }
 
