@@ -206,10 +206,10 @@ fn backtrack(
         }
 
         let node = &context.graph.nodes[&context.component[i]];
-        let schema_node = &context.schema.nodes[j];
+        let node_schema = &context.schema.nodes[j];
 
-        if schema_node.has_angle != node.angle.is_some()
-            || schema_node.has_bit != node.bit.is_some()
+        if node_schema.has_angle() != node.angle.is_some()
+            || node_schema.has_bit() != node.bit.is_some()
         {
             continue;
         }

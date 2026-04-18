@@ -18,16 +18,22 @@ pub(super) struct GateSchema {
 /// A schema for a graph node, part of a gate structure.
 ///
 /// A node may be thought of as an atom.
-pub(super) struct NodeSchema {
-    /// Whether the node must have an angle or not.
-    pub(super) has_angle: bool,
-    /// Whether the node must have a bit or not.
-    pub(super) has_bit: bool,
+pub(super) enum NodeSchema {
+    /// The node includes no extra data.
+    NoData,
+    /// The node has an angle (for phase or rotation gates).
+    Angle,
+    /// The node has a bit (for measurement gates).
+    Bit,
 }
 
 impl NodeSchema {
-    pub(super) const fn new(has_angle: bool, has_bit: bool) -> NodeSchema {
-        NodeSchema { has_angle, has_bit }
+    pub(super) fn has_angle(&self) -> bool {
+        matches!(self, NodeSchema::Angle)
+    }
+
+    pub(super) fn has_bit(&self) -> bool {
+        matches!(self, NodeSchema::Bit)
     }
 }
 
@@ -54,7 +60,7 @@ macro_rules! single_schema {
     ($gate_type:path) => {
         GateSchema {
             r#type: $gate_type,
-            nodes: &[NodeSchema::new(false, false)],
+            nodes: &[NodeSchema::NoData],
             edges: &[],
         }
     };
@@ -64,7 +70,7 @@ macro_rules! rotation_schema {
     ($gate_type:path) => {
         GateSchema {
             r#type: $gate_type,
-            nodes: &[NodeSchema::new(true, false)],
+            nodes: &[NodeSchema::Angle],
             edges: &[],
         }
     };
@@ -74,7 +80,7 @@ macro_rules! control_schema {
     ($gate_type:path) => {
         GateSchema {
             r#type: $gate_type,
-            nodes: &[NodeSchema::new(false, false), NodeSchema::new(false, false)],
+            nodes: &[NodeSchema::NoData, NodeSchema::NoData],
             edges: &[
                 EdgeSchema::new(Targets, 0, 1),
                 EdgeSchema::new(ControlledBy, 1, 0),
@@ -115,13 +121,13 @@ const TDG_SCHEMA: GateSchema = single_schema!(TDG);
 
 const MEASURE_SCHEMA: GateSchema = GateSchema {
     r#type: Measure,
-    nodes: &[NodeSchema::new(false, true)],
+    nodes: &[NodeSchema::Bit],
     edges: &[],
 };
 
 const SWAP_SCHEMA: GateSchema = GateSchema {
     r#type: Swap,
-    nodes: &[NodeSchema::new(false, false), NodeSchema::new(false, false)],
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(SwapsWith, 0, 1),
         EdgeSchema::new(SwapsWith, 1, 0),
@@ -136,7 +142,7 @@ const CY_SCHEMA: GateSchema = control_schema!(CY);
 
 const CZ_SCHEMA: GateSchema = GateSchema {
     r#type: CZ,
-    nodes: &[NodeSchema::new(false, false), NodeSchema::new(false, false)],
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(WorksWith, 0, 1),
         EdgeSchema::new(WorksWith, 1, 0),
@@ -145,7 +151,7 @@ const CZ_SCHEMA: GateSchema = GateSchema {
 
 const CP_SCHEMA: GateSchema = GateSchema {
     r#type: CP,
-    nodes: &[NodeSchema::new(false, false), NodeSchema::new(true, false)],
+    nodes: &[NodeSchema::NoData, NodeSchema::Angle],
     edges: &[
         EdgeSchema::new(Targets, 0, 1),
         EdgeSchema::new(ControlledBy, 1, 0),
@@ -154,11 +160,7 @@ const CP_SCHEMA: GateSchema = GateSchema {
 
 const CSWAP_SCHEMA: GateSchema = GateSchema {
     r#type: CSwap,
-    nodes: &[
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-    ],
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 1),
         EdgeSchema::new(ControlledBy, 1, 0),
@@ -171,11 +173,7 @@ const CSWAP_SCHEMA: GateSchema = GateSchema {
 
 const CCX_SCHEMA: GateSchema = GateSchema {
     r#type: CCX,
-    nodes: &[
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-    ],
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 2),
         EdgeSchema::new(ControlledBy, 2, 0),
@@ -188,11 +186,7 @@ const CCX_SCHEMA: GateSchema = GateSchema {
 
 const CCZ_SCHEMA: GateSchema = GateSchema {
     r#type: CCZ,
-    nodes: &[
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-        NodeSchema::new(false, false),
-    ],
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(WorksWith, 0, 1),
         EdgeSchema::new(WorksWith, 1, 0),

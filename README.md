@@ -87,7 +87,7 @@ These Cargo commands can be run from the root of the repository.
 | `cargo build --workspace`           | Compile a debug build of all the crates.              |
 | `cargo build --release --workspace` | Compile an optimized release build of all the crates. |
 | `cargo test --workspace`            | Run all unit and integration tests.                   |
-| `cargo test -p qsimplify`           | Run tests for a single crate.                         |
+| `cargo test -p <crate>`             | Run tests for a single crate.                         |
 
 For more specific tasks, these commands can be used:
 

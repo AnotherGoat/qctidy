@@ -32,7 +32,8 @@ prek prepare-hooks
 
 - When adding a new dependency, always use the latest compatible version. Check `crates.io` if unsure.
 - Don't add crates for features that are already included in other crates in the workspace, such as `serde` and `thiserror`.
-- Add dependencies only to the crate that needs them instead of adding them to the workspace root, unless they are truly shared by all members.
+- Add dependency versions to the workspace root, then enable them in individual crates using `workspace = true`.
+- Only enable dependency features in the crates that need them.
 
 ## Naming Conventions
 
