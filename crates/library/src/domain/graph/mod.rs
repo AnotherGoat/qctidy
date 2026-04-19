@@ -1,3 +1,5 @@
+#[cfg(test)]
+pub(crate) mod graph_asserter;
 mod schema;
 mod validator;
 
@@ -10,7 +12,7 @@ use thiserror::Error;
 
 use crate::{
     domain::{EdgeType, GateType, Position},
-    utils::{format, math},
+    utils::{formatter, math},
     view::{GraphEdgeView, GraphNodeView, NodeEdgeView},
 };
 
@@ -37,7 +39,7 @@ pub(self) struct EdgeData {
     pub(self) other: Position,
 }
 
-/// Error that can occur while working with a `QuantumGraph`.
+/// Error that can occur while working with a `Graph`.
 #[derive(Debug, Error)]
 pub enum GraphError {
     #[error("Node already exists at {position}")]
@@ -93,7 +95,7 @@ pub enum GraphError {
 /// No duplicate edges (same origin, type and target) are allowed.
 /// It's recommended to use the graph builder to build the graph with ease.
 #[derive(Default, Debug, Clone)]
-pub struct QuantumGraph {
+pub struct Graph {
     pub(self) nodes: HashMap<Position, NodeData>,
     // Note: `edges_out` is the single source of truth for a graph's edges
     pub(self) edges_out: HashMap<Position, Vec<EdgeData>>,
@@ -101,7 +103,7 @@ pub struct QuantumGraph {
     pub(self) edges_in: HashMap<Position, Vec<EdgeData>>,
 }
 
-impl PartialEq for QuantumGraph {
+impl PartialEq for Graph {
     /// Check whether two graphs are equal.
     ///
     /// Node positions and data must match, as well as edges.
@@ -113,8 +115,8 @@ impl PartialEq for QuantumGraph {
             return false;
         }
 
-        for (pos, node) in &self.nodes {
-            match other.nodes.get(pos) {
+        for (position, node) in &self.nodes {
+            match other.nodes.get(position) {
                 Some(other_node) if node == other_node => {}
                 _ => return false,
             }
@@ -126,7 +128,7 @@ impl PartialEq for QuantumGraph {
 
         for (start, edges) in &self.edges_out {
             let other_edges = match other.edges_out.get(start) {
-                Some(e) => e,
+                Some(edge) => edge,
                 None => return false,
             };
 
@@ -134,11 +136,16 @@ impl PartialEq for QuantumGraph {
                 return false;
             }
 
-            let set_a: HashSet<_> = edges.iter().map(|e| (e.edge_type, e.other)).collect();
+            let set: HashSet<_> = edges
+                .iter()
+                .map(|edge| (edge.edge_type, edge.other))
+                .collect();
+            let other_set: HashSet<_> = other_edges
+                .iter()
+                .map(|edge| (edge.edge_type, edge.other))
+                .collect();
 
-            let set_b: HashSet<_> = other_edges.iter().map(|e| (e.edge_type, e.other)).collect();
-
-            if set_a != set_b {
+            if set != other_set {
                 return false;
             }
         }
@@ -147,27 +154,59 @@ impl PartialEq for QuantumGraph {
     }
 }
 
-impl Eq for QuantumGraph {}
+impl Eq for Graph {}
 
-impl fmt::Display for QuantumGraph {
+impl fmt::Display for Graph {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(formatter, "Nodes:")?;
-        for node in self.iter_nodes_by_row() {
+
+        let nodes = self.iter_nodes_by_column().collect::<Vec<_>>();
+
+        if nodes.is_empty() {
+            writeln!(formatter, "(empty)")?;
+        }
+
+        for node in nodes {
             writeln!(formatter, "{node}")?;
         }
 
         writeln!(formatter, "\nEdges:")?;
 
-        for edge in self.iter_edges() {
-            writeln!(formatter, "{edge}")?;
+        let edges = self.iter_edges_by_column().collect::<Vec<_>>();
+
+        if edges.is_empty() {
+            write!(formatter, "(empty)")?;
+        }
+
+        let mut current = None;
+
+        for (index, edge) in edges.iter().enumerate() {
+            let position = edge.start().position();
+
+            match current {
+                Some(previous) if previous != position => {
+                    current = Some(position);
+                    writeln!(formatter, "")?;
+                }
+                None => {
+                    current = Some(position);
+                }
+                _ => {}
+            }
+
+            write!(formatter, "{edge}")?;
+
+            if index != edges.len() - 1 {
+                writeln!(formatter, "")?;
+            }
         }
 
         Ok(())
     }
 }
 
-impl QuantumGraph {
-    /// Create an empty quantum graph.
+impl Graph {
+    /// Create an empty `Graph`.
     pub fn new() -> Self {
         Self::default()
     }
@@ -587,6 +626,50 @@ impl QuantumGraph {
         })
     }
 
+    pub fn iter_edges_by_column(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+        self.iter_positions_by_column().flat_map(move |start| {
+            self.edges_out
+                .get(&start)
+                .into_iter()
+                .flat_map(move |edges| {
+                    let mut edges: Vec<_> = edges.iter().collect();
+
+                    edges.sort_by_key(|edge| {
+                        (edge.edge_type, edge.other.column(), edge.other.row())
+                    });
+
+                    edges.into_iter().filter_map(move |edge| {
+                        let start_view = self.get_node_view(start)?;
+                        let end_view = self.get_node_view(edge.other)?;
+
+                        Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
+                    })
+                })
+        })
+    }
+
+    pub fn iter_edges_by_row(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+        self.iter_positions_by_row().flat_map(move |start| {
+            self.edges_out
+                .get(&start)
+                .into_iter()
+                .flat_map(move |edges| {
+                    let mut edges: Vec<_> = edges.iter().collect();
+
+                    edges.sort_by_key(|edge| {
+                        (edge.edge_type, edge.other.row(), edge.other.column())
+                    });
+
+                    edges.into_iter().filter_map(move |edge| {
+                        let start_view = self.get_node_view(start)?;
+                        let end_view = self.get_node_view(edge.other)?;
+
+                        Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
+                    })
+                })
+        })
+    }
+
     /// Retrieve all the edges in the graph.
     ///
     /// Equivalent to collecting the output of `iter_edges`.
@@ -602,10 +685,10 @@ impl QuantumGraph {
             .into_iter()
             .flat_map(move |edges| {
                 edges.iter().filter_map(move |edge| {
-                    let start = self.get_node_view(position)?;
-                    let end = self.get_node_view(edge.other)?;
+                    let start_view = self.get_node_view(position)?;
+                    let end_view = self.get_node_view(edge.other)?;
 
-                    Some(GraphEdgeView::new(edge.edge_type, start, end))
+                    Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
                 })
             })
     }
@@ -618,26 +701,27 @@ impl QuantumGraph {
 
         let mut left = None;
         let mut right = None;
-        let mut swaps_with = None;
 
         let mut targets = Vec::new();
         let mut controlled_by = Vec::new();
+
+        let mut swaps_with = None;
         let mut works_with = Vec::new();
 
         if let Some(edges) = self.edges_out.get(&position) {
             for edge in edges {
                 let target_node = match self.get_node_view(edge.other) {
-                    Some(n) => n,
+                    Some(node) => node,
                     None => continue,
                 };
 
                 match edge.edge_type {
                     Left => left = Some(target_node),
                     Right => right = Some(target_node),
-                    SwapsWith => swaps_with = Some(target_node),
                     Targets => targets.push(target_node),
-                    WorksWith => works_with.push(target_node),
                     ControlledBy => {}
+                    SwapsWith => swaps_with = Some(target_node),
+                    WorksWith => works_with.push(target_node),
                 }
             }
         }
@@ -680,7 +764,7 @@ impl QuantumGraph {
 
                 if let Some(angle) = node.angle() {
                     label.push('(');
-                    label.push_str(&format::format_angle(angle));
+                    label.push_str(&formatter::format_angle(angle));
                     label.push(')');
                 }
 

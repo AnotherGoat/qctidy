@@ -42,9 +42,9 @@ pub(crate) fn normalize_angle(angle: f64, full_cycle: f64) -> Result<f64, &'stat
     Ok(result)
 }
 
-/// Rationalize number as a multiple of π.
+/// Rationalize number as a multiple of pi.
 ///
-/// Returns None if the number is not close to being a multiple of π.
+/// Returns None if the number is not close to being a multiple of pi.
 pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
     let pi_factor = number / PI;
 

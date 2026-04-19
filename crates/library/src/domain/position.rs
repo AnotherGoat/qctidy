@@ -2,7 +2,7 @@ use std::fmt;
 
 use getset::CopyGetters;
 
-/// Represents a (row, column) position in a QuantumGraph.
+/// Represents a (row, column) position in a `Graph`.
 ///
 /// Its values are guaranteed to be non-negative.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, CopyGetters)]

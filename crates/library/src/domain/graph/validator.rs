@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::domain::{
-    EdgeType, Position, QuantumGraph,
-    quantum_graph::{EdgeData, GraphError, schema::GateSchema},
+    EdgeType, Graph, Position,
+    graph::{EdgeData, GraphError, schema::GateSchema},
 };
 
 struct ValidationContext<'a> {
-    graph: &'a QuantumGraph,
+    graph: &'a Graph,
     component: &'a [Position],
     schema: &'a GateSchema,
     count: usize,
@@ -15,7 +15,7 @@ struct ValidationContext<'a> {
     actual_edges: HashMap<(EdgeType, usize, usize), usize>,
 }
 
-pub(crate) fn validate_graph_structure(graph: &QuantumGraph) -> Result<(), GraphError> {
+pub(crate) fn validate_graph_structure(graph: &Graph) -> Result<(), GraphError> {
     let components = find_components(graph);
     let mut covered = HashSet::new();
 
@@ -36,7 +36,7 @@ pub(crate) fn validate_graph_structure(graph: &QuantumGraph) -> Result<(), Graph
     Ok(())
 }
 
-fn find_components(graph: &QuantumGraph) -> Vec<Vec<Position>> {
+fn find_components(graph: &Graph) -> Vec<Vec<Position>> {
     let mut visited = HashSet::new();
     let mut components = Vec::new();
 
@@ -74,7 +74,7 @@ fn find_components(graph: &QuantumGraph) -> Vec<Vec<Position>> {
     components
 }
 
-fn validate_component(graph: &QuantumGraph, component: &[Position]) -> Result<(), GraphError> {
+fn validate_component(graph: &Graph, component: &[Position]) -> Result<(), GraphError> {
     let gate = graph.nodes[&component[0]].gate;
 
     if component
@@ -112,7 +112,7 @@ fn validate_component(graph: &QuantumGraph, component: &[Position]) -> Result<()
     Err(GraphError::InvalidGateStructure)
 }
 
-fn has_invalid_external_edges(graph: &QuantumGraph, component: &[Position]) -> bool {
+fn has_invalid_external_edges(graph: &Graph, component: &[Position]) -> bool {
     let set: HashSet<_> = component.iter().copied().collect();
 
     for position in component {
@@ -153,7 +153,7 @@ fn expected_edges(schema: &GateSchema) -> HashMap<(EdgeType, usize, usize), usiz
 }
 
 fn collect_edges(
-    graph: &QuantumGraph,
+    graph: &Graph,
     index_map: &HashMap<Position, usize>,
 ) -> HashMap<(EdgeType, usize, usize), usize> {
     let mut edges = HashMap::new();

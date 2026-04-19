@@ -1,19 +1,12 @@
 use std::fmt;
 
-use strum_macros::EnumString;
-
 /// The types of edges between graph nodes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString)]
-#[strum(serialize_all = "snake_case", ascii_case_insensitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum EdgeType {
     /// Edge to the node on the left (paired with Right).
     Left,
     /// Edge to the node on the right (paired with Left).
     Right,
-    /// Connects nodes that are swapped with each other (bidirectional).
-    ///
-    /// Only used in Swap and CSwap gates.
-    SwapsWith,
     /// Edge from controller to target (paired with ControlledBy).
     ///
     /// Used by all controlled gates.
@@ -22,6 +15,10 @@ pub enum EdgeType {
     ///
     /// Used by all controlled gates.
     ControlledBy,
+    /// Connects nodes that are swapped with each other (bidirectional).
+    ///
+    /// Only used in Swap and CSwap gates.
+    SwapsWith,
     /// Connects nodes that work together (bidirectional).
     ///
     /// Used in CZ and CCZ gates to make them work symmetrically.
@@ -32,7 +29,18 @@ pub enum EdgeType {
 
 impl fmt::Display for EdgeType {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.to_string())
+        use EdgeType::*;
+
+        let name = match self {
+            Left => "left",
+            Right => "right",
+            Targets => "targets",
+            ControlledBy => "controlled_by",
+            SwapsWith => "swaps_with",
+            WorksWith => "works_with",
+        };
+
+        write!(formatter, "{}", name)
     }
 }
 
@@ -50,6 +58,11 @@ impl EdgeType {
         }
     }
 
+    /// Check whether this edge type is bidirectional or not.
+    pub(crate) fn is_bidirectional(self) -> bool {
+        matches!(self.opposite(), None)
+    }
+
     /// Check whether this edge is related to the node's position or not.
     ///
     /// Positional edges never define a gate's structure.
@@ -61,11 +74,5 @@ impl EdgeType {
     /// Check whether this edge is related to a gate's semantic structure or not.
     pub(crate) fn is_semantic(self) -> bool {
         !self.is_positional()
-    }
-
-    /// Check whether this edge type is bidirectional or not.
-    pub(crate) fn is_bidirectional(self) -> bool {
-        use EdgeType::*;
-        matches!(self, SwapsWith | WorksWith)
     }
 }

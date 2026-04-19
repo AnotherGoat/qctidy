@@ -19,6 +19,7 @@ edition = "2024"
 
 [workspace.dependencies]
 getset = "0.1.6"
+inew = { git = "https://github.com/AnotherGoat/inew" }
 num-rational = "0.4.2"
 pyo3 = "0.28"
 serde = "1"

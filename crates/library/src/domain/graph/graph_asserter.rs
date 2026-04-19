@@ -1,15 +1,15 @@
 use crate::{
-    domain::{EdgeType, GateType, Position, QuantumGraph},
+    domain::{EdgeType, GateType, Graph, Position},
     utils::math,
     view::{GraphNodeView, NodeEdgeView},
 };
 
 pub(crate) struct GraphAsserter<'a> {
-    graph: &'a QuantumGraph,
+    graph: &'a Graph,
 }
 
 impl<'a> GraphAsserter<'a> {
-    pub(crate) fn new(graph: &'a QuantumGraph) -> Self {
+    pub(crate) fn new(graph: &'a Graph) -> Self {
         Self { graph }
     }
 
@@ -47,7 +47,7 @@ impl<'a> GraphAsserter<'a> {
 }
 
 pub(crate) struct NodeAsserter<'a> {
-    graph: &'a QuantumGraph,
+    graph: &'a Graph,
     position: Position,
 }
 

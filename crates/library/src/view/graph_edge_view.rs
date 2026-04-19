@@ -6,7 +6,7 @@ use crate::domain::EdgeType;
 
 use super::GraphNodeView;
 
-/// A read-only view of an edge in a QuantumGraph, which connects two nodes in a single direction.
+/// A read-only view of an edge in a `Graph`, which connects two nodes in a single direction.
 #[derive(Debug, Clone, PartialEq, Getters, CopyGetters)]
 pub struct GraphEdgeView {
     /// The type of edge.

@@ -25,7 +25,7 @@ It started as an enhanced port of a previousprototype that was written in Python
 
 ## Features
 
-- **Graph-based circuit representation**: quantum circuits are modelled as a hybrid directed graph / 2D matrix (`QuantumGraph`), where each qubit is a row and each "time step" is a column.
+- **Graph-based circuit representation**: quantum circuits are modelled as a hybrid directed graph / 2D matrix (`Graph`), where each qubit is a row and each "time step" is a column.
   - This structure allows easy analysis and manipulation.
   - The directed graph is used to store semantic relationships between nodes (e.g., control or target qubits).
   - The 2D matrix is used to speed up element access by position

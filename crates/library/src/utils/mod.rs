@@ -1,7 +1,7 @@
-pub(crate) mod format;
+pub(crate) mod formatter;
 pub(crate) mod math;
 
 #[cfg(test)]
-mod format_tests;
+mod formatter_tests;
 #[cfg(test)]
 mod math_tests;

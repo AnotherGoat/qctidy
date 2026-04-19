@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    domain::{GateType, Position, QuantumGraph},
+    domain::{GateType, Graph, Position},
     utils::math,
     view::GraphNodeView,
 };
 
-pub fn normalize(graph: &mut QuantumGraph) {
+pub fn normalize(graph: &mut Graph) {
     remove_identity_nodes(graph);
     normalize_angles(graph);
     normalize_bits(graph);
@@ -14,7 +14,7 @@ pub fn normalize(graph: &mut QuantumGraph) {
     compact_columns(graph);
 }
 
-fn remove_identity_nodes(graph: &mut QuantumGraph) {
+fn remove_identity_nodes(graph: &mut Graph) {
     let positions: Vec<_> = graph
         .iter_nodes_by_row()
         .filter(|node| node.r#type() == GateType::ID)
@@ -26,7 +26,7 @@ fn remove_identity_nodes(graph: &mut QuantumGraph) {
     }
 }
 
-fn normalize_angles(graph: &mut QuantumGraph) {
+fn normalize_angles(graph: &mut Graph) {
     let nodes: Vec<GraphNodeView> = graph.iter_nodes_by_row().collect();
 
     for node in nodes {
@@ -34,7 +34,7 @@ fn normalize_angles(graph: &mut QuantumGraph) {
     }
 }
 
-fn normalize_angle(graph: &mut QuantumGraph, node: GraphNodeView) {
+fn normalize_angle(graph: &mut Graph, node: GraphNodeView) {
     let gate = node.r#type();
     let position = node.position();
 
@@ -56,7 +56,7 @@ fn normalize_angle(graph: &mut QuantumGraph, node: GraphNodeView) {
     graph.replace_node(gate, position, Some(normalized), node.bit());
 }
 
-fn normalize_bits(graph: &mut QuantumGraph) {
+fn normalize_bits(graph: &mut Graph) {
     let measurements: Vec<_> = graph
         .iter_nodes_by_row()
         .filter(|node| node.r#type() == GateType::Measure)
@@ -82,7 +82,7 @@ fn normalize_bits(graph: &mut QuantumGraph) {
     }
 }
 
-fn compact_rows(graph: &mut QuantumGraph) {
+fn compact_rows(graph: &mut Graph) {
     let mut rows: Vec<_> = graph
         .iter_nodes_by_row()
         .map(|node| node.position().row())
@@ -100,7 +100,7 @@ fn compact_rows(graph: &mut QuantumGraph) {
     remap_rows(graph, &mapping);
 }
 
-fn remap_rows(graph: &mut QuantumGraph, mapping: &HashMap<usize, usize>) {
+fn remap_rows(graph: &mut Graph, mapping: &HashMap<usize, usize>) {
     let nodes: Vec<_> = graph.iter_nodes_by_row().collect();
 
     for node in nodes {
@@ -114,7 +114,7 @@ fn remap_rows(graph: &mut QuantumGraph, mapping: &HashMap<usize, usize>) {
     }
 }
 
-fn compact_columns(graph: &mut QuantumGraph) {
+fn compact_columns(graph: &mut Graph) {
     let mut columns: Vec<_> = graph
         .iter_nodes_by_column()
         .map(|node| node.position().column())

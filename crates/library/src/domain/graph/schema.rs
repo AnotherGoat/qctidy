@@ -4,7 +4,7 @@ use GateType::*;
 
 /// A schema for a gate, which defines the number of graph nodes and edges required for it to be valid.
 ///
-/// This is used to validate the internal semantic structure of `QuantumGraphs`.
+/// This is used to validate the internal semantic structure of `Graphs`.
 /// A gate may be thought of as a molecule, where the nodes are atoms and the edges are bonds.
 pub(super) struct GateSchema {
     /// The type of gate this schema is for.

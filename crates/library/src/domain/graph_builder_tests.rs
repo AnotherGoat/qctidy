@@ -1,6 +1,6 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
-use crate::domain::{GateType, Position, graph_asserter::GraphAsserter};
+use crate::domain::{GateType, Position, graph::graph_asserter::GraphAsserter};
 
 use super::graph_builder::*;
 use GateType::*;

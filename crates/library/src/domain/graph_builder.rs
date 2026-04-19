@@ -1,19 +1,22 @@
 use std::fmt;
 
-use crate::domain::{EdgeType, GateType, Position, QuantumGraph};
+use crate::{
+    domain::{EdgeType, GateType, Graph, Position},
+    dto::gate_operation::GateOperation,
+};
 
-/// Provides an interface for easily building `QuantumGraphs`.
+/// Provides an interface for easily building `Graphs`.
 ///
-/// This is the recommended way to build a `QuantumGraph`, because it automatically builds the required nodes and edges.
+/// This is the recommended way to build a `Graph`, because it automatically builds the required nodes and edges.
 // Note: Prefer using the `push_*` methods over the `put_*` methods, since the last ones may break the graph when used incorrectly.
 #[derive(Default, Debug)]
 pub struct GraphBuilder {
-    graph: QuantumGraph,
+    graph: Graph,
 }
 
 impl fmt::Display for GraphBuilder {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{:?}", self.graph)
+        write!(formatter, "{}", self.graph.to_string())
     }
 }
 
@@ -21,6 +24,55 @@ impl GraphBuilder {
     /// Create an empty graph builder.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Push a gate operation at the end of the graph.
+    pub fn push_operation(&mut self, operation: &GateOperation) -> &mut Self {
+        use GateOperation::*;
+
+        match operation {
+            ID { qubit } => self.push_id(*qubit),
+            H { qubit } => self.push_h(*qubit),
+            X { qubit } => self.push_x(*qubit),
+            Y { qubit } => self.push_y(*qubit),
+            Z { qubit } => self.push_z(*qubit),
+            P { angle, qubit } => self.push_p(*angle, *qubit),
+            RX { angle, qubit } => self.push_rx(*angle, *qubit),
+            RY { angle, qubit } => self.push_ry(*angle, *qubit),
+            RZ { angle, qubit } => self.push_rz(*angle, *qubit),
+            S { qubit } => self.push_s(*qubit),
+            SDG { qubit } => self.push_sdg(*qubit),
+            SX { qubit } => self.push_sx(*qubit),
+            SY { qubit } => self.push_sy(*qubit),
+            T { qubit } => self.push_t(*qubit),
+            TDG { qubit } => self.push_tdg(*qubit),
+            Measure { qubit, bit } => self.push_measure(*qubit, *bit),
+            Swap { qubit1, qubit2 } => self.push_swap(*qubit1, *qubit2),
+            CH { control, target } => self.push_ch(*control, *target),
+            CX { control, target } => self.push_cx(*control, *target),
+            CY { control, target } => self.push_cy(*control, *target),
+            CZ { qubit1, qubit2 } => self.push_cz(*qubit1, *qubit2),
+            CP {
+                angle,
+                control,
+                target,
+            } => self.push_cp(*angle, *control, *target),
+            CSwap {
+                control,
+                target1,
+                target2,
+            } => self.push_cswap(*control, *target1, *target2),
+            CCX {
+                control1,
+                control2,
+                target,
+            } => self.push_ccx(*control1, *control2, *target),
+            CCZ {
+                qubit1,
+                qubit2,
+                qubit3,
+            } => self.push_ccz(*qubit1, *qubit2, *qubit3),
+        }
     }
 
     /// Push a ID gate at the end of the graph, which effectively does nothing.
@@ -615,7 +667,7 @@ impl GraphBuilder {
     /// Build the graph to get a working result.
     ///
     /// The output is cloned, so the builder can be reused after this.
-    pub fn build(&self) -> QuantumGraph {
+    pub fn build(&self) -> Graph {
         self.graph.clone()
     }
 }

@@ -154,7 +154,7 @@ impl GateType {
     /// Get the number of qubits used by this type of gate.
     ///
     /// Identity gates return 0 because they add no value to the circuit.
-    pub(crate) fn number_of_qubits(self) -> usize {
+    pub(crate) fn qubit_count(self) -> usize {
         use GateType::*;
         match self {
             ID => 0,
@@ -166,7 +166,7 @@ impl GateType {
 
     /// Check whether this gate type uses multiple qubits or not.
     pub(crate) fn is_multi_qubit(self) -> bool {
-        self.number_of_qubits() > 1
+        self.qubit_count() > 1
     }
 
     /// Get the number of control qubits used by this type of gate.
@@ -203,5 +203,15 @@ impl GateType {
     /// Check whether this gate type has a single control and a single target qubit.
     pub(crate) fn is_single_controlled(self) -> bool {
         self.control_qubit_count() == 1 && self.target_qubit_count() == 1
+    }
+
+    /// Get the number of classical bits used by this type of gate.
+    pub(crate) fn bit_count(self) -> usize {
+        use GateType::*;
+
+        match self {
+            Measure => 1,
+            _ => 0,
+        }
     }
 }

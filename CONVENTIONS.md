@@ -158,9 +158,11 @@ circuit.p(2*pi, 2)
 circuit.measure(2, 0)
 circuit.swap(1, 2)
 
-result = qsimplify_qiskit.build_graph(circuit)
+print("Graph:")
+print(qsimplify_qiskit.display_graph(circuit))
 
-print(result)
+print("Grid:")
+print(qsimplify_qiskit.display_grid(circuit))
 ```
 
 And run it:

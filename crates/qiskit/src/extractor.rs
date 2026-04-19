@@ -5,7 +5,9 @@ use pyo3::prelude::*;
 use pyo3::{PyAny, PyResult};
 
 use qsimplify::domain::GateType;
-use qsimplify::dto::gate::GateOperation;
+use qsimplify::dto::gate_operation::GateOperation;
+
+const EXPECTED_SY: [[(f64, f64); 2]; 2] = [[(0.5, 0.5), (-0.5, -0.5)], [(0.5, 0.5), (0.5, 0.5)]];
 
 pub(crate) fn extract_operations(circuit: &Bound<'_, PyAny>) -> PyResult<Vec<GateOperation>> {
     let data = circuit.getattr("data")?;
@@ -26,6 +28,8 @@ fn parse_instruction(
     circuit: &Bound<'_, PyAny>,
     instruction: &Bound<'_, PyAny>,
 ) -> PyResult<Option<GateOperation>> {
+    use GateType::*;
+
     let operation = instruction.getattr("operation")?;
     let name: String = operation.getattr("name")?.extract()?;
 
@@ -33,17 +37,61 @@ fn parse_instruction(
         return Ok(None);
     }
 
+    if name == "unitary" {
+        if is_unitary_sy(&operation)? {
+            let qubits = extract_qubit_indices(circuit, instruction)?;
+            let qubit = qubits
+                .get(0)
+                .ok_or_else(|| PyValueError::new_err("SY gate is missing a qubit"))?;
+
+            return Ok(Some(GateOperation::sy(*qubit)));
+        } else {
+            return Err(PyValueError::new_err(
+                "Unsupported unitary gate (only SY is allowed)",
+            ));
+        }
+    }
+
     let r#type = extract_gate_type(&name)?;
     let qubits = extract_qubit_indices(circuit, instruction)?;
     let bits = extract_bit_indices(circuit, instruction)?;
     let parameters = extract_parameters(&operation)?;
 
-    Ok(Some(GateOperation {
-        r#type,
-        qubits,
-        bits,
-        parameters,
-    }))
+    let qubit0 = get_qubit(&qubits, 0)?;
+
+    let operation = match r#type {
+        ID => return Ok(None),
+        H => GateOperation::h(qubit0),
+        X => GateOperation::x(qubit0),
+        Y => GateOperation::y(qubit0),
+        Z => GateOperation::z(qubit0),
+        S => GateOperation::s(qubit0),
+        SDG => GateOperation::sdg(qubit0),
+        SX => GateOperation::sx(qubit0),
+        SY => GateOperation::sy(qubit0),
+        T => GateOperation::t(qubit0),
+        TDG => GateOperation::tdg(qubit0),
+        P => GateOperation::p(get_parameter(&parameters, 0)?, qubit0),
+        RX => GateOperation::rx(get_parameter(&parameters, 0)?, qubit0),
+        RY => GateOperation::ry(get_parameter(&parameters, 0)?, qubit0),
+        RZ => GateOperation::rz(get_parameter(&parameters, 0)?, qubit0),
+        Measure => GateOperation::measure(qubit0, get_bit(&bits, 0)?),
+        Swap => GateOperation::swap(qubit0, get_qubit(&qubits, 1)?),
+        CH => GateOperation::ch(qubit0, get_qubit(&qubits, 1)?),
+        CX => GateOperation::cx(qubit0, get_qubit(&qubits, 1)?),
+        CY => GateOperation::cy(qubit0, get_qubit(&qubits, 1)?),
+        CZ => GateOperation::cz(qubit0, get_qubit(&qubits, 1)?),
+        CP => GateOperation::cp(
+            get_parameter(&parameters, 0)?,
+            qubit0,
+            get_qubit(&qubits, 1)?,
+        ),
+        CSwap => GateOperation::c_swap(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
+        CCX => GateOperation::ccx(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
+        CCZ => GateOperation::ccz(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
+    };
+
+    Ok(Some(operation))
 }
 
 fn extract_gate_type(name: &str) -> PyResult<GateType> {
@@ -51,6 +99,52 @@ fn extract_gate_type(name: &str) -> PyResult<GateType> {
         Ok(r#type) => Ok(r#type),
         Err(_) => Err(PyValueError::new_err(format!("Unsupported gate: {}", name))),
     }
+}
+
+fn is_unitary_sy(operation: &Bound<'_, PyAny>) -> PyResult<bool> {
+    let name: String = operation.getattr("name")?.extract()?;
+
+    if name != "unitary" {
+        return Ok(false);
+    }
+
+    let num_qubits: usize = operation.getattr("num_qubits")?.extract()?;
+    let num_clbits: usize = operation.getattr("num_clbits")?.extract()?;
+
+    if num_qubits != 1 || num_clbits != 0 {
+        return Ok(false);
+    }
+
+    let params = operation.getattr("params")?;
+    let params: Vec<Bound<'_, PyAny>> = params.extract()?;
+
+    if params.len() != 1 {
+        return Ok(false);
+    }
+
+    let matrix = &params[0];
+
+    // Extract Python matrix into Rust structure
+    let extracted: Vec<Vec<(f64, f64)>> = matrix.extract()?;
+
+    if extracted.len() != 2 || extracted[0].len() != 2 {
+        return Ok(false);
+    }
+
+    let eps = 1e-8;
+
+    for i in 0..2 {
+        for j in 0..2 {
+            let (re, im) = extracted[i][j];
+            let (er, ei) = EXPECTED_SY[i][j];
+
+            if (re - er).abs() > eps || (im - ei).abs() > eps {
+                return Ok(false);
+            }
+        }
+    }
+
+    Ok(true)
 }
 
 fn extract_qubit_indices(
@@ -103,6 +197,30 @@ fn extract_bit_indices(
 
 fn extract_parameters(operation: &Bound<'_, PyAny>) -> PyResult<Vec<f64>> {
     let python_parameters = operation.getattr("params")?;
-    let parameters: Vec<f64> = python_parameters.extract()?;
+
+    let parameters: Vec<f64> = python_parameters
+        .extract()
+        .map_err(|_| PyValueError::new_err("Failed to extract gate parameters as floats"))?;
+
     Ok(parameters)
+}
+
+fn get_qubit(qubits: &Vec<usize>, index: usize) -> Result<usize, PyErr> {
+    qubits
+        .get(index)
+        .copied()
+        .ok_or_else(|| PyValueError::new_err(format!("Missing qubit at index {}", index)))
+}
+
+fn get_bit(bits: &Vec<usize>, index: usize) -> Result<usize, PyErr> {
+    bits.get(index)
+        .copied()
+        .ok_or_else(|| PyValueError::new_err(format!("Missing bit at index {}", index)))
+}
+
+fn get_parameter(parameters: &Vec<f64>, index: usize) -> Result<f64, PyErr> {
+    parameters
+        .get(index)
+        .copied()
+        .ok_or_else(|| PyValueError::new_err(format!("Missing parameter at index {}", index)))
 }
