@@ -7,3 +7,6 @@ edition.workspace = true
 qsimplify = { path = "../library" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+
+[lints]
+workspace = true

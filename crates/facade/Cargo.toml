@@ -10,3 +10,6 @@ qsimplify-converter = { path = "../converter" }
 qsimplify-estimator = { path = "../estimator" }
 qsimplify-presenter = { path = "../presenter" }
 qsimplify-storage = { path = "../storage" }
+
+[lints]
+workspace = true

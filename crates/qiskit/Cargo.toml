@@ -11,3 +11,6 @@ crate-type = ["cdylib"]
 qsimplify = { path = "../library" }
 qsimplify-facade = { path = "../facade" }
 pyo3 = { workspace = true, features = ["extension-module"] }
+
+[lints]
+workspace = true
