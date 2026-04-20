@@ -1,10 +1,24 @@
-#![warn(missing_docs)]
-
+pub(crate) mod application;
 /// Contains domain structures used to represent a `Graph`.
-pub mod domain;
-pub mod dto;
-pub mod simplifier;
-/// Contains general logic and text display utilities.
-pub(crate) mod utils;
-/// Provides views for nodes and edges inside a `Graph`.
-pub mod view;
+pub(crate) mod domain;
+pub(crate) mod interface;
+
+pub use application::graph_builder::GraphBuilder;
+pub use domain::graph::{
+    Graph, edge_type::EdgeType, gate_type::GateType, graph_error::GraphError, position::Position,
+};
+pub use interface::projection::{
+    contextual_node_view::ContextualNodeView, edge_view::EdgeView, node_view::NodeView,
+};
+
+pub mod dto {
+    pub use crate::interface::dto::gate_operation::GateOperation;
+
+    pub mod mapper {
+        pub use crate::interface::dto::mapper::{graph_to_operations, operations_to_graph};
+    }
+}
+
+pub mod simplifier {
+    pub use crate::application::simplifier::simplify;
+}

@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{
-    domain::{EdgeType, Graph, Position, graph::EdgeData},
-    view::{GraphEdgeView, GraphNodeView},
-};
+use crate::{EdgeType, EdgeView, Graph, NodeView, Position, domain::graph::EdgeData};
 
 impl Graph {
     /// Iterate over the graph's positions that have nodes, first row and then by column.
@@ -48,17 +45,17 @@ impl Graph {
     ///
     /// The iteration order is not guaranteed and depends on the internal `HashMap`.
     /// Use `iter_nodes_by_row` or `iter_nodes_by_column` for deterministic traversal.
-    pub fn iter_nodes(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
+    pub fn iter_nodes(&self) -> impl Iterator<Item = NodeView> + '_ {
         self.nodes
             .iter()
-            .map(|(position, node)| GraphNodeView::new(node.gate, *position, node.angle, node.bit))
+            .map(|(position, node)| NodeView::new(node.gate, *position, node.angle, node.bit))
     }
 
     /// Iterate over the graph's nodes, first row by row and then column by column.
     ///
     /// This provides deterministic traversal based on a grid structure.
     /// Empty or identity nodes are skipped.
-    pub fn iter_nodes_ordered_by_row(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
+    pub fn iter_nodes_ordered_by_row(&self) -> impl Iterator<Item = NodeView> + '_ {
         self.iter_positions_ordered_by_row()
             .filter_map(|position| self.get_node(position))
     }
@@ -67,12 +64,12 @@ impl Graph {
     ///
     /// This provides deterministic traversal based on a grid structure.
     /// Empty or identity nodes are skipped.
-    pub fn iter_nodes_ordered_by_column(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
+    pub fn iter_nodes_ordered_by_column(&self) -> impl Iterator<Item = NodeView> + '_ {
         self.iter_positions_ordered_by_column()
             .filter_map(|position| self.get_node(position))
     }
 
-    pub(crate) fn iter_edges_by_row(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    pub(crate) fn iter_edges_by_row(&self) -> impl Iterator<Item = EdgeView> + '_ {
         self.iter_positions_ordered_by_row()
             .flat_map(move |position| {
                 self.sorted_node_edges(position, |edge| {
@@ -81,7 +78,7 @@ impl Graph {
             })
     }
 
-    pub(crate) fn iter_edges_by_column(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    pub(crate) fn iter_edges_by_column(&self) -> impl Iterator<Item = EdgeView> + '_ {
         self.iter_positions_ordered_by_column()
             .flat_map(move |position| {
                 self.sorted_node_edges(position, |edge| {
@@ -94,7 +91,7 @@ impl Graph {
         &self,
         position: Position,
         key: impl Fn(&EdgeData) -> (EdgeType, usize, usize),
-    ) -> Vec<GraphEdgeView> {
+    ) -> Vec<EdgeView> {
         let mut edges: Vec<_> = self
             .edges_out
             .get(&position)
@@ -109,7 +106,7 @@ impl Graph {
             .filter_map(move |edge| {
                 let start = self.get_node(position)?;
                 let end = self.get_node(edge.other)?;
-                Some(GraphEdgeView::new(edge.edge_type, start, end))
+                Some(EdgeView::new(edge.edge_type, start, end))
             })
             .collect()
     }
@@ -118,7 +115,7 @@ impl Graph {
     ///
     /// Bidirectional edges like `SwapsWith` and `WorksWith` will be duplicated.
     /// To get deduplicated edges, use `iter_edges_unique`.
-    pub fn iter_edges(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    pub fn iter_edges(&self) -> impl Iterator<Item = EdgeView> + '_ {
         self.nodes
             .keys()
             .flat_map(move |position| self.iter_edges_from(*position))
@@ -127,7 +124,7 @@ impl Graph {
     /// Iterate over edges in the graph in arbitrary order.
     ///
     /// Bidirectional edges like `SwapsWith` and `WorksWith` are deduplicated.
-    pub fn iter_edges_unique(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    pub fn iter_edges_unique(&self) -> impl Iterator<Item = EdgeView> + '_ {
         Self::deduplicate_edges(self.iter_edges())
     }
 
@@ -135,7 +132,7 @@ impl Graph {
     ///
     /// Bidirectional edges like `SwapsWith` and `WorksWith` will be duplicated.
     /// To get deduplicated node edges, use `iter_edges_from_unique`.
-    pub fn iter_edges_from(&self, position: Position) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    pub fn iter_edges_from(&self, position: Position) -> impl Iterator<Item = EdgeView> + '_ {
         let mut edges = Vec::new();
 
         if let Some(outgoing) = self.edges_out.get(&position) {
@@ -143,7 +140,7 @@ impl Graph {
                 if let (Some(start), Some(end)) =
                     (self.get_node(position), self.get_node(edge.other))
                 {
-                    edges.push(GraphEdgeView::new(edge.edge_type, start, end));
+                    edges.push(EdgeView::new(edge.edge_type, start, end));
                 }
             }
         }
@@ -157,13 +154,13 @@ impl Graph {
     pub fn iter_edges_from_unique(
         &self,
         position: Position,
-    ) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    ) -> impl Iterator<Item = EdgeView> + '_ {
         Self::deduplicate_edges(self.iter_edges_from(position))
     }
 
     fn deduplicate_edges(
-        iterator: impl Iterator<Item = GraphEdgeView>,
-    ) -> impl Iterator<Item = GraphEdgeView> {
+        iterator: impl Iterator<Item = EdgeView>,
+    ) -> impl Iterator<Item = EdgeView> {
         let mut seen = HashSet::new();
 
         iterator.filter(move |edge| {
@@ -184,7 +181,7 @@ impl Graph {
     pub fn iter_semantic_edges_out_from(
         &self,
         position: Position,
-    ) -> impl Iterator<Item = GraphEdgeView> + '_ {
+    ) -> impl Iterator<Item = EdgeView> + '_ {
         self.iter_edges_from_unique(position)
             .filter(|edge| edge.r#type().is_semantic())
     }

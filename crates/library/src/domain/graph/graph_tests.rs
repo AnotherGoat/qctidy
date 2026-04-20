@@ -1,10 +1,7 @@
 use std::f64::consts::FRAC_PI_2;
 
 use super::*;
-use crate::{
-    domain::{EdgeType, GateType, GraphBuilder, Position},
-    view::GraphEdgeView,
-};
+use crate::{EdgeType, EdgeView, GateType, GraphBuilder, Position};
 use EdgeType::*;
 use GateType::*;
 
@@ -252,7 +249,7 @@ fn removing_middle_node_reconnects_neighbors() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         Right,
         graph.get_node(first).unwrap(),
         graph.get_node(third).unwrap()
@@ -345,12 +342,12 @@ fn move_node_preserves_edges() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         Right,
         cx_controller.clone(),
         hadamard.clone()
     )));
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         Targets,
         cx_controller.clone(),
         cx_target.clone()
@@ -405,12 +402,12 @@ fn add_bidirectional_edge_creates_two_edges() {
 
     let edges: Vec<_> = graph.iter_edges().collect();
 
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         WorksWith,
         graph.get_node(first).unwrap(),
         graph.get_node(second).unwrap()
     )));
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         WorksWith,
         graph.get_node(second).unwrap(),
         graph.get_node(first).unwrap()
@@ -444,12 +441,12 @@ fn connect_row_neighbors_relinks_correctly() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         Right,
         graph.get_node(start).unwrap(),
         graph.get_node(middle).unwrap()
     )));
-    assert!(edges.contains(&GraphEdgeView::new(
+    assert!(edges.contains(&EdgeView::new(
         Right,
         graph.get_node(middle).unwrap(),
         graph.get_node(end).unwrap()
@@ -474,7 +471,7 @@ fn connect_row_neighbors_removes_direct_connection() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(!edges.contains(&GraphEdgeView::new(
+    assert!(!edges.contains(&EdgeView::new(
         Right,
         graph.get_node(first).unwrap(),
         graph.get_node(third).unwrap()
@@ -576,7 +573,7 @@ fn clear_edges_keeps_nodes() {
 }
 
 #[test]
-fn node_edge_view_collects_edges_correctly() {
+fn get_node_and_edges_collects_edges_correctly() {
     let mut graph = Graph::new();
 
     let first = Position::new(0, 0);
@@ -587,12 +584,12 @@ fn node_edge_view_collects_edges_correctly() {
 
     graph.add_edge(Right, first, second).unwrap();
 
-    let left_view = graph.get_node_and_edges(first).unwrap();
+    let left_view = graph.get_contextual_view(first).unwrap();
 
     assert!(left_view.right().is_some());
     assert!(left_view.left().is_none());
 
-    let right_view = graph.get_node_and_edges(second).unwrap();
+    let right_view = graph.get_contextual_view(second).unwrap();
 
     assert!(right_view.right().is_none());
     assert!(right_view.left().is_some());

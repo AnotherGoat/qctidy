@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
-use qsimplify::dto::gate_operation::GateOperation;
+use qsimplify::dto::GateOperation;
 
 pub fn operations_to_circuit(
     python: Python<'_>,

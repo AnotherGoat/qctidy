@@ -1,7 +1,4 @@
-use qsimplify::{
-    dto::{gate_operation::GateOperation, mapper},
-    simplifier,
-};
+use qsimplify::{dto::GateOperation, dto::mapper, simplifier};
 
 pub fn display_graph(operations: &[GateOperation]) -> String {
     let graph = mapper::operations_to_graph(operations);

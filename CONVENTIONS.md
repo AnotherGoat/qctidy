@@ -27,6 +27,9 @@ prek prepare-hooks
 
 - Add any additional crates inside the `crates/` directory.
 - Always create a `mod.rs` file inside each submodule directory. Avoid creating a `.rs` file beside the submodule directory with the same name.
+- Inside any module that is not `lib.rs`, never create `pub` modules. Keep their visiblity as `pub(crate)` at most.
+- Only create public modules if they are meant to be part of the public API, and declare them in the root `lib.rs` module using `pub mod` and `pub use` as needed.
+- Keep the public APIs plain, without requiring the user to use highly nested paths. Use `pub use` to convert nested submodules into plain ones.
 
 ## Adding Dependencies
 
@@ -71,7 +74,7 @@ In addition, use the following naming conventions:
 - Unit tests live in `#[cfg(test)]` local modules in the same directory as the original source file, with the `_tests` suffix added to the original module name.
 - Integration tests live in a `tests/` directory inside the relevant crate.
 - Name tests descriptively, but don't add the `test` prefix to its functions. Take the name of the original function as a reference when naming them.
-- No minimum coverage threshold is currently enforced yet, but all public functions should have at least one test covering the "happy" execution path.
+- No minimum coverage threshold is enforced yet, but all public functions should have at least one test covering the "happy" execution path.
 
 ## Commit Style
 
@@ -112,6 +115,7 @@ In addition, follow these conventions:
 - If a commit includes too many changes, then split it into multiple ones. Try keeping commits atomic in general.
 - You may include any important additional details in the commit body, but you'll rarely need to do so if the commits are atomic.
 - Always add the scope in parentheses. If a change targets the whole repository, use `global` as the commit scope.
+- Usually, crate or module names are good enough to qualify as commit scopes.
 - Add any meaningful new features to the [CHANGELOG.md](CHANGELOG.md) file.
 
 ## Python bindings testing

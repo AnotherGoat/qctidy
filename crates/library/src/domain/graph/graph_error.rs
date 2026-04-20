@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::domain::{EdgeType, GateType, Position};
+use crate::{EdgeType, GateType, Position};
 
 /// Error that can occur while working with a `Graph`.
 #[derive(Debug, Error)]

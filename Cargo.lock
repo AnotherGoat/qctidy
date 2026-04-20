@@ -208,6 +208,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "qsimplify-analyzer"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
+]
+
+[[package]]
 name = "qsimplify-cli"
 version = "0.1.0"
 dependencies = [

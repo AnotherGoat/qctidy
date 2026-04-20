@@ -1,18 +1,14 @@
-use crate::{
-    domain::{GateType, Graph, Position},
-    utils::math,
-    view::{GraphNodeView, NodeEdgeView},
-};
+use inew::New;
 
+use crate::{ContextualNodeView, GateType, Graph, NodeView, Position, domain::math};
+
+#[derive(New)]
+#[new(pub(crate), const)]
 pub(crate) struct GraphAsserter<'a> {
     graph: &'a Graph,
 }
 
 impl<'a> GraphAsserter<'a> {
-    pub(crate) fn new(graph: &'a Graph) -> Self {
-        Self { graph }
-    }
-
     pub(crate) fn is_empty(&self) -> &Self {
         assert!(self.graph.is_empty());
         &self
@@ -82,7 +78,7 @@ impl<'a> NodeAsserter<'a> {
 
     pub(crate) fn has_right(self, expected: Position) -> Self {
         let actual = self
-            .edge_view()
+            .contextual_view()
             .right()
             .as_ref()
             .map(|node| node.position());
@@ -91,13 +87,13 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn has_no_right(self) -> Self {
-        assert!(self.edge_view().right().is_none());
+        assert!(self.contextual_view().right().is_none());
         self
     }
 
     pub(crate) fn targets(self, expected: &[Position]) -> Self {
         self.compare_positions(
-            self.edge_view()
+            self.contextual_view()
                 .targets()
                 .iter()
                 .map(|node| node.position()),
@@ -107,13 +103,13 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn targets_none(self) -> Self {
-        assert!(self.edge_view().targets().is_empty());
+        assert!(self.contextual_view().targets().is_empty());
         self
     }
 
     pub(crate) fn works_with(self, expected: &[Position]) -> Self {
         self.compare_positions(
-            self.edge_view()
+            self.contextual_view()
                 .works_with()
                 .iter()
                 .map(|node| node.position()),
@@ -123,13 +119,13 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn works_with_none(self) -> Self {
-        assert!(self.edge_view().works_with().is_empty());
+        assert!(self.contextual_view().works_with().is_empty());
         self
     }
 
     pub(crate) fn swaps_with(self, expected: Position) -> Self {
         let actual = self
-            .edge_view()
+            .contextual_view()
             .swaps_with()
             .as_ref()
             .map(|node| node.position());
@@ -138,7 +134,7 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn swaps_with_none(self) -> Self {
-        assert!(self.edge_view().swaps_with().is_none());
+        assert!(self.contextual_view().swaps_with().is_none());
         self
     }
 
@@ -155,12 +151,12 @@ impl<'a> NodeAsserter<'a> {
         assert_eq!(actual, expected);
     }
 
-    fn view(&self) -> GraphNodeView {
+    fn view(&self) -> NodeView {
         self.graph.get_node(self.position).unwrap()
     }
 
-    fn edge_view(&self) -> NodeEdgeView {
-        self.graph.get_node_and_edges(self.position).unwrap()
+    fn contextual_view(&self) -> ContextualNodeView {
+        self.graph.get_contextual_view(self.position).unwrap()
     }
 }
 

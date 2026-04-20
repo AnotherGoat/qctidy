@@ -4,8 +4,8 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::{PyAny, PyResult};
 
-use qsimplify::domain::GateType;
-use qsimplify::dto::gate_operation::GateOperation;
+use qsimplify::GateType;
+use qsimplify::dto::GateOperation;
 
 const EXPECTED_SY: [[(f64, f64); 2]; 2] = [[(0.5, 0.5), (-0.5, -0.5)], [(0.5, 0.5), (0.5, 0.5)]];
 

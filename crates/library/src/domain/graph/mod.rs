@@ -1,12 +1,12 @@
-mod display;
-mod graph_error;
+pub(crate) mod edge_type;
+pub(crate) mod gate_type;
+pub(crate) mod graph_error;
 mod iterator;
+pub(crate) mod position;
 mod schema;
-pub(crate) mod semantic_validator;
-pub(crate) mod structural_validator;
+mod semantic_validator;
+mod structural_validator;
 
-#[cfg(test)]
-mod display_tests;
 #[cfg(test)]
 pub(crate) mod graph_asserter;
 #[cfg(test)]
@@ -15,9 +15,8 @@ mod graph_tests;
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    domain::{EdgeType, GateType, Position, graph::graph_error::GraphError},
-    utils::{formatter, math},
-    view::{GraphNodeView, NodeEdgeView},
+    ContextualNodeView, EdgeType, GateType, NodeView, Position,
+    domain::{graph::graph_error::GraphError, math},
 };
 
 #[derive(Debug, Clone)]
@@ -293,14 +292,14 @@ impl Graph {
             .unwrap_or(false)
     }
 
-    /// Retrieve a read-only view of the node at the specified position.
+    /// Retrieve a read-only projection of the node at the specified position.
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node data in a view-friendly format, decoupling the internal representation from consumers.
-    pub fn get_node(&self, position: Position) -> Option<GraphNodeView> {
+    pub fn get_node(&self, position: Position) -> Option<NodeView> {
         self.nodes
             .get(&position)
-            .map(|node| GraphNodeView::new(node.gate, position, node.angle, node.bit))
+            .map(|node| NodeView::new(node.gate, position, node.angle, node.bit))
     }
 
     /// Add a new edge to the graph.
@@ -463,7 +462,7 @@ impl Graph {
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node surrounding data in a view-friendly format, decoupling the internal representation from consumers.
-    pub fn get_node_and_edges(&self, position: Position) -> Option<NodeEdgeView> {
+    pub fn get_contextual_view(&self, position: Position) -> Option<ContextualNodeView> {
         use EdgeType::*;
 
         let origin = self.get_node(position)?;
@@ -508,7 +507,7 @@ impl Graph {
             }
         }
 
-        Some(NodeEdgeView::new(
+        Some(ContextualNodeView::new(
             origin,
             left,
             right,
@@ -517,66 +516,6 @@ impl Graph {
             swaps_with,
             works_with,
         ))
-    }
-
-    /// Get an alternative string representation of the graph, as a 2D grid.
-    pub fn display_grid(&self) -> String {
-        if self.is_empty() {
-            return "(empty)".to_owned();
-        }
-
-        let height = self.height();
-        let width = self.width();
-
-        let mut grid = vec![vec![".".to_string(); width]; height];
-
-        for position in self.iter_positions_ordered_by_row() {
-            if let Some(node) = self.get_node(position) {
-                let mut label = node.r#type().to_string().to_ascii_uppercase();
-
-                if let Some(angle) = node.angle() {
-                    label.push('(');
-                    label.push_str(&formatter::format_angle(angle));
-                    label.push(')');
-                }
-
-                if let Some(bit) = node.bit() {
-                    label.push('(');
-                    label.push_str(&bit.to_string());
-                    label.push(')');
-                }
-
-                grid[position.row()][position.column()] = label;
-            }
-        }
-
-        let mut column_widths = vec![0; width];
-
-        for column in 0..width {
-            let max_length = (0..height)
-                .map(|row| grid[row][column].len())
-                .max()
-                .unwrap_or(0);
-
-            column_widths[column] = max_length;
-        }
-
-        let mut rows = Vec::new();
-
-        for (row_index, row) in grid.iter().enumerate() {
-            let formatted: Vec<String> = row
-                .iter()
-                .enumerate()
-                .map(|(column, value)| format!("{:<width$}", value, width = column_widths[column]))
-                .collect();
-
-            let line = formatted.join("   ");
-            let trimmed = line.trim_end();
-
-            rows.push(format!("{row_index}: {}", trimmed));
-        }
-
-        rows.join("\n")
     }
 
     /// Validate the graph and confirm that it is internally consistent.
@@ -591,7 +530,7 @@ impl Graph {
     }
 
     #[cfg(debug_assertions)]
-    pub(super) fn validate_internal(&self) {
+    pub(crate) fn validate_internal(&self) {
         structural_validator::validate(self).unwrap();
         semantic_validator::validate(self).unwrap();
     }

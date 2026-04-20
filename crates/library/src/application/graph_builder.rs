@@ -1,8 +1,8 @@
 use std::fmt;
 
 use crate::{
-    domain::{EdgeType, GateType, Graph, Position},
-    dto::gate_operation::GateOperation,
+    dto::GateOperation,
+    {EdgeType, GateType, Graph, Position},
 };
 
 /// Provides an interface for easily building `Graphs`.

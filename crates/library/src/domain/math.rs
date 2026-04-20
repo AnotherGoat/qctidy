@@ -2,6 +2,10 @@ use std::f64::consts::PI;
 
 use num_rational::Ratio;
 
+/// A full cycle of rotation across a qubit, in radians.
+///
+/// Note that its value is not 2pi because that's how the rotation matrices are defined.
+/// The angle is divided by 2 inside the formula.
 pub(crate) const FULL_CYCLE: f64 = 4.0 * PI;
 
 const MAX_DENOMINATOR: i64 = 16;

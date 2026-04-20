@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{
-    domain::{GateType, Graph, GraphBuilder, Position},
-    dto::gate_operation::GateOperation,
-};
+use crate::{GateType, Graph, GraphBuilder, Position, dto::GateOperation};
 
 /// Convert a list of gate operations into a `Graph`.
 pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
@@ -72,7 +69,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             Swap => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("Swap gate must have edges");
 
                 let other = edges
@@ -86,7 +83,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CH | CX | CY => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("Control gate must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -109,7 +106,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CZ => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("CZ gate must have edges");
 
                 let other = edges.works_with()[0].position();
@@ -119,7 +116,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CP => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("CP must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -145,7 +142,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CSwap => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("CSwap must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -176,7 +173,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CCX => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("CCX gate must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -203,7 +200,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CCZ => {
                 let edges = graph
-                    .get_node_and_edges(position)
+                    .get_contextual_view(position)
                     .expect("CCZ gate must have edges");
 
                 let other1 = edges.works_with()[0].position();

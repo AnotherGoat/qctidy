@@ -1,6 +1,7 @@
-use crate::domain::{EdgeType, GateType};
+use crate::{EdgeType, GateType};
 use EdgeType::*;
 use GateType::*;
+use inew::New;
 
 /// A schema for a gate, which defines the number of graph nodes and edges required for it to be valid.
 ///
@@ -40,20 +41,12 @@ impl NodeSchema {
 /// A schema for an edge between graph nodes.
 ///
 /// An edge may be thought of as a bond between two atoms.
+#[derive(New)]
+#[new(pub(super), const)]
 pub(super) struct EdgeSchema {
-    pub(super) edge_type: EdgeType,
+    pub(super) r#type: EdgeType,
     pub(super) from: usize,
     pub(super) to: usize,
-}
-
-impl EdgeSchema {
-    pub(super) const fn new(edge_type: EdgeType, from: usize, to: usize) -> EdgeSchema {
-        EdgeSchema {
-            edge_type,
-            from,
-            to,
-        }
-    }
 }
 
 macro_rules! single_schema {

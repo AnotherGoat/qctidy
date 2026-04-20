@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::domain::{
+use crate::{
     EdgeType, Graph, Position,
-    graph::{GraphError, schema::GateSchema},
+    domain::graph::{GraphError, schema::GateSchema},
 };
 
 struct ValidationContext<'a> {
@@ -18,7 +18,7 @@ struct ValidationContext<'a> {
 /// Validate the semantic relationships in a `Graph`.
 ///
 /// This only is part of the validation process. To fully validate a `Graph`, use `Graph::validate` instead.
-pub(crate) fn validate(graph: &Graph) -> Result<(), GraphError> {
+pub(super) fn validate(graph: &Graph) -> Result<(), GraphError> {
     let components = find_components(graph);
     let mut covered = HashSet::new();
 
@@ -126,7 +126,7 @@ fn expected_edges(schema: &GateSchema) -> HashMap<(EdgeType, usize, usize), usiz
     let mut map = HashMap::new();
 
     for edge in schema.edges {
-        *map.entry((edge.edge_type, edge.from, edge.to)).or_insert(0) += 1;
+        *map.entry((edge.r#type, edge.from, edge.to)).or_insert(0) += 1;
     }
 
     map

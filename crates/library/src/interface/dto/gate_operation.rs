@@ -1,7 +1,6 @@
-use getset::{CopyGetters, Getters};
 use inew::New;
 
-use crate::domain::GateType;
+use crate::GateType;
 
 /// An operation applied to a circuit, also known as a quantum gate.
 #[derive(Debug, Clone, New)]
@@ -192,42 +191,6 @@ impl GateOperation {
         match self {
             Measure { bit, .. } => vec![*bit],
             _ => vec![],
-        }
-    }
-}
-
-/// An operation applied to a circuit, also known as a quantum gate.
-///
-/// It's designed to be similar to Qiskit's operations.
-#[derive(Debug, Getters, CopyGetters)]
-pub struct GateOperation2 {
-    /// The type of gate operation.
-    #[get_copy = "pub"]
-    r#type: GateType,
-    /// The qubits affected by the operation.
-    #[get = "pub"]
-    qubits: Vec<usize>,
-    /// The bits affected by the operation.
-    #[get = "pub"]
-    bits: Vec<usize>,
-    /// The parameters (angles) associated with the operation.
-    #[get = "pub"]
-    parameters: Vec<f64>,
-}
-
-impl GateOperation2 {
-    /// Create a new `GateOperation`.
-    pub fn new(
-        r#type: GateType,
-        qubits: Vec<usize>,
-        bits: Vec<usize>,
-        parameters: Vec<f64>,
-    ) -> Self {
-        Self {
-            r#type,
-            qubits,
-            bits,
-            parameters,
         }
     }
 }

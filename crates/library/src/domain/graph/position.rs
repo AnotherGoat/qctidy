@@ -1,24 +1,19 @@
 use std::fmt;
 
 use getset::CopyGetters;
+use inew::New;
 
 /// Represents a (row, column) position in a `Graph`.
 ///
 /// Its values are guaranteed to be non-negative.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, CopyGetters)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, CopyGetters, New)]
 #[get_copy = "pub"]
+#[new(pub, const)]
 pub struct Position {
     /// The row, equivalent to the qubit index.
     row: usize,
     /// The column index.
     column: usize,
-}
-
-impl Position {
-    /// Create a new Position.
-    pub const fn new(row: usize, column: usize) -> Self {
-        Self { row, column }
-    }
 }
 
 impl IntoIterator for Position {

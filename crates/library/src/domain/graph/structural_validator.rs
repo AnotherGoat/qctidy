@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
-use crate::domain::{Graph, graph::GraphError};
+use crate::{Graph, GraphError};
 
 /// Validate the structure of a `Graph`.
 ///
 /// This only is part of the validation process. To fully validate a `Graph`, use `Graph::validate` instead.
-pub(crate) fn validate(graph: &Graph) -> Result<(), GraphError> {
+pub(super) fn validate(graph: &Graph) -> Result<(), GraphError> {
     check_dangling_nodes(graph)?;
     check_edge_mirroring(graph)?;
     check_duplicate_edges(graph)?;
