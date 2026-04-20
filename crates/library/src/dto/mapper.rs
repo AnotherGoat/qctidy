@@ -27,7 +27,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
     let mut gates = Vec::new();
     let mut skipped: HashSet<Position> = HashSet::new();
 
-    for node in graph.iter_nodes_by_column() {
+    for node in graph.iter_nodes_ordered_by_column() {
         let position = node.position();
 
         if skipped.contains(&position) {
@@ -72,7 +72,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             Swap => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("Swap gate must have edges");
 
                 let other = edges
@@ -86,7 +86,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CH | CX | CY => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("Control gate must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -109,7 +109,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CZ => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("CZ gate must have edges");
 
                 let other = edges.works_with()[0].position();
@@ -118,7 +118,9 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
                 GateOperation::cz(row, other.row())
             }
             CP => {
-                let edges = graph.node_edge_view(position).expect("CP must have edges");
+                let edges = graph
+                    .get_node_and_edges(position)
+                    .expect("CP must have edges");
 
                 let is_target = edges.targets().is_empty();
 
@@ -128,7 +130,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
                     (edges.controlled_by()[0].position(), position, angle)
                 } else {
                     let target_node = graph
-                        .get_node_view(edges.targets()[0].position())
+                        .get_node(edges.targets()[0].position())
                         .expect("Target node missing");
 
                     let angle = target_node.angle().expect("CP gate must have an angle");
@@ -143,7 +145,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CSwap => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("CSwap must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -174,7 +176,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CCX => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("CCX gate must have edges");
 
                 let is_target = edges.targets().is_empty();
@@ -201,7 +203,7 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
             }
             CCZ => {
                 let edges = graph
-                    .node_edge_view(position)
+                    .get_node_and_edges(position)
                     .expect("CCZ gate must have edges");
 
                 let other1 = edges.works_with()[0].position();

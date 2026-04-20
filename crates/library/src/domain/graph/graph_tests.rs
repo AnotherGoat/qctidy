@@ -1,6 +1,6 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
+use std::f64::consts::FRAC_PI_2;
 
-use super::graph::*;
+use super::*;
 use crate::{
     domain::{EdgeType, GateType, GraphBuilder, Position},
     view::GraphEdgeView,
@@ -15,7 +15,7 @@ fn add_node() {
 
     graph.add_node(ID, position, None, None).unwrap();
 
-    let node = graph.get_node_view(position).unwrap();
+    let node = graph.get_node(position).unwrap();
     assert_eq!(node.r#type(), ID);
     assert_eq!(node.position(), position);
 }
@@ -44,7 +44,7 @@ fn replace_node_overwrites_existing_node() {
     graph.replace_node(X, position, None, None);
     graph.replace_node(Y, position, None, None);
 
-    let node = graph.get_node_view(position).unwrap();
+    let node = graph.get_node(position).unwrap();
     assert_eq!(node.r#type(), Y);
 }
 
@@ -55,7 +55,7 @@ fn empty_space_has_no_node() {
     graph.replace_node(X, Position::new(0, 2), None, None);
 
     assert!(!graph.has_node_at(Position::new(0, 0)));
-    assert!(graph.get_node_view(Position::new(0, 0)).is_none());
+    assert!(graph.get_node(Position::new(0, 0)).is_none());
 }
 
 #[test]
@@ -140,11 +140,9 @@ fn graph_is_equal_in_different_order() {
     graph1.replace_node(X, first, None, None);
     graph1.replace_node(Y, second, None, None);
     graph1.add_edge(Right, first, second).unwrap();
-    graph1.add_edge(Left, second, first).unwrap();
 
     graph2.replace_node(Y, second, None, None);
     graph2.replace_node(X, first, None, None);
-    graph2.add_edge(Left, second, first).unwrap();
     graph2.add_edge(Right, first, second).unwrap();
 
     assert_eq!(graph1, graph2);
@@ -225,12 +223,11 @@ fn remove_node_removes_associated_edges() {
     graph.replace_node(Y, second, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
-    graph.add_edge(Left, second, first).unwrap();
 
-    graph.remove_node(first);
+    graph.remove_node(second);
 
-    assert!(!graph.has_node_at(first));
-    assert_eq!(graph.iter_node_edges(second).count(), 0);
+    assert!(!graph.has_node_at(second));
+    assert_eq!(graph.iter_edges_from(first).count(), 0);
 }
 
 #[test]
@@ -246,27 +243,19 @@ fn removing_middle_node_reconnects_neighbors() {
     graph.replace_node(Z, third, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
-    graph.add_edge(Left, second, first).unwrap();
 
     graph.add_edge(Right, second, third).unwrap();
-    graph.add_edge(Left, third, second).unwrap();
 
     graph.remove_node(second);
 
     assert!(!graph.has_node_at(second));
 
-    let edges = graph.edges();
+    let edges: Vec<_> = graph.iter_edges_unique().collect();
 
     assert!(edges.contains(&GraphEdgeView::new(
         Right,
-        graph.get_node_view(first).unwrap(),
-        graph.get_node_view(third).unwrap()
-    )));
-
-    assert!(edges.contains(&GraphEdgeView::new(
-        Left,
-        graph.get_node_view(third).unwrap(),
-        graph.get_node_view(first).unwrap()
+        graph.get_node(first).unwrap(),
+        graph.get_node(third).unwrap()
     )));
 }
 
@@ -309,7 +298,7 @@ fn move_node() {
 
     assert!(!graph.has_node_at(Position::new(0, 1)));
 
-    let node = graph.get_node_view(Position::new(1, 1)).unwrap();
+    let node = graph.get_node(Position::new(1, 1)).unwrap();
     assert_eq!(node.r#type(), X);
     assert_eq!(node.position(), Position::new(1, 1));
 }
@@ -326,7 +315,7 @@ fn move_node_overwrites_destination() {
 
     graph.move_node(start, end).unwrap();
 
-    let node = graph.get_node_view(end).unwrap();
+    let node = graph.get_node(end).unwrap();
     assert_eq!(node.r#type(), X);
 }
 
@@ -343,24 +332,18 @@ fn move_node_preserves_edges() {
         .add_edge(Right, Position::new(0, 0), Position::new(0, 1))
         .unwrap();
     graph
-        .add_edge(Left, Position::new(0, 1), Position::new(0, 0))
-        .unwrap();
-    graph
         .add_edge(Targets, Position::new(0, 0), Position::new(1, 0))
-        .unwrap();
-    graph
-        .add_edge(ControlledBy, Position::new(1, 0), Position::new(0, 0))
         .unwrap();
 
     graph
         .move_node(Position::new(0, 0), Position::new(4, 0))
         .unwrap();
 
-    let hadamard = graph.get_node_view(Position::new(0, 1)).unwrap();
-    let cx_controller = graph.get_node_view(Position::new(4, 0)).unwrap();
-    let cx_target = graph.get_node_view(Position::new(1, 0)).unwrap();
+    let hadamard = graph.get_node(Position::new(0, 1)).unwrap();
+    let cx_controller = graph.get_node(Position::new(4, 0)).unwrap();
+    let cx_target = graph.get_node(Position::new(1, 0)).unwrap();
 
-    let edges = graph.edges();
+    let edges: Vec<_> = graph.iter_edges_unique().collect();
 
     assert!(edges.contains(&GraphEdgeView::new(
         Right,
@@ -368,19 +351,9 @@ fn move_node_preserves_edges() {
         hadamard.clone()
     )));
     assert!(edges.contains(&GraphEdgeView::new(
-        Left,
-        hadamard.clone(),
-        cx_controller.clone()
-    )));
-    assert!(edges.contains(&GraphEdgeView::new(
         Targets,
         cx_controller.clone(),
         cx_target.clone()
-    )));
-    assert!(edges.contains(&GraphEdgeView::new(
-        ControlledBy,
-        cx_target.clone(),
-        cx_controller.clone()
     )));
 }
 
@@ -412,10 +385,10 @@ fn add_edge_is_idempotent() {
     graph.replace_node(X, end, None, None);
 
     graph.add_edge(Right, start, end).unwrap();
-    assert_eq!(graph.iter_node_edges(start).count(), 1);
+    assert_eq!(graph.iter_edges_from(start).count(), 1);
 
     graph.add_edge(Right, start, end).unwrap();
-    assert_eq!(graph.iter_node_edges(start).count(), 1);
+    assert_eq!(graph.iter_edges_from(start).count(), 1);
 }
 
 #[test]
@@ -428,22 +401,19 @@ fn add_bidirectional_edge_creates_two_edges() {
     graph.replace_node(X, first, None, None);
     graph.replace_node(Y, second, None, None);
 
-    graph
-        .add_bidirectional_edge(WorksWith, first, second)
-        .unwrap();
+    graph.add_edge(WorksWith, first, second).unwrap();
 
-    let edges = graph.edges();
+    let edges: Vec<_> = graph.iter_edges().collect();
 
     assert!(edges.contains(&GraphEdgeView::new(
         WorksWith,
-        graph.get_node_view(first).unwrap(),
-        graph.get_node_view(second).unwrap()
+        graph.get_node(first).unwrap(),
+        graph.get_node(second).unwrap()
     )));
-
     assert!(edges.contains(&GraphEdgeView::new(
         WorksWith,
-        graph.get_node_view(second).unwrap(),
-        graph.get_node_view(first).unwrap()
+        graph.get_node(second).unwrap(),
+        graph.get_node(first).unwrap()
     )));
 }
 
@@ -472,18 +442,17 @@ fn connect_row_neighbors_relinks_correctly() {
 
     graph.connect_row_neighbors(middle).unwrap();
 
-    let edges = graph.edges();
+    let edges: Vec<_> = graph.iter_edges_unique().collect();
 
     assert!(edges.contains(&GraphEdgeView::new(
         Right,
-        graph.get_node_view(start).unwrap(),
-        graph.get_node_view(middle).unwrap()
+        graph.get_node(start).unwrap(),
+        graph.get_node(middle).unwrap()
     )));
-
     assert!(edges.contains(&GraphEdgeView::new(
         Right,
-        graph.get_node_view(middle).unwrap(),
-        graph.get_node_view(end).unwrap()
+        graph.get_node(middle).unwrap(),
+        graph.get_node(end).unwrap()
     )));
 }
 
@@ -503,12 +472,12 @@ fn connect_row_neighbors_removes_direct_connection() {
 
     graph.connect_row_neighbors(second).unwrap();
 
-    let edges = graph.edges();
+    let edges: Vec<_> = graph.iter_edges_unique().collect();
 
     assert!(!edges.contains(&GraphEdgeView::new(
         Right,
-        graph.get_node_view(first).unwrap(),
-        graph.get_node_view(third).unwrap()
+        graph.get_node(first).unwrap(),
+        graph.get_node(third).unwrap()
     )));
 }
 
@@ -526,7 +495,7 @@ fn remove_edge_removes_outgoing_and_incoming_entries() {
 
     graph.remove_edge(Right, first, second);
 
-    assert_eq!(graph.iter_node_edges(first).count(), 0);
+    assert_eq!(graph.iter_edges_from(first).count(), 0);
 }
 
 #[test]
@@ -584,7 +553,7 @@ fn clear_removes_everything() {
     graph.clear();
 
     assert!(graph.is_empty());
-    assert_eq!(graph.edges().len(), 0);
+    assert_eq!(graph.iter_edges_unique().count(), 0);
 }
 
 #[test]
@@ -603,7 +572,7 @@ fn clear_edges_keeps_nodes() {
 
     assert!(graph.has_node_at(first));
     assert!(graph.has_node_at(second));
-    assert_eq!(graph.edges().len(), 0);
+    assert_eq!(graph.iter_edges_unique().count(), 0);
 }
 
 #[test]
@@ -617,476 +586,14 @@ fn node_edge_view_collects_edges_correctly() {
     graph.replace_node(Y, second, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
-    graph.add_edge(Left, second, first).unwrap();
 
-    let left_view = graph.node_edge_view(first).unwrap();
+    let left_view = graph.get_node_and_edges(first).unwrap();
 
     assert!(left_view.right().is_some());
     assert!(left_view.left().is_none());
 
-    let right_view = graph.node_edge_view(second).unwrap();
+    let right_view = graph.get_node_and_edges(second).unwrap();
 
     assert!(right_view.right().is_none());
     assert!(right_view.left().is_some());
-}
-
-#[test]
-fn to_string_empty() {
-    let graph = Graph::new();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-(empty)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_single_node() {
-    let graph = GraphBuilder::new().push_h(0).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-H at (0, 0)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_skipping_first_row() {
-    let graph = GraphBuilder::new().push_h(1).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-H at (1, 0)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_multiple_nodes_no_edges() {
-    let graph = GraphBuilder::new().push_x(0).push_y(1).push_z(2).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-X at (0, 0)
-Y at (1, 0)
-Z at (2, 0)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_sparse_columns() {
-    let mut graph = Graph::new();
-
-    graph
-        .add_node(GateType::H, Position::new(0, 0), None, None)
-        .unwrap();
-    graph
-        .add_node(GateType::X, Position::new(0, 2), None, None)
-        .unwrap();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-H at (0, 0)
-X at (0, 2)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_rotation_gates() {
-    let graph = GraphBuilder::new()
-        .push_rx(FRAC_PI_2, 0)
-        .push_ry(3.0 * PI, 1)
-        .push_rz(2.0 * FRAC_PI_3, 2)
-        .build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-RX(angle=pi/2) at (0, 0)
-RY(angle=3pi) at (1, 0)
-RZ(angle=2pi/3) at (2, 0)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_measurement_gates() {
-    let graph = GraphBuilder::new()
-        .push_measure(0, 0)
-        .push_measure(1, 2)
-        .push_measure(2, 1)
-        .build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-M(bit=0) at (0, 0)
-M(bit=2) at (1, 0)
-M(bit=1) at (2, 0)
-
-Edges:
-(empty)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_linear_chain() {
-    let graph = GraphBuilder::new().push_x(0).push_y(0).push_z(0).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-X at (0, 0)
-Y at (0, 1)
-Z at (0, 2)
-
-Edges:
-[right] from X at (0, 0) to Y at (0, 1)
-
-[left] from Y at (0, 1) to X at (0, 0)
-[right] from Y at (0, 1) to Z at (0, 2)
-
-[left] from Z at (0, 2) to Y at (0, 1)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_rows_and_columns() {
-    let graph = GraphBuilder::new()
-        .push_h(0)
-        .push_x(0)
-        .push_y(1)
-        .push_z(1)
-        .build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-H at (0, 0)
-Y at (1, 0)
-X at (0, 1)
-Z at (1, 1)
-
-Edges:
-[right] from H at (0, 0) to X at (0, 1)
-
-[right] from Y at (1, 0) to Z at (1, 1)
-
-[left] from X at (0, 1) to H at (0, 0)
-
-[left] from Z at (1, 1) to Y at (1, 0)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_swap_cycle() {
-    let graph = GraphBuilder::new().push_swap(0, 1).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-SWAP at (0, 0)
-SWAP at (1, 0)
-
-Edges:
-[swaps_with] from SWAP at (0, 0) to SWAP at (1, 0)
-
-[swaps_with] from SWAP at (1, 0) to SWAP at (0, 0)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_controlled_gates() {
-    let graph = GraphBuilder::new().push_cx(0, 1).push_cy(1, 0).build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-CX at (0, 0)
-CX at (1, 0)
-CY at (0, 1)
-CY at (1, 1)
-
-Edges:
-[right] from CX at (0, 0) to CY at (0, 1)
-[targets] from CX at (0, 0) to CX at (1, 0)
-
-[right] from CX at (1, 0) to CY at (1, 1)
-[controlled_by] from CX at (1, 0) to CX at (0, 0)
-
-[left] from CY at (0, 1) to CX at (0, 0)
-[controlled_by] from CY at (0, 1) to CY at (1, 1)
-
-[left] from CY at (1, 1) to CX at (1, 0)
-[targets] from CY at (1, 1) to CY at (0, 1)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn to_string_sorts_edges_of_same_type() {
-    let graph = GraphBuilder::new()
-        .push_ccx(1, 2, 0)
-        .push_ccz(2, 0, 1)
-        .build();
-
-    let result = graph.to_string();
-
-    let expected = "\
-Nodes:
-CCX at (0, 0)
-CCX at (1, 0)
-CCX at (2, 0)
-CCZ at (0, 1)
-CCZ at (1, 1)
-CCZ at (2, 1)
-
-Edges:
-[right] from CCX at (0, 0) to CCZ at (0, 1)
-[controlled_by] from CCX at (0, 0) to CCX at (1, 0)
-[controlled_by] from CCX at (0, 0) to CCX at (2, 0)
-
-[right] from CCX at (1, 0) to CCZ at (1, 1)
-[targets] from CCX at (1, 0) to CCX at (0, 0)
-[works_with] from CCX at (1, 0) to CCX at (2, 0)
-
-[right] from CCX at (2, 0) to CCZ at (2, 1)
-[targets] from CCX at (2, 0) to CCX at (0, 0)
-[works_with] from CCX at (2, 0) to CCX at (1, 0)
-
-[left] from CCZ at (0, 1) to CCX at (0, 0)
-[works_with] from CCZ at (0, 1) to CCZ at (1, 1)
-[works_with] from CCZ at (0, 1) to CCZ at (2, 1)
-
-[left] from CCZ at (1, 1) to CCX at (1, 0)
-[works_with] from CCZ at (1, 1) to CCZ at (0, 1)
-[works_with] from CCZ at (1, 1) to CCZ at (2, 1)
-
-[left] from CCZ at (2, 1) to CCX at (2, 0)
-[works_with] from CCZ at (2, 1) to CCZ at (0, 1)
-[works_with] from CCZ at (2, 1) to CCZ at (1, 1)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_empty_graph() {
-    let graph = Graph::new();
-
-    let result = graph.display_grid();
-
-    assert_eq!(result, "(empty)");
-}
-
-#[test]
-fn display_grid_single_gate() {
-    let graph = GraphBuilder::new().push_h(0).build();
-
-    let result = graph.display_grid();
-
-    let expected = "0: H";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_skipping_first_row() {
-    let graph = GraphBuilder::new().push_h(1).build();
-
-    let result = graph.display_grid();
-
-    let expected = "\
-0: .
-1: H";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_multiple_rows_single_column() {
-    let graph = GraphBuilder::new().push_h(0).push_x(1).push_z(2).build();
-
-    let result = graph.display_grid();
-
-    let expected = "\
-0: H
-1: X
-2: Z";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_sparse_columns() {
-    let mut graph = Graph::new();
-
-    graph
-        .add_node(GateType::H, Position::new(0, 0), None, None)
-        .unwrap();
-    graph
-        .add_node(GateType::X, Position::new(0, 2), None, None)
-        .unwrap();
-
-    let result = graph.display_grid();
-
-    let expected = "0: H   .   X";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_multiple_rows_and_columns() {
-    let mut graph = Graph::new();
-
-    graph
-        .add_node(GateType::H, Position::new(0, 0), None, None)
-        .unwrap();
-    graph
-        .add_node(GateType::X, Position::new(1, 1), None, None)
-        .unwrap();
-    graph
-        .add_node(GateType::Z, Position::new(0, 2), None, None)
-        .unwrap();
-
-    let result = graph.display_grid();
-
-    let expected = "\
-0: H   .   Z
-1: .   X   .";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_with_angle() {
-    let graph = GraphBuilder::new()
-        .push_rx(FRAC_PI_2, 0)
-        .push_ry(3.0 * PI, 1)
-        .push_rz(2.0 * FRAC_PI_3, 2)
-        .build();
-
-    let result = graph.display_grid();
-
-    let expected = "\
-0: RX(pi/2)
-1: RY(3pi)
-2: RZ(2pi/3)";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_with_multiple_angles_alignment() {
-    let graph = GraphBuilder::new()
-        .push_rx(FRAC_PI_2, 0)
-        .push_rz(0.0, 0)
-        .build();
-
-    let result = graph.display_grid();
-
-    let expected = "0: RX(pi/2)   RZ(0)";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_mixed_angle_and_normal() {
-    let graph = GraphBuilder::new()
-        .push_h(0)
-        .push_rx(std::f64::consts::FRAC_PI_2, 0)
-        .build();
-
-    let result = graph.display_grid();
-
-    let expected = "0: H   RX(pi/2)";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_measure_with_bit() {
-    let graph = GraphBuilder::new().push_measure(0, 3).build();
-
-    let result = graph.display_grid();
-
-    let expected = "0: M(3)";
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_column_alignment() {
-    let graph = GraphBuilder::new()
-        .push_h(0)
-        .push_x(0)
-        .push_measure(1, 0)
-        .push_z(1)
-        .build();
-
-    let result = graph.display_grid();
-
-    let expected = "\
-0: H      X
-1: M(0)   Z";
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn display_grid_sparse_with_angles() {
-    let mut graph = Graph::new();
-
-    graph
-        .add_node(
-            GateType::RX,
-            Position::new(0, 0),
-            Some(std::f64::consts::FRAC_PI_2),
-            None,
-        )
-        .unwrap();
-
-    graph
-        .add_node(GateType::Measure, Position::new(0, 2), None, Some(2))
-        .unwrap();
-
-    let result = graph.display_grid();
-
-    let expected = "0: RX(pi/2)   .   M(2)";
-    assert_eq!(result, expected);
 }

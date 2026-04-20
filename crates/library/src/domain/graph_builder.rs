@@ -378,7 +378,7 @@ impl GraphBuilder {
         self.graph.replace_node(GateType::Swap, second, None, None);
 
         self.graph
-            .add_bidirectional_edge(EdgeType::SwapsWith, first, second)
+            .add_edge(EdgeType::SwapsWith, first, second)
             .expect("Both nodes should exist");
 
         self.graph
@@ -439,9 +439,6 @@ impl GraphBuilder {
         self.graph
             .add_edge(EdgeType::Targets, control, target)
             .expect("Both nodes should exist");
-        self.graph
-            .add_edge(EdgeType::ControlledBy, target, control)
-            .expect("Both nodes should exist");
 
         self.graph
             .connect_row_neighbors(control)
@@ -464,7 +461,7 @@ impl GraphBuilder {
         self.graph.replace_node(GateType::CZ, second, None, None);
 
         self.graph
-            .add_bidirectional_edge(EdgeType::WorksWith, first, second)
+            .add_edge(EdgeType::WorksWith, first, second)
             .expect("Both nodes should exist");
 
         self.graph
@@ -496,9 +493,6 @@ impl GraphBuilder {
 
         self.graph
             .add_edge(EdgeType::Targets, control, target)
-            .expect("Both nodes should exist");
-        self.graph
-            .add_edge(EdgeType::ControlledBy, target, control)
             .expect("Both nodes should exist");
 
         self.graph
@@ -538,13 +532,7 @@ impl GraphBuilder {
             .add_edge(EdgeType::Targets, control, target2)
             .expect("Both nodes should exist");
         self.graph
-            .add_edge(EdgeType::ControlledBy, target, control)
-            .expect("Both nodes should exist");
-        self.graph
-            .add_edge(EdgeType::ControlledBy, target2, control)
-            .expect("Both nodes should exist");
-        self.graph
-            .add_bidirectional_edge(EdgeType::SwapsWith, target, target2)
+            .add_edge(EdgeType::SwapsWith, target, target2)
             .expect("Both nodes should exist");
 
         self.graph
@@ -585,13 +573,7 @@ impl GraphBuilder {
             .add_edge(EdgeType::Targets, control2, target)
             .expect("Both nodes should exist");
         self.graph
-            .add_bidirectional_edge(EdgeType::WorksWith, control, control2)
-            .expect("Both nodes should exist");
-        self.graph
-            .add_edge(EdgeType::ControlledBy, target, control)
-            .expect("Both nodes should exist");
-        self.graph
-            .add_edge(EdgeType::ControlledBy, target, control2)
+            .add_edge(EdgeType::WorksWith, control, control2)
             .expect("Both nodes should exist");
 
         self.graph
@@ -626,13 +608,13 @@ impl GraphBuilder {
         self.graph.replace_node(GateType::CCZ, third, None, None);
 
         self.graph
-            .add_bidirectional_edge(EdgeType::WorksWith, first, second)
+            .add_edge(EdgeType::WorksWith, first, second)
             .expect("Both nodes should exist");
         self.graph
-            .add_bidirectional_edge(EdgeType::WorksWith, first, third)
+            .add_edge(EdgeType::WorksWith, first, third)
             .expect("Both nodes should exist");
         self.graph
-            .add_bidirectional_edge(EdgeType::WorksWith, second, third)
+            .add_edge(EdgeType::WorksWith, second, third)
             .expect("Both nodes should exist");
 
         self.graph
@@ -655,7 +637,7 @@ impl GraphBuilder {
             .iter()
             .filter_map(|&row| {
                 self.graph
-                    .iter_positions_by_column()
+                    .iter_positions_ordered_by_column()
                     .filter(|position| position.row() == row)
                     .max_by_key(|position| position.column())
                     .map(|position| position.column() + 1)

@@ -7,8 +7,6 @@ mod position;
 
 #[cfg(test)]
 mod graph_builder_tests;
-#[cfg(test)]
-mod graph_tests;
 
 pub use edge_type::EdgeType;
 pub use gate_type::GateType;

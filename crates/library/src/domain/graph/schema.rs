@@ -81,10 +81,7 @@ macro_rules! control_schema {
         GateSchema {
             r#type: $gate_type,
             nodes: &[NodeSchema::NoData, NodeSchema::NoData],
-            edges: &[
-                EdgeSchema::new(Targets, 0, 1),
-                EdgeSchema::new(ControlledBy, 1, 0),
-            ],
+            edges: &[EdgeSchema::new(Targets, 0, 1)],
         }
     };
 }
@@ -152,10 +149,7 @@ const CZ_SCHEMA: GateSchema = GateSchema {
 const CP_SCHEMA: GateSchema = GateSchema {
     r#type: CP,
     nodes: &[NodeSchema::NoData, NodeSchema::Angle],
-    edges: &[
-        EdgeSchema::new(Targets, 0, 1),
-        EdgeSchema::new(ControlledBy, 1, 0),
-    ],
+    edges: &[EdgeSchema::new(Targets, 0, 1)],
 };
 
 const CSWAP_SCHEMA: GateSchema = GateSchema {
@@ -163,9 +157,7 @@ const CSWAP_SCHEMA: GateSchema = GateSchema {
     nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 1),
-        EdgeSchema::new(ControlledBy, 1, 0),
         EdgeSchema::new(Targets, 0, 2),
-        EdgeSchema::new(ControlledBy, 2, 0),
         EdgeSchema::new(SwapsWith, 1, 2),
         EdgeSchema::new(SwapsWith, 2, 1),
     ],
@@ -176,9 +168,7 @@ const CCX_SCHEMA: GateSchema = GateSchema {
     nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 2),
-        EdgeSchema::new(ControlledBy, 2, 0),
         EdgeSchema::new(Targets, 1, 2),
-        EdgeSchema::new(ControlledBy, 2, 1),
         EdgeSchema::new(WorksWith, 0, 1),
         EdgeSchema::new(WorksWith, 1, 0),
     ],

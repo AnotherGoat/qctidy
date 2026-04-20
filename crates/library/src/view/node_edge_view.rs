@@ -14,12 +14,12 @@ pub struct NodeEdgeView {
     left: Option<GraphNodeView>,
     /// The node to the right.
     right: Option<GraphNodeView>,
-    /// The node swapped with this one.
-    swaps_with: Option<GraphNodeView>,
     /// Nodes targeted by this node.
     targets: Vec<GraphNodeView>,
     /// Nodes controlling this node.
     controlled_by: Vec<GraphNodeView>,
+    /// The node swapped with this one.
+    swaps_with: Option<GraphNodeView>,
     /// Nodes that work together with this node.
     works_with: Vec<GraphNodeView>,
 }
@@ -36,10 +36,6 @@ impl fmt::Display for NodeEdgeView {
             extra_data.push(format!("right={}", right));
         }
 
-        if let Some(swaps_with) = &self.swaps_with {
-            extra_data.push(format!("swaps_with={}", swaps_with));
-        }
-
         if !self.targets.is_empty() {
             let targets: Vec<String> = self.targets.iter().map(|node| node.to_string()).collect();
             extra_data.push(format!("targets={:?}", targets));
@@ -52,6 +48,10 @@ impl fmt::Display for NodeEdgeView {
                 .map(|node| node.to_string())
                 .collect();
             extra_data.push(format!("controlled_by={:?}", controllers));
+        }
+
+        if let Some(swaps_with) = &self.swaps_with {
+            extra_data.push(format!("swaps_with={}", swaps_with));
         }
 
         if !self.works_with.is_empty() {
@@ -77,18 +77,18 @@ impl NodeEdgeView {
         origin: GraphNodeView,
         left: Option<GraphNodeView>,
         right: Option<GraphNodeView>,
-        swaps_with: Option<GraphNodeView>,
         targets: Vec<GraphNodeView>,
         controlled_by: Vec<GraphNodeView>,
+        swaps_with: Option<GraphNodeView>,
         works_with: Vec<GraphNodeView>,
     ) -> Self {
         Self {
             origin,
             left,
             right,
-            swaps_with,
             targets,
             controlled_by,
+            swaps_with,
             works_with,
         }
     }

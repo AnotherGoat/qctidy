@@ -1,5 +1,5 @@
 use crate::{
-    domain::{EdgeType, GateType, Graph, Position},
+    domain::{GateType, Graph, Position},
     utils::math,
     view::{GraphNodeView, NodeEdgeView},
 };
@@ -80,17 +80,6 @@ impl<'a> NodeAsserter<'a> {
         self
     }
 
-    pub(crate) fn has_left(self, expected: Position) -> Self {
-        let actual = self.edge_view().left().as_ref().map(|node| node.position());
-        assert_eq!(actual, Some(expected));
-        self
-    }
-
-    pub(crate) fn has_no_left(self) -> Self {
-        assert!(self.edge_view().left().is_none());
-        self
-    }
-
     pub(crate) fn has_right(self, expected: Position) -> Self {
         let actual = self
             .edge_view()
@@ -117,14 +106,8 @@ impl<'a> NodeAsserter<'a> {
         self
     }
 
-    pub(crate) fn is_controlled_by(self, expected: &[Position]) -> Self {
-        self.compare_positions(
-            self.graph
-                .iter_node_edges(self.position)
-                .filter(|edge| edge.r#type() == EdgeType::ControlledBy)
-                .map(|edge| edge.end().position()),
-            expected,
-        );
+    pub(crate) fn targets_none(self) -> Self {
+        assert!(self.edge_view().targets().is_empty());
         self
     }
 
@@ -136,6 +119,11 @@ impl<'a> NodeAsserter<'a> {
                 .map(|node| node.position()),
             expected,
         );
+        self
+    }
+
+    pub(crate) fn works_with_none(self) -> Self {
+        assert!(self.edge_view().works_with().is_empty());
         self
     }
 
@@ -168,11 +156,11 @@ impl<'a> NodeAsserter<'a> {
     }
 
     fn view(&self) -> GraphNodeView {
-        self.graph.get_node_view(self.position).unwrap()
+        self.graph.get_node(self.position).unwrap()
     }
 
     fn edge_view(&self) -> NodeEdgeView {
-        self.graph.node_edge_view(self.position).unwrap()
+        self.graph.get_node_and_edges(self.position).unwrap()
     }
 }
 

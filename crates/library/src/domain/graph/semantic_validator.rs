@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::domain::{
     EdgeType, Graph, Position,
-    graph::{EdgeData, GraphError, schema::GateSchema},
+    graph::{GraphError, schema::GateSchema},
 };
 
 struct ValidationContext<'a> {
@@ -15,15 +15,18 @@ struct ValidationContext<'a> {
     actual_edges: HashMap<(EdgeType, usize, usize), usize>,
 }
 
-pub(crate) fn validate_graph_structure(graph: &Graph) -> Result<(), GraphError> {
+/// Validate the semantic relationships in a `Graph`.
+///
+/// This only is part of the validation process. To fully validate a `Graph`, use `Graph::validate` instead.
+pub(crate) fn validate(graph: &Graph) -> Result<(), GraphError> {
     let components = find_components(graph);
     let mut covered = HashSet::new();
 
     for component in &components {
         validate_component(graph, component)?;
 
-        for &pos in component {
-            if !covered.insert(pos) {
+        for &position in component {
+            if !covered.insert(position) {
                 return Err(GraphError::InvalidGateStructure);
             }
         }
@@ -40,31 +43,23 @@ fn find_components(graph: &Graph) -> Vec<Vec<Position>> {
     let mut visited = HashSet::new();
     let mut components = Vec::new();
 
-    for &start in graph.nodes.keys() {
-        if visited.contains(&start) {
+    for position in graph.iter_positions_ordered_by_row() {
+        if visited.contains(&position) {
             continue;
         }
 
-        let mut stack = vec![start];
+        let mut stack = vec![position];
         let mut component = Vec::new();
 
-        while let Some(position) = stack.pop() {
-            if !visited.insert(position) {
+        while let Some(visiting) = stack.pop() {
+            if !visited.insert(visiting) {
                 continue;
             }
 
-            component.push(position);
+            component.push(visiting);
 
-            for edge in graph.edges_out.get(&position).into_iter().flatten() {
-                match edge.edge_type {
-                    EdgeType::Targets
-                    | EdgeType::ControlledBy
-                    | EdgeType::WorksWith
-                    | EdgeType::SwapsWith => {
-                        stack.push(edge.other);
-                    }
-                    _ => {}
-                }
+            for neighbor in graph.iter_semantic_neighbors_from(visiting) {
+                stack.push(neighbor);
             }
         }
 
@@ -75,11 +70,11 @@ fn find_components(graph: &Graph) -> Vec<Vec<Position>> {
 }
 
 fn validate_component(graph: &Graph, component: &[Position]) -> Result<(), GraphError> {
-    let gate = graph.nodes[&component[0]].gate;
+    let gate = graph.get_node(component[0]).unwrap().r#type();
 
     if component
         .iter()
-        .any(|position| graph.nodes[position].gate != gate)
+        .any(|&p| graph.get_node(p).unwrap().r#type() != gate)
     {
         return Err(GraphError::InvalidGateStructure);
     }
@@ -115,27 +110,12 @@ fn validate_component(graph: &Graph, component: &[Position]) -> Result<(), Graph
 fn has_invalid_external_edges(graph: &Graph, component: &[Position]) -> bool {
     let set: HashSet<_> = component.iter().copied().collect();
 
-    for position in component {
-        if let Some(edges) = graph.edges_out.get(&position) {
-            if contains_invalid_edge(&set, edges) {
+    for &position in component {
+        for edge in graph.iter_semantic_edges_out_from(position) {
+            let target = edge.end().position();
+            if !set.contains(&target) {
                 return true;
             }
-        }
-
-        if let Some(edges) = graph.edges_in.get(&position) {
-            if contains_invalid_edge(&set, edges) {
-                return true;
-            }
-        }
-    }
-
-    false
-}
-
-fn contains_invalid_edge(set: &HashSet<Position>, edges: &Vec<EdgeData>) -> bool {
-    for edge in edges {
-        if edge.edge_type.is_semantic() && !set.contains(&edge.other) {
-            return true;
         }
     }
 
@@ -158,16 +138,12 @@ fn collect_edges(
 ) -> HashMap<(EdgeType, usize, usize), usize> {
     let mut edges = HashMap::new();
 
-    for (&from_position, &i) in index_map {
-        if let Some(out) = graph.edges_out.get(&from_position) {
-            for edge in out {
-                if edge.edge_type.is_positional() {
-                    continue;
-                }
+    for (&start, &i) in index_map {
+        for edge in graph.iter_semantic_edges_out_from(start) {
+            let end = edge.end().position();
 
-                if let Some(&j) = index_map.get(&edge.other) {
-                    *edges.entry((edge.edge_type, i, j)).or_insert(0) += 1;
-                }
+            if let Some(&j) = index_map.get(&end) {
+                *edges.entry((edge.r#type(), i, j)).or_insert(0) += 1;
             }
         }
     }
@@ -205,11 +181,11 @@ fn backtrack(
             continue;
         }
 
-        let node = &context.graph.nodes[&context.component[i]];
+        let node = context.graph.get_node(context.component[i]).unwrap();
         let node_schema = &context.schema.nodes[j];
 
-        if node_schema.has_angle() != node.angle.is_some()
-            || node_schema.has_bit() != node.bit.is_some()
+        if node_schema.has_angle() != node.angle().is_some()
+            || node_schema.has_bit() != node.bit().is_some()
         {
             continue;
         }
@@ -236,28 +212,21 @@ fn partial_edges_match(context: &ValidationContext, mapping: &[usize], up_to: us
     let mut partial = HashMap::new();
 
     for k in 0..=up_to {
-        let from_position = context.component[k];
+        let start = context.component[k];
 
-        if let Some(out) = context.graph.edges_out.get(&from_position) {
-            for edge in out {
-                if edge.edge_type.is_positional() {
-                    continue;
-                }
+        for edge in context.graph.iter_semantic_edges_out_from(start) {
+            let end = edge.end().position();
 
-                if let Some(&j) = context.index_map.get(&edge.other) {
-                    if j <= up_to {
-                        let key = (edge.edge_type, mapping[k], mapping[j]);
+            if let Some(&j) = context.index_map.get(&end) {
+                if j <= up_to {
+                    let key = (edge.r#type(), mapping[k], mapping[j]);
 
-                        let count = partial.entry(key).or_insert(0);
-                        *count += 1;
+                    let count = partial.entry(key).or_insert(0);
+                    *count += 1;
 
-                        if let Some(&expected_count) = context.expected_edges.get(&key) {
-                            if *count > expected_count {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
+                    match context.expected_edges.get(&key) {
+                        Some(&expected) if *count <= expected => {}
+                        _ => return false,
                     }
                 }
             }
@@ -270,9 +239,9 @@ fn partial_edges_match(context: &ValidationContext, mapping: &[usize], up_to: us
 fn matches_edges(context: &ValidationContext, mapping: &[usize]) -> bool {
     let mut mapped = HashMap::new();
 
-    for ((ty, from, to), count) in &context.actual_edges {
+    for ((r#type, from, to), count) in &context.actual_edges {
         *mapped
-            .entry((*ty, mapping[*from], mapping[*to]))
+            .entry((*r#type, mapping[*from], mapping[*to]))
             .or_insert(0) += count;
     }
 

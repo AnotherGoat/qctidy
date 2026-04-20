@@ -3,18 +3,12 @@ use std::fmt;
 /// The types of edges between graph nodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum EdgeType {
-    /// Edge to the node on the left (paired with Right).
-    Left,
-    /// Edge to the node on the right (paired with Left).
+    /// Edge to the node on the right.
     Right,
-    /// Edge from controller to target (paired with ControlledBy).
+    /// Edge from controller to target.
     ///
     /// Used by all controlled gates.
     Targets,
-    /// Edge from target to controller (paired with Targets).
-    ///
-    /// Used by all controlled gates.
-    ControlledBy,
     /// Connects nodes that are swapped with each other (bidirectional).
     ///
     /// Only used in Swap and CSwap gates.
@@ -32,10 +26,8 @@ impl fmt::Display for EdgeType {
         use EdgeType::*;
 
         let name = match self {
-            Left => "left",
             Right => "right",
             Targets => "targets",
-            ControlledBy => "controlled_by",
             SwapsWith => "swaps_with",
             WorksWith => "works_with",
         };
@@ -45,30 +37,17 @@ impl fmt::Display for EdgeType {
 }
 
 impl EdgeType {
-    /// Get the opposite edge type, or None if the edge is bidirectional.
-    pub(crate) fn opposite(self) -> Option<Self> {
-        use EdgeType::*;
-
-        match self {
-            Left => Some(Right),
-            Right => Some(Left),
-            Targets => Some(ControlledBy),
-            ControlledBy => Some(Targets),
-            _ => None,
-        }
-    }
-
     /// Check whether this edge type is bidirectional or not.
     pub(crate) fn is_bidirectional(self) -> bool {
-        matches!(self.opposite(), None)
+        use EdgeType::*;
+        matches!(self, SwapsWith | WorksWith)
     }
 
     /// Check whether this edge is related to the node's position or not.
     ///
     /// Positional edges never define a gate's structure.
     pub(crate) fn is_positional(self) -> bool {
-        use EdgeType::*;
-        matches!(self, Left | Right)
+        matches!(self, EdgeType::Right)
     }
 
     /// Check whether this edge is related to a gate's semantic structure or not.

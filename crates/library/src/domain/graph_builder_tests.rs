@@ -59,11 +59,11 @@ fn push_single_gates_links_row_neighbors() {
     let y = Position::new(0, 1);
     let z = Position::new(0, 2);
 
-    asserter.node_at(x).has_no_left().has_right(y);
+    asserter.node_at(x).has_right(y);
 
-    asserter.node_at(y).has_left(x).has_right(z);
+    asserter.node_at(y).has_right(z);
 
-    asserter.node_at(z).has_left(y).has_no_right();
+    asserter.node_at(z).has_no_right();
 
     graph.validate_internal();
 }
@@ -89,17 +89,17 @@ fn push_single_gates_in_different_rows() {
     let t = Position::new(2, 0);
     let tdg = Position::new(2, 1);
 
-    asserter.node_at(s).is(S).has_no_left().has_right(sdg);
+    asserter.node_at(s).is(S).has_right(sdg);
 
-    asserter.node_at(sdg).is(SDG).has_left(s).has_no_right();
+    asserter.node_at(sdg).is(SDG).has_no_right();
 
-    asserter.node_at(sx).is(SX).has_no_left().has_right(sy);
+    asserter.node_at(sx).is(SX).has_right(sy);
 
-    asserter.node_at(sy).is(SY).has_left(sx).has_no_right();
+    asserter.node_at(sy).is(SY).has_no_right();
 
-    asserter.node_at(t).is(T).has_no_left().has_right(tdg);
+    asserter.node_at(t).is(T).has_right(tdg);
 
-    asserter.node_at(tdg).is(TDG).has_left(t).has_no_right();
+    asserter.node_at(tdg).is(TDG).has_no_right();
 
     graph.validate_internal();
 }
@@ -178,10 +178,7 @@ fn push_control_creates_relationships() {
         .is(CX)
         .targets(&[left_target]);
 
-    asserter
-        .node_at(left_target)
-        .is(CX)
-        .is_controlled_by(&[left_control]);
+    asserter.node_at(left_target).is(CX).targets_none();
 
     let right_control = Position::new(1, 1);
     let right_target = Position::new(0, 1);
@@ -191,10 +188,7 @@ fn push_control_creates_relationships() {
         .is(CY)
         .targets(&[right_target]);
 
-    asserter
-        .node_at(right_target)
-        .is(CY)
-        .is_controlled_by(&[right_control]);
+    asserter.node_at(right_target).is(CY).targets_none();
 
     graph.validate_internal();
 }
@@ -262,7 +256,7 @@ fn push_cp_builds_edges_and_payload() {
         .node_at(left_target)
         .is(CP)
         .has_angle(PI)
-        .is_controlled_by(&[left_control]);
+        .targets_none();
 
     let right_target = Position::new(0, 1);
     let right_control = Position::new(1, 1);
@@ -277,7 +271,7 @@ fn push_cp_builds_edges_and_payload() {
         .node_at(right_target)
         .is(CP)
         .has_angle(-PI)
-        .is_controlled_by(&[right_control]);
+        .targets_none();
 
     graph.validate_internal();
 }
@@ -301,13 +295,13 @@ fn push_cswap_builds_control_and_swap_edges() {
     asserter
         .node_at(target1)
         .is(CSwap)
-        .is_controlled_by(&[control])
+        .targets_none()
         .swaps_with(target2);
 
     asserter
         .node_at(target2)
         .is(CSwap)
-        .is_controlled_by(&[control])
+        .targets_none()
         .swaps_with(target1);
 
     graph.validate_internal();
@@ -336,10 +330,7 @@ fn push_ccx_builds_two_control_qubits() {
         .targets(&[target])
         .works_with(&[control1]);
 
-    asserter
-        .node_at(target)
-        .is(CCX)
-        .is_controlled_by(&[control1, control2]);
+    asserter.node_at(target).is(CCX).targets_none();
 
     graph.validate_internal();
 }

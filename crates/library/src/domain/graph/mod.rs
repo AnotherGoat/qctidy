@@ -1,19 +1,23 @@
+mod display;
+mod graph_error;
+mod iterator;
+mod schema;
+pub(crate) mod semantic_validator;
+pub(crate) mod structural_validator;
+
+#[cfg(test)]
+mod display_tests;
 #[cfg(test)]
 pub(crate) mod graph_asserter;
-mod schema;
-mod validator;
+#[cfg(test)]
+mod graph_tests;
 
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-};
-
-use thiserror::Error;
+use std::collections::{HashMap, HashSet};
 
 use crate::{
-    domain::{EdgeType, GateType, Position},
+    domain::{EdgeType, GateType, Position, graph::graph_error::GraphError},
     utils::{formatter, math},
-    view::{GraphEdgeView, GraphNodeView, NodeEdgeView},
+    view::{GraphNodeView, NodeEdgeView},
 };
 
 #[derive(Debug, Clone)]
@@ -37,52 +41,6 @@ impl Eq for NodeData {}
 pub(self) struct EdgeData {
     pub(self) edge_type: EdgeType,
     pub(self) other: Position,
-}
-
-/// Error that can occur while working with a `Graph`.
-#[derive(Debug, Error)]
-pub enum GraphError {
-    #[error("Node already exists at {position}")]
-    NodeAlreadyExists { position: Position },
-    #[error("Node at {position} does not exist")]
-    NodeNotFound { position: Position },
-    #[error("Start and end positions cannot be equal")]
-    NullMove,
-    #[error("An edge starts from a non-existent node at {from}")]
-    DanglingStartNode { from: Position },
-    #[error("An edge of type {edge_type} end points to a non-existent node at {from} to {to}")]
-    DanglingEndNode {
-        edge_type: EdgeType,
-        from: Position,
-        to: Position,
-    },
-    #[error(
-        "An edge of type {edge_type} from {from} to {to} is missing its symmetrical counterpart"
-    )]
-    MissingReverseEdge {
-        edge_type: EdgeType,
-        from: Position,
-        to: Position,
-    },
-    #[error("An edge of type {edge_type} from {from} to {to} exists more than once")]
-    DuplicateEdge {
-        edge_type: EdgeType,
-        from: Position,
-        to: Position,
-    },
-    #[error("Invalid edge {edge_type:?} from {from} to {to} for gate {gate:?}")]
-    InvalidEdgeForGate {
-        gate: GateType,
-        edge_type: EdgeType,
-        from: Position,
-        to: Position,
-    },
-    #[error("Invalid angle for gate {gate:?} at {position}")]
-    InvalidAngle { gate: GateType, position: Position },
-    #[error("Invalid bit for gate {gate:?} at {position}")]
-    InvalidBit { gate: GateType, position: Position },
-    #[error("Invalid gate structure")]
-    InvalidGateStructure,
 }
 
 /// Represents a quantum circuit as a hybrid of a directed graph and a 2D matrix.
@@ -155,55 +113,6 @@ impl PartialEq for Graph {
 }
 
 impl Eq for Graph {}
-
-impl fmt::Display for Graph {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(formatter, "Nodes:")?;
-
-        let nodes = self.iter_nodes_by_column().collect::<Vec<_>>();
-
-        if nodes.is_empty() {
-            writeln!(formatter, "(empty)")?;
-        }
-
-        for node in nodes {
-            writeln!(formatter, "{node}")?;
-        }
-
-        writeln!(formatter, "\nEdges:")?;
-
-        let edges = self.iter_edges_by_column().collect::<Vec<_>>();
-
-        if edges.is_empty() {
-            write!(formatter, "(empty)")?;
-        }
-
-        let mut current = None;
-
-        for (index, edge) in edges.iter().enumerate() {
-            let position = edge.start().position();
-
-            match current {
-                Some(previous) if previous != position => {
-                    current = Some(position);
-                    writeln!(formatter, "")?;
-                }
-                None => {
-                    current = Some(position);
-                }
-                _ => {}
-            }
-
-            write!(formatter, "{edge}")?;
-
-            if index != edges.len() - 1 {
-                writeln!(formatter, "")?;
-            }
-        }
-
-        Ok(())
-    }
-}
 
 impl Graph {
     /// Create an empty `Graph`.
@@ -288,8 +197,6 @@ impl Graph {
     /// If the node does not exist, nothing happens.
     /// If the removed node is horizontally between two nodes, these two nodes are joined.
     pub fn remove_node(&mut self, position: Position) {
-        use EdgeType::{Left, Right};
-
         if !self.has_node_at(position) {
             return;
         }
@@ -320,10 +227,7 @@ impl Graph {
         self.nodes.remove(&position);
 
         if let (Some(left), Some(right)) = (previous, next) {
-            self.add_edge(Right, left, right)
-                .expect("Both nodes should exist");
-            self.add_edge(Left, right, left)
-                .expect("Both nodes should exist");
+            self.add_edge_internal(EdgeType::Right, left, right);
         }
     }
 
@@ -392,9 +296,8 @@ impl Graph {
     /// Retrieve a read-only view of the node at the specified position.
     ///
     /// Returns None if no node exists at that position.
-    ///
-    /// This method exposes node data in a view-friendly format, decoupling the internal representation from consumers.
-    pub fn get_node_view(&self, position: Position) -> Option<GraphNodeView> {
+    /// Exposes node data in a view-friendly format, decoupling the internal representation from consumers.
+    pub fn get_node(&self, position: Position) -> Option<GraphNodeView> {
         self.nodes
             .get(&position)
             .map(|node| GraphNodeView::new(node.gate, position, node.angle, node.bit))
@@ -427,16 +330,11 @@ impl Graph {
         debug_assert!(self.has_node_at(start));
         debug_assert!(self.has_node_at(end));
 
-        let out_edges = self.edges_out.entry(start).or_default();
-
-        if out_edges
-            .iter()
-            .any(|edge| edge.edge_type == edge_type && edge.other == end)
-        {
+        if self.has_edge(edge_type, start, end) {
             return;
         }
 
-        out_edges.push(EdgeData {
+        self.edges_out.entry(start).or_default().push(EdgeData {
             edge_type,
             other: end,
         });
@@ -445,12 +343,49 @@ impl Graph {
             edge_type,
             other: start,
         });
+
+        if edge_type.is_bidirectional() {
+            if !self.has_edge(edge_type, end, start) {
+                self.edges_out.entry(end).or_default().push(EdgeData {
+                    edge_type,
+                    other: start,
+                });
+
+                self.edges_in.entry(start).or_default().push(EdgeData {
+                    edge_type,
+                    other: end,
+                });
+            }
+        }
+    }
+
+    fn has_edge(&self, edge_type: EdgeType, start: Position, end: Position) -> bool {
+        self.edges_out
+            .get(&start)
+            .map(|edges| {
+                edges
+                    .iter()
+                    .any(|edge| edge.edge_type == edge_type && edge.other == end)
+            })
+            .unwrap_or(false)
     }
 
     /// Remove an edge from the graph.
     ///
     /// If the edge does not exist, nothing happens.
     pub fn remove_edge(&mut self, edge_type: EdgeType, start: Position, end: Position) {
+        self.remove_edge_internal(edge_type, start, end);
+    }
+
+    fn remove_edge_internal(&mut self, edge_type: EdgeType, start: Position, end: Position) {
+        self.remove_single_edge(edge_type, start, end);
+
+        if edge_type.is_bidirectional() {
+            self.remove_single_edge(edge_type, end, start);
+        }
+    }
+
+    fn remove_single_edge(&mut self, edge_type: EdgeType, start: Position, end: Position) {
         if let Some(outgoing_edges) = self.edges_out.get_mut(&start) {
             outgoing_edges.retain(|edge| !(edge.edge_type == edge_type && edge.other == end));
         }
@@ -458,17 +393,6 @@ impl Graph {
         if let Some(incoming_edges) = self.edges_in.get_mut(&end) {
             incoming_edges.retain(|edge| !(edge.edge_type == edge_type && edge.other == start));
         }
-    }
-
-    /// Add a new bidirectional edge to the graph, as a pair of unidirectional edges.
-    pub fn add_bidirectional_edge(
-        &mut self,
-        edge_type: EdgeType,
-        first: Position,
-        second: Position,
-    ) -> Result<(), GraphError> {
-        self.add_edge(edge_type, first, second)?;
-        self.add_edge(edge_type, second, first)
     }
 
     /// Remove all the nodes and edges from the graph.
@@ -508,13 +432,11 @@ impl Graph {
             .copied()
     }
 
-    /// Connect the left-right row neighbors of the node at the specified position.
+    /// Connect the positional row neighbors of the node at the specified position.
     ///
     /// Returns an error if the node at the specified position does not exist.
     /// If there's an existing connection between the neighbors, it is removed and split into two.
     pub fn connect_row_neighbors(&mut self, position: Position) -> Result<(), GraphError> {
-        use EdgeType::{Left, Right};
-
         if !self.has_node_at(position) {
             return Err(GraphError::NodeNotFound { position });
         }
@@ -523,181 +445,28 @@ impl Graph {
         let next_in_row = self.next_in_row(position);
 
         if let (Some(previous), Some(next)) = (previous_in_row, next_in_row) {
-            self.remove_edge(Right, previous, next);
-            self.remove_edge(Left, next, previous);
+            self.remove_edge_internal(EdgeType::Right, previous, next);
         }
 
         if let Some(previous) = previous_in_row {
-            self.add_edge(Right, previous, position)?;
-            self.add_edge(Left, position, previous)?;
+            self.add_edge_internal(EdgeType::Right, previous, position);
         }
 
         if let Some(next) = next_in_row {
-            self.add_edge(Right, position, next)?;
-            self.add_edge(Left, next, position)?;
+            self.add_edge_internal(EdgeType::Right, position, next);
         }
 
         Ok(())
     }
 
-    /// Iterate over the graph's positions, first row by row and then column by column.
-    ///
-    /// Positions without nodes or with identity nodes are skipped.
-    pub fn iter_positions_by_row(&self) -> impl Iterator<Item = Position> + '_ {
-        let height = self.height();
-        let width = self.width();
-
-        (0..height).flat_map(move |row| {
-            (0..width).filter_map(move |column| {
-                let position = Position::new(row, column);
-                if self.has_node_at(position) {
-                    Some(position)
-                } else {
-                    None
-                }
-            })
-        })
-    }
-
-    /// Iterate over the graph's positions, first column by column and then row by row.
-    ///
-    /// Positions without nodes or with identity nodes are skipped.
-    pub fn iter_positions_by_column(&self) -> impl Iterator<Item = Position> + '_ {
-        let height = self.height();
-        let width = self.width();
-
-        (0..width).flat_map(move |column| {
-            (0..height).filter_map(move |row| {
-                let position = Position::new(row, column);
-                if self.has_node_at(position) {
-                    Some(position)
-                } else {
-                    None
-                }
-            })
-        })
-    }
-
-    /// Iterate over all nodes in arbitrary order.
-    ///
-    /// The iteration order is not guaranteed and depends on the internal `HashMap`.
-    /// Use `iter_nodes_by_row` or `iter_nodes_by_column` for deterministic traversal.
-    pub fn iter_nodes(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
-        self.nodes
-            .iter()
-            .map(|(position, node)| GraphNodeView::new(node.gate, *position, node.angle, node.bit))
-    }
-
-    /// Retrieve all nodes in arbitrary order.
-    ///
-    /// Equivalent to collecting the output of `iter_nodes`.
-    /// The order is not guaranteed. Use the ordered iterators if needed.
-    pub fn nodes(&self) -> Vec<GraphNodeView> {
-        self.iter_nodes().collect()
-    }
-
-    /// Iterate over the graph's nodes, first row by row and then column by column.
-    ///
-    /// This provides deterministic traversal based on a grid structure.
-    /// Empty or identity nodes are skipped.
-    pub fn iter_nodes_by_row(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
-        self.iter_positions_by_row()
-            .filter_map(|position| self.get_node_view(position))
-    }
-
-    /// Iterate over the graph's nodes, first column by column and then row by row.
-    ///
-    /// This provides deterministic traversal based on a grid structure.
-    /// Empty or identity nodes are skipped.
-    pub fn iter_nodes_by_column(&self) -> impl Iterator<Item = GraphNodeView> + '_ {
-        self.iter_positions_by_column()
-            .filter_map(|position| self.get_node_view(position))
-    }
-
-    /// Iterate over the edges in the graph.
-    pub fn iter_edges(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
-        self.edges_out.iter().flat_map(move |(start, edges)| {
-            edges.iter().filter_map(move |edge| {
-                let start_view = self.get_node_view(*start)?;
-                let end_view = self.get_node_view(edge.other)?;
-
-                Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
-            })
-        })
-    }
-
-    pub fn iter_edges_by_column(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
-        self.iter_positions_by_column().flat_map(move |start| {
-            self.edges_out
-                .get(&start)
-                .into_iter()
-                .flat_map(move |edges| {
-                    let mut edges: Vec<_> = edges.iter().collect();
-
-                    edges.sort_by_key(|edge| {
-                        (edge.edge_type, edge.other.column(), edge.other.row())
-                    });
-
-                    edges.into_iter().filter_map(move |edge| {
-                        let start_view = self.get_node_view(start)?;
-                        let end_view = self.get_node_view(edge.other)?;
-
-                        Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
-                    })
-                })
-        })
-    }
-
-    pub fn iter_edges_by_row(&self) -> impl Iterator<Item = GraphEdgeView> + '_ {
-        self.iter_positions_by_row().flat_map(move |start| {
-            self.edges_out
-                .get(&start)
-                .into_iter()
-                .flat_map(move |edges| {
-                    let mut edges: Vec<_> = edges.iter().collect();
-
-                    edges.sort_by_key(|edge| {
-                        (edge.edge_type, edge.other.row(), edge.other.column())
-                    });
-
-                    edges.into_iter().filter_map(move |edge| {
-                        let start_view = self.get_node_view(start)?;
-                        let end_view = self.get_node_view(edge.other)?;
-
-                        Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
-                    })
-                })
-        })
-    }
-
-    /// Retrieve all the edges in the graph.
-    ///
-    /// Equivalent to collecting the output of `iter_edges`.
-    /// The order of edges is not guaranteed.
-    pub fn edges(&self) -> Vec<GraphEdgeView> {
-        self.iter_edges().collect()
-    }
-
-    /// Iterate over the edges of the node at the specified position.
-    pub fn iter_node_edges(&self, position: Position) -> impl Iterator<Item = GraphEdgeView> + '_ {
-        self.edges_out
-            .get(&position)
-            .into_iter()
-            .flat_map(move |edges| {
-                edges.iter().filter_map(move |edge| {
-                    let start_view = self.get_node_view(position)?;
-                    let end_view = self.get_node_view(edge.other)?;
-
-                    Some(GraphEdgeView::new(edge.edge_type, start_view, end_view))
-                })
-            })
-    }
-
     /// Retrieve a node-edge view of the node at the specified position.
-    pub fn node_edge_view(&self, position: Position) -> Option<NodeEdgeView> {
+    ///
+    /// Returns None if no node exists at that position.
+    /// Exposes node surrounding data in a view-friendly format, decoupling the internal representation from consumers.
+    pub fn get_node_and_edges(&self, position: Position) -> Option<NodeEdgeView> {
         use EdgeType::*;
 
-        let origin = self.get_node_view(position)?;
+        let origin = self.get_node(position)?;
 
         let mut left = None;
         let mut right = None;
@@ -710,28 +479,31 @@ impl Graph {
 
         if let Some(edges) = self.edges_out.get(&position) {
             for edge in edges {
-                let target_node = match self.get_node_view(edge.other) {
+                let target = match self.get_node(edge.other) {
                     Some(node) => node,
                     None => continue,
                 };
 
                 match edge.edge_type {
-                    Left => left = Some(target_node),
-                    Right => right = Some(target_node),
-                    Targets => targets.push(target_node),
-                    ControlledBy => {}
-                    SwapsWith => swaps_with = Some(target_node),
-                    WorksWith => works_with.push(target_node),
+                    Right => right = Some(target),
+                    Targets => targets.push(target),
+                    SwapsWith => swaps_with = Some(target),
+                    WorksWith => works_with.push(target),
                 }
             }
         }
 
         if let Some(edges) = self.edges_in.get(&position) {
             for edge in edges {
-                if edge.edge_type == EdgeType::ControlledBy {
-                    if let Some(node) = self.get_node_view(edge.other) {
-                        controlled_by.push(node);
-                    }
+                let source = match self.get_node(edge.other) {
+                    Some(node) => node,
+                    None => continue,
+                };
+
+                match edge.edge_type {
+                    Right => left = Some(source),
+                    Targets => controlled_by.push(source),
+                    _ => {}
                 }
             }
         }
@@ -740,9 +512,9 @@ impl Graph {
             origin,
             left,
             right,
-            swaps_with,
             targets,
             controlled_by,
+            swaps_with,
             works_with,
         ))
     }
@@ -758,8 +530,8 @@ impl Graph {
 
         let mut grid = vec![vec![".".to_string(); width]; height];
 
-        for position in self.iter_positions_by_row() {
-            if let Some(node) = self.get_node_view(position) {
+        for position in self.iter_positions_ordered_by_row() {
+            if let Some(node) = self.get_node(position) {
                 let mut label = node.r#type().to_string().to_ascii_uppercase();
 
                 if let Some(angle) = node.angle() {
@@ -813,83 +585,15 @@ impl Graph {
     /// Building the graph using the `GraphBuilder` will never result in an invalid graph.
     // Note: The only exception to this is using the `put_*` methods from the builder.
     pub fn validate(&self) -> Result<(), GraphError> {
-        self.check_dangling_nodes()?;
-        self.check_edge_symmetry()?;
-        self.check_duplicate_edges()?;
-        validator::validate_graph_structure(self)?;
+        structural_validator::validate(self)?;
+        semantic_validator::validate(self)?;
         Ok(())
     }
 
     #[cfg(debug_assertions)]
     pub(super) fn validate_internal(&self) {
-        self.check_dangling_nodes().unwrap();
-        self.check_edge_symmetry().unwrap();
-        self.check_duplicate_edges().unwrap();
-        validator::validate_graph_structure(self).unwrap();
-    }
-
-    fn check_dangling_nodes(&self) -> Result<(), GraphError> {
-        for (start, edges) in &self.edges_out {
-            if !self.nodes.contains_key(start) {
-                return Err(GraphError::DanglingStartNode { from: *start });
-            }
-
-            for edge in edges {
-                if !self.nodes.contains_key(&edge.other) {
-                    return Err(GraphError::DanglingEndNode {
-                        edge_type: edge.edge_type,
-                        from: *start,
-                        to: edge.other,
-                    });
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn check_edge_symmetry(&self) -> Result<(), GraphError> {
-        for (start, edges) in &self.edges_out {
-            for edge in edges {
-                let is_symmetric = self
-                    .edges_in
-                    .get(&edge.other)
-                    .map(|other_edges| {
-                        other_edges.iter().any(|other_edge| {
-                            other_edge.other == *start && other_edge.edge_type == edge.edge_type
-                        })
-                    })
-                    .unwrap_or(false);
-
-                if !is_symmetric {
-                    return Err(GraphError::MissingReverseEdge {
-                        from: *start,
-                        to: edge.other,
-                        edge_type: edge.edge_type,
-                    });
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn check_duplicate_edges(&self) -> Result<(), GraphError> {
-        for (start, edges) in &self.edges_out {
-            let mut seen = HashSet::new();
-
-            for edge in edges {
-                if !seen.insert((edge.edge_type, edge.other)) {
-                    return Err(GraphError::DuplicateEdge {
-                        from: *start,
-                        to: edge.other,
-                        edge_type: edge.edge_type,
-                    });
-                }
-            }
-        }
-
-        Ok(())
+        structural_validator::validate(self).unwrap();
+        semantic_validator::validate(self).unwrap();
     }
 
     pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {

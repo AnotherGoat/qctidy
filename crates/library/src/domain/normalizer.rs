@@ -16,7 +16,7 @@ pub fn normalize(graph: &mut Graph) {
 
 fn remove_identity_nodes(graph: &mut Graph) {
     let positions: Vec<_> = graph
-        .iter_nodes_by_row()
+        .iter_nodes_ordered_by_row()
         .filter(|node| node.r#type() == GateType::ID)
         .map(|node| node.position())
         .collect();
@@ -27,7 +27,7 @@ fn remove_identity_nodes(graph: &mut Graph) {
 }
 
 fn normalize_angles(graph: &mut Graph) {
-    let nodes: Vec<GraphNodeView> = graph.iter_nodes_by_row().collect();
+    let nodes: Vec<GraphNodeView> = graph.iter_nodes_ordered_by_row().collect();
 
     for node in nodes {
         normalize_angle(graph, node);
@@ -58,7 +58,7 @@ fn normalize_angle(graph: &mut Graph, node: GraphNodeView) {
 
 fn normalize_bits(graph: &mut Graph) {
     let measurements: Vec<_> = graph
-        .iter_nodes_by_row()
+        .iter_nodes_ordered_by_row()
         .filter(|node| node.r#type() == GateType::Measure)
         .collect();
 
@@ -84,7 +84,7 @@ fn normalize_bits(graph: &mut Graph) {
 
 fn compact_rows(graph: &mut Graph) {
     let mut rows: Vec<_> = graph
-        .iter_nodes_by_row()
+        .iter_nodes_ordered_by_row()
         .map(|node| node.position().row())
         .collect();
 
@@ -101,7 +101,7 @@ fn compact_rows(graph: &mut Graph) {
 }
 
 fn remap_rows(graph: &mut Graph, mapping: &HashMap<usize, usize>) {
-    let nodes: Vec<_> = graph.iter_nodes_by_row().collect();
+    let nodes: Vec<_> = graph.iter_nodes_ordered_by_row().collect();
 
     for node in nodes {
         let position = node.position();
@@ -116,7 +116,7 @@ fn remap_rows(graph: &mut Graph, mapping: &HashMap<usize, usize>) {
 
 fn compact_columns(graph: &mut Graph) {
     let mut columns: Vec<_> = graph
-        .iter_nodes_by_column()
+        .iter_nodes_ordered_by_column()
         .map(|node| node.position().column())
         .collect();
 

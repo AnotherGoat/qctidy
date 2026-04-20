@@ -5,7 +5,7 @@ use getset::CopyGetters;
 /// Represents a (row, column) position in a `Graph`.
 ///
 /// Its values are guaranteed to be non-negative.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, CopyGetters)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, CopyGetters)]
 #[get_copy = "pub"]
 pub struct Position {
     /// The row, equivalent to the qubit index.
