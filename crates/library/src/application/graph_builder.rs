@@ -10,13 +10,14 @@ use crate::{
 /// This is the recommended way to build a `Graph`, because it automatically builds the required nodes and edges.
 // Note: Prefer using the `push_*` methods over the `put_*` methods, since the last ones may break the graph when used incorrectly.
 #[derive(Default, Debug)]
+#[must_use]
 pub struct GraphBuilder {
     graph: Graph,
 }
 
 impl fmt::Display for GraphBuilder {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{}", self.graph.to_string())
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.graph)
     }
 }
 
@@ -30,48 +31,48 @@ impl GraphBuilder {
     pub fn push_operation(&mut self, operation: &GateOperation) -> &mut Self {
         use GateOperation::*;
 
-        match operation {
-            ID { qubit } => self.push_id(*qubit),
-            H { qubit } => self.push_h(*qubit),
-            X { qubit } => self.push_x(*qubit),
-            Y { qubit } => self.push_y(*qubit),
-            Z { qubit } => self.push_z(*qubit),
-            P { angle, qubit } => self.push_p(*angle, *qubit),
-            RX { angle, qubit } => self.push_rx(*angle, *qubit),
-            RY { angle, qubit } => self.push_ry(*angle, *qubit),
-            RZ { angle, qubit } => self.push_rz(*angle, *qubit),
-            S { qubit } => self.push_s(*qubit),
-            SDG { qubit } => self.push_sdg(*qubit),
-            SX { qubit } => self.push_sx(*qubit),
-            SY { qubit } => self.push_sy(*qubit),
-            T { qubit } => self.push_t(*qubit),
-            TDG { qubit } => self.push_tdg(*qubit),
-            Measure { qubit, bit } => self.push_measure(*qubit, *bit),
-            Swap { qubit1, qubit2 } => self.push_swap(*qubit1, *qubit2),
-            CH { control, target } => self.push_ch(*control, *target),
-            CX { control, target } => self.push_cx(*control, *target),
-            CY { control, target } => self.push_cy(*control, *target),
-            CZ { qubit1, qubit2 } => self.push_cz(*qubit1, *qubit2),
+        match *operation {
+            ID { qubit } => self.push_id(qubit),
+            H { qubit } => self.push_h(qubit),
+            X { qubit } => self.push_x(qubit),
+            Y { qubit } => self.push_y(qubit),
+            Z { qubit } => self.push_z(qubit),
+            P { angle, qubit } => self.push_p(angle, qubit),
+            RX { angle, qubit } => self.push_rx(angle, qubit),
+            RY { angle, qubit } => self.push_ry(angle, qubit),
+            RZ { angle, qubit } => self.push_rz(angle, qubit),
+            S { qubit } => self.push_s(qubit),
+            SDG { qubit } => self.push_sdg(qubit),
+            SX { qubit } => self.push_sx(qubit),
+            SY { qubit } => self.push_sy(qubit),
+            T { qubit } => self.push_t(qubit),
+            TDG { qubit } => self.push_tdg(qubit),
+            Measure { qubit, bit } => self.push_measure(qubit, bit),
+            Swap { qubit1, qubit2 } => self.push_swap(qubit1, qubit2),
+            CH { control, target } => self.push_ch(control, target),
+            CX { control, target } => self.push_cx(control, target),
+            CY { control, target } => self.push_cy(control, target),
+            CZ { qubit1, qubit2 } => self.push_cz(qubit1, qubit2),
             CP {
                 angle,
                 control,
                 target,
-            } => self.push_cp(*angle, *control, *target),
+            } => self.push_cp(angle, control, target),
             CSwap {
                 control,
                 target1,
                 target2,
-            } => self.push_cswap(*control, *target1, *target2),
+            } => self.push_cswap(control, target1, target2),
             CCX {
                 control1,
                 control2,
                 target,
-            } => self.push_ccx(*control1, *control2, *target),
+            } => self.push_ccx(control1, control2, target),
             CCZ {
                 qubit1,
                 qubit2,
                 qubit3,
-            } => self.push_ccz(*qubit1, *qubit2, *qubit3),
+            } => self.push_ccz(qubit1, qubit2, qubit3),
         }
     }
 
@@ -202,7 +203,7 @@ impl GraphBuilder {
         )
     }
 
-    /// Push a CSwap gate at the end of the graph.
+    /// Push a `CSwap` gate at the end of the graph.
     pub fn push_cswap(
         &mut self,
         control_qubit: usize,
@@ -507,7 +508,7 @@ impl GraphBuilder {
         self
     }
 
-    /// Put a CSwap gate directly into the graph, which may break it when used incorrectly.
+    /// Put a `CSwap` gate directly into the graph, which may break it when used incorrectly.
     pub(crate) fn put_cswap(
         &mut self,
         control_qubit: usize,
@@ -639,7 +640,7 @@ impl GraphBuilder {
                 self.graph
                     .iter_positions_ordered_by_column()
                     .filter(|position| position.row() == row)
-                    .max_by_key(|position| position.column())
+                    .max_by_key(Position::column)
                     .map(|position| position.column() + 1)
             })
             .max()

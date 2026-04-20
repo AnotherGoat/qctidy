@@ -7,6 +7,7 @@ use crate::NodeView;
 #[derive(Debug, Clone, PartialEq, Getters, New)]
 #[get = "pub"]
 #[new(pub, const)]
+#[must_use]
 pub struct ContextualNodeView {
     /// The node at the center of the view.
     origin: NodeView,

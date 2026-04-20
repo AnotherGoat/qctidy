@@ -20,7 +20,8 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub(self) struct NodeData {
+#[must_use]
+struct NodeData {
     pub(self) gate: GateType,
     pub(self) angle: Option<f64>,
     pub(self) bit: Option<usize>,
@@ -37,7 +38,8 @@ impl PartialEq for NodeData {
 impl Eq for NodeData {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(self) struct EdgeData {
+#[must_use]
+struct EdgeData {
     pub(self) edge_type: EdgeType,
     pub(self) other: Position,
 }
@@ -52,6 +54,7 @@ pub(self) struct EdgeData {
 /// No duplicate edges (same origin, type and target) are allowed.
 /// It's recommended to use the graph builder to build the graph with ease.
 #[derive(Default, Debug, Clone)]
+#[must_use]
 pub struct Graph {
     pub(self) nodes: HashMap<Position, NodeData>,
     // Note: `edges_out` is the single source of truth for a graph's edges
@@ -84,9 +87,8 @@ impl PartialEq for Graph {
         }
 
         for (start, edges) in &self.edges_out {
-            let other_edges = match other.edges_out.get(start) {
-                Some(edge) => edge,
-                None => return false,
+            let Some(other_edges) = other.edges_out.get(start) else {
+                return false;
             };
 
             if edges.len() != other_edges.len() {
@@ -120,42 +122,44 @@ impl Graph {
     }
 
     /// The number of columns in the graph. Also known as the graph depth.
+    #[must_use]
     pub fn width(&self) -> usize {
         self.nodes
             .keys()
-            .map(|position| position.column())
+            .map(Position::column)
             .max()
-            .map(|column| column + 1)
-            .unwrap_or(0)
+            .map_or(0, |column| column + 1)
     }
 
     /// The number of rows (qubits) in the graph.
+    #[must_use]
     pub fn height(&self) -> usize {
         self.nodes
             .keys()
-            .map(|position| position.row())
+            .map(Position::row)
             .max()
-            .map(|row| row + 1)
-            .unwrap_or(0)
+            .map_or(0, |row| row + 1)
     }
 
     /// The number of classical bits in the graph.
+    #[must_use]
     pub fn bits(&self) -> usize {
         self.nodes
             .values()
             .filter(|node| node.gate == GateType::Measure)
             .filter_map(|node| node.bit)
             .max()
-            .map(|bit| bit + 1)
-            .unwrap_or(0)
+            .map_or(0, |bit| bit + 1)
     }
 
     /// Check whether this graph is empty (has no gates) or not.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
 
     /// Get the total number of nodes in the graph.
+    #[must_use]
     pub fn size(&self) -> usize {
         self.nodes.len()
     }
@@ -280,22 +284,24 @@ impl Graph {
     }
 
     /// Check whether the graph has a node at the specified row and column.
+    #[must_use]
     pub fn has_node_at(&self, position: Position) -> bool {
         self.nodes.contains_key(&position)
     }
 
     /// Check whether the graph has a non-identity node at the specified row and column.
+    #[must_use]
     pub fn is_occupied(&self, position: Position) -> bool {
         self.nodes
             .get(&position)
-            .map(|node| node.gate != GateType::ID)
-            .unwrap_or(false)
+            .is_some_and(|node| node.gate != GateType::ID)
     }
 
     /// Retrieve a read-only projection of the node at the specified position.
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node data in a view-friendly format, decoupling the internal representation from consumers.
+    #[must_use]
     pub fn get_node(&self, position: Position) -> Option<NodeView> {
         self.nodes
             .get(&position)
@@ -343,30 +349,25 @@ impl Graph {
             other: start,
         });
 
-        if edge_type.is_bidirectional() {
-            if !self.has_edge(edge_type, end, start) {
-                self.edges_out.entry(end).or_default().push(EdgeData {
-                    edge_type,
-                    other: start,
-                });
+        if edge_type.is_bidirectional() && !self.has_edge(edge_type, end, start) {
+            self.edges_out.entry(end).or_default().push(EdgeData {
+                edge_type,
+                other: start,
+            });
 
-                self.edges_in.entry(start).or_default().push(EdgeData {
-                    edge_type,
-                    other: end,
-                });
-            }
+            self.edges_in.entry(start).or_default().push(EdgeData {
+                edge_type,
+                other: end,
+            });
         }
     }
 
     fn has_edge(&self, edge_type: EdgeType, start: Position, end: Position) -> bool {
-        self.edges_out
-            .get(&start)
-            .map(|edges| {
-                edges
-                    .iter()
-                    .any(|edge| edge.edge_type == edge_type && edge.other == end)
-            })
-            .unwrap_or(false)
+        self.edges_out.get(&start).is_some_and(|edges| {
+            edges
+                .iter()
+                .any(|edge| edge.edge_type == edge_type && edge.other == end)
+        })
     }
 
     /// Remove an edge from the graph.
@@ -408,6 +409,7 @@ impl Graph {
     }
 
     /// Get the next node in the same row starting from the specified position, or `None` if there is none.
+    #[must_use]
     pub fn next_in_row(&self, position: Position) -> Option<Position> {
         let row = position.row();
         let column = position.column();
@@ -420,6 +422,7 @@ impl Graph {
     }
 
     /// Get the previous node in the same row starting from the specified position, or `None` if there is none.
+    #[must_use]
     pub fn previous_in_row(&self, position: Position) -> Option<Position> {
         let row = position.row();
         let column = position.column();
@@ -462,6 +465,7 @@ impl Graph {
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node surrounding data in a view-friendly format, decoupling the internal representation from consumers.
+    #[must_use]
     pub fn get_contextual_view(&self, position: Position) -> Option<ContextualNodeView> {
         use EdgeType::*;
 
@@ -478,9 +482,8 @@ impl Graph {
 
         if let Some(edges) = self.edges_out.get(&position) {
             for edge in edges {
-                let target = match self.get_node(edge.other) {
-                    Some(node) => node,
-                    None => continue,
+                let Some(target) = self.get_node(edge.other) else {
+                    continue;
                 };
 
                 match edge.edge_type {
@@ -494,9 +497,8 @@ impl Graph {
 
         if let Some(edges) = self.edges_in.get(&position) {
             for edge in edges {
-                let source = match self.get_node(edge.other) {
-                    Some(node) => node,
-                    None => continue,
+                let Some(source) = self.get_node(edge.other) else {
+                    continue;
                 };
 
                 match edge.edge_type {

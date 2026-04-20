@@ -1,26 +1,24 @@
 use crate::domain::math;
 
 /// The format to used to display the pi constant.
-pub enum PiFormat {
+#[must_use]
+pub(crate) enum PiFormat {
     /// Display the pi constant as `pi`, ASCII-compatible.
     Lowercase,
     /// Display the pi constant as `PI`, ASCII-compatible.
     Uppercase,
     /// Display the pi constant as `π`.
     Pretty,
-    /// Display the pi constant as a custom string.
-    Custom(String),
 }
 
 impl PiFormat {
     fn to_string(&self) -> &str {
         use PiFormat::*;
 
-        match self {
+        match *self {
             Lowercase => "pi",
             Uppercase => "PI",
             Pretty => "π",
-            Custom(value) => value,
         }
     }
 }
@@ -30,7 +28,7 @@ impl PiFormat {
 /// The output depends on the requested pi format.
 pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
     if math::are_floats_similar(angle, 0.0) {
-        return "0".to_string();
+        return "0".to_owned();
     }
 
     if let Some(fraction) = math::rationalize_in_terms_of_pi(angle) {
@@ -43,30 +41,27 @@ pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
         }
 
         if numerator == -denominator {
-            return format!("-{}", pi);
+            return format!("-{pi}");
         }
 
         if numerator == 1 {
-            return format!("{}/{}", pi, denominator);
+            return format!("{pi}/{denominator}");
         }
 
         if numerator == -1 {
-            return format!("-{}/{}", pi, denominator);
+            return format!("-{pi}/{denominator}");
         }
 
         if denominator == 1 {
-            return format!("{}{}", numerator, pi);
+            return format!("{numerator}{pi}");
         }
 
-        return format!("{}{}/{}", numerator, pi, denominator);
+        return format!("{numerator}{pi}/{denominator}");
     }
 
-    trim_trailing_zeroes(&format!("{:.2}", angle))
+    trim_trailing_zeroes(&format!("{angle:.2}"))
 }
 
 fn trim_trailing_zeroes(angle: &str) -> String {
-    angle
-        .trim_end_matches('0')
-        .trim_end_matches('.')
-        .to_string()
+    angle.trim_end_matches('0').trim_end_matches('.').to_owned()
 }

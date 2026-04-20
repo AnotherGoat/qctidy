@@ -11,19 +11,19 @@ mod bindings {
     use crate::{circuit, extractor};
 
     #[pyfunction]
-    pub fn display_graph(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
+    pub(crate) fn display_graph(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
         let operations = extractor::extract_operations(circuit)?;
         Ok(use_case::display_graph(&operations))
     }
 
     #[pyfunction]
-    pub fn display_grid(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
+    pub(crate) fn display_grid(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
         let operations = extractor::extract_operations(circuit)?;
         Ok(use_case::display_grid(&operations))
     }
 
     #[pyfunction]
-    pub fn simplify(
+    pub(crate) fn simplify(
         python: Python<'_>,
         circuit: &Bound<'_, PyAny>,
         iterations: u32,

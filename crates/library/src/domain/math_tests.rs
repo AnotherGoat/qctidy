@@ -23,9 +23,10 @@ fn are_close_floats_similar() {
 }
 
 #[test]
+#[allow(clippy::approx_constant)]
 fn are_very_close_floats_similar() {
     assert!(are_floats_similar(0.0, 1e-8));
-    assert!(are_floats_similar(0.3, 0.30000001));
+    assert!(are_floats_similar(0.3, 0.300_000_01));
     assert!(are_floats_similar(3.14159, PI));
 }
 
@@ -115,9 +116,9 @@ fn normalize_negative_angle() {
 
 #[test]
 fn normalize_edge_cases() {
-    assert!(normalize_angle(f64::INFINITY, 1.0).is_err());
-    assert!(normalize_angle(f64::NEG_INFINITY, 1.0).is_err());
-    assert!(normalize_angle(f64::NAN, 1.0).is_err());
+    normalize_angle(f64::INFINITY, 1.0).unwrap_err();
+    normalize_angle(f64::NEG_INFINITY, 1.0).unwrap_err();
+    normalize_angle(f64::NAN, 1.0).unwrap_err();
 }
 
 #[test]
@@ -151,7 +152,7 @@ fn rationalize_non_multiples_of_pi() {
 
 #[test]
 fn rationalize_fractions_of_pi() {
-    assert!(rationalize_in_terms_of_pi(-1.0 * FRAC_PI_2) == Some(Ratio::new(-1, 2)));
+    assert!(rationalize_in_terms_of_pi(-FRAC_PI_2) == Some(Ratio::new(-1, 2)));
     assert!(rationalize_in_terms_of_pi(2.0 * FRAC_PI_3) == Some(Ratio::new(2, 3)));
     assert!(rationalize_in_terms_of_pi(-3.0 * FRAC_PI_4) == Some(Ratio::new(-3, 4)));
     assert!(rationalize_in_terms_of_pi(5.0 * FRAC_PI_6) == Some(Ratio::new(5, 6)));

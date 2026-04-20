@@ -8,7 +8,7 @@ use crate::{GateType, Graph, NodeView, Position, domain::math};
 /// Empty rows and columns are removed.
 /// Angles are normalized by ensuring that they are between 0 and 4pi.
 /// Bits are normalized by ensuring that they are between 0 and `bits` - 1.
-pub fn normalize(graph: &mut Graph) {
+pub(super) fn normalize(graph: &mut Graph) {
     remove_identity_nodes(graph);
     compact_rows(graph);
     compact_columns(graph);
@@ -90,9 +90,8 @@ fn normalize_angle(graph: &mut Graph, node: NodeView) {
     let gate = node.r#type();
     let position = node.position();
 
-    let angle = match node.angle() {
-        Some(found) => found,
-        None => return,
+    let Some(angle) = node.angle() else {
+        return;
     };
 
     let normalized = match gate {
@@ -114,7 +113,7 @@ fn normalize_bits(graph: &mut Graph) {
         .filter(|node| node.r#type() == GateType::Measure)
         .collect();
 
-    let mut unique_bits: Vec<_> = measurements.iter().filter_map(|node| node.bit()).collect();
+    let mut unique_bits: Vec<_> = measurements.iter().filter_map(NodeView::bit).collect();
 
     unique_bits.sort_unstable();
     unique_bits.dedup();

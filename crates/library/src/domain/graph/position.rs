@@ -9,6 +9,7 @@ use inew::New;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, CopyGetters, New)]
 #[get_copy = "pub"]
 #[new(pub, const)]
+#[must_use]
 pub struct Position {
     /// The row, equivalent to the qubit index.
     row: usize,
@@ -27,7 +28,7 @@ impl IntoIterator for Position {
 }
 
 impl fmt::Display for Position {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "({}, {})", self.row, self.column)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.row, self.column)
     }
 }

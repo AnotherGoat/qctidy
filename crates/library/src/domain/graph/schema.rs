@@ -1,19 +1,25 @@
 use crate::{EdgeType, GateType};
 use EdgeType::*;
 use GateType::*;
+use getset::{CopyGetters, Getters};
 use inew::New;
 
 /// A schema for a gate, which defines the number of graph nodes and edges required for it to be valid.
 ///
 /// This is used to validate the internal semantic structure of `Graphs`.
 /// A gate may be thought of as a molecule, where the nodes are atoms and the edges are bonds.
+#[derive(Getters, CopyGetters)]
+#[must_use]
 pub(super) struct GateSchema {
     /// The type of gate this schema is for.
-    pub(super) r#type: GateType,
+    #[get_copy = "pub"]
+    r#type: GateType,
     /// The expected schema for node that is part of the gate.
-    pub(super) nodes: &'static [NodeSchema],
+    #[get = "pub"]
+    nodes: &'static [NodeSchema],
     /// The expected edges between the nodes.
-    pub(super) edges: &'static [EdgeSchema],
+    #[get = "pub"]
+    edges: &'static [EdgeSchema],
 }
 
 /// A schema for a graph node, part of a gate structure.
@@ -30,23 +36,25 @@ pub(super) enum NodeSchema {
 
 impl NodeSchema {
     pub(super) fn has_angle(&self) -> bool {
-        matches!(self, NodeSchema::Angle)
+        matches!(self, Self::Angle)
     }
 
     pub(super) fn has_bit(&self) -> bool {
-        matches!(self, NodeSchema::Bit)
+        matches!(self, Self::Bit)
     }
 }
 
 /// A schema for an edge between graph nodes.
 ///
 /// An edge may be thought of as a bond between two atoms.
-#[derive(New)]
+#[derive(CopyGetters, New)]
+#[get_copy = "pub"]
 #[new(pub(super), const)]
+#[must_use]
 pub(super) struct EdgeSchema {
-    pub(super) r#type: EdgeType,
-    pub(super) from: usize,
-    pub(super) to: usize,
+    r#type: EdgeType,
+    from: usize,
+    to: usize,
 }
 
 macro_rules! single_schema {

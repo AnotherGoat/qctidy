@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::{PyAny, PyResult};
 
 use qsimplify::GateType;
 use qsimplify::dto::GateOperation;
@@ -41,15 +40,14 @@ fn parse_instruction(
         if is_unitary_sy(&operation)? {
             let qubits = extract_qubit_indices(circuit, instruction)?;
             let qubit = qubits
-                .get(0)
+                .first()
                 .ok_or_else(|| PyValueError::new_err("SY gate is missing a qubit"))?;
 
             return Ok(Some(GateOperation::sy(*qubit)));
-        } else {
-            return Err(PyValueError::new_err(
-                "Unsupported unitary gate (only SY is allowed)",
-            ));
         }
+        return Err(PyValueError::new_err(
+            "Unsupported unitary gate (only SY is allowed)",
+        ));
     }
 
     let r#type = extract_gate_type(&name)?;
@@ -95,10 +93,10 @@ fn parse_instruction(
 }
 
 fn extract_gate_type(name: &str) -> PyResult<GateType> {
-    match GateType::from_str(name) {
-        Ok(r#type) => Ok(r#type),
-        Err(_) => Err(PyValueError::new_err(format!("Unsupported gate: {}", name))),
-    }
+    GateType::from_str(name).map_or_else(
+        |_| Err(PyValueError::new_err(format!("Unsupported gate: {name}"))),
+        Ok,
+    )
 }
 
 fn is_unitary_sy(operation: &Bound<'_, PyAny>) -> PyResult<bool> {
@@ -131,7 +129,7 @@ fn is_unitary_sy(operation: &Bound<'_, PyAny>) -> PyResult<bool> {
         return Ok(false);
     }
 
-    let eps = 1e-8;
+    let eps = 1e-8_f64;
 
     for i in 0..2 {
         for j in 0..2 {
@@ -205,22 +203,22 @@ fn extract_parameters(operation: &Bound<'_, PyAny>) -> PyResult<Vec<f64>> {
     Ok(parameters)
 }
 
-fn get_qubit(qubits: &Vec<usize>, index: usize) -> Result<usize, PyErr> {
+fn get_qubit(qubits: &[usize], index: usize) -> Result<usize, PyErr> {
     qubits
         .get(index)
         .copied()
-        .ok_or_else(|| PyValueError::new_err(format!("Missing qubit at index {}", index)))
+        .ok_or_else(|| PyValueError::new_err(format!("Missing qubit at index {index}")))
 }
 
-fn get_bit(bits: &Vec<usize>, index: usize) -> Result<usize, PyErr> {
+fn get_bit(bits: &[usize], index: usize) -> Result<usize, PyErr> {
     bits.get(index)
         .copied()
-        .ok_or_else(|| PyValueError::new_err(format!("Missing bit at index {}", index)))
+        .ok_or_else(|| PyValueError::new_err(format!("Missing bit at index {index}")))
 }
 
-fn get_parameter(parameters: &Vec<f64>, index: usize) -> Result<f64, PyErr> {
+fn get_parameter(parameters: &[f64], index: usize) -> Result<f64, PyErr> {
     parameters
         .get(index)
         .copied()
-        .ok_or_else(|| PyValueError::new_err(format!("Missing parameter at index {}", index)))
+        .ok_or_else(|| PyValueError::new_err(format!("Missing parameter at index {index}")))
 }

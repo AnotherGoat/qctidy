@@ -11,27 +11,27 @@ pub(crate) struct GraphAsserter<'a> {
 impl<'a> GraphAsserter<'a> {
     pub(crate) fn is_empty(&self) -> &Self {
         assert!(self.graph.is_empty());
-        &self
+        self
     }
 
     pub(crate) fn has_size(&self, size: usize) -> &Self {
         assert_eq!(self.graph.size(), size);
-        &self
+        self
     }
 
     pub(crate) fn has_width(&self, width: usize) -> &Self {
         assert_eq!(self.graph.width(), width);
-        &self
+        self
     }
 
     pub(crate) fn has_height(&self, height: usize) -> &Self {
         assert_eq!(self.graph.height(), height);
-        &self
+        self
     }
 
     pub(crate) fn has_bits(&self, bits: usize) -> &Self {
         assert_eq!(self.graph.bits(), bits);
-        &self
+        self
     }
 
     pub(crate) fn node_at(&self, position: Position) -> NodeAsserter<'a> {
@@ -47,7 +47,7 @@ pub(crate) struct NodeAsserter<'a> {
     position: Position,
 }
 
-impl<'a> NodeAsserter<'a> {
+impl NodeAsserter<'_> {
     pub(crate) fn is(self, gate: GateType) -> Self {
         assert_eq!(self.view().r#type(), gate);
         self
@@ -81,7 +81,7 @@ impl<'a> NodeAsserter<'a> {
             .contextual_view()
             .right()
             .as_ref()
-            .map(|node| node.position());
+            .map(NodeView::position);
         assert_eq!(actual, Some(expected));
         self
     }
@@ -92,11 +92,11 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn targets(self, expected: &[Position]) -> Self {
-        self.compare_positions(
+        compare_positions(
             self.contextual_view()
                 .targets()
                 .iter()
-                .map(|node| node.position()),
+                .map(NodeView::position),
             expected,
         );
         self
@@ -108,11 +108,11 @@ impl<'a> NodeAsserter<'a> {
     }
 
     pub(crate) fn works_with(self, expected: &[Position]) -> Self {
-        self.compare_positions(
+        compare_positions(
             self.contextual_view()
                 .works_with()
                 .iter()
-                .map(|node| node.position()),
+                .map(NodeView::position),
             expected,
         );
         self
@@ -128,7 +128,7 @@ impl<'a> NodeAsserter<'a> {
             .contextual_view()
             .swaps_with()
             .as_ref()
-            .map(|node| node.position());
+            .map(NodeView::position);
         assert_eq!(actual, Some(expected));
         self
     }
@@ -138,19 +138,6 @@ impl<'a> NodeAsserter<'a> {
         self
     }
 
-    fn compare_positions<I>(&self, actual: I, expected: &[Position])
-    where
-        I: Iterator<Item = Position>,
-    {
-        let mut actual: Vec<_> = actual.collect();
-        let mut expected = expected.to_vec();
-
-        sort(&mut actual);
-        sort(&mut expected);
-
-        assert_eq!(actual, expected);
-    }
-
     fn view(&self) -> NodeView {
         self.graph.get_node(self.position).unwrap()
     }
@@ -158,6 +145,19 @@ impl<'a> NodeAsserter<'a> {
     fn contextual_view(&self) -> ContextualNodeView {
         self.graph.get_contextual_view(self.position).unwrap()
     }
+}
+
+fn compare_positions<I>(actual: I, expected: &[Position])
+where
+    I: Iterator<Item = Position>,
+{
+    let mut actual: Vec<_> = actual.collect();
+    let mut expected = expected.to_vec();
+
+    sort(&mut actual);
+    sort(&mut expected);
+
+    assert_eq!(actual, expected);
 }
 
 fn sort(positions: &mut [Position]) {

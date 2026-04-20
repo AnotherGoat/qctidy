@@ -13,11 +13,7 @@ impl Graph {
         (0..height).flat_map(move |row| {
             (0..width).filter_map(move |column| {
                 let position = Position::new(row, column);
-                if self.has_node_at(position) {
-                    Some(position)
-                } else {
-                    None
-                }
+                self.has_node_at(position).then_some(position)
             })
         })
     }
@@ -32,11 +28,7 @@ impl Graph {
         (0..width).flat_map(move |column| {
             (0..height).filter_map(move |row| {
                 let position = Position::new(row, column);
-                if self.has_node_at(position) {
-                    Some(position)
-                } else {
-                    None
-                }
+                self.has_node_at(position).then_some(position)
             })
         })
     }

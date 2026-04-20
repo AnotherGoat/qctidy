@@ -5,6 +5,7 @@ use crate::{
     domain::graph::{GraphError, schema::GateSchema},
 };
 
+#[must_use]
 struct ValidationContext<'a> {
     graph: &'a Graph,
     component: &'a [Position],
@@ -82,7 +83,7 @@ fn validate_component(graph: &Graph, component: &[Position]) -> Result<(), Graph
     let count = component.len();
     let schema = gate.schema();
 
-    if count != schema.nodes.len() || has_invalid_external_edges(graph, component) {
+    if count != schema.nodes().len() || has_invalid_external_edges(graph, component) {
         return Err(GraphError::InvalidGateStructure);
     }
 
@@ -125,8 +126,9 @@ fn has_invalid_external_edges(graph: &Graph, component: &[Position]) -> bool {
 fn expected_edges(schema: &GateSchema) -> HashMap<(EdgeType, usize, usize), usize> {
     let mut map = HashMap::new();
 
-    for edge in schema.edges {
-        *map.entry((edge.r#type, edge.from, edge.to)).or_insert(0) += 1;
+    for edge in *schema.edges() {
+        *map.entry((edge.r#type(), edge.from(), edge.to()))
+            .or_insert(0) += 1;
     }
 
     map
@@ -182,7 +184,7 @@ fn backtrack(
         }
 
         let node = context.graph.get_node(context.component[i]).unwrap();
-        let node_schema = &context.schema.nodes[j];
+        let node_schema = &context.schema.nodes()[j];
 
         if node_schema.has_angle() != node.angle().is_some()
             || node_schema.has_bit() != node.bit().is_some()
@@ -217,17 +219,17 @@ fn partial_edges_match(context: &ValidationContext, mapping: &[usize], up_to: us
         for edge in context.graph.iter_semantic_edges_out_from(start) {
             let end = edge.end().position();
 
-            if let Some(&j) = context.index_map.get(&end) {
-                if j <= up_to {
-                    let key = (edge.r#type(), mapping[k], mapping[j]);
+            if let Some(&j) = context.index_map.get(&end)
+                && j <= up_to
+            {
+                let key = (edge.r#type(), mapping[k], mapping[j]);
 
-                    let count = partial.entry(key).or_insert(0);
-                    *count += 1;
+                let count = partial.entry(key).or_insert(0);
+                *count += 1;
 
-                    match context.expected_edges.get(&key) {
-                        Some(&expected) if *count <= expected => {}
-                        _ => return false,
-                    }
+                match context.expected_edges.get(&key) {
+                    Some(&expected) if *count <= expected => {}
+                    _ => return false,
                 }
             }
         }

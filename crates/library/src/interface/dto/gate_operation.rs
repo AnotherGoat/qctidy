@@ -3,7 +3,7 @@ use inew::New;
 use crate::GateType;
 
 /// An operation applied to a circuit, also known as a quantum gate.
-#[derive(Debug, Clone, New)]
+#[derive(Debug, Clone, Copy, New)]
 #[new(pub, const, no_prefix)]
 pub enum GateOperation {
     ID {
@@ -103,10 +103,11 @@ pub enum GateOperation {
 
 impl GateOperation {
     /// Get the type of this gate operation.
+    #[must_use]
     pub fn r#type(&self) -> GateType {
         use GateOperation::*;
 
-        match self {
+        match *self {
             ID { .. } => GateType::ID,
             H { .. } => GateType::H,
             X { .. } => GateType::X,
@@ -138,58 +139,61 @@ impl GateOperation {
     /// Get the qubits affected by this gate operation.
     ///
     /// ID gates return an empty vector because they add no value to the circuit.
+    #[must_use]
     pub fn qubits(&self) -> Vec<usize> {
         use GateOperation::*;
 
-        match self {
+        match *self {
             ID { .. } => vec![],
-            H { qubit } => vec![*qubit],
-            X { qubit } => vec![*qubit],
-            Y { qubit } => vec![*qubit],
-            Z { qubit } => vec![*qubit],
-            P { qubit, .. } => vec![*qubit],
-            RX { qubit, .. } => vec![*qubit],
-            RY { qubit, .. } => vec![*qubit],
-            RZ { qubit, .. } => vec![*qubit],
-            S { qubit } => vec![*qubit],
-            SDG { qubit } => vec![*qubit],
-            SX { qubit } => vec![*qubit],
-            SY { qubit } => vec![*qubit],
-            T { qubit } => vec![*qubit],
-            TDG { qubit } => vec![*qubit],
-            Measure { qubit, .. } => vec![*qubit],
-            Swap { qubit1, qubit2 } => vec![*qubit1, *qubit2],
-            CH { control, target } => vec![*control, *target],
-            CX { control, target } => vec![*control, *target],
-            CY { control, target } => vec![*control, *target],
-            CZ { qubit1, qubit2 } => vec![*qubit1, *qubit2],
-            CP {
+            H { qubit }
+            | X { qubit }
+            | Y { qubit }
+            | Z { qubit }
+            | P { qubit, .. }
+            | RX { qubit, .. }
+            | RY { qubit, .. }
+            | RZ { qubit, .. }
+            | S { qubit }
+            | SDG { qubit }
+            | SX { qubit }
+            | SY { qubit }
+            | T { qubit }
+            | TDG { qubit }
+            | Measure { qubit, .. } => vec![qubit],
+            Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } => vec![qubit1, qubit2],
+            CH { control, target }
+            | CX { control, target }
+            | CY { control, target }
+            | CP {
                 control, target, ..
-            } => vec![*control, *target],
+            } => vec![control, target],
             CSwap {
                 control,
                 target1,
                 target2,
-            } => vec![*control, *target1, *target2],
+            } => vec![control, target1, target2],
             CCX {
                 control1,
                 control2,
                 target,
-            } => vec![*control1, *control2, *target],
+            } => vec![control1, control2, target],
             CCZ {
                 qubit1,
                 qubit2,
                 qubit3,
-            } => vec![*qubit1, *qubit2, *qubit3],
+            } => vec![qubit1, qubit2, qubit3],
         }
     }
 
     /// Get the classical bits affected by this gate operation.
+    #[must_use]
     pub fn bits(&self) -> Vec<usize> {
         use GateOperation::*;
 
-        match self {
-            Measure { bit, .. } => vec![*bit],
+        match *self {
+            Measure { bit, .. } => {
+                vec![bit]
+            }
             _ => vec![],
         }
     }

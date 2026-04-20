@@ -11,28 +11,28 @@ pub enum EdgeType {
     Targets,
     /// Connects nodes that are swapped with each other (bidirectional).
     ///
-    /// Only used in Swap and CSwap gates.
+    /// Only used in Swap and `CSwap` gates.
     SwapsWith,
     /// Connects nodes that work together (bidirectional).
     ///
     /// Used in CZ and CCZ gates to make them work symmetrically.
     /// Also used for storing relationships between control or target qubits that are part of the same gate.
-    /// For example, a CCX gate uses WorksWith to associate its two control qubits.
+    /// For example, a CCX gate uses `WorksWith` to associate its two control qubits.
     WorksWith,
 }
 
 impl fmt::Display for EdgeType {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use EdgeType::*;
 
-        let name = match self {
+        let name = match *self {
             Right => "right",
             Targets => "targets",
             SwapsWith => "swaps_with",
             WorksWith => "works_with",
         };
 
-        write!(formatter, "{}", name)
+        write!(f, "{name}")
     }
 }
 
@@ -47,7 +47,7 @@ impl EdgeType {
     ///
     /// Positional edges never define a gate's structure.
     pub(crate) fn is_positional(self) -> bool {
-        matches!(self, EdgeType::Right)
+        matches!(self, Self::Right)
     }
 
     /// Check whether this edge is related to a gate's semantic structure or not.

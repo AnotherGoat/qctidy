@@ -7,7 +7,7 @@ pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
     let mut builder = GraphBuilder::new();
 
     for operation in operations {
-        builder.push_operation(&operation);
+        builder.push_operation(operation);
     }
 
     builder.build()
@@ -18,6 +18,7 @@ pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
 /// It assumes that the `Graph` is valid, and it will panic if it isn't.
 /// Any `Graph` built with the `GraphBuilder` will always be valid.
 /// To check that a manually built `Graph` is valid, use `Graph::validate`.
+#[must_use]
 pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
     use GateType::*;
 
@@ -81,28 +82,29 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
 
                 GateOperation::swap(row, other.row())
             }
-            CH | CX | CY => {
-                let edges = graph
-                    .get_contextual_view(position)
-                    .expect("Control gate must have edges");
-
-                let is_target = edges.targets().is_empty();
-
-                let (control, target) = if is_target {
-                    (edges.controlled_by()[0].position(), position)
-                } else {
-                    (position, edges.targets()[0].position())
-                };
+            CH => {
+                let (control, target) = extract_control_and_target(&graph, position);
 
                 skipped.insert(control);
                 skipped.insert(target);
 
-                match node.r#type() {
-                    CH => GateOperation::ch(control.row(), target.row()),
-                    CX => GateOperation::cx(control.row(), target.row()),
-                    CY => GateOperation::cy(control.row(), target.row()),
-                    _ => unreachable!("Unexpected gate type"),
-                }
+                GateOperation::ch(control.row(), target.row())
+            }
+            CX => {
+                let (control, target) = extract_control_and_target(&graph, position);
+
+                skipped.insert(control);
+                skipped.insert(target);
+
+                GateOperation::cx(control.row(), target.row())
+            }
+            CY => {
+                let (control, target) = extract_control_and_target(&graph, position);
+
+                skipped.insert(control);
+                skipped.insert(target);
+
+                GateOperation::cy(control.row(), target.row())
             }
             CZ => {
                 let edges = graph
@@ -216,4 +218,18 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
     }
 
     gates
+}
+
+fn extract_control_and_target(graph: &Graph, position: Position) -> (Position, Position) {
+    let edges = graph
+        .get_contextual_view(position)
+        .expect("Control gate must have edges");
+
+    let is_target = edges.targets().is_empty();
+
+    if is_target {
+        (edges.controlled_by()[0].position(), position)
+    } else {
+        (position, edges.targets()[0].position())
+    }
 }

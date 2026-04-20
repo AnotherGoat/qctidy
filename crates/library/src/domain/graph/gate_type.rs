@@ -57,10 +57,10 @@ pub enum GateType {
 
 impl fmt::Display for GateType {
     /// Obtain the name of this gate type as a lowercase string.
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use GateType::*;
 
-        let name = match self {
+        let name = match *self {
             ID => "id",
             H => "h",
             X => "x",
@@ -88,7 +88,7 @@ impl fmt::Display for GateType {
             CCZ => "ccz",
         };
 
-        write!(formatter, "{}", name)
+        write!(f, "{name}")
     }
 }
 
@@ -127,7 +127,7 @@ impl FromStr for GateType {
             "cswap" | "fredkin" => Ok(CSwap),
             "ccx" | "ccnot" => Ok(CCX),
             "ccz" | "toffoli" => Ok(CCZ),
-            _ => Err(format!("Unknown gate type: {}", name)),
+            _ => Err(format!("Unknown gate type: {name}")),
         }
     }
 }

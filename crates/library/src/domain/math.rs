@@ -14,10 +14,10 @@ const ABSOLUTE_TOLERANCE: f64 = 1e-8;
 
 /// Check whether two floats are approximately equal.
 ///
-/// Uses NumPy's default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
+/// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
 pub(crate) fn are_floats_similar(first: f64, second: f64) -> bool {
     (first - second).abs()
-        <= ABSOLUTE_TOLERANCE + RELATIVE_TOLERANCE * first.abs().max(second.abs())
+        <= RELATIVE_TOLERANCE.mul_add(first.abs().max(second.abs()), ABSOLUTE_TOLERANCE)
 }
 
 pub(crate) fn are_option_floats_similar(first: Option<f64>, second: Option<f64>) -> bool {
@@ -28,7 +28,7 @@ pub(crate) fn are_option_floats_similar(first: Option<f64>, second: Option<f64>)
     }
 }
 
-/// Normalize angle to [0, full_cycle).
+/// Normalize angle to [0, `full_cycle`).
 ///
 /// For example, 1.5 * pi becomes 3 * pi / 2.
 /// Returns an error if the angle is not finite.
@@ -39,7 +39,7 @@ pub(crate) fn normalize_angle(angle: f64, full_cycle: f64) -> Result<f64, &'stat
 
     let mut result = angle % full_cycle;
 
-    if result < 0.0 {
+    if result < 0.0_f64 {
         result += full_cycle;
     }
 
@@ -60,7 +60,7 @@ pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
         let ratio = Ratio::new(numerator, denominator);
 
         let approximation = *ratio.numer() as f64 / *ratio.denom() as f64;
-        let error = (approximation as f64 - pi_factor).abs();
+        let error = (approximation - pi_factor).abs();
 
         if error < best_error {
             best_error = error;
@@ -71,9 +71,5 @@ pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
     let result = best?;
     let final_approximation = *result.numer() as f64 / *result.denom() as f64;
 
-    if are_floats_similar(final_approximation, pi_factor) {
-        Some(result)
-    } else {
-        None
-    }
+    are_floats_similar(final_approximation, pi_factor).then_some(result)
 }

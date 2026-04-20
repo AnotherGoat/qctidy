@@ -371,10 +371,7 @@ fn display_grid_with_multiple_angles_alignment() {
 
 #[test]
 fn display_grid_mixed_angle_and_normal() {
-    let graph = GraphBuilder::new()
-        .push_h(0)
-        .push_rx(std::f64::consts::FRAC_PI_2, 0)
-        .build();
+    let graph = GraphBuilder::new().push_h(0).push_rx(FRAC_PI_2, 0).build();
 
     let result = graph.display_grid();
 
@@ -415,12 +412,7 @@ fn display_grid_sparse_with_angles() {
     let mut graph = Graph::new();
 
     graph
-        .add_node(
-            RX,
-            Position::new(0, 0),
-            Some(std::f64::consts::FRAC_PI_2),
-            None,
-        )
+        .add_node(RX, Position::new(0, 0), Some(FRAC_PI_2), None)
         .unwrap();
 
     graph

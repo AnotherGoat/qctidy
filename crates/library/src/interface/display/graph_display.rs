@@ -6,25 +6,25 @@ use crate::{
 };
 
 impl fmt::Display for Graph {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(formatter, "Nodes:")?;
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Nodes:")?;
 
         let nodes = self.iter_nodes_ordered_by_column().collect::<Vec<_>>();
 
         if nodes.is_empty() {
-            writeln!(formatter, "(empty)")?;
+            writeln!(f, "(empty)")?;
         }
 
         for node in nodes {
-            writeln!(formatter, "{node}")?;
+            writeln!(f, "{node}")?;
         }
 
-        writeln!(formatter, "\nEdges:")?;
+        writeln!(f, "\nEdges:")?;
 
         let edges = self.iter_edges_by_column().collect::<Vec<_>>();
 
         if edges.is_empty() {
-            write!(formatter, "(empty)")?;
+            write!(f, "(empty)")?;
         }
 
         let mut current = None;
@@ -35,7 +35,7 @@ impl fmt::Display for Graph {
             match current {
                 Some(previous) if previous != position => {
                     current = Some(position);
-                    writeln!(formatter, "")?;
+                    writeln!(f)?;
                 }
                 None => {
                     current = Some(position);
@@ -43,10 +43,10 @@ impl fmt::Display for Graph {
                 _ => {}
             }
 
-            write!(formatter, "{edge}")?;
+            write!(f, "{edge}")?;
 
             if index != edges.len() - 1 {
-                writeln!(formatter, "")?;
+                writeln!(f)?;
             }
         }
 
@@ -56,6 +56,7 @@ impl fmt::Display for Graph {
 
 impl Graph {
     /// Get an alternative string representation of the graph, as a 2D grid.
+    #[must_use]
     pub fn display_grid(&self) -> String {
         if self.is_empty() {
             return "(empty)".to_owned();
@@ -64,7 +65,7 @@ impl Graph {
         let height = self.height();
         let width = self.width();
 
-        let mut grid = vec![vec![".".to_string(); width]; height];
+        let mut grid = vec![vec![".".to_owned(); width]; height];
 
         for position in self.iter_positions_ordered_by_row() {
             if let Some(node) = self.get_node(position) {
@@ -109,7 +110,7 @@ impl Graph {
             let line = formatted.join("   ");
             let trimmed = line.trim_end();
 
-            rows.push(format!("{row_index}: {}", trimmed));
+            rows.push(format!("{row_index}: {trimmed}"));
         }
 
         rows.join("\n")

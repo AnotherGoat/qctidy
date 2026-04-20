@@ -49,7 +49,7 @@ Follow standard Rust conventions:
 In addition, use the following naming conventions:
 
 - Try to use concise and descriptive variable names. If both aren't posible at the same time, prefer descriptive names over concise.
-- Avoid using abbreviations for variable names. For example: `f -> formatter`, `col -> column`, `pos -> position`.
+- Avoid using abbreviations for variable names. For example: `col -> column`, `pos -> position`.
 - The same is true for parameters inside lambdas. Avoid using single letter variable names in them.
 
 ## Error handling
@@ -58,7 +58,7 @@ In addition, use the following naming conventions:
 - Always suffix error types with `Error`.
 - Avoid using `unwrap()` in library code.
 - Use `expect()` to check invariants that should be "impossible to reach" in production code.
-- Leave error handling to the caller in client implementations. Just returning `Result` is fine most of the time.
+- Leave error handling to the caller in client implementations. Just returning `Result<T>` is fine most of the time.
 - If a function can fail or return nothing, make it return `Result<Option<T>>` to separate success with no results from actual errors.
 
 ## Documentation

@@ -1,7 +1,7 @@
 use std::f64::consts::FRAC_PI_2;
 
 use super::*;
-use crate::{EdgeType, EdgeView, GateType, GraphBuilder, Position};
+use crate::{EdgeView, GraphBuilder};
 use EdgeType::*;
 use GateType::*;
 
@@ -118,11 +118,11 @@ fn graph_is_equal_with_angles() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph1.replace_node(RX, first, Some(0.0), None);
+    graph1.replace_node(RX, first, Some(0.0_f64), None);
     graph1.replace_node(P, second, Some(FRAC_PI_2), None);
 
-    graph2.replace_node(RX, first, Some(1e-8), None);
-    graph2.replace_node(P, second, Some(1e-8 + FRAC_PI_2), None);
+    graph2.replace_node(RX, first, Some(1e-8_f64), None);
+    graph2.replace_node(P, second, Some(1e-8_f64 + FRAC_PI_2), None);
 
     assert_eq!(graph1, graph2);
 }
@@ -247,13 +247,12 @@ fn removing_middle_node_reconnects_neighbors() {
 
     assert!(!graph.has_node_at(second));
 
-    let edges: Vec<_> = graph.iter_edges_unique().collect();
-
-    assert!(edges.contains(&EdgeView::new(
-        Right,
-        graph.get_node(first).unwrap(),
-        graph.get_node(third).unwrap()
-    )));
+    assert!(graph.iter_edges_unique().any(|edge| edge
+        == EdgeView::new(
+            Right,
+            graph.get_node(first).unwrap(),
+            graph.get_node(third).unwrap()
+        )));
 }
 
 #[test]
@@ -342,16 +341,8 @@ fn move_node_preserves_edges() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(edges.contains(&EdgeView::new(
-        Right,
-        cx_controller.clone(),
-        hadamard.clone()
-    )));
-    assert!(edges.contains(&EdgeView::new(
-        Targets,
-        cx_controller.clone(),
-        cx_target.clone()
-    )));
+    assert!(edges.contains(&EdgeView::new(Right, cx_controller, hadamard)));
+    assert!(edges.contains(&EdgeView::new(Targets, cx_controller, cx_target)));
 }
 
 #[test]
@@ -469,13 +460,12 @@ fn connect_row_neighbors_removes_direct_connection() {
 
     graph.connect_row_neighbors(second).unwrap();
 
-    let edges: Vec<_> = graph.iter_edges_unique().collect();
-
-    assert!(!edges.contains(&EdgeView::new(
-        Right,
-        graph.get_node(first).unwrap(),
-        graph.get_node(third).unwrap()
-    )));
+    assert!(!graph.iter_edges_unique().any(|edge| edge
+        == EdgeView::new(
+            Right,
+            graph.get_node(first).unwrap(),
+            graph.get_node(third).unwrap()
+        )));
 }
 
 #[test]

@@ -3,7 +3,7 @@ use thiserror::Error;
 use crate::{EdgeType, GateType, Position};
 
 /// Error that can occur while working with a `Graph`.
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Copy, Error)]
 pub enum GraphError {
     #[error("Node already exists at {position}")]
     NodeAlreadyExists { position: Position },

@@ -35,15 +35,11 @@ fn check_dangling_nodes(graph: &Graph) -> Result<(), GraphError> {
 fn check_edge_mirroring(graph: &Graph) -> Result<(), GraphError> {
     for (start, edges) in &graph.edges_out {
         for edge in edges {
-            let is_symmetric = graph
-                .edges_in
-                .get(&edge.other)
-                .map(|other_edges| {
-                    other_edges.iter().any(|other_edge| {
-                        other_edge.other == *start && other_edge.edge_type == edge.edge_type
-                    })
+            let is_symmetric = graph.edges_in.get(&edge.other).is_some_and(|other_edges| {
+                other_edges.iter().any(|other_edge| {
+                    other_edge.other == *start && other_edge.edge_type == edge.edge_type
                 })
-                .unwrap_or(false);
+            });
 
             if !is_symmetric {
                 return Err(GraphError::MissingReverseEdge {
