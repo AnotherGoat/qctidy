@@ -16,5 +16,5 @@ pub fn display_grid(operations: &[GateOperation]) -> String {
 pub fn simplify(operations: &[GateOperation], iterations: u32) -> Vec<GateOperation> {
     let graph = mapper::operations_to_graph(operations);
     let simplified = simplifier::simplify(graph, iterations);
-    mapper::graph_to_operations(simplified)
+    mapper::graph_to_operations(&simplified)
 }

@@ -55,9 +55,9 @@ impl GraphBuilder {
             CZ { qubit1, qubit2 } => self.push_cz(qubit1, qubit2),
             CP {
                 angle,
-                control,
-                target,
-            } => self.push_cp(angle, control, target),
+                qubit1,
+                qubit2,
+            } => self.push_cp(angle, qubit1, qubit2),
             CSwap {
                 control,
                 target1,
@@ -157,8 +157,8 @@ impl GraphBuilder {
     }
 
     /// Push a Swap gate at the end of the graph.
-    pub fn push_swap(&mut self, qubit: usize, qubit2: usize) -> &mut Self {
-        self.put_swap(qubit, qubit2, self.find_push_column(&[qubit, qubit2]))
+    pub fn push_swap(&mut self, qubit1: usize, qubit2: usize) -> &mut Self {
+        self.put_swap(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2]))
     }
 
     /// Push a CH gate at the end of the graph.
@@ -189,17 +189,17 @@ impl GraphBuilder {
     }
 
     /// Push a CZ gate at the end of the graph.
-    pub fn push_cz(&mut self, qubit: usize, qubit2: usize) -> &mut Self {
-        self.put_cz(qubit, qubit2, self.find_push_column(&[qubit, qubit2]))
+    pub fn push_cz(&mut self, qubit1: usize, qubit2: usize) -> &mut Self {
+        self.put_cz(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2]))
     }
 
     /// Push a CP gate at the end of the graph.
-    pub fn push_cp(&mut self, angle: f64, control_qubit: usize, target_qubit: usize) -> &mut Self {
+    pub fn push_cp(&mut self, angle: f64, qubit1: usize, qubit2: usize) -> &mut Self {
         self.put_cp(
             angle,
-            control_qubit,
-            target_qubit,
-            self.find_push_column(&[control_qubit, target_qubit]),
+            qubit1,
+            qubit2,
+            self.find_push_column(&[qubit1, qubit2]),
         )
     }
 
@@ -207,44 +207,39 @@ impl GraphBuilder {
     pub fn push_cswap(
         &mut self,
         control_qubit: usize,
-        target_qubit: usize,
+        target_qubit1: usize,
         target_qubit2: usize,
     ) -> &mut Self {
         self.put_cswap(
             control_qubit,
-            target_qubit,
+            target_qubit1,
             target_qubit2,
-            self.find_push_column(&[control_qubit, target_qubit, target_qubit2]),
+            self.find_push_column(&[control_qubit, target_qubit1, target_qubit2]),
         )
     }
 
     /// Push a CCX gate at the end of the graph.
     pub fn push_ccx(
         &mut self,
-        control_qubit: usize,
+        control_qubit1: usize,
         control_qubit2: usize,
         target_qubit: usize,
     ) -> &mut Self {
         self.put_ccx(
-            control_qubit,
+            control_qubit1,
             control_qubit2,
             target_qubit,
-            self.find_push_column(&[control_qubit, control_qubit2, target_qubit]),
+            self.find_push_column(&[control_qubit1, control_qubit2, target_qubit]),
         )
     }
 
     /// Push a CCZ gate at the end of the graph.
-    pub fn push_ccz(
-        &mut self,
-        control_qubit: usize,
-        control_qubit2: usize,
-        target_qubit: usize,
-    ) -> &mut Self {
+    pub fn push_ccz(&mut self, qubit1: usize, qubit2: usize, qubit3: usize) -> &mut Self {
         self.put_ccz(
-            control_qubit,
-            control_qubit2,
-            target_qubit,
-            self.find_push_column(&[control_qubit, control_qubit2, target_qubit]),
+            qubit1,
+            qubit2,
+            qubit3,
+            self.find_push_column(&[qubit1, qubit2, qubit3]),
         )
     }
 
@@ -371,8 +366,8 @@ impl GraphBuilder {
     }
 
     /// Put a Swap gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_swap(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
-        let first = Position::new(qubit, column);
+    pub(crate) fn put_swap(&mut self, qubit1: usize, qubit2: usize, column: usize) -> &mut Self {
+        let first = Position::new(qubit1, column);
         let second = Position::new(qubit2, column);
 
         self.graph.replace_node(GateType::Swap, first, None, None);
@@ -454,8 +449,8 @@ impl GraphBuilder {
     }
 
     /// Put a CZ gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_cz(&mut self, qubit: usize, qubit2: usize, column: usize) -> &mut Self {
-        let first = Position::new(qubit, column);
+    pub(crate) fn put_cz(&mut self, qubit1: usize, qubit2: usize, column: usize) -> &mut Self {
+        let first = Position::new(qubit1, column);
         let second = Position::new(qubit2, column);
 
         self.graph.replace_node(GateType::CZ, first, None, None);
@@ -481,26 +476,27 @@ impl GraphBuilder {
     pub(crate) fn put_cp(
         &mut self,
         angle: f64,
-        control_qubit: usize,
-        target_qubit: usize,
+        qubit1: usize,
+        qubit2: usize,
         column: usize,
     ) -> &mut Self {
-        let control = Position::new(control_qubit, column);
-        let target = Position::new(target_qubit, column);
-
-        self.graph.replace_node(GateType::CP, control, None, None);
-        self.graph
-            .replace_node(GateType::CP, target, Some(angle), None);
+        let first = Position::new(qubit1, column);
+        let second = Position::new(qubit2, column);
 
         self.graph
-            .add_edge(EdgeType::Targets, control, target)
+            .replace_node(GateType::CP, first, Some(angle), None);
+        self.graph
+            .replace_node(GateType::CP, second, Some(angle), None);
+
+        self.graph
+            .add_edge(EdgeType::WorksWith, first, second)
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(control)
+            .connect_row_neighbors(first)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target)
+            .connect_row_neighbors(second)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -512,35 +508,36 @@ impl GraphBuilder {
     pub(crate) fn put_cswap(
         &mut self,
         control_qubit: usize,
-        target_qubit: usize,
+        target_qubit1: usize,
         target_qubit2: usize,
         column: usize,
     ) -> &mut Self {
         let control = Position::new(control_qubit, column);
-        let target = Position::new(target_qubit, column);
+        let target1 = Position::new(target_qubit1, column);
         let target2 = Position::new(target_qubit2, column);
 
         self.graph
             .replace_node(GateType::CSwap, control, None, None);
-        self.graph.replace_node(GateType::CSwap, target, None, None);
+        self.graph
+            .replace_node(GateType::CSwap, target1, None, None);
         self.graph
             .replace_node(GateType::CSwap, target2, None, None);
 
         self.graph
-            .add_edge(EdgeType::Targets, control, target)
+            .add_edge(EdgeType::Targets, control, target1)
             .expect("Both nodes should exist");
         self.graph
             .add_edge(EdgeType::Targets, control, target2)
             .expect("Both nodes should exist");
         self.graph
-            .add_edge(EdgeType::SwapsWith, target, target2)
+            .add_edge(EdgeType::SwapsWith, target1, target2)
             .expect("Both nodes should exist");
 
         self.graph
             .connect_row_neighbors(control)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target)
+            .connect_row_neighbors(target1)
             .expect("The added node should exist");
         self.graph
             .connect_row_neighbors(target2)
@@ -554,31 +551,31 @@ impl GraphBuilder {
     /// Put a CCX gate directly into the graph, which may break it when used incorrectly.
     pub(crate) fn put_ccx(
         &mut self,
-        control_qubit: usize,
+        control_qubit1: usize,
         control_qubit2: usize,
         target_qubit: usize,
         column: usize,
     ) -> &mut Self {
-        let control = Position::new(control_qubit, column);
+        let control1 = Position::new(control_qubit1, column);
         let control2 = Position::new(control_qubit2, column);
         let target = Position::new(target_qubit, column);
 
-        self.graph.replace_node(GateType::CCX, control, None, None);
+        self.graph.replace_node(GateType::CCX, control1, None, None);
         self.graph.replace_node(GateType::CCX, control2, None, None);
         self.graph.replace_node(GateType::CCX, target, None, None);
 
         self.graph
-            .add_edge(EdgeType::Targets, control, target)
+            .add_edge(EdgeType::Targets, control1, target)
             .expect("Both nodes should exist");
         self.graph
             .add_edge(EdgeType::Targets, control2, target)
             .expect("Both nodes should exist");
         self.graph
-            .add_edge(EdgeType::WorksWith, control, control2)
+            .add_edge(EdgeType::WorksWith, control1, control2)
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(control)
+            .connect_row_neighbors(control1)
             .expect("The added node should exist");
         self.graph
             .connect_row_neighbors(control2)
@@ -595,12 +592,12 @@ impl GraphBuilder {
     /// Put a CCZ gate directly into the graph, which may break it when used incorrectly.
     pub(crate) fn put_ccz(
         &mut self,
-        qubit: usize,
+        qubit1: usize,
         qubit2: usize,
         qubit3: usize,
         column: usize,
     ) -> &mut Self {
-        let first = Position::new(qubit, column);
+        let first = Position::new(qubit1, column);
         let second = Position::new(qubit2, column);
         let third = Position::new(qubit3, column);
 

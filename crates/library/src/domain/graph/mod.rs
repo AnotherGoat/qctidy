@@ -30,7 +30,7 @@ struct NodeData {
 impl PartialEq for NodeData {
     fn eq(&self, other: &Self) -> bool {
         self.gate == other.gate
-            && math::are_option_floats_similar(self.angle, other.angle)
+            && math::are_option_floats_equal(self.angle, other.angle)
             && self.bit == other.bit
     }
 }

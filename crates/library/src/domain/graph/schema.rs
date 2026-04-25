@@ -149,8 +149,11 @@ const CZ_SCHEMA: GateSchema = GateSchema {
 
 const CP_SCHEMA: GateSchema = GateSchema {
     r#type: CP,
-    nodes: &[NodeSchema::NoData, NodeSchema::Angle],
-    edges: &[EdgeSchema::new(Targets, 0, 1)],
+    nodes: &[NodeSchema::Angle, NodeSchema::Angle],
+    edges: &[
+        EdgeSchema::new(WorksWith, 0, 1),
+        EdgeSchema::new(WorksWith, 1, 0),
+    ],
 };
 
 const CSWAP_SCHEMA: GateSchema = GateSchema {

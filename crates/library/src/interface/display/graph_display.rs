@@ -1,7 +1,10 @@
 use std::fmt;
 
+use faer::{Mat, complex::Complex64};
+
 use crate::{
     Graph,
+    application::simplifier::matrix_calculator,
     interface::display::angle_formatter::{self, PiFormat},
 };
 

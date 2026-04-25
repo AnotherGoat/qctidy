@@ -3,6 +3,9 @@ name = "qsimplify-presenter"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+doctest = false
+
 [dependencies]
 qsimplify = { path = "../library" }
 

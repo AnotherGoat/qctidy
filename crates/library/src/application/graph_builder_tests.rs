@@ -243,35 +243,35 @@ fn push_cp_builds_edges_and_payload() {
 
     asserter.has_size(4).has_width(2).has_height(2).has_bits(0);
 
-    let left_control = Position::new(0, 0);
-    let left_target = Position::new(1, 0);
+    let left1 = Position::new(0, 0);
+    let left2 = Position::new(1, 0);
 
     asserter
-        .node_at(left_control)
-        .is(CP)
-        .has_no_angle()
-        .targets(&[left_target]);
-
-    asserter
-        .node_at(left_target)
+        .node_at(left1)
         .is(CP)
         .has_angle(PI)
-        .targets_none();
-
-    let right_target = Position::new(0, 1);
-    let right_control = Position::new(1, 1);
+        .works_with(&[left2]);
 
     asserter
-        .node_at(right_control)
+        .node_at(left2)
         .is(CP)
-        .has_no_angle()
-        .targets(&[right_target]);
+        .has_angle(PI)
+        .works_with(&[left1]);
+
+    let right1 = Position::new(0, 1);
+    let right2 = Position::new(1, 1);
 
     asserter
-        .node_at(right_target)
+        .node_at(right2)
         .is(CP)
         .has_angle(-PI)
-        .targets_none();
+        .works_with(&[right1]);
+
+    asserter
+        .node_at(right1)
+        .is(CP)
+        .has_angle(-PI)
+        .works_with(&[right2]);
 
     graph.validate_internal();
 }

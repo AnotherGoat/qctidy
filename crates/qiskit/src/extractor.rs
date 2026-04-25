@@ -1,12 +1,22 @@
 use std::str::FromStr;
+use std::sync::LazyLock;
 
+use faer::Mat;
+use faer::complex::Complex64;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use qsimplify::GateType;
 use qsimplify::dto::GateOperation;
 
-const EXPECTED_SY: [[(f64, f64); 2]; 2] = [[(0.5, 0.5), (-0.5, -0.5)], [(0.5, 0.5), (0.5, 0.5)]];
+#[allow(clippy::unnested_or_patterns)]
+const EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
+    Mat::from_fn(2, 2, |row, column| match (row, column) {
+        (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5, 0.5),
+        (0, 1) => Complex64::new(-0.5, -0.5),
+        _ => Complex64::new(0.0, 0.0),
+    })
+});
 
 pub(crate) fn extract_operations(circuit: &Bound<'_, PyAny>) -> PyResult<Vec<GateOperation>> {
     let data = circuit.getattr("data")?;
@@ -106,37 +116,40 @@ fn is_unitary_sy(operation: &Bound<'_, PyAny>) -> PyResult<bool> {
         return Ok(false);
     }
 
-    let num_qubits: usize = operation.getattr("num_qubits")?.extract()?;
-    let num_clbits: usize = operation.getattr("num_clbits")?.extract()?;
+    let qubit_count: usize = operation.getattr("num_qubits")?.extract()?;
+    let bit_count: usize = operation.getattr("num_clbits")?.extract()?;
 
-    if num_qubits != 1 || num_clbits != 0 {
+    if qubit_count != 1 || bit_count != 0 {
         return Ok(false);
     }
 
-    let params = operation.getattr("params")?;
-    let params: Vec<Bound<'_, PyAny>> = params.extract()?;
+    let parameters = operation.getattr("params")?;
+    let parameters: Vec<Bound<'_, PyAny>> = parameters.extract()?;
 
-    if params.len() != 1 {
+    if parameters.len() != 1 {
         return Ok(false);
     }
 
-    let matrix = &params[0];
-
-    // Extract Python matrix into Rust structure
+    let matrix = &parameters
+        .first()
+        .expect("There should be exactly one parameter");
     let extracted: Vec<Vec<(f64, f64)>> = matrix.extract()?;
 
     if extracted.len() != 2 || extracted[0].len() != 2 {
         return Ok(false);
     }
 
-    let eps = 1e-8_f64;
+    for row in 0..2 {
+        for column in 0..2 {
+            let (real, imaginary) = extracted[row][column];
+            let Complex64 {
+                re: expected_real,
+                im: expected_imaginary,
+            } = EXPECTED_SY[(row, column)];
 
-    for i in 0..2 {
-        for j in 0..2 {
-            let (re, im) = extracted[i][j];
-            let (er, ei) = EXPECTED_SY[i][j];
-
-            if (re - er).abs() > eps || (im - ei).abs() > eps {
+            if (real - expected_real).abs() > qsimplify::EPSILON
+                || (imaginary - expected_imaginary).abs() > qsimplify::EPSILON
+            {
                 return Ok(false);
             }
         }
@@ -161,7 +174,7 @@ fn extract_qubit_indices(
         for entry in registers.try_iter()? {
             let entry = entry?;
 
-            let qubit_index: usize = entry.get_item(1)?.extract()?;
+            let qubit_index: usize = entry.get_item(1_i32)?.extract()?;
             qubits.push(qubit_index);
         }
     }
@@ -185,7 +198,7 @@ fn extract_bit_indices(
         for entry in registers.try_iter()? {
             let entry = entry?;
 
-            let bit_index: usize = entry.get_item(1)?.extract()?;
+            let bit_index: usize = entry.get_item(1_i32)?.extract()?;
             bits.push(bit_index);
         }
     }

@@ -86,8 +86,9 @@ These Cargo commands can be run from the root of the repository.
 | `cargo check --workspace`           | Check that all the crates compile.                    |
 | `cargo build --workspace`           | Compile a debug build of all the crates.              |
 | `cargo build --release --workspace` | Compile an optimized release build of all the crates. |
-| `cargo test --workspace`            | Run all unit and integration tests.                   |
+| `cargo test`                        | Run all unit and integration tests.                   |
 | `cargo test -p <crate>`             | Run tests for a single crate.                         |
+| `RUST_BACKTRACE=1 cargo test`       | Run all unit and integration tests with backtrace.    |
 
 For more specific tasks, these commands can be used:
 

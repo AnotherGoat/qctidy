@@ -81,8 +81,8 @@ pub enum GateOperation {
     },
     CP {
         angle: f64,
-        control: usize,
-        target: usize,
+        qubit1: usize,
+        qubit2: usize,
     },
     CSwap {
         control: usize,
@@ -160,13 +160,12 @@ impl GateOperation {
             | T { qubit }
             | TDG { qubit }
             | Measure { qubit, .. } => vec![qubit],
-            Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } => vec![qubit1, qubit2],
-            CH { control, target }
-            | CX { control, target }
-            | CY { control, target }
-            | CP {
-                control, target, ..
-            } => vec![control, target],
+            Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } | CP { qubit1, qubit2, .. } => {
+                vec![qubit1, qubit2]
+            }
+            CH { control, target } | CX { control, target } | CY { control, target } => {
+                vec![control, target]
+            }
             CSwap {
                 control,
                 target1,

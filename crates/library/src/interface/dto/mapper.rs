@@ -18,8 +18,9 @@ pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
 /// It assumes that the `Graph` is valid, and it will panic if it isn't.
 /// Any `Graph` built with the `GraphBuilder` will always be valid.
 /// To check that a manually built `Graph` is valid, use `Graph::validate`.
+/// If the original `Graph` has any manually added `ID` gates, they will not be included.
 #[must_use]
-pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
+pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
     use GateType::*;
 
     let mut gates = Vec::new();
@@ -120,27 +121,12 @@ pub fn graph_to_operations(graph: Graph) -> Vec<GateOperation> {
                 let edges = graph
                     .get_contextual_view(position)
                     .expect("CP must have edges");
+                let angle = node.angle().expect("CP gate must have an angle");
 
-                let is_target = edges.targets().is_empty();
+                let other = edges.works_with()[0].position();
+                skipped.insert(other);
 
-                let (control, target, angle) = if is_target {
-                    let angle = node.angle().expect("CP gate must have an angle");
-
-                    (edges.controlled_by()[0].position(), position, angle)
-                } else {
-                    let target_node = graph
-                        .get_node(edges.targets()[0].position())
-                        .expect("Target node missing");
-
-                    let angle = target_node.angle().expect("CP gate must have an angle");
-
-                    (position, edges.targets()[0].position(), angle)
-                };
-
-                skipped.insert(control);
-                skipped.insert(target);
-
-                GateOperation::cp(angle, control.row(), target.row())
+                GateOperation::cp(angle, row, other.row())
             }
             CSwap => {
                 let edges = graph

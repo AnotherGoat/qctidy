@@ -61,6 +61,12 @@ In addition, use the following naming conventions:
 - Leave error handling to the caller in client implementations. Just returning `Result<T>` is fine most of the time.
 - If a function can fail or return nothing, make it return `Result<Option<T>>` to separate success with no results from actual errors.
 
+## Type Conversions
+
+- Avoid using `as` convertions with numeric types.
+- Use `T::from()` if the convertion is lossless or `T::try_from()` if the convertion is lossy.
+- If truncation or saturation is required to convert the values, create your own wrapper function where `#[allow]` is used to make the Clippy lints pass. This is done to make the convertion explicit and make it clear that the truncation or saturation is intentional.
+
 ## Documentation
 
 - Use `///` to create documentation for non-private items. Any item that is preceded by the `pub` keyword should have documentation.

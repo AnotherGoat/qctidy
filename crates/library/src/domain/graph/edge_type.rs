@@ -15,7 +15,7 @@ pub enum EdgeType {
     SwapsWith,
     /// Connects nodes that work together (bidirectional).
     ///
-    /// Used in CZ and CCZ gates to make them work symmetrically.
+    /// Used in CZ, CP and CCZ gates to make them work symmetrically, because they only affect |11> or |111> states.
     /// Also used for storing relationships between control or target qubits that are part of the same gate.
     /// For example, a CCX gate uses `WorksWith` to associate its two control qubits.
     WorksWith,

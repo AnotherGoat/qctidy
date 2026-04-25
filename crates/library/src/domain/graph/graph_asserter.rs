@@ -54,10 +54,7 @@ impl NodeAsserter<'_> {
     }
 
     pub(crate) fn has_angle(self, angle: f64) -> Self {
-        assert!(math::are_floats_similar(
-            self.view().angle().unwrap(),
-            angle
-        ));
+        assert!(math::are_floats_equal(self.view().angle().unwrap(), angle));
         self
     }
 

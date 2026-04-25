@@ -89,10 +89,10 @@ pub(crate) fn operations_to_circuit(
             }
             CP {
                 angle,
-                control,
-                target,
+                qubit1,
+                qubit2,
             } => {
-                circuit.call_method1("cp", (angle, control, target))?;
+                circuit.call_method1("cp", (angle, qubit1, qubit2))?;
             }
             CSwap {
                 control,

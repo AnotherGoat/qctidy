@@ -27,7 +27,7 @@ impl PiFormat {
 ///
 /// The output depends on the requested pi format.
 pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
-    if math::are_floats_similar(angle, 0.0) {
+    if math::are_floats_equal(angle, 0.0) {
         return "0".to_owned();
     }
 

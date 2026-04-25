@@ -2,6 +2,8 @@
 pub(crate) mod graph;
 /// Contains general math utilities.
 pub(crate) mod math;
+/// General number conversion utilities.
+pub(crate) mod number;
 
 #[cfg(test)]
 mod math_tests;

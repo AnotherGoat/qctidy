@@ -1,31 +1,77 @@
 use std::f64::consts::PI;
 
+use faer::{Mat, complex::Complex64};
 use num_rational::Ratio;
+
+use crate::domain::number;
 
 /// A full cycle of rotation across a qubit, in radians.
 ///
 /// Note that its value is not 2pi because that's how the rotation matrices are defined.
 /// The angle is divided by 2 inside the formula.
 pub(crate) const FULL_CYCLE: f64 = 4.0 * PI;
+/// Relative tolerance used for float comparisons, the same value as `NumPy`'s default.
+pub const RELATIVE_TOLERANCE: f64 = 1e-5;
+/// Absolute tolerance used for float comparisons, the same value as `NumPy`'s default.
+pub const ABSOLUTE_TOLERANCE: f64 = 1e-8;
+/// A very small value, used to check if a float is close to zero.
+pub const EPSILON: f64 = ABSOLUTE_TOLERANCE;
 
 const MAX_DENOMINATOR: i64 = 16;
-const RELATIVE_TOLERANCE: f64 = 1e-5;
-const ABSOLUTE_TOLERANCE: f64 = 1e-8;
 
 /// Check whether two floats are approximately equal.
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
-pub(crate) fn are_floats_similar(first: f64, second: f64) -> bool {
-    (first - second).abs()
-        <= RELATIVE_TOLERANCE.mul_add(first.abs().max(second.abs()), ABSOLUTE_TOLERANCE)
+#[allow(clippy::float_cmp)]
+pub(crate) fn are_floats_equal(first: f64, second: f64) -> bool {
+    if first == second {
+        return true;
+    }
+
+    let difference = (first - second).abs();
+    let scale = first.abs().max(second.abs());
+
+    difference <= RELATIVE_TOLERANCE.mul_add(scale, ABSOLUTE_TOLERANCE)
 }
 
-pub(crate) fn are_option_floats_similar(first: Option<f64>, second: Option<f64>) -> bool {
+/// Check whether two floats wrapped in an `Option` are approximately equal.
+///
+/// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
+pub(crate) fn are_option_floats_equal(first: Option<f64>, second: Option<f64>) -> bool {
     match (first, second) {
-        (Some(first), Some(second)) => are_floats_similar(first, second),
+        (Some(first), Some(second)) => are_floats_equal(first, second),
         (None, None) => true,
         _ => false,
     }
+}
+
+/// Check whether two matrices are approximately equal.
+///
+/// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
+pub(crate) fn are_matrices_equal(first: &Mat<Complex64>, second: &Mat<Complex64>) -> bool {
+    if first.nrows() != second.nrows() || first.ncols() != second.ncols() {
+        return false;
+    }
+
+    for row in 0..first.nrows() {
+        for column in 0..first.ncols() {
+            let first_element = first[(row, column)];
+            let second_element = second[(row, column)];
+
+            if first_element == second_element {
+                continue;
+            }
+
+            let difference = (first_element - second_element).norm();
+            let scale = first_element.norm().max(second_element.norm());
+
+            if difference > RELATIVE_TOLERANCE.mul_add(scale, ABSOLUTE_TOLERANCE) {
+                return false;
+            }
+        }
+    }
+
+    true
 }
 
 /// Normalize angle to [0, `full_cycle`).
@@ -56,11 +102,19 @@ pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
     let mut best_error = f64::INFINITY;
 
     for denominator in 1..=MAX_DENOMINATOR {
-        let numerator = (pi_factor * denominator as f64).round() as i64;
+        let numerator =
+            number::truncate_f64_to_i64(pi_factor * number::truncate_i64_to_f64(denominator));
         let ratio = Ratio::new(numerator, denominator);
 
-        let approximation = *ratio.numer() as f64 / *ratio.denom() as f64;
+        let float_numerator = number::truncate_i64_to_f64(*ratio.numer());
+        let float_denominator = number::truncate_i64_to_f64(*ratio.denom());
+        let approximation = float_numerator / float_denominator;
+
         let error = (approximation - pi_factor).abs();
+
+        if error < EPSILON {
+            return Some(ratio);
+        }
 
         if error < best_error {
             best_error = error;
@@ -69,7 +123,10 @@ pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
     }
 
     let result = best?;
-    let final_approximation = *result.numer() as f64 / *result.denom() as f64;
 
-    are_floats_similar(final_approximation, pi_factor).then_some(result)
+    let float_numerator = number::truncate_i64_to_f64(*result.numer());
+    let float_denominator = number::truncate_i64_to_f64(*result.denom());
+    let final_approximation = float_numerator / float_denominator;
+
+    are_floats_equal(final_approximation, pi_factor).then_some(result)
 }

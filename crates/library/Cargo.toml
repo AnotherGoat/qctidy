@@ -3,7 +3,11 @@ name = "qsimplify"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+doctest = false
+
 [dependencies]
+faer = { workspace = true }
 getset = { workspace = true }
 inew = { workspace = true }
 num-rational = { workspace = true }

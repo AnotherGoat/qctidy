@@ -3,6 +3,9 @@ name = "qsimplify-converter"
 version.workspace = true
 edition.workspace = true
 
+[lib]
+doctest = false
+
 [dependencies]
 qsimplify = { path = "../library" }
 serde = { workspace = true, features = ["derive"] }

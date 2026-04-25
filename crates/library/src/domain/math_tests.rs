@@ -6,37 +6,37 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI
 
 #[test]
 fn are_different_floats_similar() {
-    assert!(!are_floats_similar(5.0, 10.0));
-    assert!(!are_floats_similar(-3.0, 3.0));
+    assert!(!are_floats_equal(5.0, 10.0));
+    assert!(!are_floats_equal(-3.0, 3.0));
 }
 
 #[test]
 fn are_close_floats_similar() {
-    assert!(!are_floats_similar(0.0, 1.0));
-    assert!(!are_floats_similar(0.0, 1e-1));
-    assert!(!are_floats_similar(0.0, 1e-2));
-    assert!(!are_floats_similar(0.0, 1e-3));
-    assert!(!are_floats_similar(0.0, 1e-4));
-    assert!(!are_floats_similar(0.0, 1e-5));
-    assert!(!are_floats_similar(0.0, 1e-6));
-    assert!(!are_floats_similar(0.0, 1e-7));
+    assert!(!are_floats_equal(0.0, 1.0));
+    assert!(!are_floats_equal(0.0, 1e-1));
+    assert!(!are_floats_equal(0.0, 1e-2));
+    assert!(!are_floats_equal(0.0, 1e-3));
+    assert!(!are_floats_equal(0.0, 1e-4));
+    assert!(!are_floats_equal(0.0, 1e-5));
+    assert!(!are_floats_equal(0.0, 1e-6));
+    assert!(!are_floats_equal(0.0, 1e-7));
 }
 
 #[test]
 #[allow(clippy::approx_constant)]
 fn are_very_close_floats_similar() {
-    assert!(are_floats_similar(0.0, 1e-8));
-    assert!(are_floats_similar(0.3, 0.300_000_01));
-    assert!(are_floats_similar(3.14159, PI));
+    assert!(are_floats_equal(0.0, 1e-8));
+    assert!(are_floats_equal(0.3, 0.300_000_01));
+    assert!(are_floats_equal(3.14159, PI));
 }
 
 #[test]
 fn normalize_zero_angle() {
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(0.0, 4.0 * PI).unwrap(),
         0.0
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-0.0, 4.0 * PI).unwrap(),
         0.0
     ));
@@ -44,35 +44,32 @@ fn normalize_zero_angle() {
 
 #[test]
 fn normalize_positive_angle() {
-    assert!(are_floats_similar(
-        normalize_angle(PI, 4.0 * PI).unwrap(),
-        PI
-    ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(normalize_angle(PI, 4.0 * PI).unwrap(), PI));
+    assert!(are_floats_equal(
         normalize_angle(2.0 * PI, 4.0 * PI).unwrap(),
         2.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(3.0 * PI, 4.0 * PI).unwrap(),
         3.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(4.0 * PI, 4.0 * PI).unwrap(),
         0.0
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(5.0 * PI, 4.0 * PI).unwrap(),
         PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(6.0 * PI, 4.0 * PI).unwrap(),
         2.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(7.0 * PI, 4.0 * PI).unwrap(),
         3.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(8.0 * PI, 4.0 * PI).unwrap(),
         0.0
     ));
@@ -80,35 +77,35 @@ fn normalize_positive_angle() {
 
 #[test]
 fn normalize_negative_angle() {
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-PI, 4.0 * PI).unwrap(),
         3.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-2.0 * PI, 4.0 * PI).unwrap(),
         2.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-3.0 * PI, 4.0 * PI).unwrap(),
         PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-4.0 * PI, 4.0 * PI).unwrap(),
         0.0
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-5.0 * PI, 4.0 * PI).unwrap(),
         3.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-6.0 * PI, 4.0 * PI).unwrap(),
         2.0 * PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-7.0 * PI, 4.0 * PI).unwrap(),
         PI
     ));
-    assert!(are_floats_similar(
+    assert!(are_floats_equal(
         normalize_angle(-8.0 * PI, 4.0 * PI).unwrap(),
         0.0
     ));
