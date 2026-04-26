@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 use qsimplify::GateType;
 use qsimplify::dto::GateOperation;
 
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5_f64, 0.5_f64),

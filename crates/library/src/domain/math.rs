@@ -22,7 +22,7 @@ const MAX_DENOMINATOR: i64 = 16;
 /// Check whether two floats are approximately equal.
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
-#[allow(clippy::float_cmp)]
+#[expect(clippy::float_cmp)]
 pub(crate) fn are_floats_equal(first: f64, second: f64) -> bool {
     if first == second {
         return true;

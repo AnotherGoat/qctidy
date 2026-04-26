@@ -73,8 +73,8 @@ Edges:
 fn to_string_sparse_columns() {
     let mut graph = Graph::new();
 
-    graph.add_node(H, Position::new(0, 0), None, None).unwrap();
-    graph.add_node(X, Position::new(0, 2), None, None).unwrap();
+    graph.replace_node(H, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 2), None, None);
 
     let result = graph.to_string();
 

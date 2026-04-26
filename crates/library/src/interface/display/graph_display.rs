@@ -54,7 +54,7 @@ impl Graph {
         let edges = self.iter_edges_by_column().collect::<Vec<_>>();
 
         if edges.is_empty() {
-            output.push_str("(empty)\n");
+            output.push_str("(empty)");
         }
 
         let mut current = None;
@@ -73,7 +73,7 @@ impl Graph {
                 _ => {}
             }
 
-            writeln!(output, "{}", edge.display(angle_format))
+            write!(output, "{}", edge.display(angle_format))
                 .expect("String should always be writable");
 
             if index != edges.len() - 1 {

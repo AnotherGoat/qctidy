@@ -18,7 +18,7 @@ fn add_node() {
 }
 
 #[test]
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 fn add_node_fails_if_it_exists() {
     let mut graph = Graph::new();
     let position = Position::new(0, 0);
@@ -256,7 +256,7 @@ fn removing_middle_node_reconnects_neighbors() {
 }
 
 #[test]
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 fn move_nonexistent_node_fails() {
     let mut graph = Graph::new();
     let position = Position::new(0, 3);
@@ -346,7 +346,7 @@ fn move_node_preserves_edges() {
 }
 
 #[test]
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 fn add_edge_fails_when_missing_nodes() {
     let mut graph = Graph::new();
     let start = Position::new(0, 0);
@@ -406,7 +406,7 @@ fn add_bidirectional_edge_creates_two_edges() {
 }
 
 #[test]
-#[allow(unused_variables)]
+#[expect(unused_variables)]
 fn connect_row_neighbors_fails_if_node_is_missing() {
     let mut graph = Graph::new();
     let position = Position::new(0, 0);

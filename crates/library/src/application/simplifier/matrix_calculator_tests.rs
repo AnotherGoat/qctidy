@@ -61,7 +61,7 @@ fn identity_matrix() {
 }
 
 #[test]
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 fn hadamard_matrix() {
     let graph = GraphBuilder::new().push_h(0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
@@ -172,7 +172,7 @@ fn rx_matrix() {
 }
 
 #[test]
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 fn ry_matrix() {
     let graph = GraphBuilder::new().push_ry(FRAC_PI_2, 0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
@@ -245,7 +245,7 @@ fn sqrt_x_matrix() {
 }
 
 #[test]
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 fn sqrt_y_matrix() {
     let graph = GraphBuilder::new().push_sy(0).build();
 
@@ -328,7 +328,7 @@ fn swap_matrix() {
 }
 
 #[test]
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 fn controlled_hadamard_matrix() {
     let graph = GraphBuilder::new().push_ch(0, 1).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
@@ -345,7 +345,7 @@ fn controlled_hadamard_matrix() {
 }
 
 #[test]
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 fn reversed_ch_matrix() {
     let graph = GraphBuilder::new().push_ch(1, 0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();

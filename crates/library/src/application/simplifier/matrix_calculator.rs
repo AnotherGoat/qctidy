@@ -16,7 +16,7 @@ static HALF_SQRT: LazyLock<f64> = LazyLock::new(|| 1.0_f64 / 2.0_f64.sqrt());
 
 static ID_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| identity(2));
 
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 static H_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (0, 1) | (1, 0) => *HALF_SQRT * ONE,
@@ -72,7 +72,7 @@ static SX_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     })
 });
 
-#[allow(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns)]
 static SY_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (1, 0) | (1, 1) => 0.5_f64 * (ONE + I),
