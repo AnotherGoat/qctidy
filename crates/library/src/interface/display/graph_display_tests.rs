@@ -1,6 +1,6 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, PI};
 
-use crate::{GateType, Graph, GraphBuilder, Position};
+use crate::{GateType, Graph, GraphBuilder, PiFormat, Position};
 use GateType::*;
 
 #[test]
@@ -267,7 +267,7 @@ Edges:
 fn display_grid_empty_graph() {
     let graph = Graph::new();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     assert_eq!(result, "(empty)");
 }
@@ -276,7 +276,7 @@ fn display_grid_empty_graph() {
 fn display_grid_single_gate() {
     let graph = GraphBuilder::new().push_h(0).build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: H";
     assert_eq!(result, expected);
@@ -286,7 +286,7 @@ fn display_grid_single_gate() {
 fn display_grid_skipping_first_row() {
     let graph = GraphBuilder::new().push_h(1).build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "\
 0: .
@@ -298,7 +298,7 @@ fn display_grid_skipping_first_row() {
 fn display_grid_multiple_rows_single_column() {
     let graph = GraphBuilder::new().push_h(0).push_x(1).push_z(2).build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "\
 0: H
@@ -315,7 +315,7 @@ fn display_grid_sparse_columns() {
     graph.add_node(H, Position::new(0, 0), None, None).unwrap();
     graph.add_node(X, Position::new(0, 2), None, None).unwrap();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: H   .   X";
     assert_eq!(result, expected);
@@ -329,7 +329,7 @@ fn display_grid_multiple_rows_and_columns() {
     graph.add_node(X, Position::new(1, 1), None, None).unwrap();
     graph.add_node(Z, Position::new(0, 2), None, None).unwrap();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "\
 0: H   .   Z
@@ -346,7 +346,7 @@ fn display_grid_with_angle() {
         .push_rz(2.0 * FRAC_PI_3, 2)
         .build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "\
 0: RX(pi/2)
@@ -363,7 +363,7 @@ fn display_grid_with_multiple_angles_alignment() {
         .push_rz(0.0, 0)
         .build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: RX(pi/2)   RZ(0)";
     assert_eq!(result, expected);
@@ -373,7 +373,7 @@ fn display_grid_with_multiple_angles_alignment() {
 fn display_grid_mixed_angle_and_normal() {
     let graph = GraphBuilder::new().push_h(0).push_rx(FRAC_PI_2, 0).build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: H   RX(pi/2)";
     assert_eq!(result, expected);
@@ -383,7 +383,7 @@ fn display_grid_mixed_angle_and_normal() {
 fn display_grid_measure_with_bit() {
     let graph = GraphBuilder::new().push_measure(0, 3).build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: M(3)";
     assert_eq!(result, expected);
@@ -398,7 +398,7 @@ fn display_grid_column_alignment() {
         .push_z(1)
         .build();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "\
 0: H      X
@@ -419,7 +419,7 @@ fn display_grid_sparse_with_angles() {
         .add_node(Measure, Position::new(0, 2), None, Some(2))
         .unwrap();
 
-    let result = graph.display_grid();
+    let result = graph.display_grid(PiFormat::Lowercase);
 
     let expected = "0: RX(pi/2)   .   M(2)";
     assert_eq!(result, expected);

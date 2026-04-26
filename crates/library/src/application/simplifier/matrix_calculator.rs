@@ -101,7 +101,7 @@ static TDG_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
 pub(crate) fn are_graphs_equivalent(first: &Graph, second: &Graph) -> bool {
-    are_matrices_equivalent(&circuit_matrix(first), &circuit_matrix(second))
+    are_matrices_equivalent(&graph_circuit_matrix(first), &graph_circuit_matrix(second))
 }
 
 /// Check whether two unitary matrices are equivalent by normalizing global phase.
@@ -131,7 +131,8 @@ fn compute_global_phase(first: &Mat<Complex64>, second: &Mat<Complex64>) -> Comp
 /// Get the matrix representation of the circuit represented by the graph.
 ///
 /// Measurement gates are completely ignored.
-pub(crate) fn circuit_matrix(graph: &Graph) -> Mat<Complex64> {
+/// The output will always be a square matrix (rows == columns).
+pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     let height = graph.height();
     let size = calculate_size(height);
 

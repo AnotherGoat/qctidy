@@ -12,7 +12,7 @@ use GateType::*;
 fn empty_graph_matrix() {
     let graph = Graph::new();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::identity(1, 1);
 
     assert!(math::are_matrices_equal(&actual, &expected));
@@ -26,7 +26,7 @@ fn identity_matrix() {
         .unwrap();
 
     assert!(math::are_matrices_equal(
-        &circuit_matrix(&identity2),
+        &graph_circuit_matrix(&identity2),
         &Mat::identity(2, 2)
     ));
 
@@ -39,7 +39,7 @@ fn identity_matrix() {
         .unwrap();
 
     assert!(math::are_matrices_equal(
-        &circuit_matrix(&identity4),
+        &graph_circuit_matrix(&identity4),
         &Mat::identity(4, 4)
     ));
 
@@ -55,7 +55,7 @@ fn identity_matrix() {
         .unwrap();
 
     assert!(math::are_matrices_equal(
-        &circuit_matrix(&identity8),
+        &graph_circuit_matrix(&identity8),
         &Mat::identity(8, 8)
     ));
 }
@@ -66,7 +66,7 @@ fn hadamard_matrix() {
     let graph = GraphBuilder::new().push_h(0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
 
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (0, 1) | (1, 0) => Complex64::new(half_sqrt, 0.0_f64),
@@ -81,7 +81,7 @@ fn hadamard_matrix() {
 fn x_matrix() {
     let graph = GraphBuilder::new().push_x(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 1) | (1, 0) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -105,7 +105,7 @@ fn x_matrix_surrounded_by_identities() {
         .add_edge(Right, Position::new(0, 1), Position::new(0, 2))
         .unwrap();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 1) | (1, 0) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -118,7 +118,7 @@ fn x_matrix_surrounded_by_identities() {
 fn y_matrix() {
     let graph = GraphBuilder::new().push_y(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 1) => Complex64::new(0.0_f64, -1.0_f64),
         (1, 0) => Complex64::new(0.0_f64, 1.0_f64),
@@ -132,7 +132,7 @@ fn y_matrix() {
 fn z_matrix() {
     let graph = GraphBuilder::new().push_z(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => Complex64::new(-1.0_f64, 0.0_f64),
@@ -146,7 +146,7 @@ fn z_matrix() {
 fn phase_matrix() {
     let graph = GraphBuilder::new().push_p(FRAC_PI_2, 0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => Complex64::new(0.0_f64, 1.0_f64),
@@ -161,7 +161,7 @@ fn rx_matrix() {
     let graph = GraphBuilder::new().push_rx(FRAC_PI_2, 0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (1, 1) => Complex64::new(half_sqrt, 0.0_f64),
         (0, 1) | (1, 0) => Complex64::new(0.0_f64, -half_sqrt),
@@ -177,7 +177,7 @@ fn ry_matrix() {
     let graph = GraphBuilder::new().push_ry(FRAC_PI_2, 0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) | (1, 0) | (1, 1) => Complex64::new(half_sqrt, 0.0_f64),
         (0, 1) => Complex64::new(-half_sqrt, 0.0_f64),
@@ -191,7 +191,7 @@ fn ry_matrix() {
 fn rz_matrix() {
     let graph = GraphBuilder::new().push_rz(FRAC_PI_2, 0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(0.0_f64, -FRAC_PI_4).exp(),
         (1, 1) => Complex64::new(0.0_f64, FRAC_PI_4).exp(),
@@ -205,7 +205,7 @@ fn rz_matrix() {
 fn s_matrix() {
     let graph = GraphBuilder::new().push_s(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => Complex64::new(0.0_f64, 1.0_f64),
@@ -219,7 +219,7 @@ fn s_matrix() {
 fn s_dagger_matrix() {
     let graph = GraphBuilder::new().push_sdg(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => Complex64::new(0.0_f64, -1.0_f64),
@@ -233,7 +233,7 @@ fn s_dagger_matrix() {
 fn sqrt_x_matrix() {
     let graph = GraphBuilder::new().push_sx(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = 0.5_f64
         * Mat::from_fn(2, 2, |row, column| match (row, column) {
             (0, 0) | (1, 1) => Complex64::new(1.0_f64, 1.0_f64),
@@ -249,7 +249,7 @@ fn sqrt_x_matrix() {
 fn sqrt_y_matrix() {
     let graph = GraphBuilder::new().push_sy(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = 0.5_f64
         * Mat::from_fn(2, 2, |row, column| match (row, column) {
             (0, 0) | (1, 0) | (1, 1) => Complex64::new(1.0_f64, 1.0_f64),
@@ -264,7 +264,7 @@ fn sqrt_y_matrix() {
 fn t_matrix() {
     let graph = GraphBuilder::new().push_t(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => (Complex64::new(0.0_f64, 1.0_f64) * PI / 4.0_f64).exp(),
@@ -278,7 +278,7 @@ fn t_matrix() {
 fn t_dagger_matrix() {
     let graph = GraphBuilder::new().push_tdg(0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) => (Complex64::new(0.0_f64, -1.0_f64) * PI / 4.0_f64).exp(),
@@ -295,7 +295,7 @@ fn empty_matrix_with_ignored_measurements() {
         .push_measure(1, 1)
         .build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::identity(4, 4);
 
     assert!(math::are_matrices_equal(&actual, &expected));
@@ -305,7 +305,7 @@ fn empty_matrix_with_ignored_measurements() {
 fn x_matrix_with_ignored_measurement() {
     let graph = GraphBuilder::new().push_x(0).push_measure(0, 0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 1) | (1, 0) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -318,7 +318,7 @@ fn x_matrix_with_ignored_measurement() {
 fn swap_matrix() {
     let graph = GraphBuilder::new().push_swap(0, 1).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 2) | (2, 1) | (3, 3) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -333,7 +333,7 @@ fn controlled_hadamard_matrix() {
     let graph = GraphBuilder::new().push_ch(0, 1).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 1) => Complex64::new(1.0_f64, 0.0_f64),
         (2, 2) | (2, 3) | (3, 2) => Complex64::new(half_sqrt, 0.0_f64),
@@ -350,7 +350,7 @@ fn reversed_ch_matrix() {
     let graph = GraphBuilder::new().push_ch(1, 0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (2, 2) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 1) | (1, 3) | (3, 1) => Complex64::new(half_sqrt, 0.0_f64),
@@ -365,7 +365,7 @@ fn reversed_ch_matrix() {
 fn cx_matrix() {
     let graph = GraphBuilder::new().push_cx(0, 1).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 3) | (3, 2) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -378,7 +378,7 @@ fn cx_matrix() {
 fn reverse_cx_matrix() {
     let graph = GraphBuilder::new().push_cx(1, 0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 3) | (2, 2) | (3, 1) => Complex64::new(1.0_f64, 0.0_f64),
         _ => Complex64::default(),
@@ -391,7 +391,7 @@ fn reverse_cx_matrix() {
 fn cy_matrix() {
     let graph = GraphBuilder::new().push_cy(0, 1).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 1) => Complex64::new(1.0_f64, 0.0_f64),
         (2, 3) => Complex64::new(0.0_f64, -1.0_f64),
@@ -406,7 +406,7 @@ fn cy_matrix() {
 fn reverse_cy_matrix() {
     let graph = GraphBuilder::new().push_cy(1, 0).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (2, 2) => Complex64::new(1.0_f64, 0.0_f64),
         (1, 3) => Complex64::new(0.0_f64, -1.0_f64),
@@ -421,7 +421,7 @@ fn reverse_cy_matrix() {
 fn controlled_phase_matrix() {
     let graph = GraphBuilder::new().push_cp(FRAC_PI_2, 0, 1).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 2) => Complex64::new(1.0_f64, 0.0_f64),
         (3, 3) => Complex64::new(0.0_f64, 1.0_f64),
@@ -435,7 +435,7 @@ fn controlled_phase_matrix() {
 fn cz_matrix() {
     let graph = GraphBuilder::new().push_cz(0, 1).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 2) => Complex64::new(1.0_f64, 0.0_f64),
         (3, 3) => Complex64::new(-1.0_f64, 0.0_f64),
@@ -449,7 +449,7 @@ fn cz_matrix() {
 fn cswap_matrix() {
     let graph = GraphBuilder::new().push_cswap(0, 1, 2).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 2) | (3, 3) | (4, 4) | (5, 6) | (6, 5) | (7, 7) => {
             Complex64::new(1.0_f64, 0.0_f64)
@@ -464,7 +464,7 @@ fn cswap_matrix() {
 fn ccx_matrix() {
     let graph = GraphBuilder::new().push_ccx(0, 1, 2).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 2) | (3, 3) | (4, 4) | (5, 5) | (6, 7) | (7, 6) => {
             Complex64::new(1.0_f64, 0.0_f64)
@@ -479,7 +479,7 @@ fn ccx_matrix() {
 fn ccz_matrix() {
     let graph = GraphBuilder::new().push_ccz(0, 1, 2).build();
 
-    let actual = circuit_matrix(&graph);
+    let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
         (0, 0) | (1, 1) | (2, 2) | (3, 3) | (4, 4) | (5, 5) | (6, 6) => {
             Complex64::new(1.0_f64, 0.0_f64)

@@ -7,16 +7,21 @@ use crate::{
 
 impl fmt::Display for NodeView {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display(PiFormat::Lowercase))
+    }
+}
+
+impl NodeView {
+    /// Display a `NodeView` in a customizable format.
+    ///
+    /// Gives an output similar to `to_string`, but with more control over its format.
+    #[must_use]
+    pub fn display(&self, angle_format: PiFormat) -> String {
         let type_data = self.r#type().to_string().to_ascii_uppercase();
 
         let angle_data = self
             .angle()
-            .map(|angle| {
-                format!(
-                    "(angle={})",
-                    angle_formatter::format(angle, PiFormat::Lowercase)
-                )
-            })
+            .map(|angle| format!("(angle={})", angle_formatter::format(angle, angle_format)))
             .unwrap_or_default();
 
         let bit_data = self
@@ -24,8 +29,7 @@ impl fmt::Display for NodeView {
             .map(|bit| format!("(bit={bit})"))
             .unwrap_or_default();
 
-        write!(
-            f,
+        format!(
             "{}{}{} at {}",
             type_data,
             angle_data,
@@ -37,30 +41,54 @@ impl fmt::Display for NodeView {
 
 impl fmt::Display for EdgeView {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+        write!(f, "{}", self.display(PiFormat::Lowercase))
+    }
+}
+
+impl EdgeView {
+    /// Display an `EdgeView` in a customizable from -> to format.
+    ///
+    /// Gives an output similar to `to_string`, but with more control over its format.
+    #[must_use]
+    pub fn display(&self, angle_format: PiFormat) -> String {
+        format!(
             "[{}] from {} to {}",
             self.r#type(),
-            self.start(),
-            self.end()
+            self.start().display(angle_format),
+            self.end().display(angle_format),
         )
     }
 }
 
 impl fmt::Display for ContextualNodeView {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display(PiFormat::Lowercase))
+    }
+}
+
+impl ContextualNodeView {
+    /// Display a `ContextualNodeView` in a customizable format.
+    ///
+    /// Gives an output similar to `to_string`, but with more control over its format.
+    #[must_use]
+    pub fn display(&self, angle_format: PiFormat) -> String {
+        let origin_data = self.origin().display(angle_format);
         let mut extra_data = Vec::new();
 
         if let Some(left) = *self.left() {
-            extra_data.push(format!("left={left}"));
+            extra_data.push(format!("left={}", left.display(angle_format)));
         }
 
         if let Some(right) = *self.right() {
-            extra_data.push(format!("right={right}"));
+            extra_data.push(format!("right={}", right.display(angle_format)));
         }
 
         if !self.targets().is_empty() {
-            let targets: Vec<String> = self.targets().iter().map(ToString::to_string).collect();
+            let targets: Vec<String> = self
+                .targets()
+                .iter()
+                .map(|target| target.display(angle_format))
+                .collect();
             extra_data.push(format!("targets={targets:?}"));
         }
 
@@ -68,25 +96,28 @@ impl fmt::Display for ContextualNodeView {
             let controllers: Vec<String> = self
                 .controlled_by()
                 .iter()
-                .map(ToString::to_string)
+                .map(|controller| controller.display(angle_format))
                 .collect();
             extra_data.push(format!("controlled_by={controllers:?}"));
         }
 
         if let Some(swaps_with) = *self.swaps_with() {
-            extra_data.push(format!("swaps_with={swaps_with}"));
+            extra_data.push(format!("swaps_with={}", swaps_with.display(angle_format)));
         }
 
         if !self.works_with().is_empty() {
-            let works_with: Vec<String> =
-                self.works_with().iter().map(ToString::to_string).collect();
+            let works_with: Vec<String> = self
+                .works_with()
+                .iter()
+                .map(|partner| partner.display(angle_format))
+                .collect();
             extra_data.push(format!("works_with={works_with:?}"));
         }
 
         if extra_data.is_empty() {
-            return write!(f, "{}", self.origin());
+            return origin_data;
         }
 
-        write!(f, "{}({})", self.origin(), extra_data.join(", "))
+        format!("{}({})", origin_data, extra_data.join(", "))
     }
 }

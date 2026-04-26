@@ -23,6 +23,12 @@ mod bindings {
     }
 
     #[pyfunction]
+    pub(crate) fn display_matrix(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
+        let operations = extractor::extract_operations(circuit)?;
+        Ok(use_case::display_matrix(&operations))
+    }
+
+    #[pyfunction]
     pub(crate) fn simplify(
         python: Python<'_>,
         circuit: &Bound<'_, PyAny>,

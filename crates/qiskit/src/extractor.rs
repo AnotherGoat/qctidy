@@ -10,11 +10,11 @@ use qsimplify::GateType;
 use qsimplify::dto::GateOperation;
 
 #[allow(clippy::unnested_or_patterns)]
-const EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
+static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
-        (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5, 0.5),
-        (0, 1) => Complex64::new(-0.5, -0.5),
-        _ => Complex64::new(0.0, 0.0),
+        (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5_f64, 0.5_f64),
+        (0, 1) => Complex64::new(-0.5_f64, -0.5_f64),
+        _ => Complex64::new(0.0_f64, 0.0_f64),
     })
 });
 

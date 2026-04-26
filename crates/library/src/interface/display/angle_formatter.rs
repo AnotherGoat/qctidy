@@ -1,14 +1,15 @@
-use crate::domain::math;
+use crate::{domain::math, interface::display::number_formatter};
 
 /// The format to used to display the pi constant.
+#[derive(Debug, Clone, Copy)]
 #[must_use]
-pub(crate) enum PiFormat {
+pub enum PiFormat {
     /// Display the pi constant as `pi`, ASCII-compatible.
     Lowercase,
     /// Display the pi constant as `PI`, ASCII-compatible.
     Uppercase,
     /// Display the pi constant as `π`.
-    Pretty,
+    Fancy,
 }
 
 impl PiFormat {
@@ -18,7 +19,7 @@ impl PiFormat {
         match *self {
             Lowercase => "pi",
             Uppercase => "PI",
-            Pretty => "π",
+            Fancy => "π",
         }
     }
 }
@@ -59,9 +60,5 @@ pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
         return format!("{numerator}{pi}/{denominator}");
     }
 
-    trim_trailing_zeroes(&format!("{angle:.2}"))
-}
-
-fn trim_trailing_zeroes(angle: &str) -> String {
-    angle.trim_end_matches('0').trim_end_matches('.').to_owned()
+    number_formatter::format(angle)
 }

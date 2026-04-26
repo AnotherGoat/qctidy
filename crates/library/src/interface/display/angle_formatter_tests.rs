@@ -25,7 +25,7 @@ fn format_pi_angles_without_denominator() {
 fn format_requested_pi_format() {
     assert!(format(2.0 * PI, Lowercase) == "2pi");
     assert!(format(2.0 * PI, Uppercase) == "2PI");
-    assert!(format(2.0 * PI, Pretty) == "2π");
+    assert!(format(2.0 * PI, Fancy) == "2π");
 }
 
 #[test]
