@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{array, fmt};
 
 use getset::CopyGetters;
 use inew::New;
@@ -19,7 +19,7 @@ pub struct Position {
 
 impl IntoIterator for Position {
     type Item = usize;
-    type IntoIter = std::array::IntoIter<usize, 2>;
+    type IntoIter = array::IntoIter<usize, 2>;
 
     /// Iterate over the position's coordinates, first the row and then the column.
     fn into_iter(self) -> Self::IntoIter {

@@ -250,7 +250,10 @@ impl Graph {
 
         self.remove_node(end);
 
-        let node = self.nodes.remove(&start).unwrap();
+        let node = self
+            .nodes
+            .remove(&start)
+            .expect("Node at start position should exist");
         let outgoing = self.edges_out.remove(&start).unwrap_or_default();
         let incoming = self.edges_in.remove(&start).unwrap_or_default();
 
@@ -523,7 +526,7 @@ impl Graph {
     /// Validate the graph and confirm that it is internally consistent.
     ///
     /// This is only needed for graphs that are built manually.
-    /// Building the graph using the `GraphBuilder` will never result in an invalid graph.
+    /// Building the graph using the `GraphBuilder` will always result in an vaid graph, so calling this method is unnecessary for these cases.
     // Note: The only exception to this is using the `put_*` methods from the builder.
     pub fn validate(&self) -> Result<(), GraphError> {
         structural_validator::validate(self)?;
@@ -532,6 +535,7 @@ impl Graph {
     }
 
     #[cfg(debug_assertions)]
+    #[expect(clippy::unwrap_used)]
     pub(crate) fn validate_internal(&self) {
         structural_validator::validate(self).unwrap();
         semantic_validator::validate(self).unwrap();

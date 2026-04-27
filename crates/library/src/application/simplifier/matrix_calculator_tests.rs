@@ -21,9 +21,7 @@ fn empty_graph_matrix() {
 #[test]
 fn identity_matrix() {
     let mut identity2 = Graph::new();
-    identity2
-        .add_node(ID, Position::new(0, 0), None, None)
-        .unwrap();
+    identity2.replace_node(ID, Position::new(0, 0), None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity2),
@@ -31,12 +29,8 @@ fn identity_matrix() {
     ));
 
     let mut identity4 = Graph::new();
-    identity4
-        .add_node(ID, Position::new(0, 0), None, None)
-        .unwrap();
-    identity4
-        .add_node(ID, Position::new(1, 0), None, None)
-        .unwrap();
+    identity4.replace_node(ID, Position::new(0, 0), None, None);
+    identity4.replace_node(ID, Position::new(1, 0), None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity4),
@@ -44,15 +38,9 @@ fn identity_matrix() {
     ));
 
     let mut identity8 = Graph::new();
-    identity8
-        .add_node(ID, Position::new(0, 0), None, None)
-        .unwrap();
-    identity8
-        .add_node(ID, Position::new(1, 0), None, None)
-        .unwrap();
-    identity8
-        .add_node(ID, Position::new(2, 0), None, None)
-        .unwrap();
+    identity8.replace_node(ID, Position::new(0, 0), None, None);
+    identity8.replace_node(ID, Position::new(1, 0), None, None);
+    identity8.replace_node(ID, Position::new(2, 0), None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity8),
@@ -91,12 +79,13 @@ fn x_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn x_matrix_surrounded_by_identities() {
     let mut graph = Graph::new();
 
-    graph.add_node(ID, Position::new(0, 0), None, None).unwrap();
-    graph.add_node(X, Position::new(0, 1), None, None).unwrap();
-    graph.add_node(ID, Position::new(0, 2), None, None).unwrap();
+    graph.replace_node(ID, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None);
+    graph.replace_node(ID, Position::new(0, 2), None, None);
 
     graph
         .add_edge(Right, Position::new(0, 0), Position::new(0, 1))
@@ -329,7 +318,7 @@ fn swap_matrix() {
 
 #[test]
 #[expect(clippy::unnested_or_patterns)]
-fn controlled_hadamard_matrix() {
+fn control_hadamard_matrix() {
     let graph = GraphBuilder::new().push_ch(0, 1).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
@@ -418,7 +407,7 @@ fn reverse_cy_matrix() {
 }
 
 #[test]
-fn controlled_phase_matrix() {
+fn control_phase_matrix() {
     let graph = GraphBuilder::new().push_cp(FRAC_PI_2, 0, 1).build();
 
     let actual = graph_circuit_matrix(&graph);

@@ -4,6 +4,7 @@ use crate::{GateType, Graph, NodeView, Position, domain::math};
 
 /// Normalize a `Graph` by performing various transformations that reduce the contents of the graph without altering its meaning and results.
 ///
+/// Always make sure that the graph is valid before calling this, check `Graph::validate` for more information.
 /// Identity nodes are removed.
 /// Empty rows and columns are removed.
 /// Angles are normalized by ensuring that they are between 0 and 4pi.
@@ -55,7 +56,9 @@ fn remap_rows(graph: &mut Graph, mapping: &HashMap<usize, usize>) {
 
         if new_row != position.row() {
             let new_position = Position::new(new_row, position.column());
-            graph.move_node(position, new_position).unwrap();
+            graph
+                .move_node(position, new_position)
+                .expect("Node at start position should exist");
         }
     }
 }
@@ -79,7 +82,10 @@ fn compact_columns(graph: &mut Graph) {
 }
 
 fn normalize_angles(graph: &mut Graph) {
-    let nodes: Vec<NodeView> = graph.iter_nodes_ordered_by_row().collect();
+    let nodes: Vec<NodeView> = graph
+        .iter_nodes_ordered_by_row()
+        .filter(|node| node.angle().is_some())
+        .collect();
 
     for node in nodes {
         normalize_angle(graph, node);
@@ -90,9 +96,7 @@ fn normalize_angle(graph: &mut Graph, node: NodeView) {
     let gate = node.r#type();
     let position = node.position();
 
-    let Some(angle) = node.angle() else {
-        return;
-    };
+    let angle = node.angle().expect("The node should have an angle");
 
     let normalized = match gate {
         r#type if r#type.is_phase() || r#type.is_rotation() => {
@@ -113,6 +117,10 @@ fn normalize_bits(graph: &mut Graph) {
         .filter(|node| node.r#type() == GateType::Measure)
         .collect();
 
+    if measurements.is_empty() {
+        return;
+    }
+
     let mut unique_bits: Vec<_> = measurements.iter().filter_map(NodeView::bit).collect();
 
     unique_bits.sort_unstable();
@@ -126,7 +134,7 @@ fn normalize_bits(graph: &mut Graph) {
 
     for node in measurements {
         let position = node.position();
-        let old_bit = node.bit().unwrap();
+        let old_bit = node.bit().expect("Measure node should have a bit");
         let new_bit = mapping[&old_bit];
 
         graph.replace_node(GateType::Measure, position, None, Some(new_bit));

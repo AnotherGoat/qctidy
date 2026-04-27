@@ -199,7 +199,7 @@ Edges:
 }
 
 #[test]
-fn to_string_controlled_gates() {
+fn to_string_control_gates() {
     let graph = GraphBuilder::new().push_cx(0, 1).push_cy(1, 0).build();
 
     let result = graph.to_string();
@@ -312,8 +312,8 @@ fn display_grid_multiple_rows_single_column() {
 fn display_grid_sparse_columns() {
     let mut graph = Graph::new();
 
-    graph.add_node(H, Position::new(0, 0), None, None).unwrap();
-    graph.add_node(X, Position::new(0, 2), None, None).unwrap();
+    graph.replace_node(H, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 2), None, None);
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -325,9 +325,9 @@ fn display_grid_sparse_columns() {
 fn display_grid_multiple_rows_and_columns() {
     let mut graph = Graph::new();
 
-    graph.add_node(H, Position::new(0, 0), None, None).unwrap();
-    graph.add_node(X, Position::new(1, 1), None, None).unwrap();
-    graph.add_node(Z, Position::new(0, 2), None, None).unwrap();
+    graph.replace_node(H, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(1, 1), None, None);
+    graph.replace_node(Z, Position::new(0, 2), None, None);
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -411,13 +411,9 @@ fn display_grid_column_alignment() {
 fn display_grid_sparse_with_angles() {
     let mut graph = Graph::new();
 
-    graph
-        .add_node(RX, Position::new(0, 0), Some(FRAC_PI_2), None)
-        .unwrap();
+    graph.replace_node(RX, Position::new(0, 0), Some(FRAC_PI_2), None);
 
-    graph
-        .add_node(Measure, Position::new(0, 2), None, Some(2))
-        .unwrap();
+    graph.replace_node(Measure, Position::new(0, 2), None, Some(2));
 
     let result = graph.display_grid(PiFormat::Lowercase);
 

@@ -1,8 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    EdgeType, Graph, Position,
-    domain::graph::{GraphError, schema::GateSchema},
+    Graph, Position,
+    domain::graph::{
+        GraphError,
+        schema::{EdgeSchema, GateSchema},
+    },
 };
 
 #[must_use]
@@ -12,8 +15,8 @@ struct ValidationContext<'a> {
     schema: &'a GateSchema,
     count: usize,
     index_map: HashMap<Position, usize>,
-    expected_edges: HashMap<(EdgeType, usize, usize), usize>,
-    actual_edges: HashMap<(EdgeType, usize, usize), usize>,
+    expected_edges: HashMap<EdgeSchema, usize>,
+    actual_edges: HashMap<EdgeSchema, usize>,
 }
 
 /// Validate the semantic relationships in a `Graph`.
@@ -71,17 +74,23 @@ fn find_components(graph: &Graph) -> Vec<Vec<Position>> {
 }
 
 fn validate_component(graph: &Graph, component: &[Position]) -> Result<(), GraphError> {
-    let gate = graph.get_node(component[0]).unwrap().r#type();
+    let gate_type = graph
+        .get_node(component[0])
+        .expect("Component should have at least one node")
+        .r#type();
 
-    if component
-        .iter()
-        .any(|&p| graph.get_node(p).unwrap().r#type() != gate)
-    {
+    if component.iter().any(|&position| {
+        graph
+            .get_node(position)
+            .expect("Position in component should have a node")
+            .r#type()
+            != gate_type
+    }) {
         return Err(GraphError::InvalidGateStructure);
     }
 
     let count = component.len();
-    let schema = gate.schema();
+    let schema = gate_type.schema();
 
     if count != schema.nodes().len() || has_invalid_external_edges(graph, component) {
         return Err(GraphError::InvalidGateStructure);
@@ -123,12 +132,11 @@ fn has_invalid_external_edges(graph: &Graph, component: &[Position]) -> bool {
     false
 }
 
-fn expected_edges(schema: &GateSchema) -> HashMap<(EdgeType, usize, usize), usize> {
+fn expected_edges(schema: &GateSchema) -> HashMap<EdgeSchema, usize> {
     let mut map = HashMap::new();
 
     for edge in *schema.edges() {
-        *map.entry((edge.r#type(), edge.from(), edge.to()))
-            .or_insert(0) += 1;
+        *map.entry(*edge).or_insert(0) += 1;
     }
 
     map
@@ -137,15 +145,17 @@ fn expected_edges(schema: &GateSchema) -> HashMap<(EdgeType, usize, usize), usiz
 fn collect_edges(
     graph: &Graph,
     index_map: &HashMap<Position, usize>,
-) -> HashMap<(EdgeType, usize, usize), usize> {
+) -> HashMap<EdgeSchema, usize> {
     let mut edges = HashMap::new();
 
-    for (&start, &i) in index_map {
+    for (&start, &from_index) in index_map {
         for edge in graph.iter_semantic_edges_out_from(start) {
             let end = edge.end().position();
 
-            if let Some(&j) = index_map.get(&end) {
-                *edges.entry((edge.r#type(), i, j)).or_insert(0) += 1;
+            if let Some(&to_index) = index_map.get(&end) {
+                *edges
+                    .entry(EdgeSchema::new(edge.r#type(), from_index, to_index))
+                    .or_insert(0) += 1;
             }
         }
     }
@@ -183,7 +193,10 @@ fn backtrack(
             continue;
         }
 
-        let node = context.graph.get_node(context.component[i]).unwrap();
+        let node = context
+            .graph
+            .get_node(context.component[i])
+            .expect("Component should have a node");
         let node_schema = &context.schema.nodes()[j];
 
         if node_schema.has_angle() != node.angle().is_some()
@@ -222,7 +235,7 @@ fn partial_edges_match(context: &ValidationContext, mapping: &[usize], up_to: us
             if let Some(&j) = context.index_map.get(&end)
                 && j <= up_to
             {
-                let key = (edge.r#type(), mapping[k], mapping[j]);
+                let key = EdgeSchema::new(edge.r#type(), mapping[k], mapping[j]);
 
                 let count = partial.entry(key).or_insert(0);
                 *count += 1;
@@ -241,9 +254,13 @@ fn partial_edges_match(context: &ValidationContext, mapping: &[usize], up_to: us
 fn matches_edges(context: &ValidationContext, mapping: &[usize]) -> bool {
     let mut mapped = HashMap::new();
 
-    for ((r#type, from, to), count) in &context.actual_edges {
+    for (edge, count) in &context.actual_edges {
         *mapped
-            .entry((*r#type, mapping[*from], mapping[*to]))
+            .entry(EdgeSchema::new(
+                edge.r#type(),
+                mapping[edge.from_index()],
+                mapping[edge.to_index()],
+            ))
             .or_insert(0) += count;
     }
 

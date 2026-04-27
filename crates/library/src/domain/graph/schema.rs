@@ -35,11 +35,11 @@ pub(super) enum NodeSchema {
 }
 
 impl NodeSchema {
-    pub(super) fn has_angle(&self) -> bool {
+    pub(super) const fn has_angle(&self) -> bool {
         matches!(self, Self::Angle)
     }
 
-    pub(super) fn has_bit(&self) -> bool {
+    pub(super) const fn has_bit(&self) -> bool {
         matches!(self, Self::Bit)
     }
 }
@@ -47,14 +47,14 @@ impl NodeSchema {
 /// A schema for an edge between graph nodes.
 ///
 /// An edge may be thought of as a bond between two atoms.
-#[derive(CopyGetters, New)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, CopyGetters, New)]
 #[get_copy = "pub"]
 #[new(pub(super), const)]
 #[must_use]
 pub(super) struct EdgeSchema {
     r#type: EdgeType,
-    from: usize,
-    to: usize,
+    from_index: usize,
+    to_index: usize,
 }
 
 macro_rules! single_schema {

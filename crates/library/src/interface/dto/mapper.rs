@@ -84,7 +84,7 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 GateOperation::swap(row, other.row())
             }
             CH => {
-                let (control, target) = extract_control_and_target(&graph, position);
+                let (control, target) = extract_control_and_target(graph, position);
 
                 skipped.insert(control);
                 skipped.insert(target);
@@ -92,7 +92,7 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 GateOperation::ch(control.row(), target.row())
             }
             CX => {
-                let (control, target) = extract_control_and_target(&graph, position);
+                let (control, target) = extract_control_and_target(graph, position);
 
                 skipped.insert(control);
                 skipped.insert(target);
@@ -100,7 +100,7 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 GateOperation::cx(control.row(), target.row())
             }
             CY => {
-                let (control, target) = extract_control_and_target(&graph, position);
+                let (control, target) = extract_control_and_target(graph, position);
 
                 skipped.insert(control);
                 skipped.insert(target);

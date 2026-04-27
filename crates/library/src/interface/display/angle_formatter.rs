@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{domain::math, interface::display::number_formatter};
 
 /// The format to used to display the pi constant.
@@ -12,15 +14,17 @@ pub enum PiFormat {
     Fancy,
 }
 
-impl PiFormat {
-    fn to_string(&self) -> &str {
+impl fmt::Display for PiFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use PiFormat::*;
 
-        match *self {
+        let name = match *self {
             Lowercase => "pi",
             Uppercase => "PI",
             Fancy => "π",
-        }
+        };
+
+        f.write_str(name)
     }
 }
 
@@ -38,7 +42,7 @@ pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
         let pi = pi_format.to_string();
 
         if numerator == denominator {
-            return pi.to_owned();
+            return pi;
         }
 
         if numerator == -denominator {

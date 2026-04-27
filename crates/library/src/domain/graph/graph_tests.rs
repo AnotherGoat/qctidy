@@ -6,6 +6,7 @@ use EdgeType::*;
 use GateType::*;
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn add_node() {
     let mut graph = Graph::new();
     let position = Position::new(0, 0);
@@ -18,22 +19,23 @@ fn add_node() {
 }
 
 #[test]
-#[expect(unused_variables)]
+#[expect(clippy::panic)]
 fn add_node_fails_if_it_exists() {
     let mut graph = Graph::new();
-    let position = Position::new(0, 0);
+    let node_position = Position::new(0, 0);
 
-    graph.replace_node(X, position, None, None);
+    graph.replace_node(X, node_position, None, None);
 
-    let result = graph.add_node(Y, position, None, None);
+    let result = graph.add_node(Y, node_position, None, None);
 
-    assert!(matches!(
-        result,
-        Err(GraphError::NodeAlreadyExists { position })
-    ));
+    match result {
+        Err(GraphError::NodeAlreadyExists { position }) => assert_eq!(position, node_position),
+        _ => panic!("Unexpected result: {result:?}"),
+    }
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn replace_node_overwrites_existing_node() {
     let mut graph = Graph::new();
     let position = Position::new(0, 0);
@@ -128,6 +130,7 @@ fn graph_is_equal_with_angles() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn graph_is_equal_in_different_order() {
     let mut graph1 = Graph::new();
     let mut graph2 = Graph::new();
@@ -210,6 +213,7 @@ fn remove_nonexistent_node_is_noop() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn remove_node_removes_associated_edges() {
     let mut graph = Graph::new();
 
@@ -228,6 +232,7 @@ fn remove_node_removes_associated_edges() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn removing_middle_node_reconnects_neighbors() {
     let mut graph = Graph::new();
 
@@ -256,17 +261,20 @@ fn removing_middle_node_reconnects_neighbors() {
 }
 
 #[test]
-#[expect(unused_variables)]
+#[expect(clippy::panic)]
 fn move_nonexistent_node_fails() {
     let mut graph = Graph::new();
-    let position = Position::new(0, 3);
+    let node_position = Position::new(0, 3);
 
     graph.replace_node(X, Position::new(0, 1), None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None);
 
-    let result = graph.move_node(position, Position::new(1, 3));
+    let result = graph.move_node(node_position, Position::new(1, 3));
 
-    assert!(matches!(result, Err(GraphError::NodeNotFound { position })));
+    match result {
+        Err(GraphError::NodeNotFound { position }) => assert_eq!(position, node_position),
+        _ => panic!("Unexpected result: {result:?}"),
+    }
 }
 
 #[test]
@@ -281,6 +289,7 @@ fn null_move() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn move_node() {
     let mut graph = Graph::new();
 
@@ -300,6 +309,7 @@ fn move_node() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn move_node_overwrites_destination() {
     let mut graph = Graph::new();
 
@@ -316,6 +326,7 @@ fn move_node_overwrites_destination() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn move_node_preserves_edges() {
     let mut graph = Graph::new();
 
@@ -346,7 +357,7 @@ fn move_node_preserves_edges() {
 }
 
 #[test]
-#[expect(unused_variables)]
+#[expect(clippy::panic)]
 fn add_edge_fails_when_missing_nodes() {
     let mut graph = Graph::new();
     let start = Position::new(0, 0);
@@ -356,13 +367,14 @@ fn add_edge_fails_when_missing_nodes() {
 
     let result = graph.add_edge(Right, start, end);
 
-    assert!(matches!(
-        result,
-        Err(GraphError::NodeNotFound { position: end })
-    ));
+    match result {
+        Err(GraphError::NodeNotFound { position }) => assert_eq!(position, end),
+        _ => panic!("Unexpected result: {result:?}"),
+    }
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn add_edge_is_idempotent() {
     let mut graph = Graph::new();
 
@@ -380,6 +392,7 @@ fn add_edge_is_idempotent() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn add_bidirectional_edge_creates_two_edges() {
     let mut graph = Graph::new();
 
@@ -406,17 +419,21 @@ fn add_bidirectional_edge_creates_two_edges() {
 }
 
 #[test]
-#[expect(unused_variables)]
+#[expect(clippy::panic)]
 fn connect_row_neighbors_fails_if_node_is_missing() {
     let mut graph = Graph::new();
-    let position = Position::new(0, 0);
+    let node_position = Position::new(0, 0);
 
-    let result = graph.connect_row_neighbors(position);
+    let result = graph.connect_row_neighbors(node_position);
 
-    assert!(matches!(result, Err(GraphError::NodeNotFound { position })));
+    match result {
+        Err(GraphError::NodeNotFound { position }) => assert_eq!(position, node_position),
+        _ => panic!("Unexpected result: {result:?}"),
+    }
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_relinks_correctly() {
     let mut graph = Graph::new();
 
@@ -445,6 +462,7 @@ fn connect_row_neighbors_relinks_correctly() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_removes_direct_connection() {
     let mut graph = Graph::new();
 
@@ -469,6 +487,7 @@ fn connect_row_neighbors_removes_direct_connection() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn remove_edge_removes_outgoing_and_incoming_entries() {
     let mut graph = Graph::new();
 
@@ -544,6 +563,7 @@ fn clear_removes_everything() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn clear_edges_keeps_nodes() {
     let mut graph = Graph::new();
 
@@ -563,6 +583,7 @@ fn clear_edges_keeps_nodes() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn get_node_and_edges_collects_edges_correctly() {
     let mut graph = Graph::new();
 

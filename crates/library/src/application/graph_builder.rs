@@ -77,7 +77,7 @@ impl GraphBuilder {
     }
 
     /// Push a ID gate at the end of the graph, which effectively does nothing.
-    pub fn push_id(&mut self, _qubit: usize) -> &mut Self {
+    pub const fn push_id(&mut self, _qubit: usize) -> &mut Self {
         self
     }
 
@@ -244,7 +244,7 @@ impl GraphBuilder {
     }
 
     /// Put a ID gate directly into the graph, which effectively does nothing.
-    pub(crate) fn put_id(&mut self, _qubit: usize, _columnn: usize) -> &mut Self {
+    pub(crate) const fn put_id(&mut self, _qubit: usize, _columnn: usize) -> &mut Self {
         self
     }
 

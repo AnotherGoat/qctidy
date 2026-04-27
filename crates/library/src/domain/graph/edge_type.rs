@@ -38,7 +38,7 @@ impl fmt::Display for EdgeType {
 
 impl EdgeType {
     /// Check whether this edge type is bidirectional or not.
-    pub(crate) fn is_bidirectional(self) -> bool {
+    pub(crate) const fn is_bidirectional(self) -> bool {
         use EdgeType::*;
         matches!(self, SwapsWith | WorksWith)
     }
@@ -46,12 +46,12 @@ impl EdgeType {
     /// Check whether this edge is related to the node's position or not.
     ///
     /// Positional edges never define a gate's structure.
-    pub(crate) fn is_positional(self) -> bool {
+    pub(crate) const fn is_positional(self) -> bool {
         matches!(self, Self::Right)
     }
 
     /// Check whether this edge is related to a gate's semantic structure or not.
-    pub(crate) fn is_semantic(self) -> bool {
+    pub(crate) const fn is_semantic(self) -> bool {
         !self.is_positional()
     }
 }

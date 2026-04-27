@@ -104,7 +104,7 @@ pub enum GateOperation {
 impl GateOperation {
     /// Get the type of this gate operation.
     #[must_use]
-    pub fn r#type(&self) -> GateType {
+    pub const fn r#type(&self) -> GateType {
         use GateOperation::*;
 
         match *self {

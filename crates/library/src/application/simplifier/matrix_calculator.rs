@@ -152,7 +152,7 @@ pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     result
 }
 
-fn calculate_size(qubit_count: usize) -> usize {
+const fn calculate_size(qubit_count: usize) -> usize {
     1 << qubit_count
 }
 
@@ -278,21 +278,18 @@ fn control_gate(
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let bits: Vec<u8> = (0..height)
-            .rev()
-            .map(|row| ((column >> row) & 1) as u8)
-            .collect();
+        let bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
 
         if controls.iter().all(|&control| bits[control] == 1) {
-            let target_bit = bits[target] as usize;
+            let target_bit = bits[target];
 
             for new_target in 0..2 {
                 let mut new_bits = bits.clone();
-                new_bits[target] = new_target as u8;
+                new_bits[target] = new_target;
 
                 let row = new_bits
                     .iter()
-                    .fold(0, |accumulator, &other| (accumulator << 1) | other as usize);
+                    .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
 
                 unitary[(row, column)] = base[(new_target, target_bit)];
             }
@@ -309,16 +306,13 @@ fn swap_gate(height: usize, qubit1: usize, qubit2: usize) -> Mat<Complex64> {
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let mut bits: Vec<u8> = (0..height)
-            .rev()
-            .map(|row| ((column >> row) & 1) as u8)
-            .collect();
+        let mut bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
 
         bits.swap(qubit1, qubit2);
 
         let row = bits
             .iter()
-            .fold(0, |accumulator, &other| (accumulator << 1) | other as usize);
+            .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
 
         unitary[(row, column)] = ONE;
     }
@@ -331,18 +325,15 @@ fn control_swap(height: usize, control: usize, target1: usize, target2: usize) -
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let mut bits: Vec<u8> = (0..height)
-            .rev()
-            .map(|row| ((column >> row) & 1) as u8)
-            .collect();
+        let mut bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
 
         if bits[control] == 1 {
             bits.swap(target1, target2);
         }
 
-        let row = bits.iter().fold(0, |accumulator, &other| {
-            (accumulator << 1_i32) | other as usize
-        });
+        let row = bits
+            .iter()
+            .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
         unitary[(row, column)] = ONE;
     }
 

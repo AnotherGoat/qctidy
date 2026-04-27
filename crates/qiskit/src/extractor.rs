@@ -67,7 +67,7 @@ fn parse_instruction(
 
     let qubit0 = get_qubit(&qubits, 0)?;
 
-    let operation = match r#type {
+    let gate_operation = match r#type {
         ID => return Ok(None),
         H => GateOperation::h(qubit0),
         X => GateOperation::x(qubit0),
@@ -99,7 +99,7 @@ fn parse_instruction(
         CCZ => GateOperation::ccz(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
     };
 
-    Ok(Some(operation))
+    Ok(Some(gate_operation))
 }
 
 fn extract_gate_type(name: &str) -> PyResult<GateType> {
@@ -209,9 +209,11 @@ fn extract_bit_indices(
 fn extract_parameters(operation: &Bound<'_, PyAny>) -> PyResult<Vec<f64>> {
     let python_parameters = operation.getattr("params")?;
 
-    let parameters: Vec<f64> = python_parameters
-        .extract()
-        .map_err(|_| PyValueError::new_err("Failed to extract gate parameters as floats"))?;
+    let parameters: Vec<f64> = python_parameters.extract().map_err(|error| {
+        PyValueError::new_err(format!(
+            "Failed to extract gate parameters as floats: {error}"
+        ))
+    })?;
 
     Ok(parameters)
 }

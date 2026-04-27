@@ -180,13 +180,13 @@ impl Graph {
 
     pub fn iter_semantic_neighbors_from(
         &self,
-        position: Position,
+        start: Position,
     ) -> impl Iterator<Item = Position> + '_ {
         let mut seen = HashSet::new();
 
         let outgoing = self
             .edges_out
-            .get(&position)
+            .get(&start)
             .into_iter()
             .flatten()
             .filter(move |edge| edge.edge_type.is_semantic())
@@ -194,7 +194,7 @@ impl Graph {
 
         let incoming = self
             .edges_in
-            .get(&position)
+            .get(&start)
             .into_iter()
             .flatten()
             .filter(move |edge| edge.edge_type.is_semantic())

@@ -65,7 +65,7 @@ In addition, use the following naming conventions:
 
 - Avoid using `as` convertions with numeric types.
 - Use `T::from()` if the convertion is lossless or `T::try_from()` if the convertion is lossy.
-- If truncation or saturation is required to convert the values, create your own wrapper function where `#[allow]` is used to make the Clippy lints pass. This is done to make the convertion explicit and make it clear that the truncation or saturation is intentional.
+- If truncation or saturation is required to convert the values, create your own wrapper function where `#[expect]` is used to make the Clippy lints pass. This is done to make the convertion explicit and make it clear that the truncation or saturation is intentional.
 
 ## Documentation
 
