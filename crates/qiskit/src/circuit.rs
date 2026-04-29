@@ -7,8 +7,8 @@ pub(crate) fn operations_to_circuit(
 ) -> PyResult<Py<PyAny>> {
     use GateOperation::*;
 
-    let qiskit = PyModule::import(python, "qiskit")?;
-    let class = qiskit.getattr("QuantumCircuit")?;
+    let qiskit = python.import("qiskit")?;
+    let quantum_circuit_class = qiskit.getattr("QuantumCircuit")?;
 
     let qubit_count = operations
         .iter()
@@ -22,7 +22,7 @@ pub(crate) fn operations_to_circuit(
         .max()
         .map_or(0, |bit| bit + 1);
 
-    let circuit = class.call1((qubit_count, bit_count))?;
+    let circuit = quantum_circuit_class.call1((qubit_count, bit_count))?;
 
     for operation in operations {
         match *operation {

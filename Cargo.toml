@@ -21,6 +21,7 @@ edition = "2024"
 [workspace.dependencies]
 faer = "0.24.0"
 getset = "0.1.6"
+graphviz-rust = "0.9.7"
 inew = { git = "https://github.com/AnotherGoat/inew" }
 num-rational = "0.4.2"
 pyo3 = "0.28"

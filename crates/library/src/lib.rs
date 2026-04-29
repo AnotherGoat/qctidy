@@ -21,6 +21,10 @@ pub mod dto {
     }
 }
 
+pub mod formatter {
+    pub use crate::interface::display::angle_formatter::format as format_angle;
+}
+
 pub mod simplifier {
     pub use crate::application::simplifier::simplify;
 }

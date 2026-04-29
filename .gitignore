@@ -1,3 +1,13 @@
+# Compiled output
 target/
+
+# Environment variables
 **/*.env
+
+# Python bindings tests
 **/*.py
+
+# Output formats
+**/*.gv
+**/*.png
+**/*.svg

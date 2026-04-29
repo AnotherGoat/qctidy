@@ -4,10 +4,12 @@ version.workspace = true
 edition.workspace = true
 
 [lib]
+test = false
 doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+graphviz-rust = { workspace = true }
 
 [lints]
 workspace = true

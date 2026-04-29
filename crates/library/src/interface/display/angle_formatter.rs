@@ -31,7 +31,7 @@ impl fmt::Display for PiFormat {
 /// Return a formatted string for the provided angle, where multiples of pi are used whenever possible.
 ///
 /// The output depends on the requested pi format.
-pub(crate) fn format(angle: f64, pi_format: PiFormat) -> String {
+pub fn format(angle: f64, pi_format: PiFormat) -> String {
     if math::are_floats_equal(angle, 0.0) {
         return "0".to_owned();
     }
