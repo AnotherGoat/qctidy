@@ -1,0 +1,17 @@
+[build-system]
+requires = ["maturin>=1.13,<2"]
+build-backend = "maturin"
+
+[project]
+name = "qsimplify_qiskit"
+version = "0.1.0"
+description = "Qiskit bindings for QSimplify quantum circuit simplification."
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[tool.maturin]
+include = ["qsimplify_qiskit.pyi"]

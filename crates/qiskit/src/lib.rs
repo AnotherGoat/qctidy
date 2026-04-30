@@ -1,12 +1,10 @@
 mod circuit;
-mod dto;
 mod extractor;
 
 #[pyo3::pymodule]
 #[pyo3(name = "qsimplify_qiskit")]
 mod bindings {
     use pyo3::prelude::*;
-    use pyo3::types::PyBytes;
     use pyo3::{PyAny, PyResult};
     use qsimplify_facade::use_case;
     use qsimplify_presenter::GraphvizFormat;
@@ -15,6 +13,7 @@ mod bindings {
 
     #[pyclass(name = "GraphvizFormat", eq, from_py_object)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[expect(clippy::upper_case_acronyms)]
     pub(crate) enum PythonGraphvizFormat {
         GV,
         PNG,
@@ -53,19 +52,11 @@ mod bindings {
 
     #[pyfunction]
     pub(crate) fn to_graphviz(
-        python: Python<'_>,
         circuit: &Bound<'_, PyAny>,
         format: PythonGraphvizFormat,
-    ) -> PyResult<Py<PyAny>> {
+    ) -> PyResult<Vec<u8>> {
         let operations = extractor::extract_operations(circuit)?;
-        let bytes = use_case::to_graphviz(&operations, format.into())?;
-        let python_bytes = PyBytes::new(python, &bytes);
-
-        let io = python.import("io")?;
-        let bytes_io_class = io.getattr("BytesIO")?;
-        let bytes_io = bytes_io_class.call1((python_bytes,))?;
-
-        Ok(bytes_io.into())
+        Ok(use_case::to_graphviz(&operations, format.into())?)
     }
 
     #[pyfunction]
