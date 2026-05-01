@@ -1,45 +1,78 @@
 from enum import Enum
 from qiskit import QuantumCircuit
 
-class GraphvizFormat(Enum):
-    """Output format for visual quantum graph representations powered by Graphviz."""
+class DisplayFormat(Enum):
+    """Format for plain text quantum graph representations."""
 
-    GV = 0
-    """The standard Graphviz `dot` format, for use with other tools that can render Graphviz graphs."""
-    PNG = 1
-    """The PNG image format, for rasterized output compatible with many programs."""
-    SVG = 2
-    """The SVG image format, for lightweight vector graphics output."""
-
-def display_graph(circuit: QuantumCircuit) -> str:
+    GRAPH = 0
     """
-    Convert a Qiskit `QuantumCircuit` into a string representing its contents.
-
     The contents are shown as a list of nodes and edges.
-    The output is as fancy as possible, intended for human consumption.
-    """
-    ...
 
-def display_grid(circuit: QuantumCircuit) -> str:
+    DiracFormat is ignored.
     """
-    Convert a Qiskit `QuantumCircuit` into a 2D grid representing its contents.
+    GRID = 1
+    """
+    Represents the graph as a 2D grid.
 
     Every row represents a qubit, and every column is specific instant in time, ordered from left to right.
     Multi-qubit gates are represented by multiple rows, one for each qubit.
-    The output is as fancy as possible, intended for human consumption.
+    DiracFormat is ignored.
     """
-    ...
-
-def display_matrix(circuit: QuantumCircuit) -> str:
+    MATRIX = 2
     """
-    Convert a Qiskit `QuantumCircuit` into a 2D unitary matrix representing its contents.
+    Represents the graph as a 2D unitary matrix.
 
     Bra-ket notation is used. Rows represent bras, and columns represent kets.
-    The output is as fancy as possible, intended for human consumption.
+    PiFormat is ignored.
     """
-    ...
 
-def to_graphviz(circuit: QuantumCircuit, format: GraphvizFormat) -> bytes:
+class PiFormat(Enum):
+    """Format to used to display the pi constant in angles."""
+    LOWERCASE = 0
+    """Display the pi constant as `pi`, ASCII-compatible."""
+    UPPERCASE = 1
+    """Display the pi constant as `PI`, ASCII-compatible."""
+    FANCY = 2
+    """Display the pi constant as `π`."""
+
+class DiracFormat(Enum):
+    """Format used to display Dirac bra-ket notation."""
+    ASCII = 0
+    """Display bras (rows) as `<10|` and kets (columns) as `|10>`, ASCII-compatible."""
+    FANCY = 1
+    """Display bras (rows) as `⟨10∣` and kets (columns) as `∣10⟩`."""
+    NONE = 2
+    """Don't use bra-ket notation, just keep the indices."""
+
+class PresentationFormat(Enum):
+    """Output format for visual quantum graph representations."""
+
+    GRAPHVIZ_GV = 0
+    """
+    The standard Graphviz `dot` format, for use with other tools that can render Graphviz graphs.
+
+    The DPI parameter is ignored.
+    """
+    GRAPHVIZ_PNG = 1
+    """The PNG image format, for rasterized output compatible with many programs."""
+    GRAPHVIZ_SVG = 2
+    """The SVG image format, for lightweight vector graphics output.
+
+    The DPI parameter is ignored.
+    """
+
+def display(
+    circuit: QuantumCircuit,
+    format: DisplayFormat,
+    pi_format: PiFormat | None = None,
+    dirac_format: DiracFormat | None = None,
+) -> str:
+    """Convert a Qiskit `QuantumCircuit` into a string representing its contents.
+
+    By default, the output will be as fancy as possible, intended for human consumption.
+    """
+
+def present(circuit: QuantumCircuit, format: PresentationFormat, dpi: int | None = None) -> bytes:
     """
     Convert a Qiskit `QuantumCircuit` into a iterable bytes containing a Graphviz graph representation of its contents.
 
@@ -47,7 +80,6 @@ def to_graphviz(circuit: QuantumCircuit, format: GraphvizFormat) -> bytes:
     All the nodes are positioned similar to how they would be in a circuit diagram.
     It offers many output formats for different use cases.
     """
-    ...
 
 def simplify(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
     """
@@ -56,4 +88,3 @@ def simplify(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
     Better results may be found by increasing the number of iterations and making the simplification run longer, but there are no guarantees.
     The original circuit is not modified.
     """
-    ...

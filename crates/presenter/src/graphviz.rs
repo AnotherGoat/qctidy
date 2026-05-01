@@ -7,6 +7,7 @@ use graphviz_rust::{
     printer::PrinterContext,
 };
 use qsimplify::{EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
+use qsimplify_ports::{PresentationFormat, PresenterPort};
 use std::{fs, io};
 
 const WHITE: &str = "#FFFFFF";
@@ -20,6 +21,32 @@ const ORANGE: &str = "#FFCC80";
 const PURPLE: &str = "#CE93D8";
 const GRAY: &str = "#EEEEEE";
 const DARK_GRAY: &str = "#424242";
+
+#[derive(Debug, Clone, Copy)]
+pub struct GraphvizPresenter;
+
+impl PresenterPort for GraphvizPresenter {
+    fn present(
+        &self,
+        graph: &Graph,
+        format: PresentationFormat,
+        dpi: Option<u32>,
+    ) -> Result<Vec<u8>, io::Error> {
+        graph_to_graphviz(graph, format.into(), dpi)
+    }
+}
+
+impl From<PresentationFormat> for GraphvizFormat {
+    fn from(value: PresentationFormat) -> Self {
+        use PresentationFormat::*;
+
+        match value {
+            GraphvizGv => Self::Gv,
+            GraphvizPng => Self::Png,
+            GraphvizSvg => Self::Svg,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum GraphvizFormat {

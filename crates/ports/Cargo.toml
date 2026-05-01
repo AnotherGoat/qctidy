@@ -1,5 +1,5 @@
 [package]
-name = "qsimplify-presenter"
+name = "qsimplify-ports"
 version.workspace = true
 edition.workspace = true
 
@@ -9,8 +9,6 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
-graphviz-rust = { workspace = true }
 
 [lints]
 workspace = true

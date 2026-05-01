@@ -12,6 +12,7 @@ doctest = false
 qsimplify = { path = "../library" }
 qsimplify-facade = { path = "../facade" }
 qsimplify-presenter = { path = "../presenter" }
+qsimplify-ports = { path = "../ports" }
 faer = { workspace = true}
 pyo3 = { workspace = true, features = ["extension-module"] }
 

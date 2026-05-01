@@ -6,57 +6,130 @@ mod extractor;
 mod bindings {
     use pyo3::prelude::*;
     use pyo3::{PyAny, PyResult};
-    use qsimplify_facade::use_case;
-    use qsimplify_presenter::GraphvizFormat;
+    use qsimplify::{DiracFormat, PiFormat};
+    use qsimplify_facade::{
+        DisplayFormat, DisplayRequest, PresentationRequest, SimplificationRequest,
+    };
+    use qsimplify_ports::PresentationFormat;
+    use qsimplify_presenter::GraphvizPresenter;
 
     use crate::{circuit, extractor};
 
-    #[pyclass(name = "GraphvizFormat", eq, from_py_object)]
+    #[pyclass(name = "DisplayFormat", eq, from_py_object)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     #[expect(clippy::upper_case_acronyms)]
-    pub(crate) enum PythonGraphvizFormat {
-        GV,
-        PNG,
-        SVG,
+    pub(crate) enum PythonDisplayFormat {
+        GRAPH,
+        GRID,
+        MATRIX,
     }
 
-    impl From<PythonGraphvizFormat> for GraphvizFormat {
-        fn from(value: PythonGraphvizFormat) -> Self {
-            use PythonGraphvizFormat::*;
+    impl From<PythonDisplayFormat> for DisplayFormat {
+        fn from(value: PythonDisplayFormat) -> Self {
+            use PythonDisplayFormat::*;
 
             match value {
-                GV => Self::Gv,
-                PNG => Self::Png,
-                SVG => Self::Svg,
+                GRAPH => Self::Graph,
+                GRID => Self::Grid,
+                MATRIX => Self::Matrix,
             }
         }
     }
 
-    #[pyfunction]
-    pub(crate) fn display_graph(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
-        let operations = extractor::extract_operations(circuit)?;
-        Ok(use_case::display_graph(&operations))
+    #[pyclass(name = "PiFormat", eq, from_py_object)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[expect(clippy::upper_case_acronyms)]
+    pub(crate) enum PythonPiFormat {
+        LOWERCASE,
+        UPPERCASE,
+        FANCY,
     }
 
-    #[pyfunction]
-    pub(crate) fn display_grid(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
-        let operations = extractor::extract_operations(circuit)?;
-        Ok(use_case::display_grid(&operations))
+    impl From<PythonPiFormat> for PiFormat {
+        fn from(value: PythonPiFormat) -> Self {
+            use PythonPiFormat::*;
+
+            match value {
+                LOWERCASE => Self::Lowercase,
+                UPPERCASE => Self::Uppercase,
+                FANCY => Self::Fancy,
+            }
+        }
     }
 
-    #[pyfunction]
-    pub(crate) fn display_matrix(circuit: &Bound<'_, PyAny>) -> PyResult<String> {
-        let operations = extractor::extract_operations(circuit)?;
-        Ok(use_case::display_matrix(&operations))
+    #[pyclass(name = "DiracFormat", eq, from_py_object)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[expect(clippy::upper_case_acronyms)]
+    pub(crate) enum PythonDiracFormat {
+        ASCII,
+        FANCY,
+        NONE,
     }
 
-    #[pyfunction]
-    pub(crate) fn to_graphviz(
+    impl From<PythonDiracFormat> for DiracFormat {
+        fn from(value: PythonDiracFormat) -> Self {
+            use PythonDiracFormat::*;
+
+            match value {
+                ASCII => Self::Ascii,
+                FANCY => Self::Fancy,
+                NONE => Self::None,
+            }
+        }
+    }
+
+    #[pyclass(name = "PresentationFormat", eq, from_py_object)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[expect(non_camel_case_types)]
+    pub(crate) enum PythonPresentationFormat {
+        GRAPHVIZ_GV,
+        GRAPHVIZ_PNG,
+        GRAPHVIZ_SVG,
+    }
+
+    impl From<PythonPresentationFormat> for PresentationFormat {
+        fn from(value: PythonPresentationFormat) -> Self {
+            use PythonPresentationFormat::*;
+
+            match value {
+                GRAPHVIZ_GV => Self::GraphvizGv,
+                GRAPHVIZ_PNG => Self::GraphvizPng,
+                GRAPHVIZ_SVG => Self::GraphvizSvg,
+            }
+        }
+    }
+
+    #[pyfunction(signature = (circuit, format, pi_format=None, dirac_format=None))]
+    pub(crate) fn display(
         circuit: &Bound<'_, PyAny>,
-        format: PythonGraphvizFormat,
+        format: PythonDisplayFormat,
+        pi_format: Option<PythonPiFormat>,
+        dirac_format: Option<PythonDiracFormat>,
+    ) -> PyResult<String> {
+        let operations = extractor::extract_operations(circuit)?;
+        let request = DisplayRequest::new(
+            operations.into(),
+            DisplayFormat::from(format),
+            pi_format.map(PiFormat::from),
+            dirac_format.map(DiracFormat::from),
+        );
+
+        let response = qsimplify_facade::display(&request);
+        Ok(response.text().to_owned())
+    }
+
+    #[pyfunction(signature = (circuit, format, dpi=None))]
+    pub(crate) fn present(
+        circuit: &Bound<'_, PyAny>,
+        format: PythonPresentationFormat,
+        dpi: Option<u32>,
     ) -> PyResult<Vec<u8>> {
         let operations = extractor::extract_operations(circuit)?;
-        Ok(use_case::to_graphviz(&operations, format.into())?)
+        let request =
+            PresentationRequest::new(operations.into(), PresentationFormat::from(format), dpi);
+
+        let response = qsimplify_facade::present(&request, &GraphvizPresenter)?;
+        Ok(response.bytes().to_vec())
     }
 
     #[pyfunction]
@@ -66,8 +139,9 @@ mod bindings {
         iterations: u32,
     ) -> PyResult<Py<PyAny>> {
         let operations = extractor::extract_operations(circuit)?;
-        let simplified = use_case::simplify(&operations, iterations);
+        let request = SimplificationRequest::new(operations.into(), iterations);
 
-        circuit::operations_to_circuit(python, &simplified)
+        let response = qsimplify_facade::simplify(&request);
+        circuit::operations_to_circuit(python, &response.operations())
     }
 }

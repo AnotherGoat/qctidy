@@ -1107,12 +1107,22 @@ dependencies = [
 name = "qsimplify-facade"
 version = "0.1.0"
 dependencies = [
+ "getset",
+ "inew",
  "qsimplify",
  "qsimplify-codegen",
  "qsimplify-converter",
  "qsimplify-estimator",
+ "qsimplify-ports",
  "qsimplify-presenter",
  "qsimplify-storage",
+]
+
+[[package]]
+name = "qsimplify-ports"
+version = "0.1.0"
+dependencies = [
+ "qsimplify",
 ]
 
 [[package]]
@@ -1121,6 +1131,7 @@ version = "0.1.0"
 dependencies = [
  "graphviz-rust",
  "qsimplify",
+ "qsimplify-ports",
 ]
 
 [[package]]
@@ -1131,6 +1142,7 @@ dependencies = [
  "pyo3",
  "qsimplify",
  "qsimplify-facade",
+ "qsimplify-ports",
  "qsimplify-presenter",
 ]
 

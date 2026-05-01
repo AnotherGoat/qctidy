@@ -1,41 +1,74 @@
 use std::io;
 
-use qsimplify::{
-    DiracFormat, PiFormat,
-    dto::{GateOperation, mapper},
-    simplifier,
+use qsimplify::{DiracFormat, PiFormat, dto::mapper, simplifier};
+use qsimplify_ports::{AnalyzerPort, CodegenPort, ConverterPort, EstimatorPort, PresenterPort};
+
+use crate::{
+    AnalysisRequest, AnalysisResponse, CodeGenerationRequest, CodeGenerationResponse,
+    DisplayFormat, DisplayRequest, DisplayResponse, EstimationRequest, EstimationResponse,
+    ParseRequest, ParseResponse, PresentationRequest, PresentationResponse, SerializeRequest,
+    SerializeResponse, SimplificationRequest, SimplificationResponse,
 };
-use qsimplify_presenter::GraphvizFormat;
 
-#[must_use]
-pub fn display_graph(operations: &[GateOperation]) -> String {
-    let graph = mapper::operations_to_graph(operations);
-    graph.display_nodes_and_edges(PiFormat::Fancy)
+pub fn display(request: &DisplayRequest) -> DisplayResponse {
+    use DisplayFormat::*;
+
+    let graph = mapper::operations_to_graph(&request.operations());
+    let pi_format = request.pi_format().unwrap_or(PiFormat::Fancy);
+    let dirac_format = request.dirac_format().unwrap_or(DiracFormat::Fancy);
+
+    let text = match request.format() {
+        Graph => graph.display_nodes_and_edges(pi_format),
+        Grid => graph.display_grid(pi_format),
+        Matrix => graph.display_matrix(dirac_format),
+    };
+
+    DisplayResponse::new(text)
 }
 
-#[must_use]
-pub fn display_grid(operations: &[GateOperation]) -> String {
-    let graph = mapper::operations_to_graph(operations);
-    graph.display_grid(PiFormat::Fancy)
+pub fn simplify(request: &SimplificationRequest) -> SimplificationResponse {
+    let graph = mapper::operations_to_graph(&request.operations());
+    let simplified = simplifier::simplify(graph, request.iterations());
+
+    let operations = mapper::graph_to_operations(&simplified);
+    SimplificationResponse::new(operations.into())
 }
 
-#[must_use]
-pub fn display_matrix(operations: &[GateOperation]) -> String {
-    let graph = mapper::operations_to_graph(operations);
-    graph.display_matrix(DiracFormat::Fancy)
+pub fn present<P: PresenterPort>(
+    request: &PresentationRequest,
+    presenter: &P,
+) -> Result<PresentationResponse, io::Error> {
+    let graph = mapper::operations_to_graph(&request.operations());
+
+    let result = presenter.present(&graph, request.format(), request.dpi())?;
+    Ok(PresentationResponse::new(result.into()))
 }
 
-pub fn to_graphviz(
-    operations: &[GateOperation],
-    format: GraphvizFormat,
-) -> Result<Vec<u8>, io::Error> {
-    let graph = mapper::operations_to_graph(operations);
-    qsimplify_presenter::graph_to_graphviz(&graph, format, None)
+pub fn analyze<A: AnalyzerPort>(_request: &AnalysisRequest, _analyzer: &A) -> AnalysisResponse {
+    todo!()
 }
 
-#[must_use]
-pub fn simplify(operations: &[GateOperation], iterations: u32) -> Vec<GateOperation> {
-    let graph = mapper::operations_to_graph(operations);
-    let simplified = simplifier::simplify(graph, iterations);
-    mapper::graph_to_operations(&simplified)
+pub fn generate_code<C: CodegenPort>(
+    _request: &CodeGenerationRequest,
+    _codegen: &C,
+) -> CodeGenerationResponse {
+    todo!()
+}
+
+pub fn parse<C: ConverterPort>(_request: &ParseRequest, _converter: &C) -> ParseResponse {
+    todo!()
+}
+
+pub fn serialize<C: ConverterPort>(
+    _request: &SerializeRequest,
+    _converter: &C,
+) -> SerializeResponse {
+    todo!()
+}
+
+pub fn estimate<E: EstimatorPort>(
+    _request: &EstimationRequest,
+    _estimator: &E,
+) -> EstimationResponse {
+    todo!()
 }

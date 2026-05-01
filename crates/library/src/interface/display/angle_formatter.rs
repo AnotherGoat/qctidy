@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::{domain::math, interface::display::number_formatter};
 
-/// The format to used to display the pi constant.
+/// Format to used to display the pi constant in angles.
 #[derive(Debug, Clone, Copy)]
 #[must_use]
 pub enum PiFormat {

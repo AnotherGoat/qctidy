@@ -10,13 +10,15 @@ use crate::{
     },
 };
 
-/// The format used to display Dirac bra-ket notation.
+/// Format used to display Dirac bra-ket notation.
 #[derive(Debug, Clone, Copy)]
 pub enum DiracFormat {
     /// Display bras (rows) as `<10|` and kets (columns) as `|10>`, ASCII-compatible.
     Ascii,
     /// Display bras (rows) as `⟨10∣` and kets (columns) as `∣10⟩`.
     Fancy,
+    /// Don't use bra-ket notation, just keep the indices.
+    None,
 }
 
 enum DiracPart {
@@ -233,5 +235,6 @@ fn format_dirac(index: usize, qubit_count: usize, part: DiracPart, format: Dirac
         (Bra, Fancy) => format!("⟨{bits}∣"),
         (Ket, Ascii) => format!("|{bits}>"),
         (Ket, Fancy) => format!("∣{bits}⟩"),
+        (_, None) => bits,
     }
 }
