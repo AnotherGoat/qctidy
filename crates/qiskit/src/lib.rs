@@ -180,13 +180,16 @@ mod bindings {
         circuit::operations_to_circuit(python, &response.operations())
     }
 
-    #[pyfunction]
+    #[pyfunction(signature = (circuit, format, prettify=None, indentation=None))]
     pub(crate) fn serialize(
         circuit: &Bound<'_, PyAny>,
         format: PythonConversionFormat,
+        prettify: Option<bool>,
+        indentation: Option<usize>,
     ) -> PyResult<Vec<u8>> {
         let operations = extractor::extract_operations(circuit)?;
-        let request = SerializeRequest::new(operations.into(), format.into());
+        let request =
+            SerializeRequest::new(operations.into(), format.into(), prettify, indentation);
 
         let response = qsimplify_facade::serialize(&request, &ConverterAdapter);
         Ok(response.bytes().to_vec())

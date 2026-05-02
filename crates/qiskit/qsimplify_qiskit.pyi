@@ -65,11 +65,20 @@ class ConversionFormat(Enum):
     """Output format for parsing and serialization of quantum circuits."""
 
     JSON = 0
-    """Convert to and from a JSON string."""
-    BINARY = 1
-    """Convert to and from a binary blob."""
-    BASE64 = 2
-    """Convert to and from a base64-encoded binary blob."""
+    """Convert to and from a JSON string, which can be pretty-printed if desired.
+
+    The indentation parameter is used to determine the indentation level, only for pretty serialization.
+    """
+    BINARY = 2
+    """Convert to and from a binary blob.
+
+    The prettify and indentation parameters are ignored.
+    """
+    BASE64 = 3
+    """Convert to and from a base64-encoded binary blob.
+
+    The prettify and indentation parameters are ignored.
+    """
 
 def display(
     circuit: QuantumCircuit,
@@ -102,5 +111,5 @@ def simplify(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
 def parse(input: bytes, format: ConversionFormat) -> QuantumCircuit:
     """Convert bytes in the specified format into a Qiskit `QuantumCircuit`."""
 
-def serialize(circuit: QuantumCircuit, format: ConversionFormat) -> bytes:
+def serialize(circuit: QuantumCircuit, format: ConversionFormat, prettify: bool | None = None, indentation: int | None = None) -> bytes:
     """Convert a Qiskit `QuantumCircuit` graph representation into bytes in the specified format."""

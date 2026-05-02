@@ -62,7 +62,12 @@ pub fn parse<C: ConverterPort>(request: &ParseRequest, converter: &C) -> ParseRe
 
 pub fn serialize<C: ConverterPort>(request: &SerializeRequest, converter: &C) -> SerializeResponse {
     let bytes = converter
-        .serialize(&request.operations(), request.format())
+        .serialize(
+            &request.operations(),
+            request.format(),
+            request.prettify(),
+            request.indentation(),
+        )
         .unwrap();
     SerializeResponse::new(bytes.into())
 }

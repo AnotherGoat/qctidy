@@ -26,11 +26,17 @@ impl ConverterPort for ConverterAdapter {
         &self,
         operations: &[GateOperation],
         format: ConversionFormat,
+        prettify: Option<bool>,
+        indentation: Option<usize>,
     ) -> Result<Vec<u8>, SerializeError> {
         use ConversionFormat::*;
 
         match format {
-            Json => json::serialize(operations),
+            Json => json::serialize(
+                operations,
+                prettify.unwrap_or(false),
+                indentation.unwrap_or(2),
+            ),
             Binary => todo!(),
             Base64 => todo!(),
         }

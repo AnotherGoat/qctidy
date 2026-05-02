@@ -132,6 +132,10 @@ pub struct SerializeRequest {
     operations: Arc<[GateOperation]>,
     #[get_copy = "pub"]
     format: ConversionFormat,
+    #[get_copy = "pub"]
+    prettify: Option<bool>,
+    #[get_copy = "pub"]
+    indentation: Option<usize>,
 }
 
 #[derive(Debug, Clone, CloneGetters, New)]

@@ -1,7 +1,10 @@
 use qsimplify::dto::GateOperation;
 use qsimplify_ports::{ParseError, SerializeError};
 use serde::{Deserialize, Serialize};
-use serde_json::Error;
+use serde_json::{
+    Error,
+    ser::{PrettyFormatter, Serializer},
+};
 use serde_with::skip_serializing_none;
 
 #[skip_serializing_none]
@@ -313,10 +316,31 @@ fn map_serde_error(error: &Error, gate_hint: &str) -> ParseError {
     ParseError::InvalidJson { message }
 }
 
-pub(crate) fn serialize(operations: &[GateOperation]) -> Result<Vec<u8>, SerializeError> {
+pub(crate) fn serialize(
+    operations: &[GateOperation],
+    prettify: bool,
+    indentation: usize,
+) -> Result<Vec<u8>, SerializeError> {
     let datas: Vec<GateOperationData> = operations.iter().map(GateOperationData::from).collect();
 
-    serde_json::to_vec(&datas).map_err(|error| SerializeError::JsonSerializationFail {
-        message: error.to_string(),
-    })
+    if !prettify {
+        return serde_json::to_vec(&datas).map_err(|error| SerializeError::JsonSerializationFail {
+            message: error.to_string(),
+        });
+    }
+
+    let width = indentation.max(1);
+    let indent = vec![b' '; width];
+
+    let mut buffer = Vec::new();
+    let formatter = PrettyFormatter::with_indent(&indent);
+    let mut serializer = Serializer::with_formatter(&mut buffer, formatter);
+
+    datas
+        .serialize(&mut serializer)
+        .map_err(|error| SerializeError::JsonSerializationFail {
+            message: error.to_string(),
+        })?;
+
+    Ok(buffer)
 }

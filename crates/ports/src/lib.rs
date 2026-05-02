@@ -65,6 +65,8 @@ pub trait ConverterPort {
         &self,
         operations: &[GateOperation],
         format: ConversionFormat,
+        prettify: Option<bool>,
+        indentation: Option<usize>,
     ) -> Result<Vec<u8>, SerializeError>;
 }
 

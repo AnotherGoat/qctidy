@@ -458,6 +458,52 @@ fn parse_list_from_json() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used, clippy::panic)]
+fn parse_list_from_pretty_json() {
+    let input = r#"\
+[
+  {
+    "gate": "h",
+    "qubit": 0
+  },
+  {
+    "gate": "cx",
+    "control": 0,
+    "target": 1
+  },
+  {
+    "gate": "m",
+    "qubit": 1,
+    "bit": 0
+  }
+]"#;
+    let operations = json::parse(input.as_bytes()).unwrap();
+
+    assert_eq!(operations.len(), 3);
+
+    match operations[0] {
+        GateOperation::H { qubit } => assert_eq!(qubit, 0),
+        _ => panic!("Expected H gate"),
+    }
+
+    match operations[1] {
+        GateOperation::CX { control, target } => {
+            assert_eq!(control, 0);
+            assert_eq!(target, 1);
+        }
+        _ => panic!("Expected CX gate"),
+    }
+
+    match operations[2] {
+        GateOperation::Measure { qubit, bit } => {
+            assert_eq!(qubit, 1);
+            assert_eq!(bit, 0);
+        }
+        _ => panic!("Expected Measure gate"),
+    }
+}
+
+#[test]
 #[expect(clippy::panic)]
 fn parse_empty_string_fails() {
     let result = json::parse(b"");
@@ -615,7 +661,7 @@ fn parse_null_input_fails() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_empty_list_to_json() {
-    let json = json::serialize(&[]).unwrap();
+    let json = json::serialize(&[], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = "[]";
 
@@ -627,7 +673,7 @@ fn serialize_empty_list_to_json() {
 fn serialize_id_to_json() {
     let operation = GateOperation::id(0);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"id","qubit":0}]"#;
 
@@ -639,7 +685,7 @@ fn serialize_id_to_json() {
 fn serialize_h_to_json() {
     let operation = GateOperation::h(1);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"h","qubit":1}]"#;
 
@@ -651,7 +697,7 @@ fn serialize_h_to_json() {
 fn serialize_x_to_json() {
     let operation = GateOperation::x(2);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"x","qubit":2}]"#;
 
@@ -663,7 +709,7 @@ fn serialize_x_to_json() {
 fn serialize_y_to_json() {
     let operation = GateOperation::y(3);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"y","qubit":3}]"#;
 
@@ -675,7 +721,7 @@ fn serialize_y_to_json() {
 fn serialize_z_to_json() {
     let operation = GateOperation::z(4);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"z","qubit":4}]"#;
 
@@ -687,7 +733,7 @@ fn serialize_z_to_json() {
 fn serialize_p_to_json() {
     let operation = GateOperation::p(1.5, 5);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"p","qubit":5,"angle":1.5}]"#;
 
@@ -699,7 +745,7 @@ fn serialize_p_to_json() {
 fn serialize_rx_to_json() {
     let operation = GateOperation::rx(PI, 6);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"rx","qubit":6,"angle":3.141592653589793}]"#;
 
@@ -711,7 +757,7 @@ fn serialize_rx_to_json() {
 fn serialize_ry_to_json() {
     let operation = GateOperation::ry(0.5, 7);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"ry","qubit":7,"angle":0.5}]"#;
 
@@ -723,7 +769,7 @@ fn serialize_ry_to_json() {
 fn serialize_rz_to_json() {
     let operation = GateOperation::rz(2.0, 8);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"rz","qubit":8,"angle":2.0}]"#;
 
@@ -735,7 +781,7 @@ fn serialize_rz_to_json() {
 fn serialize_s_to_json() {
     let operation = GateOperation::s(9);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"s","qubit":9}]"#;
 
@@ -747,7 +793,7 @@ fn serialize_s_to_json() {
 fn serialize_sdg_to_json() {
     let operation = GateOperation::sdg(10);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"sdg","qubit":10}]"#;
 
@@ -759,7 +805,7 @@ fn serialize_sdg_to_json() {
 fn serialize_sx_to_json() {
     let operation = GateOperation::sx(11);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"sx","qubit":11}]"#;
 
@@ -771,7 +817,7 @@ fn serialize_sx_to_json() {
 fn serialize_sy_to_json() {
     let operation = GateOperation::sy(12);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"sy","qubit":12}]"#;
 
@@ -783,7 +829,7 @@ fn serialize_sy_to_json() {
 fn serialize_t_to_json() {
     let operation = GateOperation::t(13);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"t","qubit":13}]"#;
 
@@ -795,7 +841,7 @@ fn serialize_t_to_json() {
 fn serialize_tdg_to_json() {
     let operation = GateOperation::tdg(14);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"tdg","qubit":14}]"#;
 
@@ -807,7 +853,7 @@ fn serialize_tdg_to_json() {
 fn serialize_measure_to_json() {
     let operation = GateOperation::measure(15, 3);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"m","qubit":15,"bit":3}]"#;
 
@@ -819,7 +865,7 @@ fn serialize_measure_to_json() {
 fn serialize_swap_to_json() {
     let operation = GateOperation::swap(0, 5);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"swap","qubit1":0,"qubit2":5}]"#;
 
@@ -831,7 +877,7 @@ fn serialize_swap_to_json() {
 fn serialize_ch_to_json() {
     let operation = GateOperation::ch(2, 7);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"ch","control":2,"target":7}]"#;
 
@@ -843,7 +889,7 @@ fn serialize_ch_to_json() {
 fn serialize_cx_to_json() {
     let operation = GateOperation::cx(3, 8);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"cx","control":3,"target":8}]"#;
 
@@ -855,7 +901,7 @@ fn serialize_cx_to_json() {
 fn serialize_cy_to_json() {
     let operation = GateOperation::cy(4, 9);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"cy","control":4,"target":9}]"#;
 
@@ -867,7 +913,7 @@ fn serialize_cy_to_json() {
 fn serialize_cz_to_json() {
     let operation = GateOperation::cz(1, 6);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"cz","qubit1":1,"qubit2":6}]"#;
 
@@ -879,7 +925,7 @@ fn serialize_cz_to_json() {
 fn serialize_cp_to_json() {
     let operation = GateOperation::cp(0.75, 5, 10);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]"#;
 
@@ -891,7 +937,7 @@ fn serialize_cp_to_json() {
 fn serialize_cswap_to_json() {
     let operation = GateOperation::c_swap(0, 1, 2);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"cswap","control":0,"target1":1,"target2":2}]"#;
 
@@ -903,7 +949,7 @@ fn serialize_cswap_to_json() {
 fn serialize_ccx_to_json() {
     let operation = GateOperation::ccx(0, 1, 2);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"ccx","control1":0,"control2":1,"target":2}]"#;
 
@@ -915,7 +961,7 @@ fn serialize_ccx_to_json() {
 fn serialize_ccz_to_json() {
     let operation = GateOperation::ccz(3, 4, 5);
 
-    let json = json::serialize(&[operation]).unwrap();
+    let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]"#;
 
@@ -931,9 +977,41 @@ fn serialize_list_to_json() {
         GateOperation::measure(1, 0),
     ];
 
-    let json = json::serialize(&operations).unwrap();
+    let json = json::serialize(&operations, false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]"#;
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
+fn serialize_list_to_pretty_json() {
+    let operations = vec![
+        GateOperation::h(0),
+        GateOperation::cx(0, 1),
+        GateOperation::measure(1, 0),
+    ];
+
+    let json = json::serialize(&operations, true, 2).unwrap();
+    let actual = String::from_utf8(json).unwrap();
+    let expected = r#"\
+[
+  {
+    "gate": "h",
+    "qubit": 0
+  },
+  {
+    "gate": "cx",
+    "control": 0,
+    "target": 1
+  },
+  {
+    "gate": "m",
+    "qubit": 1,
+    "bit": 0
+  }
+]"#;
 
     assert_eq!(actual, expected);
 }
@@ -948,7 +1026,7 @@ fn parse_then_serialize_preserves_data() {
         GateOperation::measure(1, 0),
     ];
 
-    let serialized = json::serialize(&operations).unwrap();
+    let serialized = json::serialize(&operations, false, 0).unwrap();
     let parsed = json::parse(&serialized).unwrap();
 
     assert_eq!(parsed.len(), 4);
@@ -989,7 +1067,7 @@ fn serialize_then_parse_preserves_data() {
     let operations = r#"[{"gate":"h","qubit":0},{"gate":"p","qubit":3,"angle":1.234},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]"#;
 
     let parsed = json::parse(operations.as_bytes()).unwrap();
-    let serialized = json::serialize(&parsed).unwrap();
+    let serialized = json::serialize(&parsed, false, 0).unwrap();
 
     assert_eq!(String::from_utf8(serialized).unwrap(), operations);
 }
