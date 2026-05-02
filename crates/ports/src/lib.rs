@@ -1,6 +1,7 @@
 use std::io;
 
 use qsimplify::{Graph, dto::GateOperation};
+use thiserror::Error;
 
 pub trait PresenterPort {
     fn present(
@@ -31,10 +32,40 @@ pub enum CodeGenerationTarget {
     Qiskit,
 }
 
-pub trait ConverterPort {
-    fn parse(&self, input: &[u8], format: ConversionFormat) -> Vec<GateOperation>;
+#[derive(Debug, Error)]
+pub enum ParseError {
+    #[error("Invalid JSON input: {message}")]
+    InvalidJson { message: String },
+    #[error("Missing required field '{field}' for gate '{gate}'")]
+    MissingRequiredJsonField { field: String, gate: String },
+    #[error("Unknown field '{field}' for gate '{gate}'")]
+    UnknownJsonField { field: String, gate: String },
+    #[error("Unknown gate type: '{gate}'")]
+    UnknownGateType { gate: String },
+    #[error("Unsupported conversion format")]
+    UnsupportedFormat,
+}
 
-    fn serialize(&self, graph: &Graph, format: ConversionFormat) -> Vec<u8>;
+#[derive(Debug, Error)]
+pub enum SerializeError {
+    #[error("Failed to serialize to JSON: {message}")]
+    JsonSerializationFail { message: String },
+    #[error("Unsupported conversion format")]
+    UnsupportedFormat,
+}
+
+pub trait ConverterPort {
+    fn parse(
+        &self,
+        input: &[u8],
+        format: ConversionFormat,
+    ) -> Result<Vec<GateOperation>, ParseError>;
+
+    fn serialize(
+        &self,
+        operations: &[GateOperation],
+        format: ConversionFormat,
+    ) -> Result<Vec<u8>, SerializeError>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

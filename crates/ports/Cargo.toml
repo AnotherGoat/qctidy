@@ -9,6 +9,7 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+thiserror = { workspace = true }
 
 [lints]
 workspace = true

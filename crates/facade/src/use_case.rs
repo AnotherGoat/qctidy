@@ -55,15 +55,16 @@ pub fn generate_code<C: CodegenPort>(
     todo!()
 }
 
-pub fn parse<C: ConverterPort>(_request: &ParseRequest, _converter: &C) -> ParseResponse {
-    todo!()
+pub fn parse<C: ConverterPort>(request: &ParseRequest, converter: &C) -> ParseResponse {
+    let operations = converter.parse(&request.input(), request.format()).unwrap();
+    ParseResponse::new(operations.into())
 }
 
-pub fn serialize<C: ConverterPort>(
-    _request: &SerializeRequest,
-    _converter: &C,
-) -> SerializeResponse {
-    todo!()
+pub fn serialize<C: ConverterPort>(request: &SerializeRequest, converter: &C) -> SerializeResponse {
+    let bytes = converter
+        .serialize(&request.operations(), request.format())
+        .unwrap();
+    SerializeResponse::new(bytes.into())
 }
 
 pub fn estimate<E: EstimatorPort>(

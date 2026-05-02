@@ -8,8 +8,10 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+qsimplify-ports = { path = "../ports" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+serde_with = { workspace = true }
 
 [lints]
 workspace = true

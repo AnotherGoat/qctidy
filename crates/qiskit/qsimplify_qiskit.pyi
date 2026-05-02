@@ -61,6 +61,16 @@ class PresentationFormat(Enum):
     The DPI parameter is ignored.
     """
 
+class ConversionFormat(Enum):
+    """Output format for parsing and serialization of quantum circuits."""
+
+    JSON = 0
+    """Convert to and from a JSON string."""
+    BINARY = 1
+    """Convert to and from a binary blob."""
+    BASE64 = 2
+    """Convert to and from a base64-encoded binary blob."""
+
 def display(
     circuit: QuantumCircuit,
     format: DisplayFormat,
@@ -88,3 +98,9 @@ def simplify(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
     Better results may be found by increasing the number of iterations and making the simplification run longer, but there are no guarantees.
     The original circuit is not modified.
     """
+
+def parse(input: bytes, format: ConversionFormat) -> QuantumCircuit:
+    """Convert bytes in the specified format into a Qiskit `QuantumCircuit`."""
+
+def serialize(circuit: QuantumCircuit, format: ConversionFormat) -> bytes:
+    """Convert a Qiskit `QuantumCircuit` graph representation into bytes in the specified format."""

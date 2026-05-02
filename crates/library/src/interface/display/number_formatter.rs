@@ -2,6 +2,7 @@ use faer::complex::Complex64;
 
 use crate::domain::math;
 
+#[must_use]
 pub(crate) fn format(number: f64) -> String {
     trim_trailing_zeroes(&format!("{number:.2}"))
 }
@@ -13,6 +14,7 @@ fn trim_trailing_zeroes(number: &str) -> String {
         .to_owned()
 }
 
+#[must_use]
 pub(crate) fn format_complex(complex: Complex64) -> String {
     let real = if complex.re.abs() < math::EPSILON {
         0.0_f64

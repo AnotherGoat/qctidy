@@ -28,3 +28,7 @@ pub mod formatter {
 pub mod simplifier {
     pub use crate::application::simplifier::simplify;
 }
+
+pub mod math {
+    pub use crate::domain::math::{ABSOLUTE_TOLERANCE, RELATIVE_TOLERANCE, are_floats_equal};
+}

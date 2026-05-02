@@ -23,7 +23,8 @@ const MAX_DENOMINATOR: i64 = 16;
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
 #[expect(clippy::float_cmp)]
-pub(crate) fn are_floats_equal(first: f64, second: f64) -> bool {
+#[must_use]
+pub fn are_floats_equal(first: f64, second: f64) -> bool {
     if first == second {
         return true;
     }
@@ -37,6 +38,7 @@ pub(crate) fn are_floats_equal(first: f64, second: f64) -> bool {
 /// Check whether two floats wrapped in an `Option` are approximately equal.
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
+#[must_use]
 pub(crate) fn are_option_floats_equal(first: Option<f64>, second: Option<f64>) -> bool {
     match (first, second) {
         (Some(first), Some(second)) => are_floats_equal(first, second),
@@ -48,6 +50,7 @@ pub(crate) fn are_option_floats_equal(first: Option<f64>, second: Option<f64>) -
 /// Check whether two matrices are approximately equal.
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.
+#[must_use]
 pub(crate) fn are_matrices_equal(first: &Mat<Complex64>, second: &Mat<Complex64>) -> bool {
     if first.nrows() != second.nrows() || first.ncols() != second.ncols() {
         return false;
@@ -95,6 +98,7 @@ pub(crate) fn normalize_angle(angle: f64, full_cycle: f64) -> Result<f64, &'stat
 /// Rationalize number as a multiple of pi.
 ///
 /// Returns None if the number is not close to being a multiple of pi.
+#[must_use]
 pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
     let pi_factor = number / PI;
 

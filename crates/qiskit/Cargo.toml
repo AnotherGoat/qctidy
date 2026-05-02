@@ -10,10 +10,11 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+qsimplify-converter = { path = "../converter" }
 qsimplify-facade = { path = "../facade" }
 qsimplify-presenter = { path = "../presenter" }
 qsimplify-ports = { path = "../ports" }
-faer = { workspace = true}
+faer = { workspace = true }
 pyo3 = { workspace = true, features = ["extension-module"] }
 
 [lints]
