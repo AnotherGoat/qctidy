@@ -3,10 +3,15 @@ repo = "builtin"
 hooks = [
   { id = "check-added-large-files", args = ["--maxkb=1000"] },
   { id = "check-case-conflict" },
+  { id = "check-executables-have-shebangs" },
   { id = "check-illegal-windows-names" },
   { id = "check-merge-conflict" },
+  { id = "check-shebang-scripts-are-executable" },
   { id = "check-toml" },
-  { id = "mixed-line-ending" },
+  { id = "detect-private-key" },
+  { id = "fix-byte-order-marker" },
+  { id = "mixed-line-ending", args = ["--fix=lf"] },
+  { id = "no-commit-to-branch" },
   { id = "trailing-whitespace" },
 ]
 
