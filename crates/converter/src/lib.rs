@@ -2,9 +2,13 @@ use qsimplify::dto::GateOperation;
 use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
 pub mod json;
+pub mod message_pack;
 
 #[cfg(test)]
 mod json_tests;
+
+#[cfg(test)]
+mod message_pack_tests;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ConverterAdapter;
@@ -15,10 +19,13 @@ impl ConverterPort for ConverterAdapter {
         input: &[u8],
         format: ConversionFormat,
     ) -> Result<Vec<GateOperation>, ParseError> {
+        use ConversionFormat::*;
+
         match format {
-            ConversionFormat::Json => json::parse(input),
-            ConversionFormat::Binary => todo!(),
-            ConversionFormat::Base64 => todo!(),
+            Json => json::parse(input),
+            MessagePack => message_pack::parse(input),
+            Binary => todo!(),
+            Base64 => todo!(),
         }
     }
 
@@ -37,6 +44,7 @@ impl ConverterPort for ConverterAdapter {
                 prettify.unwrap_or(false),
                 indentation.unwrap_or(2),
             ),
+            MessagePack => message_pack::serialize(operations),
             Binary => todo!(),
             Base64 => todo!(),
         }

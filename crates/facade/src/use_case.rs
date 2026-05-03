@@ -1,7 +1,10 @@
 use std::io;
 
 use qsimplify::{DiracFormat, PiFormat, dto::mapper, simplifier};
-use qsimplify_ports::{AnalyzerPort, CodegenPort, ConverterPort, EstimatorPort, PresenterPort};
+use qsimplify_ports::{
+    AnalyzerPort, CodegenPort, ConverterPort, EstimatorPort, ParseError, PresenterPort,
+    SerializeError,
+};
 
 use crate::{
     AnalysisRequest, AnalysisResponse, CodeGenerationRequest, CodeGenerationResponse,
@@ -55,21 +58,27 @@ pub fn generate_code<C: CodegenPort>(
     todo!()
 }
 
-pub fn parse<C: ConverterPort>(request: &ParseRequest, converter: &C) -> ParseResponse {
-    let operations = converter.parse(&request.input(), request.format()).unwrap();
-    ParseResponse::new(operations.into())
+pub fn parse<C: ConverterPort>(
+    request: &ParseRequest,
+    converter: &C,
+) -> Result<ParseResponse, ParseError> {
+    converter
+        .parse(&request.input(), request.format())
+        .map(|operations| ParseResponse::new(operations.into()))
 }
 
-pub fn serialize<C: ConverterPort>(request: &SerializeRequest, converter: &C) -> SerializeResponse {
-    let bytes = converter
+pub fn serialize<C: ConverterPort>(
+    request: &SerializeRequest,
+    converter: &C,
+) -> Result<SerializeResponse, SerializeError> {
+    converter
         .serialize(
             &request.operations(),
             request.format(),
             request.prettify(),
             request.indentation(),
         )
-        .unwrap();
-    SerializeResponse::new(bytes.into())
+        .map(|bytes| SerializeResponse::new(bytes.into()))
 }
 
 pub fn estimate<E: EstimatorPort>(

@@ -34,12 +34,19 @@ pub enum CodeGenerationTarget {
 
 #[derive(Debug, Error)]
 pub enum ParseError {
-    #[error("Invalid JSON input: {message}")]
-    InvalidJson { message: String },
-    #[error("Missing required field '{field}' for gate '{gate}'")]
-    MissingRequiredJsonField { field: String, gate: String },
+    #[error("Invalid {format} input: {message}")]
+    InvalidInput {
+        format: ConversionFormat,
+        message: String,
+    },
+    #[error("Missing required {format} field '{field}' for gate '{gate}'")]
+    MissingRequiredField {
+        format: ConversionFormat,
+        field: String,
+        gate: String,
+    },
     #[error("Unknown field '{field}' for gate '{gate}'")]
-    UnknownJsonField { field: String, gate: String },
+    UnknownField { field: String, gate: String },
     #[error("Unknown gate type: '{gate}'")]
     UnknownGateType { gate: String },
     #[error("Unsupported conversion format")]
@@ -48,8 +55,11 @@ pub enum ParseError {
 
 #[derive(Debug, Error)]
 pub enum SerializeError {
-    #[error("Failed to serialize to JSON: {message}")]
-    JsonSerializationFail { message: String },
+    #[error("Failed to serialize to {format}: {message}")]
+    SerializationFailure {
+        format: ConversionFormat,
+        message: String,
+    },
     #[error("Unsupported conversion format")]
     UnsupportedFormat,
 }
@@ -70,9 +80,10 @@ pub trait ConverterPort {
     ) -> Result<Vec<u8>, SerializeError>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::Display)]
 pub enum ConversionFormat {
     Json,
+    MessagePack,
     Binary,
     Base64,
 }

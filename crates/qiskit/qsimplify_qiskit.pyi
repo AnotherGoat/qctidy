@@ -69,6 +69,12 @@ class ConversionFormat(Enum):
 
     The indentation parameter is used to determine the indentation level, only for pretty serialization.
     """
+    MESSAGE_PACK = 1
+    """Convert to and from a MessagePack binary blob.
+
+    The format works similarly to JSON, but encodes data in a more compact manner.
+    The prettify and indentation parameters are ignored.
+    """
     BINARY = 2
     """Convert to and from a binary blob.
 

@@ -4,6 +4,7 @@ mod extractor;
 #[pyo3::pymodule]
 #[pyo3(name = "qsimplify_qiskit")]
 mod bindings {
+    use pyo3::exceptions::PyValueError;
     use pyo3::prelude::*;
     use pyo3::{PyAny, PyResult};
     use qsimplify::{DiracFormat, PiFormat};
@@ -103,9 +104,10 @@ mod bindings {
 
     #[pyclass(name = "ConversionFormat", eq, from_py_object)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    #[expect(clippy::upper_case_acronyms)]
+    #[expect(clippy::upper_case_acronyms, non_camel_case_types)]
     pub(crate) enum PythonConversionFormat {
         JSON,
+        MESSAGE_PACK,
         BINARY,
         BASE64,
     }
@@ -116,6 +118,7 @@ mod bindings {
 
             match value {
                 JSON => Self::Json,
+                MESSAGE_PACK => Self::MessagePack,
                 BINARY => Self::Binary,
                 BASE64 => Self::Base64,
             }
@@ -176,7 +179,9 @@ mod bindings {
     ) -> PyResult<Py<PyAny>> {
         let request = ParseRequest::new(input.into(), format.into());
 
-        let response = qsimplify_facade::parse(&request, &ConverterAdapter);
+        let response = qsimplify_facade::parse(&request, &ConverterAdapter)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+
         circuit::operations_to_circuit(python, &response.operations())
     }
 
@@ -191,7 +196,9 @@ mod bindings {
         let request =
             SerializeRequest::new(operations.into(), format.into(), prettify, indentation);
 
-        let response = qsimplify_facade::serialize(&request, &ConverterAdapter);
+        let response = qsimplify_facade::serialize(&request, &ConverterAdapter)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+
         Ok(response.bytes().to_vec())
     }
 }

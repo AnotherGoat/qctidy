@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use qsimplify::{dto::GateOperation, math};
 
-use qsimplify_ports::ParseError;
+use qsimplify_ports::{ConversionFormat, ParseError};
 
 use crate::json;
 
@@ -460,8 +460,7 @@ fn parse_list_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_list_from_pretty_json() {
-    let input = r#"\
-[
+    let input = r#"[
   {
     "gate": "h",
     "qubit": 0
@@ -509,10 +508,11 @@ fn parse_empty_string_fails() {
     let result = json::parse(b"");
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("EOF"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -522,10 +522,11 @@ fn parse_whitespace_only_fails() {
     let result = json::parse(b"   \n\t  ");
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("EOF"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -535,10 +536,11 @@ fn parse_wrong_outer_type_fails() {
     let result = json::parse(b"{}");
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("expected"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -548,11 +550,16 @@ fn parse_missing_required_field_fails() {
     let result = json::parse(br#"[{"gate":"cp","qubit1":2,"qubit2":3}]"#);
 
     match result {
-        Err(ParseError::MissingRequiredJsonField { field, gate }) => {
+        Err(ParseError::MissingRequiredField {
+            format,
+            field,
+            gate,
+        }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert_eq!(field, "angle");
             assert_eq!(gate, "cp");
         }
-        _ => panic!("Expected MissingRequiredJsonField error, got: {result:?}"),
+        _ => panic!("Expected MissingRequiredField error, got: {result:?}"),
     }
 }
 
@@ -575,11 +582,11 @@ fn parse_unneeded_field_fails() {
     let result = json::parse(br#"[{"gate":"h","qubit":1,"what":true}]"#);
 
     match result {
-        Err(ParseError::UnknownJsonField { field, gate }) => {
+        Err(ParseError::UnknownField { field, gate }) => {
             assert_eq!(field, "what");
             assert_eq!(gate, "h");
         }
-        _ => panic!("Expected UnknownJsonField error, got: {result:?}"),
+        _ => panic!("Expected UnknownField error, got: {result:?}"),
     }
 }
 
@@ -589,8 +596,8 @@ fn parse_fully_corrupted_input_fails() {
     let result = json::parse(b"\x00\x01\x02\x03\xff\xfe");
 
     match result {
-        Err(ParseError::InvalidJson { .. }) => {}
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        Err(ParseError::InvalidInput { .. }) => {}
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -600,10 +607,11 @@ fn parse_slightly_corrupted_json_fails() {
     let result = json::parse(br#"[{"gate":"h","qubit"::1}]"#);
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("expected"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -613,11 +621,12 @@ fn parse_missing_gate_field_fails() {
     let result = json::parse(br#"[{"qubit":0}]"#);
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("missing field"));
             assert!(message.contains("gate"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -627,8 +636,8 @@ fn parse_wrong_field_type_fails() {
     let result = json::parse(br#"[{"gate":"h","qubit":"not_a_number"}]"#);
 
     match result {
-        Err(ParseError::InvalidJson { .. }) => {}
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        Err(ParseError::InvalidInput { .. }) => {}
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -638,10 +647,11 @@ fn parse_string_instead_of_array_fails() {
     let result = json::parse(br#""this is a string""#);
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("expected"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -651,10 +661,11 @@ fn parse_null_input_fails() {
     let result = json::parse(b"null");
 
     match result {
-        Err(ParseError::InvalidJson { message }) => {
+        Err(ParseError::InvalidInput { format, message }) => {
+            assert_eq!(format, ConversionFormat::Json);
             assert!(message.contains("expected"));
         }
-        _ => panic!("Expected InvalidJson error, got: {result:?}"),
+        _ => panic!("Expected InvalidInput error, got: {result:?}"),
     }
 }
 
@@ -995,8 +1006,7 @@ fn serialize_list_to_pretty_json() {
 
     let json = json::serialize(&operations, true, 2).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"\
-[
+    let expected = r#"[
   {
     "gate": "h",
     "qubit": 0
