@@ -54,26 +54,37 @@ TODO.
 The project is composed of various Rust crates, which focus on making it modular and extensible. A facade exposes all the common use cases so that client implementations don't have to worry about the internal details.
 
 ```plain
-.                       # Project root
+├── AGENTS.md           # Documentation for code agents
 ├── Cargo.lock          # Global lockfile
 ├── Cargo.toml          # Cargo workspace root, each crate also has its own Cargo.toml
-├── CONVENTIONS.md      # Repository guidelines and code conventions
 ├── prek.toml           # Configuration for pre-commit hooks
-├── README.md           # Project description (this file)
-└── crates              # Workspace member crates
-    ├── cli             # Command-line interface (binary)
-    ├── codegen         # Code generator (library)
-    ├── converter       # Circuit parser and serializer for various formats (library)
-    ├── estimator       # Circuit execution time and cost estimation (library)
-    ├── facade          # Facade for client implementation (library)
-    ├── library         # The core of QSimplify (library)
-    ├── presenter       # Circuit and graph visualization (library)
-    ├── qiskit          # Python + Qiskit bindings via PyO3 (library)
-    ├── server          # Server implementation as a REST API (binary)
-    └── storage         # Circuit and simplification rule storage (library)
+├── README.md           # Project description (you are reading this)
+├── rustfmt.toml        # Configuration for code formatting
+├── crates              # Workspace member crates
+│   ├── analyzer        # Circuit analysis and metrics (library)
+│   ├── cli             # Command-line interface (binary)
+│   ├── codegen         # Code generator (library)
+│   ├── converter       # Circuit parser and serializer for various formats (library)
+│   ├── estimator       # Circuit execution time and cost estimation (library)
+│   ├── facade          # Facade for client implementation (library)
+│   ├── library         # The core of QSimplify (library)
+│   ├── ports           # Ports for optional services (library)
+│   ├── presenter       # Circuit and graph visualization (library)
+│   ├── qiskit          # Python + Qiskit bindings via PyO3 (library)
+│   ├── server          # Server implementation as a REST API (binary)
+│   └── storage         # Circuit and simplification rule storage (library)
+├── docs                # Documentation for the project
+│   ├── CHANGELOG.md    # Release notes
+│   ├── CONVENTIONS.md  # Repository guidelines and code conventions
+│   └── SPEC.md         # Requirements specification
+└── images              # Images used in the documentation
 ```
 
-Note: Use `tree --gitignore -L2 --filesfirst` to see the structure.
+## Project Architecture
+
+The architecture of the project is based on the [hexagonal architecture](https://alistair.cockburn.us/hexagonal-architecture), and is used to separate ports and adapters, which decouples the facade from the optional service crates.
+
+![Architecture diagram](images/architecture.drawio.png)
 
 ## Useful Commands
 
@@ -87,7 +98,7 @@ These Cargo commands can be run from the root of the repository.
 | `cargo build --workspace`           | Compile a debug build of all the crates.              |
 | `cargo build --release --workspace` | Compile an optimized release build of all the crates. |
 | `cargo test`                        | Run all unit and integration tests.                   |
-| `cargo test -p <crate>`             | Run tests for a single crate.                         |
+| `cargo test -p <crate>`             | Run tests for a specific crate.                       |
 | `RUST_BACKTRACE=1 cargo test`       | Run all unit and integration tests with backtrace.    |
 
 For more specific tasks, these commands can be used:
@@ -118,7 +129,7 @@ TODO.
 
 ### Coding Conventions
 
-Check the [CONVENTIONS.md](CONVENTIONS.md) file for a detailed list of repository and coding conventions.
+Check the [CONVENTIONS.md](docs/CONVENTIONS.md) file for a detailed list of repository and coding conventions.
 
 ## License
 

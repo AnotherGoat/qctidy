@@ -1,7 +1,7 @@
 [[repos]]
 repo = "builtin"
 hooks = [
-  { id = "check-added-large-files" },
+  { id = "check-added-large-files", args = ["--maxkb=1000"] },
   { id = "check-case-conflict" },
   { id = "check-illegal-windows-names" },
   { id = "check-merge-conflict" },
