@@ -88,7 +88,7 @@ pub struct AnalysisResponse {
     gate_count: usize,
 }
 
-#[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
+#[derive(Debug, Clone, Getters, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct CodeGenerationRequest {
@@ -96,6 +96,8 @@ pub struct CodeGenerationRequest {
     operations: Arc<[GateOperation]>,
     #[get_copy = "pub"]
     target: CodeGenerationTarget,
+    #[get = "pub"]
+    circuit_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Getters, New)]

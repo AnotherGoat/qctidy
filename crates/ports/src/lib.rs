@@ -76,7 +76,12 @@ pub enum ConversionFormat {
 }
 
 pub trait CodegenPort {
-    fn generate(&self, graph: &Graph, target: CodeGenerationTarget) -> String;
+    fn generate(
+        &self,
+        graph: &Graph,
+        target: CodeGenerationTarget,
+        circuit_name: Option<&str>,
+    ) -> String;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -2,6 +2,7 @@ use faer::complex::Complex64;
 
 use crate::domain::math;
 
+/// Format a number by rounding it to 2 decimal places and then removing trailing zeroes.
 #[must_use]
 pub(crate) fn format(number: f64) -> String {
     trim_trailing_zeroes(&format!("{number:.2}"))

@@ -6,7 +6,7 @@ use graphviz_rust::{
     },
     printer::PrinterContext,
 };
-use qsimplify::{EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
+use qsimplify::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
 use qsimplify_ports::{PresentationFormat, PresenterPort};
 use std::{fs, io};
 
@@ -192,7 +192,11 @@ fn find_node_label(node: &NodeView) -> String {
 
     let top_label = match node.r#type() {
         P | RX | RY | RZ | CP => {
-            let angle = formatter::format_angle(node.angle().unwrap_or_default(), PiFormat::Fancy);
+            let angle = formatter::format_angle(
+                node.angle().unwrap_or_default(),
+                AngleFormat::Algebra,
+                PiFormat::Fancy,
+            );
             format!("{type_data}({angle})")
         }
         Measure => {

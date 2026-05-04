@@ -8,7 +8,10 @@ pub use domain::graph::{
     Graph, edge_type::EdgeType, gate_type::GateType, graph_error::GraphError, position::Position,
 };
 pub use domain::math::{ABSOLUTE_TOLERANCE, EPSILON, RELATIVE_TOLERANCE};
-pub use interface::display::{angle_formatter::PiFormat, graph_display::DiracFormat};
+pub use interface::display::{
+    angle_formatter::{AngleFormat, PiFormat},
+    graph_display::DiracFormat,
+};
 pub use interface::projection::{
     contextual_node_view::ContextualNodeView, edge_view::EdgeView, node_view::NodeView,
 };

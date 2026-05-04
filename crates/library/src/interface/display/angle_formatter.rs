@@ -2,6 +2,16 @@ use std::fmt;
 
 use crate::{domain::math, interface::display::number_formatter};
 
+/// Format to used to display operations used when displaying angles.
+#[derive(Debug, Clone, Copy)]
+#[must_use]
+pub enum AngleFormat {
+    /// Display the angle in an algebraic way (no spaces, no multiplication symbols).
+    Algebra,
+    /// Display the angle in as a operation that could be used un source code.
+    Code,
+}
+
 /// Format to used to display the pi constant in angles.
 #[derive(Debug, Clone, Copy)]
 #[must_use]
@@ -12,6 +22,8 @@ pub enum PiFormat {
     Uppercase,
     /// Display the pi constant as `π`.
     Fancy,
+    /// Display the pi constant using a custom string.
+    Custom { pi: &'static str },
 }
 
 impl fmt::Display for PiFormat {
@@ -22,6 +34,7 @@ impl fmt::Display for PiFormat {
             Lowercase => "pi",
             Uppercase => "PI",
             Fancy => "π",
+            Custom { pi } => pi,
         };
 
         f.write_str(name)
@@ -32,7 +45,9 @@ impl fmt::Display for PiFormat {
 ///
 /// The output depends on the requested pi format.
 #[must_use]
-pub fn format(angle: f64, pi_format: PiFormat) -> String {
+pub fn format(angle: f64, angle_format: AngleFormat, pi_format: PiFormat) -> String {
+    use AngleFormat::*;
+
     if math::are_floats_equal(angle, 0.0) {
         return "0".to_owned();
     }
@@ -41,6 +56,11 @@ pub fn format(angle: f64, pi_format: PiFormat) -> String {
         let numerator = *fraction.numer();
         let denominator = *fraction.denom();
         let pi = pi_format.to_string();
+
+        let (multiplication, division) = match angle_format {
+            Algebra => ("", "/"),
+            Code => (" * ", " / "),
+        };
 
         if numerator == denominator {
             return pi;
@@ -51,18 +71,18 @@ pub fn format(angle: f64, pi_format: PiFormat) -> String {
         }
 
         if numerator == 1 {
-            return format!("{pi}/{denominator}");
+            return format!("{pi}{division}{denominator}");
         }
 
         if numerator == -1 {
-            return format!("-{pi}/{denominator}");
+            return format!("-{pi}{division}{denominator}");
         }
 
         if denominator == 1 {
-            return format!("{numerator}{pi}");
+            return format!("{numerator}{multiplication}{pi}");
         }
 
-        return format!("{numerator}{pi}/{denominator}");
+        return format!("{numerator}{multiplication}{pi}{division}{denominator}");
     }
 
     number_formatter::format(angle)

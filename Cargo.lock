@@ -1132,6 +1132,7 @@ name = "qsimplify-codegen"
 version = "0.1.0"
 dependencies = [
  "qsimplify",
+ "qsimplify-ports",
 ]
 
 [[package]]
@@ -1194,6 +1195,7 @@ dependencies = [
  "faer",
  "pyo3",
  "qsimplify",
+ "qsimplify-codegen",
  "qsimplify-converter",
  "qsimplify-facade",
  "qsimplify-ports",

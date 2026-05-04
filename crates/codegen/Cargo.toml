@@ -8,6 +8,7 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+qsimplify-ports = { path = "../ports" }
 
 [lints]
 workspace = true

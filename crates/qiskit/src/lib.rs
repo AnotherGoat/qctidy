@@ -6,14 +6,16 @@ mod extractor;
 mod bindings {
     use pyo3::exceptions::PyValueError;
     use pyo3::prelude::*;
+    use pyo3::types::PyString;
     use pyo3::{PyAny, PyResult};
     use qsimplify::{DiracFormat, PiFormat};
+    use qsimplify_codegen::CodegenAdapter;
     use qsimplify_converter::ConverterAdapter;
     use qsimplify_facade::{
-        DisplayFormat, DisplayRequest, ParseRequest, PresentationRequest, SerializeRequest,
-        SimplificationRequest,
+        CodeGenerationRequest, DisplayFormat, DisplayRequest, ParseRequest, PresentationRequest,
+        SerializeRequest, SimplificationRequest,
     };
-    use qsimplify_ports::{ConversionFormat, PresentationFormat};
+    use qsimplify_ports::{CodeGenerationTarget, ConversionFormat, PresentationFormat};
     use qsimplify_presenter::GraphvizPresenter;
 
     use crate::{circuit, extractor};
@@ -125,6 +127,23 @@ mod bindings {
         }
     }
 
+    #[pyclass(name = "CodeGenerationTarget", eq, from_py_object)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[expect(clippy::upper_case_acronyms)]
+    pub(crate) enum PythonCodeGenerationTarget {
+        QISKIT,
+    }
+
+    impl From<PythonCodeGenerationTarget> for CodeGenerationTarget {
+        fn from(value: PythonCodeGenerationTarget) -> Self {
+            use PythonCodeGenerationTarget::*;
+
+            match value {
+                QISKIT => Self::Qiskit,
+            }
+        }
+    }
+
     #[pyfunction(signature = (circuit, format, pi_format=None, dirac_format=None))]
     pub(crate) fn display(
         circuit: &Bound<'_, PyAny>,
@@ -200,5 +219,24 @@ mod bindings {
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
         Ok(response.bytes().to_vec())
+    }
+
+    #[pyfunction(signature = (circuit, target, circuit_name=None))]
+    pub(crate) fn generate_code(
+        python: Python<'_>,
+        circuit: &Bound<'_, PyAny>,
+        target: PythonCodeGenerationTarget,
+        circuit_name: Option<String>,
+    ) -> PyResult<Py<PyString>> {
+        let operations = extractor::extract_operations(circuit)?;
+        let request = CodeGenerationRequest::new(
+            operations.into(),
+            CodeGenerationTarget::from(target),
+            circuit_name,
+        );
+
+        let response = qsimplify_facade::generate_code(&request, &CodegenAdapter);
+
+        Ok(PyString::new(python, response.code()).into())
     }
 }

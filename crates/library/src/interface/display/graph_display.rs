@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Write;
 
 use crate::{
-    Graph,
+    AngleFormat, Graph,
     application::simplifier::matrix_calculator,
     interface::display::{
         angle_formatter::{self, PiFormat},
@@ -37,7 +37,7 @@ impl Graph {
     ///
     /// Gives an output similar to `to_string`, but with more control over its format.
     #[must_use]
-    pub fn display_nodes_and_edges(&self, angle_format: PiFormat) -> String {
+    pub fn display_nodes_and_edges(&self, pi_format: PiFormat) -> String {
         let mut output = "Nodes:\n".to_owned();
 
         let nodes = self.iter_nodes_ordered_by_column().collect::<Vec<_>>();
@@ -47,7 +47,7 @@ impl Graph {
         }
 
         for node in nodes {
-            writeln!(output, "{}", node.display(angle_format))
+            writeln!(output, "{}", node.display(pi_format))
                 .expect("String should always be writable");
         }
 
@@ -75,7 +75,7 @@ impl Graph {
                 _ => {}
             }
 
-            write!(output, "{}", edge.display(angle_format))
+            write!(output, "{}", edge.display(pi_format))
                 .expect("String should always be writable");
 
             if index != edges.len() - 1 {
@@ -88,7 +88,7 @@ impl Graph {
 
     /// Get an alternative string representation of the graph, as a 2D grid.
     #[must_use]
-    pub fn display_grid(&self, angle_format: PiFormat) -> String {
+    pub fn display_grid(&self, pi_format: PiFormat) -> String {
         if self.is_empty() {
             return "(empty)".to_owned();
         }
@@ -104,7 +104,11 @@ impl Graph {
 
                 if let Some(angle) = node.angle() {
                     label.push('(');
-                    label.push_str(&angle_formatter::format(angle, angle_format));
+                    label.push_str(&angle_formatter::format(
+                        angle,
+                        AngleFormat::Algebra,
+                        pi_format,
+                    ));
                     label.push(')');
                 }
 

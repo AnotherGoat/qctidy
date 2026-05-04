@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::{
-    ContextualNodeView, EdgeView, NodeView,
+    AngleFormat, ContextualNodeView, EdgeView, NodeView,
     interface::display::angle_formatter::{self, PiFormat},
 };
 
@@ -16,12 +16,17 @@ impl NodeView {
     ///
     /// Gives an output similar to `to_string`, but with more control over its format.
     #[must_use]
-    pub fn display(&self, angle_format: PiFormat) -> String {
+    pub fn display(&self, pi_format: PiFormat) -> String {
         let type_data = self.r#type().to_string().to_ascii_uppercase();
 
         let angle_data = self
             .angle()
-            .map(|angle| format!("(angle={})", angle_formatter::format(angle, angle_format)))
+            .map(|angle| {
+                format!(
+                    "(angle={})",
+                    angle_formatter::format(angle, AngleFormat::Algebra, pi_format)
+                )
+            })
             .unwrap_or_default();
 
         let bit_data = self
@@ -50,12 +55,12 @@ impl EdgeView {
     ///
     /// Gives an output similar to `to_string`, but with more control over its format.
     #[must_use]
-    pub fn display(&self, angle_format: PiFormat) -> String {
+    pub fn display(&self, pi_format: PiFormat) -> String {
         format!(
             "[{}] from {} to {}",
             self.r#type(),
-            self.start().display(angle_format),
-            self.end().display(angle_format),
+            self.start().display(pi_format),
+            self.end().display(pi_format),
         )
     }
 }
@@ -71,23 +76,23 @@ impl ContextualNodeView {
     ///
     /// Gives an output similar to `to_string`, but with more control over its format.
     #[must_use]
-    pub fn display(&self, angle_format: PiFormat) -> String {
-        let origin_data = self.origin().display(angle_format);
+    pub fn display(&self, pi_format: PiFormat) -> String {
+        let origin_data = self.origin().display(pi_format);
         let mut extra_data = Vec::new();
 
         if let Some(left) = *self.left() {
-            extra_data.push(format!("left={}", left.display(angle_format)));
+            extra_data.push(format!("left={}", left.display(pi_format)));
         }
 
         if let Some(right) = *self.right() {
-            extra_data.push(format!("right={}", right.display(angle_format)));
+            extra_data.push(format!("right={}", right.display(pi_format)));
         }
 
         if !self.targets().is_empty() {
             let targets: Vec<String> = self
                 .targets()
                 .iter()
-                .map(|target| target.display(angle_format))
+                .map(|target| target.display(pi_format))
                 .collect();
             extra_data.push(format!("targets={targets:?}"));
         }
@@ -96,20 +101,20 @@ impl ContextualNodeView {
             let controllers: Vec<String> = self
                 .controlled_by()
                 .iter()
-                .map(|controller| controller.display(angle_format))
+                .map(|controller| controller.display(pi_format))
                 .collect();
             extra_data.push(format!("controlled_by={controllers:?}"));
         }
 
         if let Some(swaps_with) = *self.swaps_with() {
-            extra_data.push(format!("swaps_with={}", swaps_with.display(angle_format)));
+            extra_data.push(format!("swaps_with={}", swaps_with.display(pi_format)));
         }
 
         if !self.works_with().is_empty() {
             let works_with: Vec<String> = self
                 .works_with()
                 .iter()
-                .map(|partner| partner.display(angle_format))
+                .map(|partner| partner.display(pi_format))
                 .collect();
             extra_data.push(format!("works_with={works_with:?}"));
         }

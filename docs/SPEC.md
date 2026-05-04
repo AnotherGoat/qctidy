@@ -142,7 +142,7 @@
 
 ### Code Generation (codegen)
 
-- [ ] Generate Qiskit code
+- [X] Generate Qiskit code
 - [ ] Generate OpenQASM 2 code
 
 ### Circuit Analysis (analyzer)
@@ -171,9 +171,10 @@
 - [x] Present use case
 - [x] Parse use case
 - [x] Serialize use case
-- [ ] Generate code use case
+- [X] Generate code use case
 - [ ] Analyze use case
 - [ ] Estimate use case
+- [ ] Support for pipeline execution of use cases without unnecessary transformations
 
 ### Python Bindings (qiskit)
 

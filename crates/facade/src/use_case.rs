@@ -71,10 +71,13 @@ pub fn serialize<C: ConverterPort>(
 }
 
 pub fn generate_code<C: CodegenPort>(
-    _request: &CodeGenerationRequest,
-    _codegen: &C,
+    request: &CodeGenerationRequest,
+    codegen: &C,
 ) -> CodeGenerationResponse {
-    todo!()
+    let graph = mapper::operations_to_graph(&request.operations());
+
+    let result = codegen.generate(&graph, request.target(), request.circuit_name().as_deref());
+    CodeGenerationResponse::new(result)
 }
 
 pub fn analyze<A: AnalyzerPort>(_request: &AnalysisRequest, _analyzer: &A) -> AnalysisResponse {

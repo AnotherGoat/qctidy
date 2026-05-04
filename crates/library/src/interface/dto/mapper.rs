@@ -4,13 +4,7 @@ use crate::{GateType, Graph, GraphBuilder, Position, dto::GateOperation};
 
 /// Convert a list of gate operations into a `Graph`.
 pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
-    let mut builder = GraphBuilder::new();
-
-    for operation in operations {
-        builder.push_operation(operation);
-    }
-
-    builder.build()
+    GraphBuilder::new().push_operations(operations).build()
 }
 
 /// Convert a `Graph` into a list of `GateOperations`.

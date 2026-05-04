@@ -86,6 +86,11 @@ class ConversionFormat(Enum):
     The prettify and indentation parameters are ignored.
     """
 
+class CodeGenerationTarget(Enum):
+    """Output format for generated code."""
+    QISKIT = 0
+    """Generate Qiskit Python code, which uses QuantumCircuit to build circuits."""
+
 def display(
     circuit: QuantumCircuit,
     format: DisplayFormat,
@@ -119,3 +124,6 @@ def parse(input: bytes, format: ConversionFormat) -> QuantumCircuit:
 
 def serialize(circuit: QuantumCircuit, format: ConversionFormat, prettify: bool | None = None, indentation: int | None = None) -> bytes:
     """Convert a Qiskit `QuantumCircuit` graph representation into bytes in the specified format."""
+
+def generate_code(circuit: QuantumCircuit, target: CodeGenerationTarget, circuit_name: str | None = None) -> str:
+    """Generate to build the provided Qiskit `QuantumCircuit`."""
