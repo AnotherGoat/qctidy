@@ -47,17 +47,6 @@ pub fn present<P: PresenterPort>(
     Ok(PresentationResponse::new(result.into()))
 }
 
-pub fn analyze<A: AnalyzerPort>(_request: &AnalysisRequest, _analyzer: &A) -> AnalysisResponse {
-    todo!()
-}
-
-pub fn generate_code<C: CodegenPort>(
-    _request: &CodeGenerationRequest,
-    _codegen: &C,
-) -> CodeGenerationResponse {
-    todo!()
-}
-
 pub fn parse<C: ConverterPort>(
     request: &ParseRequest,
     converter: &C,
@@ -79,6 +68,17 @@ pub fn serialize<C: ConverterPort>(
             request.indentation(),
         )
         .map(|bytes| SerializeResponse::new(bytes.into()))
+}
+
+pub fn generate_code<C: CodegenPort>(
+    _request: &CodeGenerationRequest,
+    _codegen: &C,
+) -> CodeGenerationResponse {
+    todo!()
+}
+
+pub fn analyze<A: AnalyzerPort>(_request: &AnalysisRequest, _analyzer: &A) -> AnalysisResponse {
+    todo!()
 }
 
 pub fn estimate<E: EstimatorPort>(

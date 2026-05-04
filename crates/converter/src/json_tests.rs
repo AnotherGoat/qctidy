@@ -742,7 +742,7 @@ fn serialize_z_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_p_to_json() {
-    let operation = GateOperation::p(1.5, 5);
+    let operation = GateOperation::try_p(1.5, 5).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -754,7 +754,7 @@ fn serialize_p_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_rx_to_json() {
-    let operation = GateOperation::rx(PI, 6);
+    let operation = GateOperation::try_rx(PI, 6).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -766,7 +766,7 @@ fn serialize_rx_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_ry_to_json() {
-    let operation = GateOperation::ry(0.5, 7);
+    let operation = GateOperation::try_ry(0.5, 7).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -778,7 +778,7 @@ fn serialize_ry_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_rz_to_json() {
-    let operation = GateOperation::rz(2.0, 8);
+    let operation = GateOperation::try_rz(2.0, 8).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -874,7 +874,7 @@ fn serialize_measure_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_swap_to_json() {
-    let operation = GateOperation::swap(0, 5);
+    let operation = GateOperation::try_swap(0, 5).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -886,7 +886,7 @@ fn serialize_swap_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_ch_to_json() {
-    let operation = GateOperation::ch(2, 7);
+    let operation = GateOperation::try_ch(2, 7).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -898,7 +898,7 @@ fn serialize_ch_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_cx_to_json() {
-    let operation = GateOperation::cx(3, 8);
+    let operation = GateOperation::try_cx(3, 8).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -910,7 +910,7 @@ fn serialize_cx_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_cy_to_json() {
-    let operation = GateOperation::cy(4, 9);
+    let operation = GateOperation::try_cy(4, 9).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -922,7 +922,7 @@ fn serialize_cy_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_cz_to_json() {
-    let operation = GateOperation::cz(1, 6);
+    let operation = GateOperation::try_cz(1, 6).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -934,7 +934,7 @@ fn serialize_cz_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_cp_to_json() {
-    let operation = GateOperation::cp(0.75, 5, 10);
+    let operation = GateOperation::try_cp(0.75, 5, 10).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -946,7 +946,7 @@ fn serialize_cp_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_cswap_to_json() {
-    let operation = GateOperation::c_swap(0, 1, 2);
+    let operation = GateOperation::try_c_swap(0, 1, 2).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -958,7 +958,7 @@ fn serialize_cswap_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_ccx_to_json() {
-    let operation = GateOperation::ccx(0, 1, 2);
+    let operation = GateOperation::try_ccx(0, 1, 2).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -970,7 +970,7 @@ fn serialize_ccx_to_json() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_ccz_to_json() {
-    let operation = GateOperation::ccz(3, 4, 5);
+    let operation = GateOperation::try_ccz(3, 4, 5).unwrap();
 
     let json = json::serialize(&[operation], false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
@@ -984,7 +984,7 @@ fn serialize_ccz_to_json() {
 fn serialize_list_to_json() {
     let operations = vec![
         GateOperation::h(0),
-        GateOperation::cx(0, 1),
+        GateOperation::try_cx(0, 1).unwrap(),
         GateOperation::measure(1, 0),
     ];
 
@@ -1000,7 +1000,7 @@ fn serialize_list_to_json() {
 fn serialize_list_to_pretty_json() {
     let operations = vec![
         GateOperation::h(0),
-        GateOperation::cx(0, 1),
+        GateOperation::try_cx(0, 1).unwrap(),
         GateOperation::measure(1, 0),
     ];
 
@@ -1031,8 +1031,8 @@ fn serialize_list_to_pretty_json() {
 fn parse_then_serialize_preserves_data() {
     let operations = vec![
         GateOperation::h(0),
-        GateOperation::p(1.234, 3),
-        GateOperation::cx(0, 1),
+        GateOperation::try_p(1.234, 3).unwrap(),
+        GateOperation::try_cx(0, 1).unwrap(),
         GateOperation::measure(1, 0),
     ];
 

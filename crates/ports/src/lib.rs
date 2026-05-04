@@ -19,19 +19,6 @@ pub enum PresentationFormat {
     GraphvizSvg,
 }
 
-pub trait AnalyzerPort {
-    fn analyze(&self, graph: &Graph) -> ();
-}
-
-pub trait CodegenPort {
-    fn generate(&self, graph: &Graph, target: CodeGenerationTarget) -> String;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CodeGenerationTarget {
-    Qiskit,
-}
-
 #[derive(Debug, Error)]
 pub enum ParseError {
     #[error("Invalid {format} input: {message}")]
@@ -86,6 +73,19 @@ pub enum ConversionFormat {
     MessagePack,
     Binary,
     Base64,
+}
+
+pub trait CodegenPort {
+    fn generate(&self, graph: &Graph, target: CodeGenerationTarget) -> String;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CodeGenerationTarget {
+    Qiskit,
+}
+
+pub trait AnalyzerPort {
+    fn analyze(&self, graph: &Graph) -> ();
 }
 
 pub trait EstimatorPort {

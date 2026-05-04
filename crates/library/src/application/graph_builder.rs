@@ -1,14 +1,26 @@
+use std::collections::HashSet;
 use std::fmt;
+use thiserror::Error;
 
 use crate::{
     dto::GateOperation,
     {EdgeType, GateType, Graph, Position},
 };
 
+/// Error that can occur when building a graph with `GraphBuilder`.
+#[derive(Debug, Error)]
+pub enum GraphBuilderError {
+    #[error("Angle must be finite, got {angle}")]
+    NonFiniteAngle { angle: f64 },
+    #[error("Qubits {qubits:?} must be different")]
+    RepeatedQubits { qubits: Vec<usize> },
+}
+
 /// Provides an interface for easily building `Graphs`.
 ///
 /// This is the recommended way to build a `Graph`, because it automatically builds the required nodes and edges.
-// Note: Prefer using the `push_*` methods over the `put_*` methods, since the last ones may break the graph when used incorrectly.
+/// Prefer building a list of `GateOperation` beforehand and using `push_operations()` or `push_operation()`, since `GateOperation` constructors already validate the inputs.
+/// The `push_*` methods are useful for incremental building but include additional validation overhead.
 #[derive(Default, Debug)]
 #[must_use]
 pub struct GraphBuilder {
@@ -31,49 +43,64 @@ impl GraphBuilder {
     pub fn push_operation(&mut self, operation: &GateOperation) -> &mut Self {
         use GateOperation::*;
 
+        let qubits = operation.qubits();
+        let column = self.find_push_column(&qubits);
+
         match *operation {
-            ID { qubit } => self.push_id(qubit),
-            H { qubit } => self.push_h(qubit),
-            X { qubit } => self.push_x(qubit),
-            Y { qubit } => self.push_y(qubit),
-            Z { qubit } => self.push_z(qubit),
-            P { angle, qubit } => self.push_p(angle, qubit),
-            RX { angle, qubit } => self.push_rx(angle, qubit),
-            RY { angle, qubit } => self.push_ry(angle, qubit),
-            RZ { angle, qubit } => self.push_rz(angle, qubit),
-            S { qubit } => self.push_s(qubit),
-            SDG { qubit } => self.push_sdg(qubit),
-            SX { qubit } => self.push_sx(qubit),
-            SY { qubit } => self.push_sy(qubit),
-            T { qubit } => self.push_t(qubit),
-            TDG { qubit } => self.push_tdg(qubit),
-            Measure { qubit, bit } => self.push_measure(qubit, bit),
-            Swap { qubit1, qubit2 } => self.push_swap(qubit1, qubit2),
-            CH { control, target } => self.push_ch(control, target),
-            CX { control, target } => self.push_cx(control, target),
-            CY { control, target } => self.push_cy(control, target),
-            CZ { qubit1, qubit2 } => self.push_cz(qubit1, qubit2),
+            ID { qubit } => self.put_id(qubit, column),
+            H { qubit } => self.put_h(qubit, column),
+            X { qubit } => self.put_x(qubit, column),
+            Y { qubit } => self.put_y(qubit, column),
+            Z { qubit } => self.put_z(qubit, column),
+            P { angle, qubit } => self.put_p(angle, qubit, column),
+            RX { angle, qubit } => self.put_rx(angle, qubit, column),
+            RY { angle, qubit } => self.put_ry(angle, qubit, column),
+            RZ { angle, qubit } => self.put_rz(angle, qubit, column),
+            S { qubit } => self.put_s(qubit, column),
+            SDG { qubit } => self.put_sdg(qubit, column),
+            SX { qubit } => self.put_sx(qubit, column),
+            SY { qubit } => self.put_sy(qubit, column),
+            T { qubit } => self.put_t(qubit, column),
+            TDG { qubit } => self.put_tdg(qubit, column),
+            Measure { qubit, bit } => self.put_measure(qubit, bit, column),
+            Swap { qubit1, qubit2 } => self.put_swap(qubit1, qubit2, column),
+            CH { control, target } => self.put_ch(control, target, column),
+            CX { control, target } => self.put_cx(control, target, column),
+            CY { control, target } => self.put_cy(control, target, column),
+            CZ { qubit1, qubit2 } => self.put_cz(qubit1, qubit2, column),
             CP {
                 angle,
                 qubit1,
                 qubit2,
-            } => self.push_cp(angle, qubit1, qubit2),
+            } => self.put_cp(angle, qubit1, qubit2, column),
             CSwap {
                 control,
                 target1,
                 target2,
-            } => self.push_cswap(control, target1, target2),
+            } => self.put_cswap(control, target1, target2, column),
             CCX {
                 control1,
                 control2,
                 target,
-            } => self.push_ccx(control1, control2, target),
+            } => self.put_ccx(control1, control2, target, column),
             CCZ {
                 qubit1,
                 qubit2,
                 qubit3,
-            } => self.push_ccz(qubit1, qubit2, qubit3),
+            } => self.put_ccz(qubit1, qubit2, qubit3, column),
         }
+    }
+
+    /// Push multiple gate operations at the end of the graph.
+    ///
+    /// This is the recommended way to build a graph when you have a list of operations,
+    /// as it avoids the overhead of individual validation in `push_*` methods.
+    pub fn push_operations(&mut self, operations: &[GateOperation]) -> &mut Self {
+        for operation in operations {
+            self.push_operation(operation);
+        }
+
+        self
     }
 
     /// Push a ID gate at the end of the graph, which effectively does nothing.
@@ -102,23 +129,39 @@ impl GraphBuilder {
     }
 
     /// Push a P gate at the end of the graph.
-    pub fn push_p(&mut self, angle: f64, qubit: usize) -> &mut Self {
-        self.put_p(angle, qubit, self.find_push_column(&[qubit]))
+    pub fn push_p(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !angle.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        }
+
+        Ok(self.put_p(angle, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RX gate at the end of the graph.
-    pub fn push_rx(&mut self, angle: f64, qubit: usize) -> &mut Self {
-        self.put_rx(angle, qubit, self.find_push_column(&[qubit]))
+    pub fn push_rx(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !angle.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        }
+
+        Ok(self.put_rx(angle, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RY gate at the end of the graph.
-    pub fn push_ry(&mut self, angle: f64, qubit: usize) -> &mut Self {
-        self.put_ry(angle, qubit, self.find_push_column(&[qubit]))
+    pub fn push_ry(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !angle.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        }
+
+        Ok(self.put_ry(angle, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RZ gate at the end of the graph.
-    pub fn push_rz(&mut self, angle: f64, qubit: usize) -> &mut Self {
-        self.put_rz(angle, qubit, self.find_push_column(&[qubit]))
+    pub fn push_rz(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !angle.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        }
+
+        Ok(self.put_rz(angle, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a S gate at the end of the graph.
@@ -157,50 +200,90 @@ impl GraphBuilder {
     }
 
     /// Push a Swap gate at the end of the graph.
-    pub fn push_swap(&mut self, qubit1: usize, qubit2: usize) -> &mut Self {
-        self.put_swap(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2]))
+    pub fn push_swap(
+        &mut self,
+        qubit1: usize,
+        qubit2: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[qubit1, qubit2])?;
+        Ok(self.put_swap(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2])))
     }
 
     /// Push a CH gate at the end of the graph.
-    pub fn push_ch(&mut self, control_qubit: usize, target_qubit: usize) -> &mut Self {
-        self.put_ch(
+    pub fn push_ch(
+        &mut self,
+        control_qubit: usize,
+        target_qubit: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[control_qubit, target_qubit])?;
+
+        Ok(self.put_ch(
             control_qubit,
             target_qubit,
             self.find_push_column(&[control_qubit, target_qubit]),
-        )
+        ))
     }
 
     /// Push a CX gate at the end of the graph.
-    pub fn push_cx(&mut self, control_qubit: usize, target_qubit: usize) -> &mut Self {
-        self.put_cx(
+    pub fn push_cx(
+        &mut self,
+        control_qubit: usize,
+        target_qubit: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[control_qubit, target_qubit])?;
+
+        Ok(self.put_cx(
             control_qubit,
             target_qubit,
             self.find_push_column(&[control_qubit, target_qubit]),
-        )
+        ))
     }
 
     /// Push a CY gate at the end of the graph.
-    pub fn push_cy(&mut self, control_qubit: usize, target_qubit: usize) -> &mut Self {
-        self.put_cy(
+    pub fn push_cy(
+        &mut self,
+        control_qubit: usize,
+        target_qubit: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[control_qubit, target_qubit])?;
+
+        Ok(self.put_cy(
             control_qubit,
             target_qubit,
             self.find_push_column(&[control_qubit, target_qubit]),
-        )
+        ))
     }
 
     /// Push a CZ gate at the end of the graph.
-    pub fn push_cz(&mut self, qubit1: usize, qubit2: usize) -> &mut Self {
-        self.put_cz(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2]))
+    pub fn push_cz(
+        &mut self,
+        qubit1: usize,
+        qubit2: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[qubit1, qubit2])?;
+
+        Ok(self.put_cz(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2])))
     }
 
     /// Push a CP gate at the end of the graph.
-    pub fn push_cp(&mut self, angle: f64, qubit1: usize, qubit2: usize) -> &mut Self {
-        self.put_cp(
+    pub fn push_cp(
+        &mut self,
+        angle: f64,
+        qubit1: usize,
+        qubit2: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        if !angle.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        }
+
+        check_unique_qubits(&[qubit1, qubit2])?;
+
+        Ok(self.put_cp(
             angle,
             qubit1,
             qubit2,
             self.find_push_column(&[qubit1, qubit2]),
-        )
+        ))
     }
 
     /// Push a `CSwap` gate at the end of the graph.
@@ -209,13 +292,15 @@ impl GraphBuilder {
         control_qubit: usize,
         target_qubit1: usize,
         target_qubit2: usize,
-    ) -> &mut Self {
-        self.put_cswap(
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[control_qubit, target_qubit1, target_qubit2])?;
+
+        Ok(self.put_cswap(
             control_qubit,
             target_qubit1,
             target_qubit2,
             self.find_push_column(&[control_qubit, target_qubit1, target_qubit2]),
-        )
+        ))
     }
 
     /// Push a CCX gate at the end of the graph.
@@ -224,23 +309,32 @@ impl GraphBuilder {
         control_qubit1: usize,
         control_qubit2: usize,
         target_qubit: usize,
-    ) -> &mut Self {
-        self.put_ccx(
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[control_qubit1, control_qubit2, target_qubit])?;
+
+        Ok(self.put_ccx(
             control_qubit1,
             control_qubit2,
             target_qubit,
             self.find_push_column(&[control_qubit1, control_qubit2, target_qubit]),
-        )
+        ))
     }
 
     /// Push a CCZ gate at the end of the graph.
-    pub fn push_ccz(&mut self, qubit1: usize, qubit2: usize, qubit3: usize) -> &mut Self {
-        self.put_ccz(
+    pub fn push_ccz(
+        &mut self,
+        qubit1: usize,
+        qubit2: usize,
+        qubit3: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        check_unique_qubits(&[qubit1, qubit2, qubit3])?;
+
+        Ok(self.put_ccz(
             qubit1,
             qubit2,
             qubit3,
             self.find_push_column(&[qubit1, qubit2, qubit3]),
-        )
+        ))
     }
 
     /// Put a ID gate directly into the graph, which effectively does nothing.
@@ -650,4 +744,16 @@ impl GraphBuilder {
     pub fn build(&self) -> Graph {
         self.graph.clone()
     }
+}
+
+fn check_unique_qubits(qubits: &[usize]) -> Result<(), GraphBuilderError> {
+    let unique_count = qubits.iter().collect::<HashSet<_>>().len();
+
+    if unique_count != qubits.len() {
+        return Err(GraphBuilderError::RepeatedQubits {
+            qubits: qubits.to_vec(),
+        });
+    }
+
+    Ok(())
 }

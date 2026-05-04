@@ -45,19 +45,19 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
             Z => GateOperation::z(row),
             P => {
                 let angle = node.angle().expect("P gate must have an angle");
-                GateOperation::p(angle, row)
+                GateOperation::try_p(angle, row).expect("Angle should be finite")
             }
             RX => {
                 let angle = node.angle().expect("RX gate must have an angle");
-                GateOperation::rx(angle, row)
+                GateOperation::try_rx(angle, row).expect("Angle should be finite")
             }
             RY => {
                 let angle = node.angle().expect("RY gate must have an angle");
-                GateOperation::ry(angle, row)
+                GateOperation::try_ry(angle, row).expect("Angle should be finite")
             }
             RZ => {
                 let angle = node.angle().expect("RZ gate must have an angle");
-                GateOperation::rz(angle, row)
+                GateOperation::try_rz(angle, row).expect("Angle should be finite")
             }
             S => GateOperation::s(row),
             SDG => GateOperation::sdg(row),
@@ -81,7 +81,7 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                     .position();
                 skipped.insert(other);
 
-                GateOperation::swap(row, other.row())
+                GateOperation::try_swap(row, other.row()).expect("Qubits should be distinct")
             }
             CH => {
                 let (control, target) = extract_control_and_target(graph, position);
@@ -89,7 +89,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(control);
                 skipped.insert(target);
 
-                GateOperation::ch(control.row(), target.row())
+                GateOperation::try_ch(control.row(), target.row())
+                    .expect("Qubits should be distinct")
             }
             CX => {
                 let (control, target) = extract_control_and_target(graph, position);
@@ -97,7 +98,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(control);
                 skipped.insert(target);
 
-                GateOperation::cx(control.row(), target.row())
+                GateOperation::try_cx(control.row(), target.row())
+                    .expect("Qubits should be distinct")
             }
             CY => {
                 let (control, target) = extract_control_and_target(graph, position);
@@ -105,7 +107,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(control);
                 skipped.insert(target);
 
-                GateOperation::cy(control.row(), target.row())
+                GateOperation::try_cy(control.row(), target.row())
+                    .expect("Qubits should be distinct")
             }
             CZ => {
                 let edges = graph
@@ -115,7 +118,7 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 let other = edges.works_with()[0].position();
                 skipped.insert(other);
 
-                GateOperation::cz(row, other.row())
+                GateOperation::try_cz(row, other.row()).expect("Qubits should be distinct")
             }
             CP => {
                 let edges = graph
@@ -126,7 +129,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 let other = edges.works_with()[0].position();
                 skipped.insert(other);
 
-                GateOperation::cp(angle, row, other.row())
+                GateOperation::try_cp(angle, row, other.row())
+                    .expect("Angle should be finite and qubits should be distinct")
             }
             CSwap => {
                 let edges = graph
@@ -157,7 +161,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(target1);
                 skipped.insert(target2);
 
-                GateOperation::c_swap(control.row(), target1.row(), target2.row())
+                GateOperation::try_c_swap(control.row(), target1.row(), target2.row())
+                    .expect("Qubits should be distinct")
             }
             CCX => {
                 let edges = graph
@@ -184,7 +189,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(control2);
                 skipped.insert(target);
 
-                GateOperation::ccx(control1.row(), control2.row(), target.row())
+                GateOperation::try_ccx(control1.row(), control2.row(), target.row())
+                    .expect("Qubits should be distinct")
             }
             CCZ => {
                 let edges = graph
@@ -196,7 +202,8 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
                 skipped.insert(other1);
                 skipped.insert(other2);
 
-                GateOperation::ccz(row, other1.row(), other2.row())
+                GateOperation::try_ccz(row, other1.row(), other2.row())
+                    .expect("Qubits should be distinct")
             }
         };
 

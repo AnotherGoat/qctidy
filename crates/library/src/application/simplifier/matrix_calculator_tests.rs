@@ -132,8 +132,9 @@ fn z_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn phase_matrix() {
-    let graph = GraphBuilder::new().push_p(FRAC_PI_2, 0).build();
+    let graph = GraphBuilder::new().push_p(FRAC_PI_2, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -146,8 +147,9 @@ fn phase_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn rx_matrix() {
-    let graph = GraphBuilder::new().push_rx(FRAC_PI_2, 0).build();
+    let graph = GraphBuilder::new().push_rx(FRAC_PI_2, 0).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -161,9 +163,9 @@ fn rx_matrix() {
 }
 
 #[test]
-#[expect(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn ry_matrix() {
-    let graph = GraphBuilder::new().push_ry(FRAC_PI_2, 0).build();
+    let graph = GraphBuilder::new().push_ry(FRAC_PI_2, 0).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -177,8 +179,9 @@ fn ry_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn rz_matrix() {
-    let graph = GraphBuilder::new().push_rz(FRAC_PI_2, 0).build();
+    let graph = GraphBuilder::new().push_rz(FRAC_PI_2, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -304,8 +307,9 @@ fn x_matrix_with_ignored_measurement() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn swap_matrix() {
-    let graph = GraphBuilder::new().push_swap(0, 1).build();
+    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -317,9 +321,9 @@ fn swap_matrix() {
 }
 
 #[test]
-#[expect(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn control_hadamard_matrix() {
-    let graph = GraphBuilder::new().push_ch(0, 1).build();
+    let graph = GraphBuilder::new().push_ch(0, 1).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -334,9 +338,9 @@ fn control_hadamard_matrix() {
 }
 
 #[test]
-#[expect(clippy::unnested_or_patterns)]
+#[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn reversed_ch_matrix() {
-    let graph = GraphBuilder::new().push_ch(1, 0).build();
+    let graph = GraphBuilder::new().push_ch(1, 0).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -351,8 +355,9 @@ fn reversed_ch_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn cx_matrix() {
-    let graph = GraphBuilder::new().push_cx(0, 1).build();
+    let graph = GraphBuilder::new().push_cx(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -364,8 +369,9 @@ fn cx_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn reverse_cx_matrix() {
-    let graph = GraphBuilder::new().push_cx(1, 0).build();
+    let graph = GraphBuilder::new().push_cx(1, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -377,8 +383,9 @@ fn reverse_cx_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn cy_matrix() {
-    let graph = GraphBuilder::new().push_cy(0, 1).build();
+    let graph = GraphBuilder::new().push_cy(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -392,8 +399,9 @@ fn cy_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn reverse_cy_matrix() {
-    let graph = GraphBuilder::new().push_cy(1, 0).build();
+    let graph = GraphBuilder::new().push_cy(1, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -407,8 +415,12 @@ fn reverse_cy_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn control_phase_matrix() {
-    let graph = GraphBuilder::new().push_cp(FRAC_PI_2, 0, 1).build();
+    let graph = GraphBuilder::new()
+        .push_cp(FRAC_PI_2, 0, 1)
+        .unwrap()
+        .build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -421,8 +433,9 @@ fn control_phase_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn cz_matrix() {
-    let graph = GraphBuilder::new().push_cz(0, 1).build();
+    let graph = GraphBuilder::new().push_cz(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -435,8 +448,9 @@ fn cz_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn cswap_matrix() {
-    let graph = GraphBuilder::new().push_cswap(0, 1, 2).build();
+    let graph = GraphBuilder::new().push_cswap(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -450,8 +464,9 @@ fn cswap_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn ccx_matrix() {
-    let graph = GraphBuilder::new().push_ccx(0, 1, 2).build();
+    let graph = GraphBuilder::new().push_ccx(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -465,8 +480,9 @@ fn ccx_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn ccz_matrix() {
-    let graph = GraphBuilder::new().push_ccz(0, 1, 2).build();
+    let graph = GraphBuilder::new().push_ccz(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -481,53 +497,65 @@ fn ccz_matrix() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_swap_permutations() {
-    let graph = GraphBuilder::new().push_swap(0, 1).build();
-    let graph2 = GraphBuilder::new().push_swap(1, 0).build();
+    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
+    let graph2 = GraphBuilder::new().push_swap(1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_cz_permutations() {
-    let graph = GraphBuilder::new().push_cz(0, 1).build();
-    let graph2 = GraphBuilder::new().push_cz(1, 0).build();
+    let graph = GraphBuilder::new().push_cz(0, 1).unwrap().build();
+    let graph2 = GraphBuilder::new().push_cz(1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_cp_permutations() {
-    let graph = GraphBuilder::new().push_cp(FRAC_PI_2, 0, 1).build();
-    let graph2 = GraphBuilder::new().push_cp(FRAC_PI_2, 1, 0).build();
+    let graph = GraphBuilder::new()
+        .push_cp(FRAC_PI_2, 0, 1)
+        .unwrap()
+        .build();
+    let graph2 = GraphBuilder::new()
+        .push_cp(FRAC_PI_2, 1, 0)
+        .unwrap()
+        .build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_cswap_permutations() {
-    let graph = GraphBuilder::new().push_cswap(0, 1, 2).build();
-    let graph2 = GraphBuilder::new().push_cswap(0, 2, 1).build();
+    let graph = GraphBuilder::new().push_cswap(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::new().push_cswap(0, 2, 1).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_ccx_permutations() {
-    let graph = GraphBuilder::new().push_ccx(0, 1, 2).build();
-    let graph2 = GraphBuilder::new().push_ccx(1, 0, 2).build();
+    let graph = GraphBuilder::new().push_ccx(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::new().push_ccx(1, 0, 2).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn equivalent_ccz_permutations() {
-    let graph = GraphBuilder::new().push_ccz(0, 1, 2).build();
-    let graph2 = GraphBuilder::new().push_ccz(0, 2, 1).build();
-    let graph3 = GraphBuilder::new().push_ccz(1, 0, 2).build();
-    let graph4 = GraphBuilder::new().push_ccz(1, 2, 0).build();
-    let graph5 = GraphBuilder::new().push_ccz(2, 0, 1).build();
-    let graph6 = GraphBuilder::new().push_ccz(2, 1, 0).build();
+    let graph = GraphBuilder::new().push_ccz(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::new().push_ccz(0, 2, 1).unwrap().build();
+    let graph3 = GraphBuilder::new().push_ccz(1, 0, 2).unwrap().build();
+    let graph4 = GraphBuilder::new().push_ccz(1, 2, 0).unwrap().build();
+    let graph5 = GraphBuilder::new().push_ccz(2, 0, 1).unwrap().build();
+    let graph6 = GraphBuilder::new().push_ccz(2, 1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
     assert!(are_graphs_equivalent(&graph, &graph3));

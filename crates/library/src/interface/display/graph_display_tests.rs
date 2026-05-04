@@ -90,11 +90,15 @@ Edges:
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn to_string_rotation_gates() {
     let graph = GraphBuilder::new()
         .push_rx(FRAC_PI_2, 0)
+        .unwrap()
         .push_ry(3.0 * PI, 1)
+        .unwrap()
         .push_rz(2.0 * FRAC_PI_3, 2)
+        .unwrap()
         .build();
 
     let result = graph.to_string();
@@ -180,8 +184,9 @@ Edges:
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn to_string_swap_cycle() {
-    let graph = GraphBuilder::new().push_swap(0, 1).build();
+    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
 
     let result = graph.to_string();
 
@@ -199,8 +204,14 @@ Edges:
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn to_string_control_gates() {
-    let graph = GraphBuilder::new().push_cx(0, 1).push_cy(1, 0).build();
+    let graph = GraphBuilder::new()
+        .push_cx(0, 1)
+        .unwrap()
+        .push_cy(1, 0)
+        .unwrap()
+        .build();
 
     let result = graph.to_string();
 
@@ -223,10 +234,13 @@ Edges:
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn to_string_sorts_edges_of_same_type() {
     let graph = GraphBuilder::new()
         .push_ccx(1, 2, 0)
+        .unwrap()
         .push_ccz(2, 0, 1)
+        .unwrap()
         .build();
 
     let result = graph.to_string();
@@ -339,11 +353,15 @@ fn display_grid_multiple_rows_and_columns() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn display_grid_with_angle() {
     let graph = GraphBuilder::new()
         .push_rx(FRAC_PI_2, 0)
+        .unwrap()
         .push_ry(3.0 * PI, 1)
+        .unwrap()
         .push_rz(2.0 * FRAC_PI_3, 2)
+        .unwrap()
         .build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
@@ -357,10 +375,13 @@ fn display_grid_with_angle() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn display_grid_with_multiple_angles_alignment() {
     let graph = GraphBuilder::new()
         .push_rx(FRAC_PI_2, 0)
+        .unwrap()
         .push_rz(0.0, 0)
+        .unwrap()
         .build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
@@ -370,8 +391,13 @@ fn display_grid_with_multiple_angles_alignment() {
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn display_grid_mixed_angle_and_normal() {
-    let graph = GraphBuilder::new().push_h(0).push_rx(FRAC_PI_2, 0).build();
+    let graph = GraphBuilder::new()
+        .push_h(0)
+        .push_rx(FRAC_PI_2, 0)
+        .unwrap()
+        .build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
 

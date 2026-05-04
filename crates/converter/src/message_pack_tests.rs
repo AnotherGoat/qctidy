@@ -92,7 +92,7 @@ fn msgpack_round_trip_z() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_p() {
-    let operation = GateOperation::p(1.5, 5);
+    let operation = GateOperation::try_p(1.5, 5).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -110,7 +110,7 @@ fn msgpack_round_trip_p() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_rx() {
-    let operation = GateOperation::rx(PI, 6);
+    let operation = GateOperation::try_rx(PI, 6).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -128,7 +128,7 @@ fn msgpack_round_trip_rx() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ry() {
-    let operation = GateOperation::ry(0.5, 7);
+    let operation = GateOperation::try_ry(0.5, 7).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -146,7 +146,7 @@ fn msgpack_round_trip_ry() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_rz() {
-    let operation = GateOperation::rz(2.0, 8);
+    let operation = GateOperation::try_rz(2.0, 8).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -272,7 +272,7 @@ fn msgpack_round_trip_measure() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_swap() {
-    let operation = GateOperation::swap(0, 5);
+    let operation = GateOperation::try_swap(0, 5).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -290,7 +290,7 @@ fn msgpack_round_trip_swap() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ch() {
-    let operation = GateOperation::ch(2, 7);
+    let operation = GateOperation::try_ch(2, 7).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -308,7 +308,7 @@ fn msgpack_round_trip_ch() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cx() {
-    let operation = GateOperation::cx(3, 8);
+    let operation = GateOperation::try_cx(3, 8).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -326,7 +326,7 @@ fn msgpack_round_trip_cx() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cy() {
-    let operation = GateOperation::cy(4, 9);
+    let operation = GateOperation::try_cy(4, 9).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -344,7 +344,7 @@ fn msgpack_round_trip_cy() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cz() {
-    let operation = GateOperation::cz(1, 6);
+    let operation = GateOperation::try_cz(1, 6).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -362,7 +362,7 @@ fn msgpack_round_trip_cz() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cp() {
-    let operation = GateOperation::cp(0.75, 5, 10);
+    let operation = GateOperation::try_cp(0.75, 5, 10).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -385,7 +385,7 @@ fn msgpack_round_trip_cp() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cswap() {
-    let operation = GateOperation::c_swap(0, 1, 2);
+    let operation = GateOperation::try_c_swap(0, 1, 2).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -408,7 +408,7 @@ fn msgpack_round_trip_cswap() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ccx() {
-    let operation = GateOperation::ccx(0, 1, 2);
+    let operation = GateOperation::try_ccx(0, 1, 2).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -431,7 +431,7 @@ fn msgpack_round_trip_ccx() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ccz() {
-    let operation = GateOperation::ccz(3, 4, 5);
+    let operation = GateOperation::try_ccz(3, 4, 5).unwrap();
     let serialized = message_pack::serialize(&[operation]).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
 
@@ -456,7 +456,7 @@ fn msgpack_round_trip_ccz() {
 fn msgpack_round_trip_list() {
     let operations = vec![
         GateOperation::h(0),
-        GateOperation::cx(0, 1),
+        GateOperation::try_cx(0, 1).unwrap(),
         GateOperation::measure(1, 0),
     ];
 

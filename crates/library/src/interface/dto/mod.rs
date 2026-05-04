@@ -1,3 +1,3 @@
 pub(crate) mod gate_operation;
-/// Mapper used for converting DTOs to domain structures.
+/// Mapper used for converting gate operations to graph structures.
 pub(crate) mod mapper;

@@ -14,7 +14,7 @@ pub use interface::projection::{
 };
 
 pub mod dto {
-    pub use crate::interface::dto::gate_operation::GateOperation;
+    pub use crate::interface::dto::gate_operation::{GateOperation, GateOperationError};
 
     pub mod mapper {
         pub use crate::interface::dto::mapper::{graph_to_operations, operations_to_graph};

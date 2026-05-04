@@ -64,7 +64,7 @@
 - [x] Graph builder for fluent programmatic construction
 - [x] Mapping between graphs and lists of operations
 - [ ] Accept common gate aliases to build operation lists
-- [ ] Validate operations on construction
+- [X] Validate operations on construction
 
 #### Structural Validation
 
@@ -76,7 +76,8 @@
 
 - [x] Create a schema for each gate type and its graph representation
 - [x] Validate the graph's semantic consistency by using the gate schemas
-- [ ] Validate symmetrical gates holding the same data in each node
+- [ ] Validate that all angles in the graph are finite values
+- [ ] Validate symmetrical gates hold the same data in each node
 
 #### Graph Display
 

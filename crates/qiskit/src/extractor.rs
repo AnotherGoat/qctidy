@@ -8,6 +8,7 @@ use pyo3::prelude::*;
 
 use qsimplify::GateType;
 use qsimplify::dto::GateOperation;
+use qsimplify::dto::GateOperationError;
 
 #[expect(clippy::unnested_or_patterns)]
 static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
@@ -79,24 +80,37 @@ fn parse_instruction(
         SY => GateOperation::sy(qubit0),
         T => GateOperation::t(qubit0),
         TDG => GateOperation::tdg(qubit0),
-        P => GateOperation::p(get_parameter(&parameters, 0)?, qubit0),
-        RX => GateOperation::rx(get_parameter(&parameters, 0)?, qubit0),
-        RY => GateOperation::ry(get_parameter(&parameters, 0)?, qubit0),
-        RZ => GateOperation::rz(get_parameter(&parameters, 0)?, qubit0),
+        P => GateOperation::try_p(get_parameter(&parameters, 0)?, qubit0)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        RX => GateOperation::try_rx(get_parameter(&parameters, 0)?, qubit0)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        RY => GateOperation::try_ry(get_parameter(&parameters, 0)?, qubit0)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        RZ => GateOperation::try_rz(get_parameter(&parameters, 0)?, qubit0)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
         Measure => GateOperation::measure(qubit0, get_bit(&bits, 0)?),
-        Swap => GateOperation::swap(qubit0, get_qubit(&qubits, 1)?),
-        CH => GateOperation::ch(qubit0, get_qubit(&qubits, 1)?),
-        CX => GateOperation::cx(qubit0, get_qubit(&qubits, 1)?),
-        CY => GateOperation::cy(qubit0, get_qubit(&qubits, 1)?),
-        CZ => GateOperation::cz(qubit0, get_qubit(&qubits, 1)?),
-        CP => GateOperation::cp(
+        Swap => GateOperation::try_swap(qubit0, get_qubit(&qubits, 1)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CH => GateOperation::try_ch(qubit0, get_qubit(&qubits, 1)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CX => GateOperation::try_cx(qubit0, get_qubit(&qubits, 1)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CY => GateOperation::try_cy(qubit0, get_qubit(&qubits, 1)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CZ => GateOperation::try_cz(qubit0, get_qubit(&qubits, 1)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CP => GateOperation::try_cp(
             get_parameter(&parameters, 0)?,
             qubit0,
             get_qubit(&qubits, 1)?,
-        ),
-        CSwap => GateOperation::c_swap(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
-        CCX => GateOperation::ccx(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
-        CCZ => GateOperation::ccz(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?),
+        )
+        .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CSwap => GateOperation::try_c_swap(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CCX => GateOperation::try_ccx(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
+        CCZ => GateOperation::try_ccz(qubit0, get_qubit(&qubits, 1)?, get_qubit(&qubits, 2)?)
+            .map_err(|error: GateOperationError| to_py_error(&error))?,
     };
 
     Ok(Some(gate_operation))
@@ -236,4 +250,8 @@ fn get_parameter(parameters: &[f64], index: usize) -> Result<f64, PyErr> {
         .get(index)
         .copied()
         .ok_or_else(|| PyValueError::new_err(format!("Missing parameter at index {index}")))
+}
+
+fn to_py_error(error: &GateOperationError) -> PyErr {
+    PyValueError::new_err(error.to_string())
 }
