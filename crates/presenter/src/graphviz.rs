@@ -7,7 +7,7 @@ use graphviz_rust::{
     printer::PrinterContext,
 };
 use qsimplify::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
-use qsimplify_ports::{PresentationFormat, PresenterPort};
+use qsimplify_ports::{PresentationError, PresentationFormat, PresenterPort};
 use std::{fs, io};
 
 const WHITE: &str = "#FFFFFF";
@@ -31,7 +31,7 @@ impl PresenterPort for GraphvizPresenter {
         graph: &Graph,
         format: PresentationFormat,
         dpi: Option<u32>,
-    ) -> Result<Vec<u8>, io::Error> {
+    ) -> Result<Vec<u8>, PresentationError> {
         graph_to_graphviz(graph, format.into(), dpi)
     }
 }
@@ -67,21 +67,21 @@ impl From<GraphvizFormat> for Format {
     }
 }
 
-pub(crate) fn save_graph_png(graph: &Graph, file_name: &str) -> Result<(), io::Error> {
+pub(crate) fn save_graph_png(graph: &Graph, file_name: &str) -> Result<(), PresentationError> {
     let bytes = graph_to_graphviz(graph, GraphvizFormat::Png, Some(150))?;
-    fs::write(format!("{file_name}.png"), bytes)
+    fs::write(format!("{file_name}.png"), bytes).map_err(|error| map_io_error(&error))
 }
 
-pub(crate) fn save_graph_svg(graph: &Graph, file_name: &str) -> Result<(), io::Error> {
+pub(crate) fn save_graph_svg(graph: &Graph, file_name: &str) -> Result<(), PresentationError> {
     let bytes = graph_to_graphviz(graph, GraphvizFormat::Svg, None)?;
-    fs::write(format!("{file_name}.svg"), bytes)
+    fs::write(format!("{file_name}.svg"), bytes).map_err(|error| map_io_error(&error))
 }
 
 pub fn graph_to_graphviz(
     graph: &Graph,
     format: GraphvizFormat,
     dpi: Option<u32>,
-) -> Result<Vec<u8>, io::Error> {
+) -> Result<Vec<u8>, PresentationError> {
     use GraphvizFormat::*;
 
     let mut statements: Vec<Stmt> = Vec::new();
@@ -110,7 +110,48 @@ pub fn graph_to_graphviz(
                 CommandArg::Layout(Layout::Neato),
                 CommandArg::Format(Format::from(format)),
             ],
-        ),
+        )
+        .map_err(|error| map_io_error(&error)),
+    }
+}
+
+fn map_io_error(error: &io::Error) -> PresentationError {
+    use PresentationError::*;
+    use io::ErrorKind::*;
+
+    let message = error.to_string();
+
+    match error.kind() {
+        NotFound => {
+            let lowercase = message.to_lowercase();
+
+            if lowercase.contains("not found") || lowercase.contains("no such file") {
+                CommandNotFound { message }
+            } else {
+                FileWriteFailed { message }
+            }
+        }
+        PermissionDenied | AlreadyExists | WriteZero | BrokenPipe => FileWriteFailed { message },
+        InvalidInput | InvalidData | Interrupted | WouldBlock | TimedOut => {
+            ExecutionFailed { message }
+        }
+        Other => {
+            let lowercase = message.to_lowercase();
+
+            if lowercase.contains("not found") || lowercase.contains("no such file") {
+                return CommandNotFound { message };
+            }
+
+            if lowercase.contains("failed")
+                || lowercase.contains("error")
+                || lowercase.contains("syntax")
+            {
+                return ExecutionFailed { message };
+            }
+
+            Unknown { message }
+        }
+        _ => Unknown { message },
     }
 }
 

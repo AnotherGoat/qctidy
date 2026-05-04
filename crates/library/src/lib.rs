@@ -12,16 +12,15 @@ pub use interface::display::{
     angle_formatter::{AngleFormat, PiFormat},
     graph_display::DiracFormat,
 };
-pub use interface::projection::{
-    contextual_node_view::ContextualNodeView, edge_view::EdgeView, node_view::NodeView,
+pub use interface::{
+    dto::gate_operation::{GateOperation, GateOperationError},
+    projection::{
+        contextual_node_view::ContextualNodeView, edge_view::EdgeView, node_view::NodeView,
+    },
 };
 
-pub mod dto {
-    pub use crate::interface::dto::gate_operation::{GateOperation, GateOperationError};
-
-    pub mod mapper {
-        pub use crate::interface::dto::mapper::{graph_to_operations, operations_to_graph};
-    }
+pub mod mapper {
+    pub use crate::interface::dto::mapper::{graph_to_operations, operations_to_graph};
 }
 
 pub mod formatter {

@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use qsimplify::dto::GateOperation;
+use qsimplify::GateOperation;
 
 pub(crate) fn operations_to_circuit(
     python: Python<'_>,

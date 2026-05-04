@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{GateType, Graph, GraphBuilder, Position, dto::GateOperation};
+use crate::{GateOperation, GateType, Graph, GraphBuilder, Position};
 
 /// Convert a list of gate operations into a `Graph`.
 pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {

@@ -2,10 +2,7 @@ use std::collections::HashSet;
 use std::fmt;
 use thiserror::Error;
 
-use crate::{
-    dto::GateOperation,
-    {EdgeType, GateType, Graph, Position},
-};
+use crate::{EdgeType, GateOperation, GateType, Graph, Position};
 
 /// Error that can occur when building a graph with `GraphBuilder`.
 #[derive(Debug, Error)]

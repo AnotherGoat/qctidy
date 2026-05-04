@@ -1,4 +1,4 @@
-use qsimplify::dto::GateOperation;
+use qsimplify::GateOperation;
 use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
 use serde::{Deserialize, Serialize};
 use serde_json::{

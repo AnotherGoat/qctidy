@@ -1,4 +1,4 @@
-use qsimplify::dto::GateOperation;
+use qsimplify::GateOperation;
 use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
 use rmp_serde::decode::{Error as DecodeError, from_slice};
 use rmp_serde::encode::to_vec_named;

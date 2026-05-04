@@ -2,11 +2,7 @@ use std::{f64::consts::PI, sync::LazyLock};
 
 use faer::{complex::Complex64, prelude::*};
 
-use crate::{
-    Graph,
-    domain::math,
-    dto::{GateOperation, mapper},
-};
+use crate::{GateOperation, Graph, domain::math, mapper};
 
 const EPSILON: f64 = math::ABSOLUTE_TOLERANCE;
 

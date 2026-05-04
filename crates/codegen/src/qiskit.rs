@@ -1,9 +1,8 @@
 use std::fmt::Write;
 
 use qsimplify::{
-    AngleFormat, GateType, Graph, PiFormat,
-    dto::{GateOperation, mapper::graph_to_operations},
-    formatter::format_angle,
+    AngleFormat, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
+    mapper::graph_to_operations,
 };
 
 /// Convert the provided graph into Python code that uses the Qiskit library.

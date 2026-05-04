@@ -6,9 +6,9 @@ use faer::complex::Complex64;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use qsimplify::GateOperation;
+use qsimplify::GateOperationError;
 use qsimplify::GateType;
-use qsimplify::dto::GateOperation;
-use qsimplify::dto::GateOperationError;
 
 #[expect(clippy::unnested_or_patterns)]
 static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {

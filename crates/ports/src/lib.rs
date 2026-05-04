@@ -1,98 +1,39 @@
-use std::io;
+pub(crate) mod analyzer;
+pub(crate) mod codegen;
+pub(crate) mod converter;
+pub(crate) mod estimator;
+pub(crate) mod presenter;
 
-use qsimplify::{Graph, dto::GateOperation};
+pub use analyzer::{AnalysisError, AnalyzerPort};
+pub use codegen::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
+pub use converter::{ConversionFormat, ConverterPort, ParseError, SerializeError};
+pub use estimator::{EstimationError, EstimatorPort};
+pub use presenter::{PresentationError, PresentationFormat, PresenterPort};
+
 use thiserror::Error;
 
-pub trait PresenterPort {
-    fn present(
-        &self,
-        graph: &Graph,
-        format: PresentationFormat,
-        dpi: Option<u32>,
-    ) -> Result<Vec<u8>, io::Error>;
-}
+#[derive(Debug, Clone, Copy, Error)]
+pub enum DisplayError {}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PresentationFormat {
-    GraphvizGv,
-    GraphvizPng,
-    GraphvizSvg,
-}
+#[derive(Debug, Clone, Copy, Error)]
+pub enum SimplificationError {}
 
-#[derive(Debug, Error)]
-pub enum ParseError {
-    #[error("Invalid {format} input: {message}")]
-    InvalidInput {
-        format: ConversionFormat,
-        message: String,
-    },
-    #[error("Missing required {format} field '{field}' for gate '{gate}'")]
-    MissingRequiredField {
-        format: ConversionFormat,
-        field: String,
-        gate: String,
-    },
-    #[error("Unknown field '{field}' for gate '{gate}'")]
-    UnknownField { field: String, gate: String },
-    #[error("Unknown gate type: '{gate}'")]
-    UnknownGateType { gate: String },
-    #[error("Unsupported conversion format")]
-    UnsupportedFormat,
-}
-
-#[derive(Debug, Error)]
-pub enum SerializeError {
-    #[error("Failed to serialize to {format}: {message}")]
-    SerializationFailure {
-        format: ConversionFormat,
-        message: String,
-    },
-    #[error("Unsupported conversion format")]
-    UnsupportedFormat,
-}
-
-pub trait ConverterPort {
-    fn parse(
-        &self,
-        input: &[u8],
-        format: ConversionFormat,
-    ) -> Result<Vec<GateOperation>, ParseError>;
-
-    fn serialize(
-        &self,
-        operations: &[GateOperation],
-        format: ConversionFormat,
-        prettify: Option<bool>,
-        indentation: Option<usize>,
-    ) -> Result<Vec<u8>, SerializeError>;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::Display)]
-pub enum ConversionFormat {
-    Json,
-    MessagePack,
-    Binary,
-    Base64,
-}
-
-pub trait CodegenPort {
-    fn generate(
-        &self,
-        graph: &Graph,
-        target: CodeGenerationTarget,
-        circuit_name: Option<&str>,
-    ) -> String;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CodeGenerationTarget {
-    Qiskit,
-}
-
-pub trait AnalyzerPort {
-    fn analyze(&self, graph: &Graph) -> ();
-}
-
-pub trait EstimatorPort {
-    fn estimate(&self, graph: &Graph) -> (f64, f64);
+#[derive(thiserror::Error, Debug)]
+pub enum UseCaseError {
+    #[error(transparent)]
+    Display(#[from] DisplayError),
+    #[error(transparent)]
+    Simplification(#[from] SimplificationError),
+    #[error(transparent)]
+    Presentation(#[from] PresentationError),
+    #[error(transparent)]
+    Parse(#[from] ParseError),
+    #[error(transparent)]
+    Serialize(#[from] SerializeError),
+    #[error(transparent)]
+    Codegen(#[from] CodeGenerationError),
+    #[error(transparent)]
+    Analyzer(#[from] AnalysisError),
+    #[error(transparent)]
+    Estimator(#[from] EstimationError),
 }

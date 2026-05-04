@@ -4,7 +4,7 @@ mod extractor;
 #[pyo3::pymodule]
 #[pyo3(name = "qsimplify_qiskit")]
 mod bindings {
-    use pyo3::exceptions::PyValueError;
+    use pyo3::exceptions::{PyRuntimeError, PyValueError};
     use pyo3::prelude::*;
     use pyo3::types::PyString;
     use pyo3::{PyAny, PyResult};
@@ -159,7 +159,9 @@ mod bindings {
             dirac_format.map(DiracFormat::from),
         );
 
-        let response = qsimplify_facade::display(&request);
+        let response = qsimplify_facade::display(&request)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+
         Ok(response.text().to_owned())
     }
 
@@ -173,7 +175,9 @@ mod bindings {
         let request =
             PresentationRequest::new(operations.into(), PresentationFormat::from(format), dpi);
 
-        let response = qsimplify_facade::present(&request, &GraphvizPresenter)?;
+        let response = qsimplify_facade::present(&request, &GraphvizPresenter)
+            .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
+
         Ok(response.bytes().to_vec())
     }
 
@@ -186,7 +190,9 @@ mod bindings {
         let operations = extractor::extract_operations(circuit)?;
         let request = SimplificationRequest::new(operations.into(), iterations);
 
-        let response = qsimplify_facade::simplify(&request);
+        let response = qsimplify_facade::simplify(&request)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+
         circuit::operations_to_circuit(python, &response.operations())
     }
 
@@ -235,7 +241,8 @@ mod bindings {
             circuit_name,
         );
 
-        let response = qsimplify_facade::generate_code(&request, &CodegenAdapter);
+        let response = qsimplify_facade::generate_code(&request, &CodegenAdapter)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
         Ok(PyString::new(python, response.code()).into())
     }

@@ -1,4 +1,4 @@
-use qsimplify::dto::GateOperation;
+use qsimplify::GateOperation;
 use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
 pub mod json;

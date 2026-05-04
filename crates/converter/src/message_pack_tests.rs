@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use qsimplify::dto::GateOperation;
+use qsimplify::GateOperation;
 use qsimplify_ports::{ConversionFormat, ParseError};
 
 use crate::message_pack;

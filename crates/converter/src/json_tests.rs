@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use qsimplify::{dto::GateOperation, math};
+use qsimplify::{GateOperation, math};
 
 use qsimplify_ports::{ConversionFormat, ParseError};
 
