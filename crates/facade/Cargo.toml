@@ -8,14 +8,17 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
-qsimplify-codegen = { path = "../codegen" }
-qsimplify-converter = { path = "../converter" }
-qsimplify-estimator = { path = "../estimator" }
 qsimplify-ports = { path = "../ports" }
-qsimplify-presenter = { path = "../presenter" }
-qsimplify-storage = { path = "../storage" }
 getset = { workspace = true }
-inew = {workspace = true}
+inew = { workspace = true }
+
+[features]
+default = ["analyzer", "codegen", "converter", "presenter", "estimator"]
+analyzer = []
+codegen = []
+converter = []
+presenter = []
+estimator = []
 
 [lints]
 workspace = true

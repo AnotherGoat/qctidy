@@ -91,6 +91,9 @@ class CodeGenerationTarget(Enum):
     QISKIT = 0
     """Generate Qiskit Python code, which uses QuantumCircuit to build circuits."""
 
+def get_features() -> list[str]:
+    """Get a list of all optional features that are available for this compilation of QSimplify."""
+
 def display(
     circuit: QuantumCircuit,
     format: DisplayFormat,

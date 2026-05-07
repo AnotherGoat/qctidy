@@ -100,6 +100,7 @@ These Cargo commands can be run from the root of the repository.
 | `cargo test`                        | Run all unit and integration tests.                   |
 | `cargo test -p <crate>`             | Run tests for a specific crate.                       |
 | `RUST_BACKTRACE=1 cargo test`       | Run all unit and integration tests with backtrace.    |
+| `cargo build -p <crate> --no-default-features --features <features>` | Build a specific crate with only selected features. |
 
 For more specific tasks, these commands can be used:
 

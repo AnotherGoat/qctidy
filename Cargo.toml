@@ -1,17 +1,21 @@
 [workspace]
 members = [
-    "crates/analyzer",
+    # Composition root
     "crates/cli",
+    "crates/qiskit",
+    "crates/server",
+    # Application
+    "crates/facade",
+    # Port
+    "crates/ports",
+    # Adapter
+    "crates/analyzer",
     "crates/codegen",
     "crates/converter",
     "crates/estimator",
-    "crates/facade",
-    "crates/library",
-    "crates/ports",
     "crates/presenter",
-    "crates/qiskit",
-    "crates/server",
-    "crates/storage",
+    # Domain
+    "crates/library",
 ]
 resolver = "3"
 
@@ -43,7 +47,7 @@ ambiguous_negative_literals = "warn"
 if_let_rescope = "warn"
 missing_copy_implementations = "warn"
 missing_debug_implementations = "warn"
-# missing_docs = "warn"
+# DISABLED: missing_docs = "warn"
 non_ascii_idents = "warn"
 redundant_imports = "warn"
 redundant_lifetimes = "warn"
@@ -52,7 +56,7 @@ trivial_numeric_casts = "warn"
 unit_bindings = "warn"
 unreachable_pub = "warn"
 unsafe_code = "warn"
-# unused_crate_dependencies = "warn"
+# DISABLED: unused_crate_dependencies = "warn"
 unused_extern_crates = "warn"
 unused_import_braces = "warn"
 unused_lifetimes = "warn"
@@ -66,8 +70,8 @@ dead_code = "allow"
 # https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html
 [workspace.lints.clippy]
 # Cargo
-# cargo_common_metadata = "warn"
-# multiple_crate_versions = "warn"
+# DISABLED: cargo_common_metadata = "warn"
+# DISABLED: multiple_crate_versions = "warn"
 negative_feature_names = "warn"
 redundant_feature_names = "warn"
 wildcard_dependencies = "warn"
@@ -97,7 +101,7 @@ literal_string_with_formatting_args = "warn"
 missing_const_for_fn = "warn"
 needless_collect = "warn"
 needless_pass_by_ref_mut = "warn"
-needless_type_casts = "warn"
+needless_type_cast = "warn"
 non_send_fields_in_send_ty = "warn"
 nonstandard_macro_braces = "warn"
 option_if_let_else = "warn"
@@ -107,7 +111,7 @@ read_zero_byte_vec = "warn"
 redundant_clone = "warn"
 search_is_some = "warn"
 set_contains_or_insert = "warn"
-single_option_map_or = "warn"
+single_option_map = "warn"
 string_lit_as_bytes = "warn"
 suboptimal_flops = "warn"
 suspicious_operation_groupings = "warn"
@@ -140,7 +144,7 @@ cloned_instead_of_copied = "warn"
 collapsible_else_if = "warn"
 copy_iterator = "warn"
 default_trait_access = "warn"
-doc_broken_links = "warn"
+doc_broken_link = "warn"
 doc_comment_double_space_linebreaks = "warn"
 doc_link_with_quotes = "warn"
 doc_markdown = "warn"
@@ -193,7 +197,7 @@ match_wild_err_arm = "warn"
 match_wildcard_for_single_variants = "warn"
 maybe_infinite_iter = "warn"
 mismatching_type_param_order = "warn"
-# missing_errors_doc = "warn"
+# DISABLED: missing_errors_doc = "warn"
 must_use_candidate = "warn"
 mut_mut = "warn"
 naive_bytecount = "warn"
@@ -228,9 +232,9 @@ str_split_at_newline = "warn"
 string_add_assign = "warn"
 struct_excessive_bools = "warn"
 struct_field_names = "warn"
-# too_many_lines = "warn"
+# DISABLED: too_many_lines = "warn"
 trivially_copy_pass_by_ref = "warn"
-unchecked_duration_subtraction = "warn"
+unchecked_time_subtraction = "warn"
 unicode_not_nfc = "warn"
 uninlined_format_args = "warn"
 unnecessary_box_returns = "warn"
@@ -254,10 +258,10 @@ zero_sized_map_values = "warn"
 
 # Restriction
 absolute_paths = "warn"
-allow_atributes = "warn"
-# arithmetic_side_effects = "warn"
-# as_conversions = "warn"
-as_pointer_underscores = "warn"
+allow_attributes = "warn"
+# DISABLED: arithmetic_side_effects = "warn"
+as_conversions = "warn"
+as_pointer_underscore = "warn"
 as_underscore = "warn"
 assertions_on_result_states = "warn"
 cfg_not_test = "warn"
@@ -284,7 +288,7 @@ fn_to_numeric_cast_any = "warn"
 get_unwrap = "warn"
 if_then_some_else_none = "warn"
 impl_trait_in_params = "warn"
-# indexing_slicing = "warn"
+# DISABLED: indexing_slicing = "warn"
 infinite_loop = "warn"
 integer_division = "warn"
 large_include_file = "warn"
@@ -318,7 +322,7 @@ same_name_method = "warn"
 self_named_module_files = "warn"
 semicolon_inside_block = "warn"
 shadow_unrelated = "warn"
-# single_char_lifetime_names = "warn"
+# DISABLED: single_char_lifetime_names = "warn"
 str_to_string = "warn"
 string_add = "warn"
 string_lit_chars_any = "warn"
@@ -338,7 +342,7 @@ unwrap_in_result = "warn"
 unwrap_used = "warn"
 use_debug = "warn"
 verbose_file_reads = "warn"
-# wildcard_enum_match_arm = "warn"
+# DISABLED: wildcard_enum_match_arm = "warn"
 
 # Style
 

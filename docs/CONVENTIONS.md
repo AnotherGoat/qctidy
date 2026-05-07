@@ -147,6 +147,12 @@ Then build the bindings for your platform, in testing mode:
 uv run maturin develop -m crates/qiskit/Cargo.toml
 ```
 
+Or build with only specific features enabled:
+
+```shell
+uv run maturin develop -m crates/qiskit/Cargo.toml --no-default-features --features presenter,codegen
+```
+
 Confirm that the bindings are installed:
 
 ```shell

@@ -1161,12 +1161,7 @@ dependencies = [
  "getset",
  "inew",
  "qsimplify",
- "qsimplify-codegen",
- "qsimplify-converter",
- "qsimplify-estimator",
  "qsimplify-ports",
- "qsimplify-presenter",
- "qsimplify-storage",
 ]
 
 [[package]]
@@ -1195,8 +1190,10 @@ dependencies = [
  "faer",
  "pyo3",
  "qsimplify",
+ "qsimplify-analyzer",
  "qsimplify-codegen",
  "qsimplify-converter",
+ "qsimplify-estimator",
  "qsimplify-facade",
  "qsimplify-ports",
  "qsimplify-presenter",
@@ -1207,13 +1204,6 @@ name = "qsimplify-server"
 version = "0.1.0"
 dependencies = [
  "qsimplify-facade",
-]
-
-[[package]]
-name = "qsimplify-storage"
-version = "0.1.0"
-dependencies = [
- "qsimplify-converter",
 ]
 
 [[package]]

@@ -10,13 +10,23 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
-qsimplify-codegen = { path = "../codegen" }
-qsimplify-converter = { path = "../converter" }
+qsimplify-analyzer = { path = "../analyzer", optional = true }
+qsimplify-codegen = { path = "../codegen", optional = true }
+qsimplify-converter = { path = "../converter", optional = true }
+qsimplify-estimator = { path = "../estimator", optional = true }
 qsimplify-facade = { path = "../facade" }
-qsimplify-presenter = { path = "../presenter" }
+qsimplify-presenter = { path = "../presenter", optional = true }
 qsimplify-ports = { path = "../ports" }
 faer = { workspace = true }
 pyo3 = { workspace = true, features = ["extension-module"] }
+
+[features]
+default = ["analyzer", "codegen", "converter", "presenter", "estimator"]
+analyzer = ["dep:qsimplify-analyzer", "qsimplify-facade/analyzer"]
+codegen = ["dep:qsimplify-codegen", "qsimplify-facade/codegen"]
+converter = ["dep:qsimplify-converter", "qsimplify-facade/converter"]
+presenter = ["dep:qsimplify-presenter", "qsimplify-facade/presenter"]
+estimator = ["dep:qsimplify-estimator", "qsimplify-facade/estimator"]
 
 [lints]
 workspace = true

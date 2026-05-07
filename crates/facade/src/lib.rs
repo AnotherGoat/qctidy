@@ -1,15 +1,25 @@
+#[cfg(feature = "analyzer")]
 mod analyzer;
+#[cfg(feature = "codegen")]
 mod codegen;
+#[cfg(feature = "converter")]
 mod converter;
+#[cfg(feature = "estimator")]
 mod estimator;
+#[cfg(feature = "presenter")]
 mod presenter;
 
+#[cfg(feature = "analyzer")]
 pub use analyzer::{AnalysisRequest, AnalysisResponse, analyze};
+#[cfg(feature = "codegen")]
 pub use codegen::{CodeGenerationRequest, CodeGenerationResponse, generate_code};
+#[cfg(feature = "converter")]
 pub use converter::{
     ParseRequest, ParseResponse, SerializeRequest, SerializeResponse, parse, serialize,
 };
+#[cfg(feature = "estimator")]
 pub use estimator::{EstimationRequest, EstimationResponse, estimate};
+#[cfg(feature = "presenter")]
 pub use presenter::{PresentationRequest, PresentationResponse, present};
 use qsimplify_ports::{DisplayError, SimplificationError};
 use std::sync::Arc;

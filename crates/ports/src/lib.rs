@@ -1,8 +1,8 @@
-pub(crate) mod analyzer;
-pub(crate) mod codegen;
-pub(crate) mod converter;
-pub(crate) mod estimator;
-pub(crate) mod presenter;
+mod analyzer;
+mod codegen;
+mod converter;
+mod estimator;
+mod presenter;
 
 pub use analyzer::{AnalysisError, AnalyzerPort};
 pub use codegen::{CodeGenerationError, CodeGenerationTarget, CodegenPort};

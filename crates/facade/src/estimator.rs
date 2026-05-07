@@ -23,9 +23,10 @@ pub struct EstimationResponse {
     cost: f64,
 }
 
+#[expect(clippy::unimplemented)]
 pub fn estimate<E: EstimatorPort>(
     _request: &EstimationRequest,
     _estimator: &E,
 ) -> Result<EstimationResponse, EstimationError> {
-    todo!()
+    unimplemented!()
 }

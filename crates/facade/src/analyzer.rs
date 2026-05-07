@@ -21,9 +21,10 @@ pub struct AnalysisResponse {
     gate_count: usize,
 }
 
+#[expect(clippy::unimplemented)]
 pub fn analyze<A: AnalyzerPort>(
     _request: &AnalysisRequest,
     _analyzer: &A,
 ) -> Result<AnalysisResponse, AnalysisError> {
-    todo!()
+    unimplemented!()
 }

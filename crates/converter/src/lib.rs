@@ -13,6 +13,7 @@ mod message_pack_tests;
 #[derive(Debug, Clone, Copy)]
 pub struct ConverterAdapter;
 
+#[expect(clippy::unimplemented)]
 impl ConverterPort for ConverterAdapter {
     fn parse(
         &self,
@@ -24,8 +25,8 @@ impl ConverterPort for ConverterAdapter {
         match format {
             Json => json::parse(input),
             MessagePack => message_pack::parse(input),
-            Binary => todo!(),
-            Base64 => todo!(),
+            Binary => unimplemented!(),
+            Base64 => unimplemented!(),
         }
     }
 
@@ -45,8 +46,8 @@ impl ConverterPort for ConverterAdapter {
                 indentation.unwrap_or(2),
             ),
             MessagePack => message_pack::serialize(operations),
-            Binary => todo!(),
-            Base64 => todo!(),
+            Binary => unimplemented!(),
+            Base64 => unimplemented!(),
         }
     }
 }

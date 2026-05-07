@@ -12,5 +12,8 @@ target/
 **/*.png
 **/*.svg
 
+# Draw.io backups
+**/*.bkp
+
 # Documentation images
-!images/**
+!images/*.png
