@@ -38,6 +38,8 @@ You are an expert writing code for this project.
 - `RUST_BACKTRACE=1 cargo test  -p <crate>`: Run tests for a specific crate, with backtrace.
 - `tree --gitignore` to see the project structure (or variations of `tree`).
 
+Also take a look at the [justfile](justfile) for more references.
+
 ## Documentation
 
 - Be concise and specific.

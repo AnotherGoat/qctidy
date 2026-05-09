@@ -88,24 +88,20 @@ The architecture of the project is based on the [hexagonal architecture](https:/
 
 ## Useful Commands
 
-These Cargo commands can be run from the root of the repository.
+The project includes a `justfile` with common commands, for ease of use. Run `just` or `just --list` to see all the available recipes.
 
-| Command                             | Purpose                                               |
-| ----------------------------------- | ----------------------------------------------------- |
-| `cargo fmt`                         | Auto-format all source files.                         |
-| `cargo clippy --workspace`          | Lint code in all the crates.                          |
-| `cargo check --workspace`           | Check that all the crates compile.                    |
-| `cargo build --workspace`           | Compile a debug build of all the crates.              |
-| `cargo build --release --workspace` | Compile an optimized release build of all the crates. |
-| `cargo test`                        | Run all unit and integration tests.                   |
-| `cargo test -p <crate>`             | Run tests for a specific crate.                       |
-| `RUST_BACKTRACE=1 cargo test`       | Run all unit and integration tests with backtrace.    |
-| `cargo build -p <crate> --no-default-features --features <features>` | Build a specific crate with only selected features. |
+Some commonly used commands:
 
-For more specific tasks, these commands can be used:
+| Just Recipe          | Cargo Equivalent                    | Purpose                                  |
+| -------------------- | ----------------------------------- | ---------------------------------------- |
+| `just format`        | `cargo fmt`                         | Auto-format all source files.            |
+| `just lint`          | `cargo clippy --workspace`          | Lint code in all the crates.             |
+| `just check`         | `cargo check --workspace`           | Check that all the crates compile.       |
+| `just build`         | `cargo build --workspace`           | Compile a debug build of all the crates. |
+| `just build-release` | `cargo build --release --workspace` | Compile an optimized release build.      |
+| `just test`          | `cargo test`                        | Run all unit and integration tests.      |
 
-| Command | Purpose |
-| ----------------------------------- | ----------------------------------------------------- | `prek run --all-files --show-diff-on-failure` | Manually run pre-commit hooks. |
+If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.
 
 ## Usage
 

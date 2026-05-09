@@ -2,25 +2,22 @@
 
 ## Repository Setup
 
-To use this repository, you'll need the following tools:
+To use this repository, you'll need the following tools (besides your editor of choice and Git):
 
-| Tool                                                                            | Version  | Purpose                                                 |
-| ------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| [Visual Studio Code](https://code.visualstudio.com/) (or any other code editor) | (latest) | Source code editor.                                     |
-| [rust-analyzer](https://rust-analyzer.github.io/)                               | (latest) | Rust language server.                                   |
-| [Git](https://git-scm.com/)                                                     | (latest) | Version control.                                        |
-| [prek](https://prek.j178.dev/)                                                  | 0.3.8    | Git pre-commit hooks.                                   |
-| [Rust](https://rust-lang.org/)                                                  | 1.95.0   | Programming language for the core library.              |
-| [Python](https://www.python.org/)                                               | 3.12     | Manual Python binding tests.                            |
-| [uv](https://docs.astral.sh/uv/)                                                | 0.7.21   | Easy Python virtual environment and package management. |
+| Tool                              | Version | Purpose                                                 |
+| --------------------------------- | ------- | ------------------------------------------------------- |
+| [just](https://just.systems/)     | 1.50.0  | Simple command runner                                   |
+| [prek](https://prek.j178.dev/)    | 0.3.8   | Git pre-commit hooks.                                   |
+| [Rust](https://rust-lang.org/)    | 1.95.0  | Programming language for the core library.              |
+| [Python](https://www.python.org/) | 3.12    | Manual Python binding tests.                            |
+| [uv](https://docs.astral.sh/uv/)  | 0.7.21  | Easy Python virtual environment and package management. |
 
 Note: The listed versions are the ones used for development at the time of writing this document. Older versions may work, but are not guaranteed to.
 
 Run this once to set up the pre-commit hooks:
 
 ```shell
-prek install
-prek prepare-hooks
+just setup
 ```
 
 ## File Structure
