@@ -18,9 +18,8 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 #[expect(clippy::upper_case_acronyms, non_camel_case_types)]
 enum PythonConversionFormat {
     JSON,
+    XML,
     MESSAGE_PACK,
-    BINARY,
-    BASE64,
 }
 
 impl From<PythonConversionFormat> for ConversionFormat {
@@ -29,9 +28,8 @@ impl From<PythonConversionFormat> for ConversionFormat {
 
         match value {
             JSON => Self::Json,
+            XML => Self::Xml,
             MESSAGE_PACK => Self::MessagePack,
-            BINARY => Self::Binary,
-            BASE64 => Self::Base64,
         }
     }
 }

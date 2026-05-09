@@ -3,6 +3,7 @@ use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeErro
 
 pub mod json;
 pub mod message_pack;
+pub mod xml;
 
 #[cfg(test)]
 mod json_tests;
@@ -10,10 +11,12 @@ mod json_tests;
 #[cfg(test)]
 mod message_pack_tests;
 
+#[cfg(test)]
+mod xml_tests;
+
 #[derive(Debug, Clone, Copy)]
 pub struct ConverterAdapter;
 
-#[expect(clippy::unimplemented)]
 impl ConverterPort for ConverterAdapter {
     fn parse(
         &self,
@@ -24,9 +27,8 @@ impl ConverterPort for ConverterAdapter {
 
         match format {
             Json => json::parse(input),
+            Xml => xml::parse(input),
             MessagePack => message_pack::parse(input),
-            Binary => unimplemented!(),
-            Base64 => unimplemented!(),
         }
     }
 
@@ -45,9 +47,12 @@ impl ConverterPort for ConverterAdapter {
                 prettify.unwrap_or(false),
                 indentation.unwrap_or(2),
             ),
+            Xml => xml::serialize(
+                operations,
+                prettify.unwrap_or(false),
+                indentation.unwrap_or(2),
+            ),
             MessagePack => message_pack::serialize(operations),
-            Binary => unimplemented!(),
-            Base64 => unimplemented!(),
         }
     }
 }

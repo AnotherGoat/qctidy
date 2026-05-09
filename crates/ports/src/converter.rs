@@ -20,9 +20,8 @@ pub trait ConverterPort {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::Display)]
 pub enum ConversionFormat {
     Json,
+    Xml,
     MessagePack,
-    Binary,
-    Base64,
 }
 
 #[derive(Debug, Error)]

@@ -9,6 +9,7 @@ doctest = false
 [dependencies]
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
+quick-xml = { workspace = true }
 rmp-serde = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
