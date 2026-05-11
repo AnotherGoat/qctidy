@@ -1,3 +1,4 @@
+use faer::{complex::Complex64, mat};
 use num_rational::Ratio;
 
 use super::math::*;
@@ -5,13 +6,31 @@ use super::math::*;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI};
 
 #[test]
-fn are_different_floats_similar() {
+fn are_same_floats_equal() {
+    assert!(are_floats_equal(5.0, 5.0));
+    assert!(are_floats_equal(PI, PI));
+    assert!(are_floats_equal(FRAC_PI_2, FRAC_PI_2));
+}
+
+#[test]
+fn are_different_floats_equal() {
     assert!(!are_floats_equal(5.0, 10.0));
     assert!(!are_floats_equal(-3.0, 3.0));
 }
 
 #[test]
-fn are_close_floats_similar() {
+fn are_infinities_equal() {
+    assert!(are_floats_equal(f64::INFINITY, f64::INFINITY));
+    assert!(are_floats_equal(f64::NEG_INFINITY, f64::NEG_INFINITY));
+}
+
+#[test]
+fn are_nan_floats_equal() {
+    assert!(!are_floats_equal(f64::NAN, f64::NAN));
+}
+
+#[test]
+fn are_close_floats_equal() {
     assert!(!are_floats_equal(0.0, 1.0));
     assert!(!are_floats_equal(0.0, 1e-1));
     assert!(!are_floats_equal(0.0, 1e-2));
@@ -24,10 +43,74 @@ fn are_close_floats_similar() {
 
 #[test]
 #[expect(clippy::approx_constant)]
-fn are_very_close_floats_similar() {
+fn are_very_close_floats_equal() {
     assert!(are_floats_equal(0.0, 1e-8));
     assert!(are_floats_equal(0.3, 0.300_000_01));
     assert!(are_floats_equal(3.14159, PI));
+}
+
+#[test]
+fn are_some_floats_equal() {
+    assert!(are_option_floats_equal(Some(5.0_f64), Some(5.0_f64)));
+    assert!(are_option_floats_equal(Some(PI), Some(PI)));
+    assert!(are_option_floats_equal(Some(FRAC_PI_2), Some(FRAC_PI_2)));
+}
+
+#[test]
+fn are_none_floats_equal() {
+    assert!(are_option_floats_equal(None, None));
+}
+
+#[test]
+fn are_none_and_some_floats_not_equal() {
+    assert!(!are_option_floats_equal(None, Some(3.0_f64)));
+    assert!(!are_option_floats_equal(Some(3.0_f64), None));
+}
+
+#[test]
+fn are_same_matrices_equal() {
+    let matrix = mat![
+        [Complex64::from(1.0_f64), Complex64::new(2.0_f64, 3.0_f64)],
+        [Complex64::from(4.0_f64), Complex64::new(5.0_f64, 6.0_f64)]
+    ];
+
+    assert!(are_matrices_equal(&matrix, &matrix.clone()));
+}
+
+#[test]
+fn matrices_with_different_row_count_are_not_equal() {
+    let one_row = mat![[Complex64::from(1.0_f64)]];
+
+    let two_rows = mat![[Complex64::from(1.0_f64)], [Complex64::from(2.0_f64)]];
+
+    assert!(!are_matrices_equal(&one_row, &two_rows));
+}
+
+#[test]
+fn matrices_with_different_column_count_are_not_equal() {
+    let one_column = mat![[Complex64::from(1.0_f64)]];
+
+    let two_columns = mat![[Complex64::from(1.0_f64), Complex64::from(2.0_f64)]];
+
+    assert!(!are_matrices_equal(&one_column, &two_columns));
+}
+
+#[test]
+fn close_matrices_are_not_equal() {
+    let first = mat![[Complex64::from(0.0_f64)],];
+
+    let second = mat![[Complex64::from(1e-7_f64)],];
+
+    assert!(!are_matrices_equal(&first, &second));
+}
+
+#[test]
+fn very_close_matrices_are_equal() {
+    let first = mat![[Complex64::from(0.0_f64)],];
+
+    let second = mat![[Complex64::from(1e-8_f64)],];
+
+    assert!(are_matrices_equal(&first, &second));
 }
 
 #[test]
@@ -169,4 +252,15 @@ fn rationalize_big_pi_denominators() {
     assert!(rationalize_in_terms_of_pi(PI / 19.0).is_none());
     assert!(rationalize_in_terms_of_pi(PI / 100.0).is_none());
     assert!(rationalize_in_terms_of_pi(PI / 1000.0).is_none());
+}
+
+#[test]
+fn rationalize_infinity_in_terms_of_pi() {
+    assert!(rationalize_in_terms_of_pi(f64::INFINITY).is_none());
+    assert!(rationalize_in_terms_of_pi(f64::NEG_INFINITY).is_none());
+}
+
+#[test]
+fn rationalize_nan_in_terms_of_pi() {
+    assert!(rationalize_in_terms_of_pi(f64::NAN).is_none());
 }

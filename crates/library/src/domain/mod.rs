@@ -7,3 +7,5 @@ pub(crate) mod number;
 
 #[cfg(test)]
 mod math_tests;
+#[cfg(test)]
+mod number_tests;

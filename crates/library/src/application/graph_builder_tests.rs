@@ -379,3 +379,363 @@ fn push_ccz_builds_triple_symmetric_edges() {
 
     graph.validate_internal();
 }
+
+#[test]
+#[expect(clippy::panic)]
+fn push_p_rejects_infinity() {
+    let mut builder1 = GraphBuilder::new();
+    let positive = builder1.push_p(f64::INFINITY, 0);
+
+    match positive {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let negative = builder2.push_p(f64::NEG_INFINITY, 0);
+
+    match negative {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {negative:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_p_rejects_nan() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_p(f64::NAN, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_rx_rejects_infinity() {
+    let mut builder1 = GraphBuilder::new();
+    let positive = builder1.push_rx(f64::INFINITY, 0);
+
+    match positive {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let negative = builder2.push_rx(f64::NEG_INFINITY, 0);
+
+    match negative {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {negative:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_rx_rejects_nan() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_rx(f64::NAN, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_ry_rejects_infinity() {
+    let mut builder1 = GraphBuilder::new();
+    let positive = builder1.push_ry(f64::INFINITY, 0);
+
+    match positive {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let negative = builder2.push_ry(f64::NEG_INFINITY, 0);
+
+    match negative {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {negative:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_ry_rejects_nan() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_ry(f64::NAN, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_rz_rejects_infinity() {
+    let mut builder1 = GraphBuilder::new();
+    let positive = builder1.push_rz(f64::INFINITY, 0);
+
+    match positive {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let negative = builder2.push_rz(f64::NEG_INFINITY, 0);
+
+    match negative {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {negative:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_rz_rejects_nan() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_rz(f64::NAN, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_swap_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_swap(0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_ch_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_ch(0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cx_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_cx(0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cy_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_cy(0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cz_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_cz(0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cp_rejects_infinity() {
+    let mut builder1 = GraphBuilder::new();
+    let positive = builder1.push_cp(f64::INFINITY, 0, 1);
+
+    match positive {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let negative = builder2.push_cp(f64::NEG_INFINITY, 0, 1);
+
+    match negative {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => {
+            assert!(angle.is_infinite());
+        }
+        _ => panic!("Expected NonFiniteAngle error, got: {negative:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cp_rejects_nan() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_cp(f64::NAN, 0, 1);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cp_rejects_same_qubit() {
+    let mut builder = GraphBuilder::new();
+    let result = builder.push_cp(PI, 0, 0);
+
+    match result {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {result:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_cswap_rejects_repeated_qubits() {
+    let mut builder1 = GraphBuilder::new();
+    let first_two = builder1.push_cswap(0, 0, 1);
+
+    match first_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let last_two = builder2.push_cswap(1, 0, 0);
+
+    match last_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
+    }
+
+    let mut builder3 = GraphBuilder::new();
+    let extremes = builder3.push_cswap(0, 1, 0);
+
+    match extremes {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 1, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
+    }
+
+    let mut builder4 = GraphBuilder::new();
+    let all = builder4.push_cswap(0, 0, 0);
+
+    match all {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 0, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {all:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_ccx_rejects_repeated_qubits() {
+    let mut builder1 = GraphBuilder::new();
+    let first_two = builder1.push_ccx(1, 1, 0);
+
+    match first_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 1, 0]),
+        _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let last_two = builder2.push_ccx(0, 1, 1);
+
+    match last_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![0, 1, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
+    }
+
+    let mut builder3 = GraphBuilder::new();
+    let extremes = builder3.push_ccx(1, 0, 1);
+
+    match extremes {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 0, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
+    }
+
+    let mut builder4 = GraphBuilder::new();
+    let all = builder4.push_ccx(1, 1, 1);
+
+    match all {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 1, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {all:?}"),
+    }
+}
+
+#[test]
+#[expect(clippy::panic)]
+fn push_ccz_rejects_repeated_qubits() {
+    let mut builder1 = GraphBuilder::new();
+    let first_two = builder1.push_ccz(1, 1, 2);
+
+    match first_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 1, 2]),
+        _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
+    }
+
+    let mut builder2 = GraphBuilder::new();
+    let last_two = builder2.push_ccz(2, 1, 1);
+
+    match last_two {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![2, 1, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
+    }
+
+    let mut builder3 = GraphBuilder::new();
+    let extremes = builder3.push_ccz(1, 2, 1);
+
+    match extremes {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 2, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
+    }
+
+    let mut builder4 = GraphBuilder::new();
+    let all = builder4.push_ccz(1, 1, 1);
+
+    match all {
+        Err(GraphBuilderError::RepeatedQubits { qubits }) => assert_eq!(qubits, vec![1, 1, 1]),
+        _ => panic!("Expected RepeatedQubits error, got: {all:?}"),
+    }
+}

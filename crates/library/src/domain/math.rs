@@ -100,12 +100,16 @@ pub(crate) fn normalize_angle(angle: f64, full_cycle: f64) -> Result<f64, &'stat
 /// Returns None if the number is not close to being a multiple of pi.
 #[must_use]
 pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
+    if !number.is_finite() {
+        return None;
+    }
+
     let pi_factor = number / PI;
 
-    let mut best = None;
+    let mut best = Ratio::new(number::truncate_f64_to_i64(pi_factor), 1);
     let mut best_error = f64::INFINITY;
 
-    for denominator in 1..=MAX_DENOMINATOR {
+    for denominator in 2..=MAX_DENOMINATOR {
         let numerator =
             number::truncate_f64_to_i64(pi_factor * number::truncate_i64_to_f64(denominator));
         let ratio = Ratio::new(numerator, denominator);
@@ -122,15 +126,13 @@ pub(crate) fn rationalize_in_terms_of_pi(number: f64) -> Option<Ratio<i64>> {
 
         if error < best_error {
             best_error = error;
-            best = Some(ratio);
+            best = ratio;
         }
     }
 
-    let result = best?;
-
-    let float_numerator = number::truncate_i64_to_f64(*result.numer());
-    let float_denominator = number::truncate_i64_to_f64(*result.denom());
+    let float_numerator = number::truncate_i64_to_f64(*best.numer());
+    let float_denominator = number::truncate_i64_to_f64(*best.denom());
     let final_approximation = float_numerator / float_denominator;
 
-    are_floats_equal(final_approximation, pi_factor).then_some(result)
+    are_floats_equal(final_approximation, pi_factor).then_some(best)
 }

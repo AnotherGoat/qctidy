@@ -123,6 +123,6 @@ impl ContextualNodeView {
             return origin_data;
         }
 
-        format!("{}({})", origin_data, extra_data.join(", "))
+        format!("{} {{{}}}", origin_data, extra_data.join(", "))
     }
 }

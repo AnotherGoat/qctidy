@@ -8,9 +8,13 @@ mod semantic_validator;
 mod structural_validator;
 
 #[cfg(test)]
+mod gate_type_tests;
+#[cfg(test)]
 pub(crate) mod graph_asserter;
 #[cfg(test)]
 mod graph_tests;
+#[cfg(test)]
+mod iterator_tests;
 
 use std::collections::{HashMap, HashSet};
 
