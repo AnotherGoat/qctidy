@@ -1,7 +1,15 @@
 [package]
 name = "qsimplify"
+description = "Core library for quantum circuit simplification"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+readme.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories = ["science"]
 
 [lib]
 doctest = false
