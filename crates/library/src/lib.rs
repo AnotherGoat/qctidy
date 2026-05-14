@@ -4,6 +4,14 @@ pub(crate) mod domain;
 pub(crate) mod interface;
 
 pub use application::graph_builder::GraphBuilder;
+pub use application::simplifier::pattern::pattern_match::PatternMatch;
+pub use application::simplifier::rule::{
+    RuleBuildError, SimplificationRule,
+    configuration::{RuleConfiguration, RuleLevel},
+    metadata::{RuleGroup, RuleId, RuleMetadata},
+    pattern_rule::{PatternRule, PatternRuleSide},
+    registry::RuleRegistry,
+};
 pub use domain::graph::{
     Graph, edge_type::EdgeType, gate_type::GateType, graph_error::GraphError, position::Position,
 };

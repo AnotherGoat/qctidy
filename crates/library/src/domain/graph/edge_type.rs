@@ -3,7 +3,7 @@ use std::fmt;
 /// The types of edges between graph nodes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum EdgeType {
-    /// Edge to the node on the right.
+    /// Edge to the node on the right, representing a time step.
     Right,
     /// Edge from controller to target.
     ///
@@ -45,13 +45,13 @@ impl EdgeType {
 
     /// Check whether this edge is related to the node's position or not.
     ///
-    /// Positional edges never define a gate's structure.
-    pub(crate) const fn is_positional(self) -> bool {
+    /// Positional edges never define a gate operation's structure, but they are required to join time steps in the graph.
+    pub(crate) const fn is_structural(self) -> bool {
         matches!(self, Self::Right)
     }
 
     /// Check whether this edge is related to a gate's semantic structure or not.
     pub(crate) const fn is_semantic(self) -> bool {
-        !self.is_positional()
+        !self.is_structural()
     }
 }

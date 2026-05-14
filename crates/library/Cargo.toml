@@ -15,9 +15,11 @@ categories = ["science"]
 doctest = false
 
 [dependencies]
+bit-vec = { workspace = true }
 faer = { workspace = true }
 getset = { workspace = true }
 inew = { workspace = true }
+itertools = { workspace = true }
 num-rational = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }

@@ -2,6 +2,7 @@ use std::{fmt, str::FromStr};
 
 /// Type of a quantum gate supported by this library.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(u8)]
 pub enum GateType {
     /// The identity gate. It has no practical effect.
     ID,
@@ -89,6 +90,12 @@ impl fmt::Display for GateType {
         };
 
         write!(f, "{name}")
+    }
+}
+
+impl From<GateType> for u8 {
+    fn from(gate_type: GateType) -> Self {
+        gate_type as u8
     }
 }
 

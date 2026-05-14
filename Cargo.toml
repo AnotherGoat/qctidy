@@ -30,10 +30,12 @@ license = "MIT OR Apache-2.0"
 keywords = ["quantum", "quantum-computing", "quantum-circuit"]
 
 [workspace.dependencies]
+bit-vec = "0.9" # MIT OR Apache-2.0
 faer = "0.24.0" # MIT
 getset = "0.1.6" # MIT
 graphviz-rust = "0.9.7" # MIT
 inew = { git = "https://github.com/AnotherGoat/inew" } # MIT OR Apache-2.0
+itertools = "0.14.0" # MIT OR Apache-2.0
 num-rational = "0.4.2" # MIT OR Apache-2.0
 pyo3 = "0.28" # MIT OR Apache-2.0
 quick-xml = "0.36" # MIT

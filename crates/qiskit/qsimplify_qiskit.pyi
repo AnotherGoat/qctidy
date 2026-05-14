@@ -69,20 +69,15 @@ class ConversionFormat(Enum):
 
     The indentation parameter is used to determine the indentation level, only for pretty serialization.
     """
-    MESSAGE_PACK = 1
+    XML = 1
+    """Convert to and from an XML string, which can be pretty-printed if desired.
+
+    The indentation parameter is used to determine the indentation level, only for pretty serialization.
+    """
+    MESSAGE_PACK = 2
     """Convert to and from a MessagePack binary blob.
 
     The format works similarly to JSON, but encodes data in a more compact manner.
-    The prettify and indentation parameters are ignored.
-    """
-    BINARY = 2
-    """Convert to and from a binary blob.
-
-    The prettify and indentation parameters are ignored.
-    """
-    BASE64 = 3
-    """Convert to and from a base64-encoded binary blob.
-
     The prettify and indentation parameters are ignored.
     """
 

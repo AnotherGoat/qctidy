@@ -6,61 +6,64 @@ use GateType::*;
 
 #[test]
 fn node_view_single_qubit_to_string() {
-    let id = NodeView::new(ID, Position::new(0, 0), None, None);
-    assert_eq!(id.to_string(), "ID at (0, 0)");
+    let id_node = NodeView::new(ID, Position::new(0, 0), None, None);
+    assert_eq!(id_node.to_string(), "ID at (0, 0)");
 
-    let h = NodeView::new(H, Position::new(0, 1), None, None);
-    assert_eq!(h.to_string(), "H at (0, 1)");
+    let h_node = NodeView::new(H, Position::new(0, 1), None, None);
+    assert_eq!(h_node.to_string(), "H at (0, 1)");
 
-    let x = NodeView::new(X, Position::new(1, 0), None, None);
-    assert_eq!(x.to_string(), "X at (1, 0)");
+    let x_node = NodeView::new(X, Position::new(1, 0), None, None);
+    assert_eq!(x_node.to_string(), "X at (1, 0)");
 
-    let y = NodeView::new(Y, Position::new(1, 1), None, None);
-    assert_eq!(y.to_string(), "Y at (1, 1)");
+    let y_node = NodeView::new(Y, Position::new(1, 1), None, None);
+    assert_eq!(y_node.to_string(), "Y at (1, 1)");
 
-    let z = NodeView::new(Z, Position::new(2, 0), None, None);
-    assert_eq!(z.to_string(), "Z at (2, 0)");
+    let z_node = NodeView::new(Z, Position::new(2, 0), None, None);
+    assert_eq!(z_node.to_string(), "Z at (2, 0)");
 
-    let s = NodeView::new(S, Position::new(2, 1), None, None);
-    assert_eq!(s.to_string(), "S at (2, 1)");
+    let s_node = NodeView::new(S, Position::new(2, 1), None, None);
+    assert_eq!(s_node.to_string(), "S at (2, 1)");
 
-    let sdg = NodeView::new(SDG, Position::new(3, 0), None, None);
-    assert_eq!(sdg.to_string(), "SDG at (3, 0)");
+    let sdg_node = NodeView::new(SDG, Position::new(3, 0), None, None);
+    assert_eq!(sdg_node.to_string(), "SDG at (3, 0)");
 
-    let sx = NodeView::new(SX, Position::new(3, 1), None, None);
-    assert_eq!(sx.to_string(), "SX at (3, 1)");
+    let sx_node = NodeView::new(SX, Position::new(3, 1), None, None);
+    assert_eq!(sx_node.to_string(), "SX at (3, 1)");
 
-    let sy = NodeView::new(SY, Position::new(4, 0), None, None);
-    assert_eq!(sy.to_string(), "SY at (4, 0)");
+    let sy_node = NodeView::new(SY, Position::new(4, 0), None, None);
+    assert_eq!(sy_node.to_string(), "SY at (4, 0)");
 
-    let t = NodeView::new(T, Position::new(4, 1), None, None);
-    assert_eq!(t.to_string(), "T at (4, 1)");
+    let t_node = NodeView::new(T, Position::new(4, 1), None, None);
+    assert_eq!(t_node.to_string(), "T at (4, 1)");
 
-    let tdg = NodeView::new(TDG, Position::new(5, 0), None, None);
-    assert_eq!(tdg.to_string(), "TDG at (5, 0)");
+    let tdg_node = NodeView::new(TDG, Position::new(5, 0), None, None);
+    assert_eq!(tdg_node.to_string(), "TDG at (5, 0)");
 }
 
 #[test]
 fn node_view_display_with_angle() {
-    let rx = NodeView::new(RX, Position::new(0, 0), Some(FRAC_PI_2), None);
-    assert_eq!(rx.to_string(), "RX(angle=pi/2) at (0, 0)");
+    let rx_node = NodeView::new(RX, Position::new(0, 0), Some(FRAC_PI_2), None);
+    assert_eq!(rx_node.to_string(), "RX(angle=pi/2) at (0, 0)");
 
-    let ry = NodeView::new(RY, Position::new(1, 2), Some(3.0_f64 * PI), None);
-    assert_eq!(ry.display(PiFormat::Uppercase), "RY(angle=3PI) at (1, 2)");
-
-    let rz = NodeView::new(RZ, Position::new(0, 1), Some(2.0_f64 * FRAC_PI_3), None);
-    assert_eq!(rz.display(PiFormat::Fancy), "RZ(angle=2π/3) at (0, 1)");
-
-    let node = NodeView::new(P, Position::new(2, 0), Some(PI), None);
+    let ry_node = NodeView::new(RY, Position::new(1, 2), Some(3.0_f64 * PI), None);
     assert_eq!(
-        node.display(PiFormat::Custom { pi: "CustomPi" }),
+        ry_node.display(PiFormat::Uppercase),
+        "RY(angle=3PI) at (1, 2)"
+    );
+
+    let rz_node = NodeView::new(RZ, Position::new(0, 1), Some(2.0_f64 * FRAC_PI_3), None);
+    assert_eq!(rz_node.display(PiFormat::Fancy), "RZ(angle=2π/3) at (0, 1)");
+
+    let p_node = NodeView::new(P, Position::new(2, 0), Some(PI), None);
+    assert_eq!(
+        p_node.display(PiFormat::Custom { pi: "CustomPi" }),
         "P(angle=CustomPi) at (2, 0)"
     );
 }
 
 #[test]
 fn node_view_rotation_with_zero_angle_to_string() {
-    let node = NodeView::new(RZ, Position::new(1, 1), Some(0.0), None);
+    let node = NodeView::new(RZ, Position::new(1, 1), Some(0.0_f64), None);
     assert_eq!(node.to_string(), "RZ(angle=0) at (1, 1)");
 }
 
