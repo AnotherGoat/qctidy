@@ -1,5 +1,5 @@
 use qsimplify::{Circuit, GateOperation};
-use qsimplify_ports::{ConversionFormat, ParseError};
+use qsimplify_ports::ParseError;
 
 use crate::{CURRENT_FORMAT_VERSION, shared::gate_operation_data::GateOperationData};
 
@@ -32,10 +32,7 @@ impl TryFrom<CircuitData> for Circuit {
         match version {
             1 => {}
             _ => {
-                return Err(ParseError::UnsupportedVersion {
-                    format: ConversionFormat::Json,
-                    version,
-                });
+                return Err(ParseError::UnsupportedVersion { version });
             }
         }
 

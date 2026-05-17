@@ -18,7 +18,7 @@ use crate::shared::{circuit_data::CircuitData, gate_operation_data::GateOperatio
 struct JsonCircuitData {
     version: Option<u16>,
     qubit_count: usize,
-    #[map(operations, ~.into_iter().map(|operation| operation.into()).collect())]
+    #[map(operations, ~.into_iter().map(Into::into).collect())]
     operations: Vec<JsonGateOperationData>,
 }
 

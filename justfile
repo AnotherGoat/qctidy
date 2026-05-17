@@ -51,7 +51,7 @@ build-crate-release crate +features="":
 
 # Run all tests in all crates
 test:
-    cargo test --workspace
+    cargo test --workspace --no-fail-fast
 
 # Run all tests with backtrace enabled for debugging
 test-backtrace:

@@ -1,5 +1,5 @@
 use qsimplify::GateOperation;
-use qsimplify_ports::{ConversionFormat, ParseError};
+use qsimplify_ports::ParseError;
 
 pub(crate) struct GateOperationData {
     pub gate: String,
@@ -164,7 +164,6 @@ impl TryFrom<GateOperationData> for GateOperation {
 
         let gate = data.gate.as_str();
         let missing_field = |field: &str| ParseError::MissingRequiredField {
-            format: ConversionFormat::Json,
             field: field.to_owned(),
             gate: gate.to_owned(),
         };

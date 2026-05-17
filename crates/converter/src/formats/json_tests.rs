@@ -9,7 +9,7 @@ use crate::json;
 #[test]
 #[expect(clippy::unwrap_used)]
 fn parse_empty_list_returns_empty_vec() {
-    let input = "[]";
+    let input = r#"{"version":1,"qubit_count":0,"operations":[]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert!(circuit.operations().is_empty());
@@ -18,7 +18,7 @@ fn parse_empty_list_returns_empty_vec() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_id_from_json() {
-    let input = r#"[{"gate":"id","qubit":0}]"#;
+    let input = r#"{"version":1,"qubit_count":1,"operations":[{"gate":"id","qubit":0}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -32,7 +32,7 @@ fn parse_id_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_h_from_json() {
-    let input = r#"[{"gate":"h","qubit":1}]"#;
+    let input = r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":1}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -46,7 +46,7 @@ fn parse_h_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_x_from_json() {
-    let input = r#"[{"gate":"x","qubit":2}]"#;
+    let input = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"x","qubit":2}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -60,7 +60,7 @@ fn parse_x_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_y_from_json() {
-    let input = r#"[{"gate":"y","qubit":3}]"#;
+    let input = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"y","qubit":3}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -74,7 +74,7 @@ fn parse_y_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_z_from_json() {
-    let input = r#"[{"gate":"z","qubit":4}]"#;
+    let input = r#"{"version":1,"qubit_count":5,"operations":[{"gate":"z","qubit":4}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -88,7 +88,8 @@ fn parse_z_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_p_from_json() {
-    let input = r#"[{"gate":"p","qubit":5,"angle":1.5}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -105,7 +106,7 @@ fn parse_p_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_rx_from_json() {
-    let input = r#"[{"gate":"rx","qubit":6,"angle":3.141592653589793}]"#;
+    let input = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -122,7 +123,8 @@ fn parse_rx_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ry_from_json() {
-    let input = r#"[{"gate":"ry","qubit":7,"angle":0.5}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -139,7 +141,8 @@ fn parse_ry_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_rz_from_json() {
-    let input = r#"[{"gate":"rz","qubit":8,"angle":2.0}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -156,7 +159,7 @@ fn parse_rz_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_s_from_json() {
-    let input = r#"[{"gate":"s","qubit":9}]"#;
+    let input = r#"{"version":1,"qubit_count":10,"operations":[{"gate":"s","qubit":9}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -170,7 +173,7 @@ fn parse_s_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sdg_from_json() {
-    let input = r#"[{"gate":"sdg","qubit":10}]"#;
+    let input = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"sdg","qubit":10}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -184,7 +187,7 @@ fn parse_sdg_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sx_from_json() {
-    let input = r#"[{"gate":"sx","qubit":11}]"#;
+    let input = r#"{"version":1,"qubit_count":12,"operations":[{"gate":"sx","qubit":11}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -198,7 +201,7 @@ fn parse_sx_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sy_from_json() {
-    let input = r#"[{"gate":"sy","qubit":12}]"#;
+    let input = r#"{"version":1,"qubit_count":13,"operations":[{"gate":"sy","qubit":12}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -212,7 +215,7 @@ fn parse_sy_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_t_from_json() {
-    let input = r#"[{"gate":"t","qubit":13}]"#;
+    let input = r#"{"version":1,"qubit_count":14,"operations":[{"gate":"t","qubit":13}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -226,7 +229,7 @@ fn parse_t_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_tdg_from_json() {
-    let input = r#"[{"gate":"tdg","qubit":14}]"#;
+    let input = r#"{"version":1,"qubit_count":15,"operations":[{"gate":"tdg","qubit":14}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -240,7 +243,7 @@ fn parse_tdg_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_measure_from_json() {
-    let input = r#"[{"gate":"m","qubit":15,"bit":3}]"#;
+    let input = r#"{"version":1,"qubit_count":16,"operations":[{"gate":"m","qubit":15,"bit":3}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -257,7 +260,8 @@ fn parse_measure_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_swap_from_json() {
-    let input = r#"[{"gate":"swap","qubit1":0,"qubit2":5}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"swap","qubit1":0,"qubit2":5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -274,7 +278,8 @@ fn parse_swap_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ch_from_json() {
-    let input = r#"[{"gate":"ch","control":2,"target":7}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ch","control":2,"target":7}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -291,7 +296,8 @@ fn parse_ch_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cx_from_json() {
-    let input = r#"[{"gate":"cx","control":3,"target":8}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"cx","control":3,"target":8}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -308,7 +314,8 @@ fn parse_cx_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cy_from_json() {
-    let input = r#"[{"gate":"cy","control":4,"target":9}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":10,"operations":[{"gate":"cy","control":4,"target":9}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -325,7 +332,8 @@ fn parse_cy_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cz_from_json() {
-    let input = r#"[{"gate":"cz","qubit1":1,"qubit2":6}]"#;
+    let input =
+        r#"{"version":1,"qubit_count":7,"operations":[{"gate":"cz","qubit1":1,"qubit2":6}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -342,7 +350,7 @@ fn parse_cz_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cp_from_json() {
-    let input = r#"[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]"#;
+    let input = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -364,7 +372,7 @@ fn parse_cp_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cswap_from_json() {
-    let input = r#"[{"gate":"cswap","control":0,"target1":1,"target2":2}]"#;
+    let input = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"cswap","control":0,"target1":1,"target2":2}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -386,7 +394,7 @@ fn parse_cswap_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ccx_from_json() {
-    let input = r#"[{"gate":"ccx","control1":0,"control2":1,"target":2}]"#;
+    let input = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"ccx","control1":0,"control2":1,"target":2}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -408,7 +416,7 @@ fn parse_ccx_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ccz_from_json() {
-    let input = r#"[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]"#;
+    let input = r#"{"version":1,"qubit_count":6,"operations":[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -430,7 +438,7 @@ fn parse_ccz_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_list_from_json() {
-    let input = r#"[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]"#;
+    let input = r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 3);
@@ -460,22 +468,26 @@ fn parse_list_from_json() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_list_from_pretty_json() {
-    let input = r#"[
-  {
-    "gate": "h",
-    "qubit": 0
-  },
-  {
-    "gate": "cx",
-    "control": 0,
-    "target": 1
-  },
-  {
-    "gate": "m",
-    "qubit": 1,
-    "bit": 0
-  }
-]"#;
+    let input = r#"{
+  "version": 1,
+  "qubit_count": 2,
+  "operations": [
+    {
+      "gate": "h",
+      "qubit": 0
+    },
+    {
+      "gate": "cx",
+      "control": 0,
+      "target": 1
+    },
+    {
+      "gate": "m",
+      "qubit": 1,
+      "bit": 0
+    }
+  ]
+}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 3);
@@ -533,7 +545,7 @@ fn parse_whitespace_only_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_wrong_outer_type_fails() {
-    let result = json::parse(b"{}");
+    let result = json::parse(b"[]");
 
     match result {
         Err(ParseError::InvalidInput { format, message }) => {
@@ -547,15 +559,12 @@ fn parse_wrong_outer_type_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_missing_required_field_fails() {
-    let result = json::parse(br#"[{"gate":"cp","qubit1":2,"qubit2":3}]"#);
+    let input =
+        r#"{"version":1,"qubit_count":10,"operations":[{"gate":"cp","qubit1":2,"qubit2":3}]}"#;
+    let result = json::parse(input.as_bytes());
 
     match result {
-        Err(ParseError::MissingRequiredField {
-            format,
-            field,
-            gate,
-        }) => {
-            assert_eq!(format, ConversionFormat::Json);
+        Err(ParseError::MissingRequiredField { field, gate }) => {
             assert_eq!(field, "angle");
             assert_eq!(gate, "cp");
         }
@@ -566,7 +575,8 @@ fn parse_missing_required_field_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_unknown_gate_type_fails() {
-    let result = json::parse(br#"[{"gate":"?","qubit":0}]"#);
+    let input = r#"{"version":1,"qubit_count":1,"operations":[{"gate":"?","qubit":0}]}"#;
+    let result = json::parse(input.as_bytes());
 
     match result {
         Err(ParseError::UnknownGateType { gate }) => {
@@ -579,12 +589,14 @@ fn parse_unknown_gate_type_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_unneeded_field_fails() {
-    let result = json::parse(br#"[{"gate":"h","qubit":1,"what":true}]"#);
+    let input =
+        r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":1,"what":true}]}"#;
+    let result = json::parse(input.as_bytes());
 
     match result {
         Err(ParseError::UnknownField { field, gate }) => {
             assert_eq!(field, "what");
-            assert_eq!(gate, "h");
+            assert_eq!(gate, "circuit");
         }
         _ => panic!("Expected UnknownField error, got: {result:?}"),
     }
@@ -604,7 +616,8 @@ fn parse_fully_corrupted_input_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_slightly_corrupted_json_fails() {
-    let result = json::parse(br#"[{"gate":"h","qubit"::1}]"#);
+    let result =
+        json::parse(br#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit"::0}]}"#);
 
     match result {
         Err(ParseError::InvalidInput { format, message }) => {
@@ -618,7 +631,8 @@ fn parse_slightly_corrupted_json_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_missing_gate_field_fails() {
-    let result = json::parse(br#"[{"qubit":0}]"#);
+    let input = r#"{"version":1,"qubit_count":1,"operations":[{"qubit":0}]}"#;
+    let result = json::parse(input.as_bytes());
 
     match result {
         Err(ParseError::InvalidInput { format, message }) => {
@@ -633,7 +647,9 @@ fn parse_missing_gate_field_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_wrong_field_type_fails() {
-    let result = json::parse(br#"[{"gate":"h","qubit":"not_a_number"}]"#);
+    let input =
+        r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":"not_a_number"}]}"#;
+    let result = json::parse(input.as_bytes());
 
     match result {
         Err(ParseError::InvalidInput { .. }) => {}
@@ -643,7 +659,7 @@ fn parse_wrong_field_type_fails() {
 
 #[test]
 #[expect(clippy::panic)]
-fn parse_string_instead_of_array_fails() {
+fn parse_string_instead_of_object_fails() {
     let result = json::parse(br#""this is a string""#);
 
     match result {
@@ -674,7 +690,7 @@ fn parse_null_input_fails() {
 fn serialize_empty_list_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = "[]";
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -686,7 +702,7 @@ fn serialize_id_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"id","qubit":0}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"id","qubit":0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -698,7 +714,7 @@ fn serialize_h_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"h","qubit":1}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"h","qubit":1}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -710,7 +726,7 @@ fn serialize_x_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"x","qubit":2}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"x","qubit":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -722,7 +738,7 @@ fn serialize_y_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"y","qubit":3}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"y","qubit":3}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -734,7 +750,7 @@ fn serialize_z_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"z","qubit":4}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"z","qubit":4}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -746,7 +762,8 @@ fn serialize_p_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"p","qubit":5,"angle":1.5}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -758,7 +775,7 @@ fn serialize_rx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"rx","qubit":6,"angle":3.141592653589793}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -770,7 +787,8 @@ fn serialize_ry_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"ry","qubit":7,"angle":0.5}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -782,7 +800,8 @@ fn serialize_rz_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"rz","qubit":8,"angle":2.0}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -794,7 +813,7 @@ fn serialize_s_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"s","qubit":9}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"s","qubit":9}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -806,7 +825,7 @@ fn serialize_sdg_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"sdg","qubit":10}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sdg","qubit":10}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -818,7 +837,7 @@ fn serialize_sx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"sx","qubit":11}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sx","qubit":11}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -830,7 +849,7 @@ fn serialize_sy_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"sy","qubit":12}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sy","qubit":12}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -842,7 +861,7 @@ fn serialize_t_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"t","qubit":13}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"t","qubit":13}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -854,7 +873,7 @@ fn serialize_tdg_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"tdg","qubit":14}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"tdg","qubit":14}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -866,7 +885,8 @@ fn serialize_measure_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"m","qubit":15,"bit":3}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"m","qubit":15,"bit":3}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -878,7 +898,8 @@ fn serialize_swap_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"swap","qubit1":0,"qubit2":5}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"swap","qubit1":0,"qubit2":5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -890,7 +911,8 @@ fn serialize_ch_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"ch","control":2,"target":7}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ch","control":2,"target":7}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -902,7 +924,8 @@ fn serialize_cx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"cx","control":3,"target":8}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cx","control":3,"target":8}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -914,7 +937,8 @@ fn serialize_cy_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"cy","control":4,"target":9}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cy","control":4,"target":9}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -926,7 +950,8 @@ fn serialize_cz_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"cz","qubit1":1,"qubit2":6}]"#;
+    let expected =
+        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cz","qubit1":1,"qubit2":6}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -938,7 +963,7 @@ fn serialize_cp_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -950,7 +975,7 @@ fn serialize_cswap_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"cswap","control":0,"target1":1,"target2":2}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cswap","control":0,"target1":1,"target2":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -962,7 +987,7 @@ fn serialize_ccx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"ccx","control1":0,"control2":1,"target":2}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ccx","control1":0,"control2":1,"target":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -974,7 +999,7 @@ fn serialize_ccz_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -990,7 +1015,7 @@ fn serialize_list_to_json() {
 
     let json = json::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]"#;
+    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -1006,22 +1031,26 @@ fn serialize_list_to_pretty_json() {
 
     let json = json::serialize(&circuit, true, 2).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"[
-  {
-    "gate": "h",
-    "qubit": 0
-  },
-  {
-    "gate": "cx",
-    "control": 0,
-    "target": 1
-  },
-  {
-    "gate": "m",
-    "qubit": 1,
-    "bit": 0
-  }
-]"#;
+    let expected = r#"{
+  "version": 1,
+  "qubit_count": 0,
+  "operations": [
+    {
+      "gate": "h",
+      "qubit": 0
+    },
+    {
+      "gate": "cx",
+      "control": 0,
+      "target": 1
+    },
+    {
+      "gate": "m",
+      "qubit": 1,
+      "bit": 0
+    }
+  ]
+}"#;
 
     assert_eq!(actual, expected);
 }
@@ -1074,10 +1103,24 @@ fn parse_then_serialize_preserves_data() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn serialize_then_parse_preserves_data() {
-    let circuit = r#"[{"gate":"h","qubit":0},{"gate":"p","qubit":3,"angle":1.234},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]"#;
+    let circuit = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"h","qubit":0},{"gate":"p","qubit":3,"angle":1.234},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
 
     let parsed = json::parse(circuit.as_bytes()).unwrap();
     let serialized = json::serialize(&parsed, false, 0).unwrap();
 
     assert_eq!(String::from_utf8(serialized).unwrap(), circuit);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
+fn parse_json_defaults_to_version_1() {
+    let input = r#"{"qubit_count":2,"operations":[{"gate":"h","qubit":0}]}"#;
+    let circuit = json::parse(input.as_bytes()).unwrap();
+
+    assert_eq!(circuit.operations().len(), 1);
+
+    let serialized = json::serialize(&circuit, false, 0).unwrap();
+    let output = String::from_utf8(serialized).unwrap();
+
+    assert!(output.contains(r#""version":1"#));
 }

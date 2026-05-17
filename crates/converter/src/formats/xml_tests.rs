@@ -9,7 +9,7 @@ use crate::xml;
 #[test]
 #[expect(clippy::unwrap_used)]
 fn parse_empty_list_returns_empty_vec() {
-    let input = "<gates></gates>";
+    let input = r#"<circuit version="1" qubit_count="0"></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert!(circuit.operations().is_empty());
@@ -18,7 +18,7 @@ fn parse_empty_list_returns_empty_vec() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_id_from_xml() {
-    let input = r#"<gates><gate type="id" qubit="0"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="1"><gate type="id" qubit="0"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -32,7 +32,7 @@ fn parse_id_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_h_from_xml() {
-    let input = r#"<gates><gate type="h" qubit="1"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="2"><gate type="h" qubit="1"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -46,7 +46,7 @@ fn parse_h_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_x_from_xml() {
-    let input = r#"<gates><gate type="x" qubit="2"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="3"><gate type="x" qubit="2"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -60,7 +60,7 @@ fn parse_x_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_y_from_xml() {
-    let input = r#"<gates><gate type="y" qubit="3"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="4"><gate type="y" qubit="3"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -74,7 +74,7 @@ fn parse_y_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_z_from_xml() {
-    let input = r#"<gates><gate type="z" qubit="4"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="5"><gate type="z" qubit="4"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -88,7 +88,8 @@ fn parse_z_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_p_from_xml() {
-    let input = r#"<gates><gate type="p" qubit="5" angle="1.5"/></gates>"#;
+    let input =
+        r#"<circuit version="1" qubit_count="6"><gate type="p" qubit="5" angle="1.5"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -105,7 +106,7 @@ fn parse_p_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_rx_from_xml() {
-    let input = r#"<gates><gate type="rx" qubit="6" angle="3.141592653589793"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="7"><gate type="rx" qubit="6" angle="3.141592653589793"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -122,7 +123,8 @@ fn parse_rx_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ry_from_xml() {
-    let input = r#"<gates><gate type="ry" qubit="7" angle="0.5"/></gates>"#;
+    let input =
+        r#"<circuit version="1" qubit_count="8"><gate type="ry" qubit="7" angle="0.5"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -139,7 +141,8 @@ fn parse_ry_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_rz_from_xml() {
-    let input = r#"<gates><gate type="rz" qubit="8" angle="2.0"/></gates>"#;
+    let input =
+        r#"<circuit version="1" qubit_count="9"><gate type="rz" qubit="8" angle="2.0"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -156,7 +159,7 @@ fn parse_rz_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_s_from_xml() {
-    let input = r#"<gates><gate type="s" qubit="9"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="10"><gate type="s" qubit="9"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -170,7 +173,7 @@ fn parse_s_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sdg_from_xml() {
-    let input = r#"<gates><gate type="sdg" qubit="10"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="11"><gate type="sdg" qubit="10"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -184,7 +187,7 @@ fn parse_sdg_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sx_from_xml() {
-    let input = r#"<gates><gate type="sx" qubit="11"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="12"><gate type="sx" qubit="11"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -198,7 +201,7 @@ fn parse_sx_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_sy_from_xml() {
-    let input = r#"<gates><gate type="sy" qubit="12"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="13"><gate type="sy" qubit="12"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -212,7 +215,7 @@ fn parse_sy_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_t_from_xml() {
-    let input = r#"<gates><gate type="t" qubit="13"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="14"><gate type="t" qubit="13"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -226,7 +229,7 @@ fn parse_t_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_tdg_from_xml() {
-    let input = r#"<gates><gate type="tdg" qubit="14"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="15"><gate type="tdg" qubit="14"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -240,7 +243,8 @@ fn parse_tdg_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_measure_from_xml() {
-    let input = r#"<gates><gate type="m" qubit="15" bit="3"/></gates>"#;
+    let input =
+        r#"<circuit version="1" qubit_count="16"><gate type="m" qubit="15" bit="3"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -257,7 +261,7 @@ fn parse_measure_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_swap_from_xml() {
-    let input = r#"<gates><gate type="swap" qubit1="0" qubit2="5"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="6"><gate type="swap" qubit1="0" qubit2="5"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -274,7 +278,7 @@ fn parse_swap_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ch_from_xml() {
-    let input = r#"<gates><gate type="ch" control="2" target="7"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="8"><gate type="ch" control="2" target="7"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -291,7 +295,7 @@ fn parse_ch_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cx_from_xml() {
-    let input = r#"<gates><gate type="cx" control="3" target="8"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="9"><gate type="cx" control="3" target="8"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -308,7 +312,7 @@ fn parse_cx_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cy_from_xml() {
-    let input = r#"<gates><gate type="cy" control="4" target="9"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="10"><gate type="cy" control="4" target="9"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -325,7 +329,8 @@ fn parse_cy_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cz_from_xml() {
-    let input = r#"<gates><gate type="cz" qubit1="1" qubit2="6"/></gates>"#;
+    let input =
+        r#"<circuit version="1" qubit_count="7"><gate type="cz" qubit1="1" qubit2="6"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -342,7 +347,7 @@ fn parse_cz_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cp_from_xml() {
-    let input = r#"<gates><gate type="cp" qubit1="5" qubit2="10" angle="0.75"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="11"><gate type="cp" qubit1="5" qubit2="10" angle="0.75"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -364,7 +369,7 @@ fn parse_cp_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_cswap_from_xml() {
-    let input = r#"<gates><gate type="cswap" control="0" target1="1" target2="2"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="3"><gate type="cswap" control="0" target1="1" target2="2"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -386,7 +391,7 @@ fn parse_cswap_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ccx_from_xml() {
-    let input = r#"<gates><gate type="ccx" control1="0" control2="1" target="2"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="3"><gate type="ccx" control1="0" control2="1" target="2"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -408,7 +413,7 @@ fn parse_ccx_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_ccz_from_xml() {
-    let input = r#"<gates><gate type="ccz" qubit1="3" qubit2="4" qubit3="5"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="6"><gate type="ccz" qubit1="3" qubit2="4" qubit3="5"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -430,7 +435,7 @@ fn parse_ccz_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_list_from_xml() {
-    let input = r#"<gates><gate type="h" qubit="0"/><gate type="cx" control="0" target="1"/><gate type="m" qubit="1" bit="0"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="2"><gate type="h" qubit="0"/><gate type="cx" control="0" target="1"/><gate type="m" qubit="1" bit="0"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 3);
@@ -460,11 +465,11 @@ fn parse_list_from_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_list_from_pretty_xml() {
-    let input = r#"<gates>
+    let input = r#"<circuit version="1" qubit_count="2">
   <gate type="h" qubit="0"/>
   <gate type="cx" control="0" target="1"/>
   <gate type="m" qubit="1" bit="0"/>
-</gates>"#;
+</circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 3);
@@ -492,19 +497,31 @@ fn parse_list_from_pretty_xml() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
+#[expect(clippy::panic)]
 fn parse_empty_string_fails() {
     let result = xml::parse(b"");
 
-    assert!(result.unwrap().operations().is_empty());
+    match result {
+        Err(ParseError::MissingRequiredField { field, gate }) => {
+            assert_eq!(field, "qubit_count");
+            assert_eq!(gate, "circuit");
+        }
+        _ => panic!("Expected MissingRequiredField error, got: {result:?}"),
+    }
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
+#[expect(clippy::panic)]
 fn parse_whitespace_only_fails() {
     let result = xml::parse(b"   \n\t  ");
 
-    assert!(result.unwrap().operations().is_empty());
+    match result {
+        Err(ParseError::MissingRequiredField { field, gate }) => {
+            assert_eq!(field, "qubit_count");
+            assert_eq!(gate, "circuit");
+        }
+        _ => panic!("Expected MissingRequiredField error, got: {result:?}"),
+    }
 }
 
 #[test]
@@ -523,15 +540,11 @@ fn parse_wrong_outer_type_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_missing_required_field_fails() {
-    let result = xml::parse(br#"<gates><gate type="cp" qubit1="2" qubit2="3"/></gates>"#);
+    let input = r#"<circuit version="1" qubit_count="10"><gate type="cp" qubit1="2" qubit2="3"/></circuit>"#;
+    let result = xml::parse(input.as_bytes());
 
     match result {
-        Err(ParseError::MissingRequiredField {
-            format,
-            field,
-            gate,
-        }) => {
-            assert_eq!(format, ConversionFormat::Xml);
+        Err(ParseError::MissingRequiredField { field, gate }) => {
             assert_eq!(field, "angle");
             assert_eq!(gate, "cp");
         }
@@ -542,7 +555,8 @@ fn parse_missing_required_field_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_unknown_gate_type_fails() {
-    let result = xml::parse(br#"<gates><gate type="?" qubit="0"/></gates>"#);
+    let input = r#"<circuit version="1" qubit_count="1"><gate type="?" qubit="0"/></circuit>"#;
+    let result = xml::parse(input.as_bytes());
 
     match result {
         Err(ParseError::UnknownGateType { gate }) => {
@@ -581,7 +595,8 @@ fn parse_slightly_corrupted_xml_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_missing_gate_type_field_fails() {
-    let result = xml::parse(br#"<gates><gate qubit="0"/></gates>"#);
+    let input = r#"<circuit version="1" qubit_count="1"><gate qubit="0"/></circuit>"#;
+    let result = xml::parse(input.as_bytes());
 
     match result {
         Err(ParseError::UnknownGateType { gate }) => {
@@ -594,15 +609,12 @@ fn parse_missing_gate_type_field_fails() {
 #[test]
 #[expect(clippy::panic)]
 fn parse_wrong_field_type_fails() {
-    let result = xml::parse(br#"<gates><gate type="h" qubit="not_a_number"/></gates>"#);
+    let input =
+        r#"<circuit version="1" qubit_count="2"><gate type="h" qubit="not_a_number"/></circuit>"#;
+    let result = xml::parse(input.as_bytes());
 
     match result {
-        Err(ParseError::MissingRequiredField {
-            format,
-            field,
-            gate,
-        }) => {
-            assert_eq!(format, ConversionFormat::Xml);
+        Err(ParseError::MissingRequiredField { field, gate }) => {
             assert_eq!(field, "qubit");
             assert_eq!(gate, "h");
         }
@@ -615,7 +627,7 @@ fn parse_wrong_field_type_fails() {
 fn parse_null_input_fails() {
     let result = xml::parse(b"");
 
-    assert!(result.unwrap().operations().is_empty());
+    assert!(result.is_err());
 }
 
 #[test]
@@ -623,7 +635,10 @@ fn parse_null_input_fails() {
 fn parse_string_instead_of_document_fails() {
     let result = xml::parse(b"this is a string");
 
-    assert!(result.unwrap().operations().is_empty());
+    match result {
+        Err(ParseError::MissingRequiredField { .. }) => {}
+        _ => panic!("Expected MissingRequiredField error, got: {result:?}"),
+    }
 }
 
 #[test]
@@ -631,7 +646,7 @@ fn parse_string_instead_of_document_fails() {
 fn serialize_empty_list_to_xml() {
     let result = xml::serialize(&Circuit::from_operations(vec![]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -642,8 +657,7 @@ fn serialize_id_to_xml() {
     let operation = GateOperation::id(0);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"id\" qubit=\"0\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"id\" qubit=\"0\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -654,8 +668,7 @@ fn serialize_h_to_xml() {
     let operation = GateOperation::h(1);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"h\" qubit=\"1\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"h\" qubit=\"1\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -666,8 +679,7 @@ fn serialize_x_to_xml() {
     let operation = GateOperation::x(2);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"x\" qubit=\"2\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"x\" qubit=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -678,8 +690,7 @@ fn serialize_y_to_xml() {
     let operation = GateOperation::y(3);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"y\" qubit=\"3\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"y\" qubit=\"3\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -690,8 +701,7 @@ fn serialize_z_to_xml() {
     let operation = GateOperation::z(4);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"z\" qubit=\"4\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"z\" qubit=\"4\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -702,7 +712,7 @@ fn serialize_p_to_xml() {
     let operation = GateOperation::try_p(1.5, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"p\" qubit=\"5\" angle=\"1.5\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"p\" qubit=\"5\" angle=\"1.5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -713,7 +723,7 @@ fn serialize_rx_to_xml() {
     let operation = GateOperation::try_rx(PI, 6).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"rx\" qubit=\"6\" angle=\"3.141592653589793\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"rx\" qubit=\"6\" angle=\"3.141592653589793\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -724,7 +734,7 @@ fn serialize_ry_to_xml() {
     let operation = GateOperation::try_ry(0.5, 7).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"ry\" qubit=\"7\" angle=\"0.5\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ry\" qubit=\"7\" angle=\"0.5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -735,7 +745,7 @@ fn serialize_rz_to_xml() {
     let operation = GateOperation::try_rz(2.0, 8).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"rz\" qubit=\"8\" angle=\"2\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"rz\" qubit=\"8\" angle=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -746,8 +756,7 @@ fn serialize_s_to_xml() {
     let operation = GateOperation::s(9);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"s\" qubit=\"9\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"s\" qubit=\"9\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -758,7 +767,7 @@ fn serialize_sdg_to_xml() {
     let operation = GateOperation::sdg(10);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"sdg\" qubit=\"10\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sdg\" qubit=\"10\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -769,8 +778,7 @@ fn serialize_sx_to_xml() {
     let operation = GateOperation::sx(11);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"sx\" qubit=\"11\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sx\" qubit=\"11\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -781,8 +789,7 @@ fn serialize_sy_to_xml() {
     let operation = GateOperation::sy(12);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"sy\" qubit=\"12\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sy\" qubit=\"12\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -793,8 +800,7 @@ fn serialize_t_to_xml() {
     let operation = GateOperation::t(13);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"t\" qubit=\"13\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"t\" qubit=\"13\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -805,7 +811,7 @@ fn serialize_tdg_to_xml() {
     let operation = GateOperation::tdg(14);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"tdg\" qubit=\"14\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"tdg\" qubit=\"14\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -816,7 +822,7 @@ fn serialize_measure_to_xml() {
     let operation = GateOperation::measure(15, 3);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"m\" qubit=\"15\" bit=\"3\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"m\" qubit=\"15\" bit=\"3\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -827,7 +833,7 @@ fn serialize_swap_to_xml() {
     let operation = GateOperation::try_swap(0, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"swap\" qubit1=\"0\" qubit2=\"5\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"swap\" qubit1=\"0\" qubit2=\"5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -838,7 +844,7 @@ fn serialize_ch_to_xml() {
     let operation = GateOperation::try_ch(2, 7).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"ch\" control=\"2\" target=\"7\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ch\" control=\"2\" target=\"7\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -849,7 +855,7 @@ fn serialize_cx_to_xml() {
     let operation = GateOperation::try_cx(3, 8).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"cx\" control=\"3\" target=\"8\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cx\" control=\"3\" target=\"8\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -860,7 +866,7 @@ fn serialize_cy_to_xml() {
     let operation = GateOperation::try_cy(4, 9).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"cy\" control=\"4\" target=\"9\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cy\" control=\"4\" target=\"9\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -871,7 +877,7 @@ fn serialize_cz_to_xml() {
     let operation = GateOperation::try_cz(1, 6).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"cz\" qubit1=\"1\" qubit2=\"6\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cz\" qubit1=\"1\" qubit2=\"6\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -882,7 +888,7 @@ fn serialize_cp_to_xml() {
     let operation = GateOperation::try_cp(0.75, 5, 10).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"cp\" qubit1=\"5\" qubit2=\"10\" angle=\"0.75\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cp\" qubit1=\"5\" qubit2=\"10\" angle=\"0.75\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -893,7 +899,7 @@ fn serialize_cswap_to_xml() {
     let operation = GateOperation::try_c_swap(0, 1, 2).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"cswap\" control=\"0\" target1=\"1\" target2=\"2\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cswap\" control=\"0\" target1=\"1\" target2=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -904,7 +910,7 @@ fn serialize_ccx_to_xml() {
     let operation = GateOperation::try_ccx(0, 1, 2).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"ccx\" control1=\"0\" control2=\"1\" target=\"2\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ccx\" control1=\"0\" control2=\"1\" target=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -915,7 +921,7 @@ fn serialize_ccz_to_xml() {
     let operation = GateOperation::try_ccz(3, 4, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"ccz\" qubit1=\"3\" qubit2=\"4\" qubit3=\"5\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ccz\" qubit1=\"3\" qubit2=\"4\" qubit3=\"5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -930,7 +936,7 @@ fn serialize_list_to_xml() {
     ]);
     let result = xml::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><gates><gate type=\"h\" qubit=\"0\"/><gate type=\"cx\" control=\"0\" target=\"1\"/><gate type=\"m\" qubit=\"1\" bit=\"0\"/></gates>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"h\" qubit=\"0\"/><gate type=\"cx\" control=\"0\" target=\"1\"/><gate type=\"m\" qubit=\"1\" bit=\"0\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -946,11 +952,11 @@ fn serialize_list_to_pretty_xml() {
     let result = xml::serialize(&circuit, true, 2).unwrap();
     let actual = String::from_utf8(result).unwrap();
     let expected = r#"<?xml version="1.0" encoding="utf-8"?>
-<gates>
+<circuit version="1" qubit_count="0">
   <gate type="h" qubit="0"/>
   <gate type="cx" control="0" target="1"/>
   <gate type="m" qubit="1" bit="0"/>
-</gates>"#;
+</circuit>"#;
 
     assert_eq!(actual, expected);
 }
@@ -958,7 +964,7 @@ fn serialize_list_to_pretty_xml() {
 #[test]
 #[expect(clippy::unwrap_used, clippy::panic)]
 fn parse_then_serialize_preserves_data() {
-    let input = r#"<gates><gate type="h" qubit="0"/><gate type="p" qubit="3" angle="1.234"/><gate type="cx" control="0" target="1"/><gate type="m" qubit="1" bit="0"/></gates>"#;
+    let input = r#"<circuit version="1" qubit_count="4"><gate type="h" qubit="0"/><gate type="p" qubit="3" angle="1.234"/><gate type="cx" control="0" target="1"/><gate type="m" qubit="1" bit="0"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 4);
@@ -1006,12 +1012,26 @@ fn serialize_to_xml_preserves_data() {
     let result = xml::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
     let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-<gates>\
+<circuit version=\"1\" qubit_count=\"0\">\
 <gate type=\"h\" qubit=\"0\"/>\
 <gate type=\"p\" qubit=\"3\" angle=\"1.234\"/>\
 <gate type=\"cx\" control=\"0\" target=\"1\"/>\
 <gate type=\"m\" qubit=\"1\" bit=\"0\"/>\
-</gates>";
+</circuit>";
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
+fn parse_xml_defaults_to_version_1() {
+    let input = r#"<circuit qubit_count="2"><gate type="h" qubit="0"/></circuit>"#;
+    let circuit = xml::parse(input.as_bytes()).unwrap();
+
+    assert_eq!(circuit.operations().len(), 1);
+
+    let serialized = xml::serialize(&circuit, false, 0).unwrap();
+    let output = String::from_utf8(serialized).unwrap();
+
+    assert!(output.contains(r#"version="1""#));
 }

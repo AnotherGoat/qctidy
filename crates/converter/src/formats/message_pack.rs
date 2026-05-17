@@ -20,7 +20,7 @@ struct MessagePackCircuitData {
     #[serde(rename = "q")]
     qubit_count: usize,
     #[serde(rename = "o")]
-    #[map(operations, ~.into_iter().map(|operation| operation.into()).collect())]
+    #[map(operations, ~.into_iter().map(Into::into).collect())]
     operations: Vec<MessagePackGateOperationData>,
 }
 

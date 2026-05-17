@@ -57,7 +57,6 @@ pub fn parse(input: &[u8]) -> Result<Circuit, ParseError> {
     let circuit_data = CircuitData {
         version,
         qubit_count: qubit_count.ok_or_else(|| ParseError::MissingRequiredField {
-            format: ConversionFormat::Xml,
             field: "qubit_count".to_owned(),
             gate: "circuit".to_owned(),
         })?,

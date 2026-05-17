@@ -27,21 +27,14 @@ pub enum ParseError {
         format: ConversionFormat,
         message: String,
     },
-    #[error("Missing required {format} field '{field}' for gate '{gate}'")]
-    MissingRequiredField {
-        format: ConversionFormat,
-        field: String,
-        gate: String,
-    },
+    #[error("Missing required field '{field}' for gate '{gate}'")]
+    MissingRequiredField { field: String, gate: String },
     #[error("Unknown field '{field}' for gate '{gate}'")]
     UnknownField { field: String, gate: String },
     #[error("Unknown gate type: '{gate}'")]
     UnknownGateType { gate: String },
-    #[error("Unsupported {format} input version: {version}")]
-    UnsupportedVersion {
-        format: ConversionFormat,
-        version: u16,
-    },
+    #[error("Unsupported input format version: {version}")]
+    UnsupportedVersion { version: u16 },
     #[error("Unsupported conversion format")]
     UnsupportedFormat,
 }
