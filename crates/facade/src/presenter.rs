@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::{GateOperation, mapper};
+use qsimplify::{Circuit, mapper};
 use qsimplify_ports::{PresentationError, PresentationFormat, PresenterPort};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
@@ -10,7 +10,7 @@ use qsimplify_ports::{PresentationError, PresentationFormat, PresenterPort};
 #[must_use]
 pub struct PresentationRequest {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
     #[get_copy = "pub"]
     format: PresentationFormat,
     #[get_copy = "pub"]
@@ -29,7 +29,7 @@ pub fn present<P: PresenterPort>(
     request: &PresentationRequest,
     presenter: &P,
 ) -> Result<PresentationResponse, PresentationError> {
-    let graph = mapper::operations_to_graph(&request.operations());
+    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
 
     let result = presenter.present(&graph, request.format(), request.dpi())?;
     Ok(PresentationResponse::new(result.into()))

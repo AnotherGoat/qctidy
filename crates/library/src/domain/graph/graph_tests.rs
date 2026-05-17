@@ -6,9 +6,33 @@ use EdgeType::*;
 use GateType::*;
 
 #[test]
+fn default_graph() {
+    let graph = Graph::default();
+
+    assert!(graph.is_empty());
+    assert!(graph.width() == 0);
+    assert!(graph.height() == 0);
+}
+
+#[test]
+fn empty_sized_graph() {
+    let size1 = Graph::new(1);
+
+    assert!(size1.is_empty());
+    assert!(size1.width() == 0);
+    assert!(size1.height() == 1);
+
+    let size2 = Graph::new(2);
+
+    assert!(size2.is_empty());
+    assert!(size2.width() == 0);
+    assert!(size2.height() == 2);
+}
+
+#[test]
 #[expect(clippy::unwrap_used)]
 fn add_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let position = Position::new(0, 0);
 
     graph.add_node(ID, position, None, None).unwrap();
@@ -21,7 +45,7 @@ fn add_node() {
 #[test]
 #[expect(clippy::panic)]
 fn add_node_fails_if_it_exists() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
 
     graph.replace_node(X, node_position, None, None);
@@ -36,8 +60,24 @@ fn add_node_fails_if_it_exists() {
 
 #[test]
 #[expect(clippy::unwrap_used)]
+fn add_node_increases_height() {
+    let mut graph = Graph::new(1);
+    assert!(graph.height() == 1);
+
+    graph.add_node(H, Position::new(0, 0), None, None).unwrap();
+    assert!(graph.height() == 1);
+
+    graph.add_node(H, Position::new(0, 1), None, None).unwrap();
+    assert!(graph.height() == 2);
+
+    graph.add_node(H, Position::new(0, 2), None, None).unwrap();
+    assert!(graph.height() == 3);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
 fn replace_node_overwrites_existing_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let position = Position::new(0, 0);
 
     graph.replace_node(X, position, None, None);
@@ -48,8 +88,23 @@ fn replace_node_overwrites_existing_node() {
 }
 
 #[test]
+fn replace_node_increases_height() {
+    let mut graph = Graph::new(1);
+    assert!(graph.height() == 1);
+
+    graph.replace_node(Z, Position::new(0, 0), None, None);
+    assert!(graph.height() == 1);
+
+    graph.replace_node(Z, Position::new(0, 0), None, None);
+    assert!(graph.height() == 1);
+
+    graph.replace_node(Z, Position::new(0, 1), None, None);
+    assert!(graph.height() == 2);
+}
+
+#[test]
 fn empty_space_has_no_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 2), None, None);
 
@@ -59,7 +114,7 @@ fn empty_space_has_no_node() {
 
 #[test]
 fn graph_width() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 0), None, None);
     assert_eq!(graph.width(), 1);
@@ -70,7 +125,7 @@ fn graph_width() {
 
 #[test]
 fn graph_height() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 0), None, None);
     assert_eq!(graph.height(), 1);
@@ -81,7 +136,7 @@ fn graph_height() {
 
 #[test]
 fn bits_counts_highest_measurement_bit() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(Measure, Position::new(0, 0), None, Some(0));
     graph.replace_node(Measure, Position::new(1, 0), None, Some(3));
@@ -90,33 +145,25 @@ fn bits_counts_highest_measurement_bit() {
 }
 
 #[test]
-fn empty_dimensions() {
-    let graph = Graph::new();
-
-    assert_eq!(graph.width(), 0);
-    assert_eq!(graph.height(), 0);
-}
-
-#[test]
 fn graph_equals() {
-    let graph1 = GraphBuilder::new().push_x(0).push_x(1).build();
-    let graph2 = GraphBuilder::new().push_x(0).push_x(1).build();
+    let graph1 = GraphBuilder::default().push_x(0).push_x(1).build();
+    let graph2 = GraphBuilder::default().push_x(0).push_x(1).build();
 
     assert_eq!(graph1, graph2);
 }
 
 #[test]
 fn graph_is_not_equal() {
-    let graph1 = GraphBuilder::new().push_x(0).push_x(1).build();
-    let graph2 = GraphBuilder::new().push_x(0).push_y(1).build();
+    let graph1 = GraphBuilder::default().push_x(0).push_x(1).build();
+    let graph2 = GraphBuilder::default().push_x(0).push_y(1).build();
 
     assert_ne!(graph1, graph2);
 }
 
 #[test]
 fn graph_is_equal_with_angles() {
-    let mut graph1 = Graph::new();
-    let mut graph2 = Graph::new();
+    let mut graph1 = Graph::default();
+    let mut graph2 = Graph::default();
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
@@ -131,9 +178,9 @@ fn graph_is_equal_with_angles() {
 
 #[test]
 #[expect(clippy::unwrap_used)]
-fn graph_is_equal_in_different_order() {
-    let mut graph1 = Graph::new();
-    let mut graph2 = Graph::new();
+fn graph_is_equal_in_different_insertion_order() {
+    let mut graph1 = Graph::default();
+    let mut graph2 = Graph::default();
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
@@ -150,7 +197,7 @@ fn graph_is_equal_in_different_order() {
 
 #[test]
 fn is_occupied() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .put_x(0, 1)
         .push_y(0)
         .push_z(1)
@@ -172,7 +219,7 @@ fn is_occupied() {
 
 #[test]
 fn has_node_at() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 1), None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None);
@@ -194,7 +241,7 @@ fn has_node_at() {
 
 #[test]
 fn doesnt_have_nodes_outside() {
-    let graph = GraphBuilder::new().put_h(2, 2).build();
+    let graph = GraphBuilder::default().put_h(2, 2).build();
 
     assert!(!graph.has_node_at(Position::new(0, 3)));
     assert!(!graph.has_node_at(Position::new(3, 0)));
@@ -203,7 +250,7 @@ fn doesnt_have_nodes_outside() {
 
 #[test]
 fn remove_nonexistent_node_is_noop() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 0), None, None);
 
@@ -213,9 +260,32 @@ fn remove_nonexistent_node_is_noop() {
 }
 
 #[test]
+fn remove_node_keeps_size() {
+    let mut graph = GraphBuilder::default()
+        .push_h(0)
+        .push_x(1)
+        .push_y(2)
+        .push_z(3)
+        .build();
+    assert_eq!(graph.size(), 4);
+
+    graph.remove_node(Position::new(0, 3));
+    assert_eq!(graph.size(), 4);
+
+    graph.remove_node(Position::new(0, 1));
+    assert_eq!(graph.size(), 4);
+
+    graph.remove_node(Position::new(0, 0));
+    assert_eq!(graph.size(), 4);
+
+    graph.remove_node(Position::new(0, 2));
+    assert_eq!(graph.size(), 4);
+}
+
+#[test]
 #[expect(clippy::unwrap_used)]
 fn remove_node_removes_associated_edges() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -234,7 +304,7 @@ fn remove_node_removes_associated_edges() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn removing_middle_node_reconnects_neighbors() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -263,7 +333,7 @@ fn removing_middle_node_reconnects_neighbors() {
 #[test]
 #[expect(clippy::panic)]
 fn move_nonexistent_node_fails() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let node_position = Position::new(0, 3);
 
     graph.replace_node(X, Position::new(0, 1), None, None);
@@ -279,7 +349,7 @@ fn move_nonexistent_node_fails() {
 
 #[test]
 fn null_move() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None);
 
@@ -291,7 +361,7 @@ fn null_move() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn move_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 1), None, None);
     graph.replace_node(Y, Position::new(1, 2), None, None);
@@ -310,8 +380,39 @@ fn move_node() {
 
 #[test]
 #[expect(clippy::unwrap_used)]
+fn move_node_increases_size_if_needed() {
+    let mut graph = Graph::new(1);
+    assert!(graph.size() == 2);
+
+    graph.replace_node(T, Position::new(0, 0), None, None);
+    graph
+        .move_node(Position::new(0, 0), Position::new(1, 0))
+        .unwrap();
+    assert!(graph.size() == 2);
+
+    graph
+        .move_node(Position::new(1, 0), Position::new(2, 0))
+        .unwrap();
+    assert!(graph.size() == 3);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
+fn move_node_doesnt_decrease_size() {
+    let mut graph = Graph::new(3);
+    assert!(graph.size() == 3);
+
+    graph.replace_node(TDG, Position::new(2, 0), None, None);
+    graph
+        .move_node(Position::new(2, 0), Position::new(0, 0))
+        .unwrap();
+    assert!(graph.size() == 3);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
 fn move_node_overwrites_destination() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
@@ -328,7 +429,7 @@ fn move_node_overwrites_destination() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn move_node_preserves_edges() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 1), None, None);
     graph.replace_node(Y, Position::new(1, 1), None, None);
@@ -359,7 +460,7 @@ fn move_node_preserves_edges() {
 #[test]
 #[expect(clippy::panic)]
 fn add_edge_fails_when_missing_nodes() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
 
@@ -376,7 +477,7 @@ fn add_edge_fails_when_missing_nodes() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn add_edge_is_idempotent() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
@@ -394,7 +495,7 @@ fn add_edge_is_idempotent() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn add_bidirectional_edge_creates_two_edges() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -421,7 +522,7 @@ fn add_bidirectional_edge_creates_two_edges() {
 #[test]
 #[expect(clippy::panic)]
 fn connect_row_neighbors_fails_if_node_is_missing() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
 
     let result = graph.connect_row_neighbors(node_position);
@@ -435,7 +536,7 @@ fn connect_row_neighbors_fails_if_node_is_missing() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_relinks_correctly() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let start = Position::new(0, 0);
     let middle = Position::new(0, 1);
@@ -464,7 +565,7 @@ fn connect_row_neighbors_relinks_correctly() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_removes_direct_connection() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -489,7 +590,7 @@ fn connect_row_neighbors_removes_direct_connection() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn remove_edge_removes_outgoing_and_incoming_entries() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -506,7 +607,7 @@ fn remove_edge_removes_outgoing_and_incoming_entries() {
 
 #[test]
 fn next_in_row_returns_correct_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let position = Position::new(0, 0);
     let next_position = Position::new(0, 2);
 
@@ -520,7 +621,7 @@ fn next_in_row_returns_correct_node() {
 
 #[test]
 fn next_in_row_none_if_no_next_exists() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
     graph.replace_node(X, position, None, None);
@@ -530,7 +631,7 @@ fn next_in_row_none_if_no_next_exists() {
 
 #[test]
 fn previous_in_row_returns_correct_node() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
     let position = Position::new(0, 2);
     let previous_position = Position::new(0, 0);
 
@@ -544,7 +645,7 @@ fn previous_in_row_returns_correct_node() {
 
 #[test]
 fn previous_in_row_none_if_no_previous_exists() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
     graph.replace_node(X, position, None, None);
@@ -554,18 +655,19 @@ fn previous_in_row_none_if_no_previous_exists() {
 
 #[test]
 fn clear_removes_everything() {
-    let mut graph = GraphBuilder::new().push_x(0).push_y(1).build();
+    let mut graph = GraphBuilder::default().push_x(0).push_y(1).build();
 
     graph.clear();
 
     assert!(graph.is_empty());
+    assert_eq!(graph.height(), 0);
     assert_eq!(graph.iter_edges_unique().count(), 0);
 }
 
 #[test]
 #[expect(clippy::unwrap_used)]
 fn clear_edges_keeps_nodes() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
@@ -585,7 +687,7 @@ fn clear_edges_keeps_nodes() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn get_node_and_edges_collects_edges_correctly() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);

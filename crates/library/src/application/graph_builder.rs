@@ -32,8 +32,10 @@ impl fmt::Display for GraphBuilder {
 
 impl GraphBuilder {
     /// Create an empty graph builder.
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(initial_qubit_count: usize) -> Self {
+        Self {
+            graph: Graph::new(initial_qubit_count),
+        }
     }
 
     /// Push a gate operation at the end of the graph.

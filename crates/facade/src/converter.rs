@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::GateOperation;
+use qsimplify::Circuit;
 use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
@@ -20,7 +20,7 @@ pub struct ParseRequest {
 #[must_use]
 pub struct ParseResponse {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
 }
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
@@ -28,7 +28,7 @@ pub struct ParseResponse {
 #[must_use]
 pub struct SerializeRequest {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
     #[get_copy = "pub"]
     format: ConversionFormat,
     #[get_copy = "pub"]
@@ -60,7 +60,7 @@ pub fn serialize<C: ConverterPort>(
 ) -> Result<SerializeResponse, SerializeError> {
     converter
         .serialize(
-            &request.operations(),
+            request.circuit().as_ref(),
             request.format(),
             request.prettify(),
             request.indentation(),

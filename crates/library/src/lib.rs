@@ -21,14 +21,17 @@ pub use interface::display::{
     graph_display::DiracFormat,
 };
 pub use interface::{
-    dto::gate_operation::{GateOperation, GateOperationError},
+    dto::{
+        circuit::Circuit,
+        gate_operation::{GateOperation, GateOperationError},
+    },
     projection::{
         contextual_node_view::ContextualNodeView, edge_view::EdgeView, node_view::NodeView,
     },
 };
 
 pub mod mapper {
-    pub use crate::interface::dto::mapper::{graph_to_operations, operations_to_graph};
+    pub use crate::interface::dto::mapper::{circuit_to_graph, graph_to_circuit};
 }
 
 pub mod formatter {

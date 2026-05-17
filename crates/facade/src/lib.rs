@@ -26,14 +26,14 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
 use inew::New;
-use qsimplify::{DiracFormat, GateOperation, PiFormat, mapper, simplifier};
+use qsimplify::{Circuit, DiracFormat, PiFormat, mapper, simplifier};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct DisplayRequest {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
     #[get_copy = "pub"]
     format: DisplayFormat,
     #[get_copy = "pub"]
@@ -62,7 +62,7 @@ pub struct DisplayResponse {
 #[must_use]
 pub struct SimplificationRequest {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
     #[get_copy = "pub"]
     iterations: u32,
 }
@@ -72,13 +72,13 @@ pub struct SimplificationRequest {
 #[must_use]
 pub struct SimplificationResponse {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
 }
 
 pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError> {
     use DisplayFormat::*;
 
-    let graph = mapper::operations_to_graph(&request.operations());
+    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
     let pi_format = request.pi_format().unwrap_or(PiFormat::Fancy);
     let dirac_format = request.dirac_format().unwrap_or(DiracFormat::Fancy);
 
@@ -94,9 +94,9 @@ pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError
 pub fn simplify(
     request: &SimplificationRequest,
 ) -> Result<SimplificationResponse, SimplificationError> {
-    let graph = mapper::operations_to_graph(&request.operations());
+    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
     let simplified = simplifier::simplify(graph, request.iterations());
 
-    let operations = mapper::graph_to_operations(&simplified);
-    Ok(SimplificationResponse::new(operations.into()))
+    let circuit = mapper::graph_to_circuit(&simplified);
+    Ok(SimplificationResponse::new(circuit.into()))
 }

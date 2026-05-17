@@ -6,13 +6,16 @@ The `Graph` is now hand-written in pure Rust, instead of using a library impleme
 
 Internally, the `Graph` stores:
 
+- The height (qubit count) as a `usize`.
 - Every node as a `HashMap<Position, NodeData>`.
 - Outgoing edges as a `HashMap<Position, Vec<EdgeData>>`.
 - Incoming edges as a `HashMap<Position, Vec<EdgeData>>`.
 
+The initial height is stored when the graph is first created, then updated accordingly as the graph is modified. It's required to store it in this version to allow proper equivalent graph comparisons for empty graphs with a specific size.
+
 Outgoing edges are the single source of truth for edge connections, and incoming edges are only used for fast lookups of the other end of an edge.
 
-Nodes are now stored in a sparse way, which means that empty spaces don't hold an `ID` gate anymore. This makes pattern matching and simplification algorithms much easier to implement.
+Nodes are now stored in a sparse way, which means that empty spaces don't hold an `ID` gate anymore, and there can be horizontal gaps. This makes pattern matching and simplification algorithms much easier to implement.
 
 Redundant edge types have been removed:
 
@@ -32,3 +35,5 @@ Some gates have differences in their graph representation:
 - Since `CP` is a bidirectional gate, it now stores the angle on both sides, and its edges have been replaced by `WorksWith`.
 
 Operations are now stored in the `GateOperation` enum, which is essentially a tagged union and more strongly typed than [Pydantic](https://pydantic.dev/docs/)'s `BaseModel`.
+
+Simplification patterns now have a more robust set of validations to make sure that both sides of the equation are valid and actually equivalent.

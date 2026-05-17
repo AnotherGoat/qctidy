@@ -6,6 +6,7 @@ use faer::complex::Complex64;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use qsimplify::Circuit;
 use qsimplify::GateOperation;
 use qsimplify::GateOperationError;
 use qsimplify::GateType;
@@ -19,7 +20,7 @@ static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     })
 });
 
-pub(crate) fn extract_operations(circuit: &Bound<'_, PyAny>) -> PyResult<Vec<GateOperation>> {
+pub(crate) fn extract_circuit(circuit: &Bound<'_, PyAny>) -> PyResult<Circuit> {
     let data = circuit.getattr("data")?;
     let mut operations = Vec::new();
 
@@ -31,7 +32,7 @@ pub(crate) fn extract_operations(circuit: &Bound<'_, PyAny>) -> PyResult<Vec<Gat
         }
     }
 
-    Ok(operations)
+    Ok(Circuit::from_operations(operations))
 }
 
 fn parse_instruction(

@@ -137,9 +137,9 @@ pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     }
 
     let mut result = identity(size);
-    let operations = mapper::graph_to_operations(graph);
+    let circuit = mapper::graph_to_circuit(graph);
 
-    for operation in operations {
+    for operation in circuit.operations() {
         if let Some(unitary) = operation_to_matrix(&operation, height) {
             result = &unitary * &result;
         }

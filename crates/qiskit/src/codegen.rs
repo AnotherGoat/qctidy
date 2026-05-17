@@ -37,9 +37,9 @@ fn generate_code(
     target: PythonCodeGenerationTarget,
     circuit_name: Option<String>,
 ) -> PyResult<Py<PyString>> {
-    let operations = extractor::extract_operations(circuit)?;
+    let extracted = extractor::extract_circuit(circuit)?;
     let request = CodeGenerationRequest::new(
-        operations.into(),
+        extracted.into(),
         CodeGenerationTarget::from(target),
         circuit_name,
     );

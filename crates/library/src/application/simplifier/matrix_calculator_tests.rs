@@ -9,8 +9,8 @@ use EdgeType::*;
 use GateType::*;
 
 #[test]
-fn empty_graph_matrix() {
-    let graph = Graph::new();
+fn zero_qubits_matrix() {
+    let graph = Graph::default();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::identity(1, 1);
@@ -19,8 +19,32 @@ fn empty_graph_matrix() {
 }
 
 #[test]
+fn empty_matrix() {
+    let identity2 = Graph::new(1);
+
+    assert!(math::are_matrices_equal(
+        &graph_circuit_matrix(&identity2),
+        &Mat::identity(2, 2)
+    ));
+
+    let identity4 = Graph::new(2);
+
+    assert!(math::are_matrices_equal(
+        &graph_circuit_matrix(&identity4),
+        &Mat::identity(4, 4)
+    ));
+
+    let identity8 = Graph::new(3);
+
+    assert!(math::are_matrices_equal(
+        &graph_circuit_matrix(&identity8),
+        &Mat::identity(8, 8)
+    ));
+}
+
+#[test]
 fn identity_matrix() {
-    let mut identity2 = Graph::new();
+    let mut identity2 = Graph::default();
     identity2.replace_node(ID, Position::new(0, 0), None, None);
 
     assert!(math::are_matrices_equal(
@@ -28,7 +52,7 @@ fn identity_matrix() {
         &Mat::identity(2, 2)
     ));
 
-    let mut identity4 = Graph::new();
+    let mut identity4 = Graph::default();
     identity4.replace_node(ID, Position::new(0, 0), None, None);
     identity4.replace_node(ID, Position::new(1, 0), None, None);
 
@@ -37,7 +61,7 @@ fn identity_matrix() {
         &Mat::identity(4, 4)
     ));
 
-    let mut identity8 = Graph::new();
+    let mut identity8 = Graph::default();
     identity8.replace_node(ID, Position::new(0, 0), None, None);
     identity8.replace_node(ID, Position::new(1, 0), None, None);
     identity8.replace_node(ID, Position::new(2, 0), None, None);
@@ -51,7 +75,7 @@ fn identity_matrix() {
 #[test]
 #[expect(clippy::unnested_or_patterns)]
 fn hadamard_matrix() {
-    let graph = GraphBuilder::new().push_h(0).build();
+    let graph = GraphBuilder::default().push_h(0).build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -67,7 +91,7 @@ fn hadamard_matrix() {
 
 #[test]
 fn x_matrix() {
-    let graph = GraphBuilder::new().push_x(0).build();
+    let graph = GraphBuilder::default().push_x(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -81,7 +105,7 @@ fn x_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn x_matrix_surrounded_by_identities() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(ID, Position::new(0, 0), None, None);
     graph.replace_node(X, Position::new(0, 1), None, None);
@@ -105,7 +129,7 @@ fn x_matrix_surrounded_by_identities() {
 
 #[test]
 fn y_matrix() {
-    let graph = GraphBuilder::new().push_y(0).build();
+    let graph = GraphBuilder::default().push_y(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -119,7 +143,7 @@ fn y_matrix() {
 
 #[test]
 fn z_matrix() {
-    let graph = GraphBuilder::new().push_z(0).build();
+    let graph = GraphBuilder::default().push_z(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -134,7 +158,10 @@ fn z_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn phase_matrix() {
-    let graph = GraphBuilder::new().push_p(FRAC_PI_2, 0).unwrap().build();
+    let graph = GraphBuilder::default()
+        .push_p(FRAC_PI_2, 0)
+        .unwrap()
+        .build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -149,7 +176,10 @@ fn phase_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn rx_matrix() {
-    let graph = GraphBuilder::new().push_rx(FRAC_PI_2, 0).unwrap().build();
+    let graph = GraphBuilder::default()
+        .push_rx(FRAC_PI_2, 0)
+        .unwrap()
+        .build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -165,7 +195,10 @@ fn rx_matrix() {
 #[test]
 #[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn ry_matrix() {
-    let graph = GraphBuilder::new().push_ry(FRAC_PI_2, 0).unwrap().build();
+    let graph = GraphBuilder::default()
+        .push_ry(FRAC_PI_2, 0)
+        .unwrap()
+        .build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -181,7 +214,10 @@ fn ry_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn rz_matrix() {
-    let graph = GraphBuilder::new().push_rz(FRAC_PI_2, 0).unwrap().build();
+    let graph = GraphBuilder::default()
+        .push_rz(FRAC_PI_2, 0)
+        .unwrap()
+        .build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -195,7 +231,7 @@ fn rz_matrix() {
 
 #[test]
 fn s_matrix() {
-    let graph = GraphBuilder::new().push_s(0).build();
+    let graph = GraphBuilder::default().push_s(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -209,7 +245,7 @@ fn s_matrix() {
 
 #[test]
 fn s_dagger_matrix() {
-    let graph = GraphBuilder::new().push_sdg(0).build();
+    let graph = GraphBuilder::default().push_sdg(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -223,7 +259,7 @@ fn s_dagger_matrix() {
 
 #[test]
 fn sqrt_x_matrix() {
-    let graph = GraphBuilder::new().push_sx(0).build();
+    let graph = GraphBuilder::default().push_sx(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = 0.5_f64
@@ -239,7 +275,7 @@ fn sqrt_x_matrix() {
 #[test]
 #[expect(clippy::unnested_or_patterns)]
 fn sqrt_y_matrix() {
-    let graph = GraphBuilder::new().push_sy(0).build();
+    let graph = GraphBuilder::default().push_sy(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = 0.5_f64
@@ -254,7 +290,7 @@ fn sqrt_y_matrix() {
 
 #[test]
 fn t_matrix() {
-    let graph = GraphBuilder::new().push_t(0).build();
+    let graph = GraphBuilder::default().push_t(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -268,7 +304,7 @@ fn t_matrix() {
 
 #[test]
 fn t_dagger_matrix() {
-    let graph = GraphBuilder::new().push_tdg(0).build();
+    let graph = GraphBuilder::default().push_tdg(0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -282,7 +318,7 @@ fn t_dagger_matrix() {
 
 #[test]
 fn empty_matrix_with_ignored_measurements() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_measure(0, 0)
         .push_measure(1, 1)
         .build();
@@ -295,7 +331,7 @@ fn empty_matrix_with_ignored_measurements() {
 
 #[test]
 fn x_matrix_with_ignored_measurement() {
-    let graph = GraphBuilder::new().push_x(0).push_measure(0, 0).build();
+    let graph = GraphBuilder::default().push_x(0).push_measure(0, 0).build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
@@ -309,7 +345,7 @@ fn x_matrix_with_ignored_measurement() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn swap_matrix() {
-    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -323,7 +359,7 @@ fn swap_matrix() {
 #[test]
 #[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn control_hadamard_matrix() {
-    let graph = GraphBuilder::new().push_ch(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -340,7 +376,7 @@ fn control_hadamard_matrix() {
 #[test]
 #[expect(clippy::unnested_or_patterns, clippy::unwrap_used)]
 fn reversed_ch_matrix() {
-    let graph = GraphBuilder::new().push_ch(1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_ch(1, 0).unwrap().build();
     let half_sqrt = 1.0_f64 / 2.0_f64.sqrt();
 
     let actual = graph_circuit_matrix(&graph);
@@ -357,7 +393,7 @@ fn reversed_ch_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn cx_matrix() {
-    let graph = GraphBuilder::new().push_cx(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_cx(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -371,7 +407,7 @@ fn cx_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn reverse_cx_matrix() {
-    let graph = GraphBuilder::new().push_cx(1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_cx(1, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -385,7 +421,7 @@ fn reverse_cx_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn cy_matrix() {
-    let graph = GraphBuilder::new().push_cy(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_cy(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -401,7 +437,7 @@ fn cy_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn reverse_cy_matrix() {
-    let graph = GraphBuilder::new().push_cy(1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_cy(1, 0).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -417,7 +453,7 @@ fn reverse_cy_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn control_phase_matrix() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cp(FRAC_PI_2, 0, 1)
         .unwrap()
         .build();
@@ -435,7 +471,7 @@ fn control_phase_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn cz_matrix() {
-    let graph = GraphBuilder::new().push_cz(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_cz(0, 1).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(4, 4, |row, column| match (row, column) {
@@ -450,7 +486,7 @@ fn cz_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn cswap_matrix() {
-    let graph = GraphBuilder::new().push_cswap(0, 1, 2).unwrap().build();
+    let graph = GraphBuilder::default().push_cswap(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -466,7 +502,7 @@ fn cswap_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn ccx_matrix() {
-    let graph = GraphBuilder::new().push_ccx(0, 1, 2).unwrap().build();
+    let graph = GraphBuilder::default().push_ccx(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -482,7 +518,7 @@ fn ccx_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn ccz_matrix() {
-    let graph = GraphBuilder::new().push_ccz(0, 1, 2).unwrap().build();
+    let graph = GraphBuilder::default().push_ccz(0, 1, 2).unwrap().build();
 
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(8, 8, |row, column| match (row, column) {
@@ -497,8 +533,8 @@ fn ccz_matrix() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_swap_permutations() {
-    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
-    let graph2 = GraphBuilder::new().push_swap(1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
+    let graph2 = GraphBuilder::default().push_swap(1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
@@ -506,8 +542,8 @@ fn equivalent_swap_permutations() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_cz_permutations() {
-    let graph = GraphBuilder::new().push_cz(0, 1).unwrap().build();
-    let graph2 = GraphBuilder::new().push_cz(1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_cz(0, 1).unwrap().build();
+    let graph2 = GraphBuilder::default().push_cz(1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
@@ -515,11 +551,11 @@ fn equivalent_cz_permutations() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_cp_permutations() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cp(FRAC_PI_2, 0, 1)
         .unwrap()
         .build();
-    let graph2 = GraphBuilder::new()
+    let graph2 = GraphBuilder::default()
         .push_cp(FRAC_PI_2, 1, 0)
         .unwrap()
         .build();
@@ -530,8 +566,8 @@ fn equivalent_cp_permutations() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_cswap_permutations() {
-    let graph = GraphBuilder::new().push_cswap(0, 1, 2).unwrap().build();
-    let graph2 = GraphBuilder::new().push_cswap(0, 2, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_cswap(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::default().push_cswap(0, 2, 1).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
@@ -539,8 +575,8 @@ fn equivalent_cswap_permutations() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_ccx_permutations() {
-    let graph = GraphBuilder::new().push_ccx(0, 1, 2).unwrap().build();
-    let graph2 = GraphBuilder::new().push_ccx(1, 0, 2).unwrap().build();
+    let graph = GraphBuilder::default().push_ccx(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::default().push_ccx(1, 0, 2).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
 }
@@ -548,12 +584,12 @@ fn equivalent_ccx_permutations() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn equivalent_ccz_permutations() {
-    let graph = GraphBuilder::new().push_ccz(0, 1, 2).unwrap().build();
-    let graph2 = GraphBuilder::new().push_ccz(0, 2, 1).unwrap().build();
-    let graph3 = GraphBuilder::new().push_ccz(1, 0, 2).unwrap().build();
-    let graph4 = GraphBuilder::new().push_ccz(1, 2, 0).unwrap().build();
-    let graph5 = GraphBuilder::new().push_ccz(2, 0, 1).unwrap().build();
-    let graph6 = GraphBuilder::new().push_ccz(2, 1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_ccz(0, 1, 2).unwrap().build();
+    let graph2 = GraphBuilder::default().push_ccz(0, 2, 1).unwrap().build();
+    let graph3 = GraphBuilder::default().push_ccz(1, 0, 2).unwrap().build();
+    let graph4 = GraphBuilder::default().push_ccz(1, 2, 0).unwrap().build();
+    let graph5 = GraphBuilder::default().push_ccz(2, 0, 1).unwrap().build();
+    let graph6 = GraphBuilder::default().push_ccz(2, 1, 0).unwrap().build();
 
     assert!(are_graphs_equivalent(&graph, &graph2));
     assert!(are_graphs_equivalent(&graph, &graph3));

@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
 
-pub fn register(registry: &mut RuleRegistry) {
+pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register(Arc::new(double_hadamard()));
 }
 
 pub(crate) fn double_hadamard() -> PatternRule {
-    let lhs = GraphBuilder::new().push_h(0).push_h(0).build();
-    let rhs = GraphBuilder::new().build();
+    let lhs = GraphBuilder::default().push_h(0).push_h(0).build();
+    let rhs = GraphBuilder::new(1).build();
 
     PatternRule::new(
         RuleMetadata::new(
@@ -24,8 +24,8 @@ pub(crate) fn double_hadamard() -> PatternRule {
 }
 
 pub(crate) fn double_x() -> PatternRule {
-    let lhs = GraphBuilder::new().push_x(0).push_x(0).build();
-    let rhs = GraphBuilder::new().build();
+    let lhs = GraphBuilder::default().push_x(0).push_x(0).build();
+    let rhs = GraphBuilder::new(1).build();
 
     PatternRule::new(
         RuleMetadata::new(

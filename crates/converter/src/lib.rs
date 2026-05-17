@@ -1,28 +1,23 @@
-use qsimplify::GateOperation;
+use qsimplify::Circuit;
 use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
-pub mod json;
-pub mod message_pack;
-pub mod xml;
+use crate::formats::{json, message_pack, xml};
 
-#[cfg(test)]
-mod json_tests;
+mod formats;
+pub(crate) mod shared;
 
-#[cfg(test)]
-mod message_pack_tests;
+pub use formats::json::{parse as parse_json, serialize as serialize_json};
+pub use formats::message_pack::{parse as parse_msgpack, serialize as serialize_msgpack};
+pub use formats::xml::{parse as parse_xml, serialize as serialize_xml};
 
-#[cfg(test)]
-mod xml_tests;
+/// Current format version used for parsing and serializing, for any `ConversionFormat`.
+pub const CURRENT_FORMAT_VERSION: u16 = 1;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ConverterAdapter;
 
 impl ConverterPort for ConverterAdapter {
-    fn parse(
-        &self,
-        input: &[u8],
-        format: ConversionFormat,
-    ) -> Result<Vec<GateOperation>, ParseError> {
+    fn parse(&self, input: &[u8], format: ConversionFormat) -> Result<Circuit, ParseError> {
         use ConversionFormat::*;
 
         match format {
@@ -34,7 +29,7 @@ impl ConverterPort for ConverterAdapter {
 
     fn serialize(
         &self,
-        operations: &[GateOperation],
+        circuit: &Circuit,
         format: ConversionFormat,
         prettify: Option<bool>,
         indentation: Option<usize>,
@@ -42,17 +37,9 @@ impl ConverterPort for ConverterAdapter {
         use ConversionFormat::*;
 
         match format {
-            Json => json::serialize(
-                operations,
-                prettify.unwrap_or(false),
-                indentation.unwrap_or(2),
-            ),
-            Xml => xml::serialize(
-                operations,
-                prettify.unwrap_or(false),
-                indentation.unwrap_or(2),
-            ),
-            MessagePack => message_pack::serialize(operations),
+            Json => json::serialize(circuit, prettify.unwrap_or(false), indentation.unwrap_or(2)),
+            Xml => xml::serialize(circuit, prettify.unwrap_or(false), indentation.unwrap_or(2)),
+            MessagePack => message_pack::serialize(circuit),
         }
     }
 }

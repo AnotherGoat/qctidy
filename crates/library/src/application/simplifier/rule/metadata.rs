@@ -2,7 +2,7 @@ use getset::{CopyGetters, Getters};
 use inew::New;
 
 /// Metadata associated with a graph simplification rule.
-#[derive(Debug, Clone, Getters, CopyGetters, New)]
+#[derive(Debug, Clone, Copy, Getters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct RuleMetadata {

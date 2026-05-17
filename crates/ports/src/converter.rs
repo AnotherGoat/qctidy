@@ -1,16 +1,12 @@
-use qsimplify::GateOperation;
+use qsimplify::Circuit;
 use thiserror::Error;
 
 pub trait ConverterPort {
-    fn parse(
-        &self,
-        input: &[u8],
-        format: ConversionFormat,
-    ) -> Result<Vec<GateOperation>, ParseError>;
+    fn parse(&self, input: &[u8], format: ConversionFormat) -> Result<Circuit, ParseError>;
 
     fn serialize(
         &self,
-        operations: &[GateOperation],
+        circuit: &Circuit,
         format: ConversionFormat,
         prettify: Option<bool>,
         indentation: Option<usize>,
@@ -41,6 +37,11 @@ pub enum ParseError {
     UnknownField { field: String, gate: String },
     #[error("Unknown gate type: '{gate}'")]
     UnknownGateType { gate: String },
+    #[error("Unsupported {format} input version: {version}")]
+    UnsupportedVersion {
+        format: ConversionFormat,
+        version: u16,
+    },
     #[error("Unsupported conversion format")]
     UnsupportedFormat,
 }

@@ -127,11 +127,11 @@
 
 ### Format Conversion (converter)
 
-- [x] JSON parsing and serialization
-- [X] Customizable JSON pretty-printing
-- [ ] MessagePack parsing and serialization
-- [ ] Binary format
-- [ ] Base64 encoding
+- [x] JSON and XML parsing and serialization
+- [X] Customizable JSON and XML pretty-printing
+- [X] MessagePack parsing and serialization
+- [X] Add format version when serializing
+- [ ] Try all the parsers from newest to oldest until one works when no version is specified
 
 ### Circuit Visualization (presenter)
 

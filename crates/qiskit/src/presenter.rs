@@ -39,9 +39,8 @@ fn present(
     format: PythonPresentationFormat,
     dpi: Option<u32>,
 ) -> PyResult<Vec<u8>> {
-    let operations = extractor::extract_operations(circuit)?;
-    let request =
-        PresentationRequest::new(operations.into(), PresentationFormat::from(format), dpi);
+    let extracted = extractor::extract_circuit(circuit)?;
+    let request = PresentationRequest::new(extracted.into(), PresentationFormat::from(format), dpi);
 
     let response = qsimplify_facade::present(&request, &GraphvizPresenter)
         .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;

@@ -101,9 +101,9 @@ fn display(
     pi_format: Option<PythonPiFormat>,
     dirac_format: Option<PythonDiracFormat>,
 ) -> PyResult<String> {
-    let operations = extractor::extract_operations(circuit)?;
+    let extracted = extractor::extract_circuit(circuit)?;
     let request = DisplayRequest::new(
-        operations.into(),
+        extracted.into(),
         DisplayFormat::from(format),
         pi_format.map(PiFormat::from),
         dirac_format.map(DiracFormat::from),
@@ -121,13 +121,13 @@ fn simplify(
     circuit: &Bound<'_, PyAny>,
     iterations: u32,
 ) -> PyResult<Py<PyAny>> {
-    let operations = extractor::extract_operations(circuit)?;
-    let request = SimplificationRequest::new(operations.into(), iterations);
+    let extracted = extractor::extract_circuit(circuit)?;
+    let request = SimplificationRequest::new(extracted.into(), iterations);
 
     let response = qsimplify_facade::simplify(&request)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
-    circuit::operations_to_circuit(python, &response.operations())
+    circuit::circuit_to_qiskit(python, response.circuit().as_ref())
 }
 
 #[pyo3::pymodule]

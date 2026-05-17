@@ -3,7 +3,7 @@ use crate::{GraphBuilder, Position};
 
 #[test]
 fn iter_positions_ordered_by_row() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
         .push_h(2)
@@ -23,7 +23,7 @@ fn iter_positions_ordered_by_row() {
 
 #[test]
 fn iter_positions_ordered_by_column() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
         .push_h(2)
@@ -43,7 +43,7 @@ fn iter_positions_ordered_by_column() {
 
 #[test]
 fn iter_positions_ordered_by_column_in_sparse_graph() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(2, 4), None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None);
@@ -59,7 +59,7 @@ fn iter_positions_ordered_by_column_in_sparse_graph() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn iter_nodes_ordered_by_row() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
         .push_cx(0, 1)
@@ -81,7 +81,7 @@ fn iter_nodes_ordered_by_row() {
 
 #[test]
 fn iter_positions_ordered_by_row_in_sparse_graph() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(2, 4), None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None);
@@ -97,7 +97,7 @@ fn iter_positions_ordered_by_row_in_sparse_graph() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn iter_nodes_ordered_by_column() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
         .push_cx(0, 1)

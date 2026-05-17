@@ -7,7 +7,7 @@ use GateType::*;
 
 #[test]
 fn empty_graph_builder_builds_empty_valid_graph() {
-    let graph = GraphBuilder::new().build();
+    let graph = GraphBuilder::default().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter
@@ -21,8 +21,39 @@ fn empty_graph_builder_builds_empty_valid_graph() {
 }
 
 #[test]
+fn graph_builder_with_initial_size() {
+    let size1 = GraphBuilder::new(1).build();
+    let asserter1 = GraphAsserter::new(&size1);
+
+    asserter1
+        .is_empty()
+        .has_size(0)
+        .has_width(0)
+        .has_height(1)
+        .has_bits(0);
+
+    size1.validate_internal();
+
+    let size2: crate::Graph = GraphBuilder::new(2).build();
+    let asserter2 = GraphAsserter::new(&size2);
+
+    asserter2
+        .is_empty()
+        .has_size(0)
+        .has_width(0)
+        .has_height(2)
+        .has_bits(0);
+
+    size2.validate_internal();
+}
+
+#[test]
 fn push_id_is_noop() {
-    let graph = GraphBuilder::new().push_id(0).push_id(0).push_id(1).build();
+    let graph = GraphBuilder::default()
+        .push_id(0)
+        .push_id(0)
+        .push_id(1)
+        .build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter
@@ -37,7 +68,7 @@ fn push_id_is_noop() {
 
 #[test]
 fn push_single_gate_calculates_column() {
-    let graph = GraphBuilder::new().push_h(0).push_x(0).build();
+    let graph = GraphBuilder::default().push_h(0).push_x(0).build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(2).has_width(2).has_height(1).has_bits(0);
@@ -50,7 +81,11 @@ fn push_single_gate_calculates_column() {
 
 #[test]
 fn push_single_gates_links_row_neighbors() {
-    let graph = GraphBuilder::new().push_x(0).push_y(0).push_z(0).build();
+    let graph = GraphBuilder::default()
+        .push_x(0)
+        .push_y(0)
+        .push_z(0)
+        .build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(3).has_width(3).has_height(1).has_bits(0);
@@ -70,7 +105,7 @@ fn push_single_gates_links_row_neighbors() {
 
 #[test]
 fn push_single_gates_in_different_rows() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_s(0)
         .push_sdg(0)
         .push_sx(1)
@@ -107,7 +142,7 @@ fn push_single_gates_in_different_rows() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_rotation_and_measure_gates_store_payloads() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_p(FRAC_PI_2, 0)
         .unwrap()
         .push_rx(PI, 0)
@@ -158,7 +193,7 @@ fn push_rotation_and_measure_gates_store_payloads() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_control_creates_multiple_nodes() {
-    let graph = GraphBuilder::new().push_ch(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(2).has_width(1).has_height(2).has_bits(0);
@@ -172,7 +207,7 @@ fn push_control_creates_multiple_nodes() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_control_creates_relationships() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cx(0, 1)
         .unwrap()
         .push_cy(1, 0)
@@ -208,7 +243,7 @@ fn push_control_creates_relationships() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_swap_builds_swap_pair() {
-    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(2).has_width(1).has_height(2).has_bits(0);
@@ -225,7 +260,7 @@ fn push_swap_builds_swap_pair() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_cz_builds_symmetric_edges() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cz(0, 1)
         .unwrap()
         .push_cz(1, 0)
@@ -255,7 +290,7 @@ fn push_cz_builds_symmetric_edges() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_cp_builds_edges_and_payload() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cp(PI, 0, 1)
         .unwrap()
         .push_cp(-PI, 1, 0)
@@ -301,7 +336,7 @@ fn push_cp_builds_edges_and_payload() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_cswap_builds_control_and_swap_edges() {
-    let graph = GraphBuilder::new().push_cswap(1, 0, 2).unwrap().build();
+    let graph = GraphBuilder::default().push_cswap(1, 0, 2).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
@@ -333,7 +368,7 @@ fn push_cswap_builds_control_and_swap_edges() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_ccx_builds_two_control_qubits() {
-    let graph = GraphBuilder::new().push_ccx(2, 0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_ccx(2, 0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
@@ -362,7 +397,7 @@ fn push_ccx_builds_two_control_qubits() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn push_ccz_builds_triple_symmetric_edges() {
-    let graph = GraphBuilder::new().push_ccz(2, 1, 0).unwrap().build();
+    let graph = GraphBuilder::default().push_ccz(2, 1, 0).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
     asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
@@ -383,7 +418,7 @@ fn push_ccz_builds_triple_symmetric_edges() {
 #[test]
 #[expect(clippy::panic)]
 fn push_p_rejects_infinity() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_p(f64::INFINITY, 0);
 
     match positive {
@@ -393,7 +428,7 @@ fn push_p_rejects_infinity() {
         _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let negative = builder2.push_p(f64::NEG_INFINITY, 0);
 
     match negative {
@@ -407,7 +442,7 @@ fn push_p_rejects_infinity() {
 #[test]
 #[expect(clippy::panic)]
 fn push_p_rejects_nan() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_p(f64::NAN, 0);
 
     match result {
@@ -419,7 +454,7 @@ fn push_p_rejects_nan() {
 #[test]
 #[expect(clippy::panic)]
 fn push_rx_rejects_infinity() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_rx(f64::INFINITY, 0);
 
     match positive {
@@ -429,7 +464,7 @@ fn push_rx_rejects_infinity() {
         _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let negative = builder2.push_rx(f64::NEG_INFINITY, 0);
 
     match negative {
@@ -443,7 +478,7 @@ fn push_rx_rejects_infinity() {
 #[test]
 #[expect(clippy::panic)]
 fn push_rx_rejects_nan() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_rx(f64::NAN, 0);
 
     match result {
@@ -455,7 +490,7 @@ fn push_rx_rejects_nan() {
 #[test]
 #[expect(clippy::panic)]
 fn push_ry_rejects_infinity() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_ry(f64::INFINITY, 0);
 
     match positive {
@@ -465,7 +500,7 @@ fn push_ry_rejects_infinity() {
         _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let negative = builder2.push_ry(f64::NEG_INFINITY, 0);
 
     match negative {
@@ -479,7 +514,7 @@ fn push_ry_rejects_infinity() {
 #[test]
 #[expect(clippy::panic)]
 fn push_ry_rejects_nan() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_ry(f64::NAN, 0);
 
     match result {
@@ -491,7 +526,7 @@ fn push_ry_rejects_nan() {
 #[test]
 #[expect(clippy::panic)]
 fn push_rz_rejects_infinity() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_rz(f64::INFINITY, 0);
 
     match positive {
@@ -501,7 +536,7 @@ fn push_rz_rejects_infinity() {
         _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let negative = builder2.push_rz(f64::NEG_INFINITY, 0);
 
     match negative {
@@ -515,7 +550,7 @@ fn push_rz_rejects_infinity() {
 #[test]
 #[expect(clippy::panic)]
 fn push_rz_rejects_nan() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_rz(f64::NAN, 0);
 
     match result {
@@ -527,7 +562,7 @@ fn push_rz_rejects_nan() {
 #[test]
 #[expect(clippy::panic)]
 fn push_swap_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_swap(0, 0);
 
     match result {
@@ -539,7 +574,7 @@ fn push_swap_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_ch_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_ch(0, 0);
 
     match result {
@@ -551,7 +586,7 @@ fn push_ch_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cx_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_cx(0, 0);
 
     match result {
@@ -563,7 +598,7 @@ fn push_cx_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cy_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_cy(0, 0);
 
     match result {
@@ -575,7 +610,7 @@ fn push_cy_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cz_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_cz(0, 0);
 
     match result {
@@ -587,7 +622,7 @@ fn push_cz_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cp_rejects_infinity() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_cp(f64::INFINITY, 0, 1);
 
     match positive {
@@ -597,7 +632,7 @@ fn push_cp_rejects_infinity() {
         _ => panic!("Expected NonFiniteAngle error, got: {positive:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let negative = builder2.push_cp(f64::NEG_INFINITY, 0, 1);
 
     match negative {
@@ -611,7 +646,7 @@ fn push_cp_rejects_infinity() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cp_rejects_nan() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_cp(f64::NAN, 0, 1);
 
     match result {
@@ -623,7 +658,7 @@ fn push_cp_rejects_nan() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cp_rejects_same_qubit() {
-    let mut builder = GraphBuilder::new();
+    let mut builder = GraphBuilder::default();
     let result = builder.push_cp(PI, 0, 0);
 
     match result {
@@ -635,7 +670,7 @@ fn push_cp_rejects_same_qubit() {
 #[test]
 #[expect(clippy::panic)]
 fn push_cswap_rejects_repeated_qubits() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_cswap(0, 0, 1);
 
     match first_two {
@@ -643,7 +678,7 @@ fn push_cswap_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let last_two = builder2.push_cswap(1, 0, 0);
 
     match last_two {
@@ -651,7 +686,7 @@ fn push_cswap_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
     }
 
-    let mut builder3 = GraphBuilder::new();
+    let mut builder3 = GraphBuilder::default();
     let extremes = builder3.push_cswap(0, 1, 0);
 
     match extremes {
@@ -659,7 +694,7 @@ fn push_cswap_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
     }
 
-    let mut builder4 = GraphBuilder::new();
+    let mut builder4 = GraphBuilder::default();
     let all = builder4.push_cswap(0, 0, 0);
 
     match all {
@@ -671,7 +706,7 @@ fn push_cswap_rejects_repeated_qubits() {
 #[test]
 #[expect(clippy::panic)]
 fn push_ccx_rejects_repeated_qubits() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_ccx(1, 1, 0);
 
     match first_two {
@@ -679,7 +714,7 @@ fn push_ccx_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let last_two = builder2.push_ccx(0, 1, 1);
 
     match last_two {
@@ -687,7 +722,7 @@ fn push_ccx_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
     }
 
-    let mut builder3 = GraphBuilder::new();
+    let mut builder3 = GraphBuilder::default();
     let extremes = builder3.push_ccx(1, 0, 1);
 
     match extremes {
@@ -695,7 +730,7 @@ fn push_ccx_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
     }
 
-    let mut builder4 = GraphBuilder::new();
+    let mut builder4 = GraphBuilder::default();
     let all = builder4.push_ccx(1, 1, 1);
 
     match all {
@@ -707,7 +742,7 @@ fn push_ccx_rejects_repeated_qubits() {
 #[test]
 #[expect(clippy::panic)]
 fn push_ccz_rejects_repeated_qubits() {
-    let mut builder1 = GraphBuilder::new();
+    let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_ccz(1, 1, 2);
 
     match first_two {
@@ -715,7 +750,7 @@ fn push_ccz_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {first_two:?}"),
     }
 
-    let mut builder2 = GraphBuilder::new();
+    let mut builder2 = GraphBuilder::default();
     let last_two = builder2.push_ccz(2, 1, 1);
 
     match last_two {
@@ -723,7 +758,7 @@ fn push_ccz_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {last_two:?}"),
     }
 
-    let mut builder3 = GraphBuilder::new();
+    let mut builder3 = GraphBuilder::default();
     let extremes = builder3.push_ccz(1, 2, 1);
 
     match extremes {
@@ -731,7 +766,7 @@ fn push_ccz_rejects_repeated_qubits() {
         _ => panic!("Expected RepeatedQubits error, got: {extremes:?}"),
     }
 
-    let mut builder4 = GraphBuilder::new();
+    let mut builder4 = GraphBuilder::default();
     let all = builder4.push_ccz(1, 1, 1);
 
     match all {

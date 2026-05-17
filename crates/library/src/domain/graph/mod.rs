@@ -60,6 +60,11 @@ struct EdgeData {
 #[derive(Default, Debug, Clone)]
 #[must_use]
 pub struct Graph {
+    qubit_count: usize,
+    time_step_count: usize,
+    row_node_counts: Vec<usize>,
+    column_node_counts: Vec<usize>,
+    bit_count: usize,
     pub(self) nodes: HashMap<Position, NodeData>,
     // Note: `edges_out` is the single source of truth for a graph's edges
     pub(self) edges_out: HashMap<Position, Vec<EdgeData>>,
@@ -75,7 +80,7 @@ impl PartialEq for Graph {
     /// Floating point values are compared using a relative tolerance of 1e-5 and an absolute tolerance of 1e-8.
     /// This means that graph equality is non-transitive, but in practice this should be fine because floats are already non-deterministic across different hardware.
     fn eq(&self, other: &Self) -> bool {
-        if self.nodes.len() != other.nodes.len() {
+        if self.qubit_count != other.qubit_count || self.nodes.len() != other.nodes.len() {
             return false;
         }
 
@@ -120,40 +125,49 @@ impl PartialEq for Graph {
 impl Eq for Graph {}
 
 impl Graph {
-    /// Create an empty `Graph`.
-    pub fn new() -> Self {
-        Self::default()
+    /// Create an empty `Graph` of the specified initial qubit count.
+    pub fn new(initial_qubit_count: usize) -> Self {
+        Self {
+            qubit_count: initial_qubit_count,
+            row_node_counts: vec![0; initial_qubit_count],
+            ..Default::default()
+        }
     }
 
-    /// The number of columns in the graph. Also known as the graph depth.
+    /// The number of columns (time steps) in the graph. Also known as the graph depth.
+    ///
+    /// O(1).
     #[must_use]
     pub fn width(&self) -> usize {
-        self.nodes
-            .keys()
-            .map(Position::column)
-            .max()
-            .map_or(0, |column| column + 1)
+        self.time_step_count
+    }
+
+    fn ensure_column_capacity(&mut self, column: usize) {
+        if column >= self.column_node_counts.len() {
+            self.column_node_counts.resize(column + 1, 0);
+        }
     }
 
     /// The number of rows (qubits) in the graph.
+    ///
+    /// O(1).
     #[must_use]
     pub fn height(&self) -> usize {
-        self.nodes
-            .keys()
-            .map(Position::row)
-            .max()
-            .map_or(0, |row| row + 1)
+        self.qubit_count
+    }
+
+    fn ensure_row_capacity(&mut self, row: usize) {
+        if row >= self.row_node_counts.len() {
+            self.row_node_counts.resize(row + 1, 0);
+        }
     }
 
     /// The number of classical bits in the graph.
+    ///
+    /// O(1).
     #[must_use]
     pub fn bits(&self) -> usize {
-        self.nodes
-            .values()
-            .filter(|node| node.gate == GateType::Measure)
-            .filter_map(|node| node.bit)
-            .max()
-            .map_or(0, |bit| bit + 1)
+        self.bit_count
     }
 
     /// Check whether this graph is empty (has no gates) or not.
@@ -171,6 +185,7 @@ impl Graph {
     /// Add a new node to the graph.
     ///
     /// Returns an error if a node already exists at the specified position.
+    /// Increases the graph height if necessary.
     pub fn add_node(
         &mut self,
         gate: GateType,
@@ -182,13 +197,32 @@ impl Graph {
             return Err(GraphError::NodeAlreadyExists { position });
         }
 
-        self.replace_node(gate, position, angle, bit);
+        let node = NodeData { gate, angle, bit };
+        self.insert_new_node(position, node);
         Ok(())
+    }
+
+    fn insert_new_node(&mut self, position: Position, node: NodeData) {
+        self.ensure_row_capacity(position.row());
+        self.ensure_column_capacity(position.column());
+
+        self.row_node_counts[position.row()] += 1;
+        self.column_node_counts[position.column()] += 1;
+
+        self.qubit_count = self.row_node_counts.len();
+        self.time_step_count = self.time_step_count.max(position.column() + 1);
+
+        if let Some(bit) = node.bit {
+            self.bit_count = self.bit_count.max(bit + 1);
+        }
+
+        self.nodes.insert(position, node);
     }
 
     /// Replace the node at the specified position with the one provided.
     ///
     /// The node at the specified position is overwritten if present, or inserted if not.
+    /// Increases the graph height if necessary (when the node is inserted).
     pub fn replace_node(
         &mut self,
         gate: GateType,
@@ -196,46 +230,119 @@ impl Graph {
         angle: Option<f64>,
         bit: Option<usize>,
     ) {
-        self.nodes.insert(position, NodeData { gate, angle, bit });
+        let node = NodeData { gate, angle, bit };
+
+        if self.has_node_at(position) {
+            self.replace_existing_node(position, node);
+            return;
+        }
+
+        self.insert_new_node(position, node);
+    }
+
+    fn replace_existing_node(&mut self, position: Position, node: NodeData) {
+        let previous = self.nodes.insert(position, node.clone());
+
+        if let Some(bit) = node.bit {
+            self.bit_count = self.bit_count.max(bit + 1);
+        }
+
+        if let Some(previous_node) = previous
+            && let Some(bit) = previous_node.bit
+            && previous_node.gate == GateType::Measure
+            && bit + 1 == self.bit_count
+        {
+            self.update_bit_count();
+        }
     }
 
     /// Remove the node at the specified position and all its edges.
     ///
     /// If the node does not exist, nothing happens.
     /// If the removed node is horizontally between two nodes, these two nodes are joined.
+    /// Note that removing nodes does not affect the graph height.
     pub fn remove_node(&mut self, position: Position) {
-        if !self.has_node_at(position) {
-            return;
-        }
-
         let previous = self.previous_in_row(position);
         let next = self.next_in_row(position);
 
-        if let Some(out_edges) = self.edges_out.remove(&position) {
-            for outgoing_edge in out_edges {
-                if let Some(in_edges) = self.edges_in.get_mut(&outgoing_edge.other) {
-                    in_edges.retain(|edge| {
-                        !(edge.other == position && edge.edge_type == outgoing_edge.edge_type)
-                    });
-                }
-            }
+        if self.detach_node(position).is_none() {
+            return;
         }
-
-        if let Some(in_edges) = self.edges_in.remove(&position) {
-            for incoming_edge in in_edges {
-                if let Some(out_edges) = self.edges_out.get_mut(&incoming_edge.other) {
-                    out_edges.retain(|edge| {
-                        !(edge.other == position && edge.edge_type == incoming_edge.edge_type)
-                    });
-                }
-            }
-        }
-
-        self.nodes.remove(&position);
 
         if let (Some(left), Some(right)) = (previous, next) {
             self.add_edge_internal(EdgeType::Right, left, right);
         }
+    }
+
+    fn detach_node(
+        &mut self,
+        position: Position,
+    ) -> Option<(NodeData, Vec<EdgeData>, Vec<EdgeData>)> {
+        let node = self.nodes.remove(&position)?;
+
+        self.row_node_counts[position.row()] -= 1;
+        self.column_node_counts[position.column()] -= 1;
+
+        let outgoing = self.edges_out.remove(&position).unwrap_or_default();
+        let incoming = self.edges_in.remove(&position).unwrap_or_default();
+
+        for outgoing_edge in &outgoing {
+            if let Some(in_edges) = self.edges_in.get_mut(&outgoing_edge.other) {
+                in_edges.retain(|edge| {
+                    !(edge.other == position && edge.edge_type == outgoing_edge.edge_type)
+                });
+            }
+        }
+
+        for incoming_edge in &incoming {
+            if let Some(out_edges) = self.edges_out.get_mut(&incoming_edge.other) {
+                out_edges.retain(|edge| {
+                    !(edge.other == position && edge.edge_type == incoming_edge.edge_type)
+                });
+            }
+        }
+
+        if position.column() + 1 == self.time_step_count
+            && self.column_node_counts[position.column()] == 0
+        {
+            self.update_time_step_count();
+        }
+
+        if let Some(bit) = node.bit
+            && node.gate == GateType::Measure
+            && bit + 1 == self.bit_count
+        {
+            self.update_bit_count();
+        }
+
+        Some((node, outgoing, incoming))
+    }
+
+    fn update_time_step_count(&mut self) {
+        while self.time_step_count > 0 {
+            let last_column = self.time_step_count - 1;
+
+            let occupied = self
+                .column_node_counts
+                .get(last_column)
+                .is_some_and(|count| *count > 0);
+
+            if occupied {
+                break;
+            }
+
+            self.time_step_count -= 1;
+        }
+    }
+
+    fn update_bit_count(&mut self) {
+        self.bit_count = self
+            .nodes
+            .values()
+            .filter(|node| node.gate == GateType::Measure)
+            .filter_map(|node| node.bit)
+            .max()
+            .map_or(0, |bit| bit + 1);
     }
 
     /// Move the node at the specified position to another position, removing the node at the destination and its edges.
@@ -243,6 +350,7 @@ impl Graph {
     /// Using this with multi-qubit gates will most likely break the graph's semantic integrity.
     /// If no node exists at the start position, an error is returned.
     /// An error is also returned if the start and end positions are the same.
+    /// Increases the graph height if necessary.
     pub fn move_node(&mut self, start: Position, end: Position) -> Result<(), GraphError> {
         if !self.has_node_at(start) {
             return Err(GraphError::NodeNotFound { position: start });
@@ -254,30 +362,11 @@ impl Graph {
 
         self.remove_node(end);
 
-        let node = self
-            .nodes
-            .remove(&start)
+        let (node, outgoing, incoming) = self
+            .detach_node(start)
             .expect("Node at start position should exist");
-        let outgoing = self.edges_out.remove(&start).unwrap_or_default();
-        let incoming = self.edges_in.remove(&start).unwrap_or_default();
 
-        for outgoing_edge in &outgoing {
-            if let Some(in_edges) = self.edges_in.get_mut(&outgoing_edge.other) {
-                in_edges.retain(|edge| {
-                    !(edge.other == start && edge.edge_type == outgoing_edge.edge_type)
-                });
-            }
-        }
-
-        for incoming_edge in &incoming {
-            if let Some(out_edges) = self.edges_out.get_mut(&incoming_edge.other) {
-                out_edges.retain(|edge| {
-                    !(edge.other == start && edge.edge_type == incoming_edge.edge_type)
-                });
-            }
-        }
-
-        self.nodes.insert(end, node);
+        self.insert_new_node(end, node);
 
         for edge in outgoing {
             self.add_edge_internal(edge.edge_type, end, edge.other);
@@ -403,10 +492,19 @@ impl Graph {
     }
 
     /// Remove all the nodes and edges from the graph.
+    ///
+    /// Resets qubit count and bit count back to 0.
     pub fn clear(&mut self) {
         self.nodes.clear();
         self.edges_out.clear();
         self.edges_in.clear();
+
+        self.qubit_count = 0;
+        self.time_step_count = 0;
+        self.bit_count = 0;
+
+        self.row_node_counts.clear();
+        self.column_node_counts.clear();
     }
 
     /// Remove all the edges from the graph.
@@ -530,7 +628,7 @@ impl Graph {
     /// Validate the graph and confirm that it is internally consistent.
     ///
     /// This is only needed for graphs that are built manually.
-    /// Building the graph using the `GraphBuilder` will always result in an vaid graph, so calling this method is unnecessary for these cases.
+    /// Building the graph using the `GraphBuilder` will always result in an valid graph, so calling this method is unnecessary for these cases.
     // Note: The only exception to this is using the `put_*` methods from the builder.
     pub fn validate(&self) -> Result<(), GraphError> {
         structural_validator::validate(self)?;
@@ -546,13 +644,25 @@ impl Graph {
     }
 
     pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {
+        self.qubit_count = 0;
+        self.time_step_count = 0;
+        self.bit_count = 0;
+
+        self.row_node_counts.clear();
+        self.column_node_counts.clear();
+
         let mut new_nodes = HashMap::with_capacity(self.nodes.len());
         let mut new_edges_out = HashMap::new();
         let mut new_edges_in = HashMap::<Position, Vec<EdgeData>>::new();
 
         for (position, node) in self.nodes.drain() {
             let new_position = function(position);
-            new_nodes.insert(new_position, node);
+            let inserted = new_nodes.insert(new_position, node);
+
+            debug_assert!(
+                inserted.is_none(),
+                "Position remap produced duplicate node positions"
+            );
         }
 
         for (start, edges) in self.edges_out.drain() {
@@ -580,5 +690,27 @@ impl Graph {
         self.nodes = new_nodes;
         self.edges_out = new_edges_out;
         self.edges_in = new_edges_in;
+
+        let node_data = self
+            .nodes
+            .iter()
+            .map(|(position, node)| (*position, node.bit))
+            .collect::<Vec<_>>();
+
+        for (position, bit) in node_data {
+            self.ensure_row_capacity(position.row());
+            self.ensure_column_capacity(position.column());
+
+            self.row_node_counts[position.row()] += 1;
+            self.column_node_counts[position.column()] += 1;
+
+            self.time_step_count = self.time_step_count.max(position.column() + 1);
+
+            if let Some(bit) = bit {
+                self.bit_count = self.bit_count.max(bit + 1);
+            }
+        }
+
+        self.qubit_count = self.row_node_counts.len();
     }
 }

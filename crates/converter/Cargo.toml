@@ -15,6 +15,7 @@ categories = ["science", "encoding", "parser-implementations"]
 doctest = false
 
 [dependencies]
+o2o = { workspace = true }
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
 quick-xml = { workspace = true }

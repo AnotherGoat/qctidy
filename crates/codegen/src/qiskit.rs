@@ -2,12 +2,12 @@ use std::fmt::Write;
 
 use qsimplify::{
     AngleFormat, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
-    mapper::graph_to_operations,
+    mapper::graph_to_circuit,
 };
 
 /// Convert the provided graph into Python code that uses the Qiskit library.
 pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
-    let operations = graph_to_operations(graph);
+    let circuit = graph_to_circuit(graph);
     let mut imports = Vec::<String>::new();
     let mut build_steps = Vec::new();
 
@@ -28,7 +28,7 @@ pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
         ));
     }
 
-    for operation in operations {
+    for operation in circuit.operations() {
         generate_gate(circuit_name, &operation, &mut imports, &mut build_steps);
     }
 

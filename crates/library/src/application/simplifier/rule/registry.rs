@@ -3,11 +3,11 @@ use std::{
     sync::{Arc, LazyLock},
 };
 
-use crate::{RuleId, SimplificationRule, application::simplifier::rule::default};
+use crate::{RuleId, SimplificationRule};
 
 pub(crate) static DEFAULT_RULE_REGISTRY: LazyLock<RuleRegistry> = LazyLock::new(|| {
     let mut registry = RuleRegistry::new();
-    default::register_all(&mut registry);
+    // default::register_all(&mut registry);
     registry
 });
 

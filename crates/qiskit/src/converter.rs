@@ -41,7 +41,7 @@ fn parse(python: Python<'_>, input: &[u8], format: PythonConversionFormat) -> Py
     let response = qsimplify_facade::parse(&request, &ConverterAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
-    circuit::operations_to_circuit(python, &response.operations())
+    circuit::circuit_to_qiskit(python, response.circuit().as_ref())
 }
 
 #[pyfunction(signature = (circuit, format, prettify=None, indentation=None))]
@@ -51,8 +51,8 @@ fn serialize(
     prettify: Option<bool>,
     indentation: Option<usize>,
 ) -> PyResult<Vec<u8>> {
-    let operations = extractor::extract_operations(circuit)?;
-    let request = SerializeRequest::new(operations.into(), format.into(), prettify, indentation);
+    let extracted = extractor::extract_circuit(circuit)?;
+    let request = SerializeRequest::new(extracted.into(), format.into(), prettify, indentation);
 
     let response = qsimplify_facade::serialize(&request, &ConverterAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;

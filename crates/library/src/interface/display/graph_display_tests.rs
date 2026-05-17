@@ -5,7 +5,23 @@ use GateType::*;
 
 #[test]
 fn to_string_empty() {
-    let graph = Graph::new();
+    let graph = Graph::default();
+
+    let result = graph.to_string();
+
+    let expected = "\
+Nodes:
+(empty)
+
+Edges:
+(empty)";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn to_string_empty_with_initial_qubit_count() {
+    let graph = Graph::new(10);
 
     let result = graph.to_string();
 
@@ -21,7 +37,7 @@ Edges:
 
 #[test]
 fn to_string_single_node() {
-    let graph = GraphBuilder::new().push_h(0).build();
+    let graph = GraphBuilder::default().push_h(0).build();
 
     let result = graph.to_string();
 
@@ -37,7 +53,7 @@ Edges:
 
 #[test]
 fn to_string_skipping_first_row() {
-    let graph = GraphBuilder::new().push_h(1).build();
+    let graph = GraphBuilder::default().push_h(1).build();
 
     let result = graph.to_string();
 
@@ -53,7 +69,11 @@ Edges:
 
 #[test]
 fn to_string_multiple_nodes_no_edges() {
-    let graph = GraphBuilder::new().push_x(0).push_y(1).push_z(2).build();
+    let graph = GraphBuilder::default()
+        .push_x(0)
+        .push_y(1)
+        .push_z(2)
+        .build();
 
     let result = graph.to_string();
 
@@ -71,7 +91,7 @@ Edges:
 
 #[test]
 fn to_string_sparse_columns() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None);
     graph.replace_node(X, Position::new(0, 2), None, None);
@@ -92,7 +112,7 @@ Edges:
 #[test]
 #[expect(clippy::unwrap_used)]
 fn to_string_rotation_gates() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
         .unwrap()
         .push_ry(3.0 * PI, 1)
@@ -117,7 +137,7 @@ Edges:
 
 #[test]
 fn to_string_measurement_gates() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_measure(0, 0)
         .push_measure(1, 2)
         .push_measure(2, 1)
@@ -139,7 +159,11 @@ Edges:
 
 #[test]
 fn to_string_linear_chain() {
-    let graph = GraphBuilder::new().push_x(0).push_y(0).push_z(0).build();
+    let graph = GraphBuilder::default()
+        .push_x(0)
+        .push_y(0)
+        .push_z(0)
+        .build();
 
     let result = graph.to_string();
 
@@ -159,7 +183,7 @@ Edges:
 
 #[test]
 fn to_string_rows_and_columns() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_x(0)
         .push_y(1)
@@ -186,7 +210,7 @@ Edges:
 #[test]
 #[expect(clippy::unwrap_used)]
 fn to_string_swap_cycle() {
-    let graph = GraphBuilder::new().push_swap(0, 1).unwrap().build();
+    let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
 
     let result = graph.to_string();
 
@@ -206,7 +230,7 @@ Edges:
 #[test]
 #[expect(clippy::unwrap_used)]
 fn to_string_control_gates() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_cx(0, 1)
         .unwrap()
         .push_cy(1, 0)
@@ -236,7 +260,7 @@ Edges:
 #[test]
 #[expect(clippy::unwrap_used)]
 fn to_string_sorts_edges_of_same_type() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_ccx(1, 2, 0)
         .unwrap()
         .push_ccz(2, 0, 1)
@@ -279,7 +303,7 @@ Edges:
 
 #[test]
 fn display_grid_empty_graph() {
-    let graph = Graph::new();
+    let graph = Graph::new(2);
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -288,7 +312,7 @@ fn display_grid_empty_graph() {
 
 #[test]
 fn display_grid_single_gate() {
-    let graph = GraphBuilder::new().push_h(0).build();
+    let graph = GraphBuilder::default().push_h(0).build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -298,7 +322,7 @@ fn display_grid_single_gate() {
 
 #[test]
 fn display_grid_skipping_first_row() {
-    let graph = GraphBuilder::new().push_h(1).build();
+    let graph = GraphBuilder::default().push_h(1).build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -310,7 +334,11 @@ fn display_grid_skipping_first_row() {
 
 #[test]
 fn display_grid_multiple_rows_single_column() {
-    let graph = GraphBuilder::new().push_h(0).push_x(1).push_z(2).build();
+    let graph = GraphBuilder::default()
+        .push_h(0)
+        .push_x(1)
+        .push_z(2)
+        .build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -324,7 +352,7 @@ fn display_grid_multiple_rows_single_column() {
 
 #[test]
 fn display_grid_sparse_columns() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None);
     graph.replace_node(X, Position::new(0, 2), None, None);
@@ -337,7 +365,7 @@ fn display_grid_sparse_columns() {
 
 #[test]
 fn display_grid_multiple_rows_and_columns() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None);
     graph.replace_node(X, Position::new(1, 1), None, None);
@@ -355,7 +383,7 @@ fn display_grid_multiple_rows_and_columns() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn display_grid_with_angle() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
         .unwrap()
         .push_ry(3.0 * PI, 1)
@@ -377,7 +405,7 @@ fn display_grid_with_angle() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn display_grid_with_multiple_angles_alignment() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
         .unwrap()
         .push_rz(0.0, 0)
@@ -393,7 +421,7 @@ fn display_grid_with_multiple_angles_alignment() {
 #[test]
 #[expect(clippy::unwrap_used)]
 fn display_grid_mixed_angle_and_normal() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_rx(FRAC_PI_2, 0)
         .unwrap()
@@ -407,7 +435,7 @@ fn display_grid_mixed_angle_and_normal() {
 
 #[test]
 fn display_grid_measure_with_bit() {
-    let graph = GraphBuilder::new().push_measure(0, 3).build();
+    let graph = GraphBuilder::default().push_measure(0, 3).build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
 
@@ -417,7 +445,7 @@ fn display_grid_measure_with_bit() {
 
 #[test]
 fn display_grid_column_alignment() {
-    let graph = GraphBuilder::new()
+    let graph = GraphBuilder::default()
         .push_h(0)
         .push_x(0)
         .push_measure(1, 0)
@@ -435,7 +463,7 @@ fn display_grid_column_alignment() {
 
 #[test]
 fn display_grid_sparse_with_angles() {
-    let mut graph = Graph::new();
+    let mut graph = Graph::default();
 
     graph.replace_node(RX, Position::new(0, 0), Some(FRAC_PI_2), None);
 

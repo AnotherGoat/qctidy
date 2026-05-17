@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::GateOperation;
+use qsimplify::Circuit;
 use qsimplify_ports::{AnalysisError, AnalyzerPort};
 
 #[derive(Debug, Clone, CloneGetters, New)]
@@ -10,7 +10,7 @@ use qsimplify_ports::{AnalysisError, AnalyzerPort};
 #[must_use]
 pub struct AnalysisRequest {
     #[get_clone = "pub"]
-    operations: Arc<[GateOperation]>,
+    circuit: Arc<Circuit>,
 }
 
 #[derive(Debug, Clone, Copy, CopyGetters, New)]

@@ -1,33 +1,24 @@
 use qsimplify::GateOperation;
-use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
-use serde::{Deserialize, Serialize};
-use serde_json::{
-    Error,
-    ser::{PrettyFormatter, Serializer},
-};
-use serde_with::skip_serializing_none;
+use qsimplify_ports::{ConversionFormat, ParseError};
 
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub(crate) struct GateOperationData {
-    gate: String,
-    qubit: Option<usize>,
-    qubit1: Option<usize>,
-    qubit2: Option<usize>,
-    qubit3: Option<usize>,
-    control: Option<usize>,
-    control1: Option<usize>,
-    control2: Option<usize>,
-    target: Option<usize>,
-    target1: Option<usize>,
-    target2: Option<usize>,
-    angle: Option<f64>,
-    bit: Option<usize>,
+    pub gate: String,
+    pub qubit: Option<usize>,
+    pub qubit1: Option<usize>,
+    pub qubit2: Option<usize>,
+    pub qubit3: Option<usize>,
+    pub control: Option<usize>,
+    pub control1: Option<usize>,
+    pub control2: Option<usize>,
+    pub target: Option<usize>,
+    pub target1: Option<usize>,
+    pub target2: Option<usize>,
+    pub angle: Option<f64>,
+    pub bit: Option<usize>,
 }
 
 impl GateOperationData {
-    const fn new(gate: String) -> Self {
+    pub(crate) const fn new(gate: String) -> Self {
         Self {
             gate,
             qubit: None,
@@ -277,80 +268,4 @@ impl TryFrom<GateOperationData> for GateOperation {
             }),
         }
     }
-}
-
-pub(crate) fn parse(input: &[u8]) -> Result<Vec<GateOperation>, ParseError> {
-    let raw: Vec<serde_json::Value> =
-        serde_json::from_slice(input).map_err(|error| ParseError::InvalidInput {
-            format: ConversionFormat::Json,
-            message: error.to_string(),
-        })?;
-
-    raw.into_iter()
-        .map(|value| {
-            let gate_hint = value
-                .get("gate")
-                .and_then(|v| v.as_str())
-                .unwrap_or("unknown")
-                .to_owned();
-
-            let data: GateOperationData = serde_json::from_value(value)
-                .map_err(|error| map_json_error(&error, &gate_hint))?;
-
-            GateOperation::try_from(data)
-        })
-        .collect()
-}
-
-fn map_json_error(error: &Error, gate_hint: &str) -> ParseError {
-    let message = error.to_string();
-
-    if message.starts_with("unknown field") {
-        let field = message
-            .split('`')
-            .nth(1)
-            .map(ToOwned::to_owned)
-            .unwrap_or_default();
-
-        return ParseError::UnknownField {
-            field,
-            gate: gate_hint.to_owned(),
-        };
-    }
-
-    ParseError::InvalidInput {
-        format: ConversionFormat::Json,
-        message,
-    }
-}
-
-pub(crate) fn serialize(
-    operations: &[GateOperation],
-    prettify: bool,
-    indentation: usize,
-) -> Result<Vec<u8>, SerializeError> {
-    let datas: Vec<GateOperationData> = operations.iter().map(GateOperationData::from).collect();
-
-    if !prettify {
-        return serde_json::to_vec(&datas).map_err(|error| SerializeError::SerializationFailure {
-            format: ConversionFormat::Json,
-            message: error.to_string(),
-        });
-    }
-
-    let width = indentation.max(1);
-    let indent = vec![b' '; width];
-
-    let mut buffer = Vec::new();
-    let formatter = PrettyFormatter::with_indent(&indent);
-    let mut serializer = Serializer::with_formatter(&mut buffer, formatter);
-
-    datas
-        .serialize(&mut serializer)
-        .map_err(|error| SerializeError::SerializationFailure {
-            format: ConversionFormat::Json,
-            message: error.to_string(),
-        })?;
-
-    Ok(buffer)
 }

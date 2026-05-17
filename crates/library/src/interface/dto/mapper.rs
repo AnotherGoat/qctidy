@@ -1,10 +1,12 @@
 use std::collections::HashSet;
 
-use crate::{GateOperation, GateType, Graph, GraphBuilder, Position};
+use crate::{Circuit, GateOperation, GateType, Graph, GraphBuilder, Position};
 
 /// Convert a list of gate operations into a `Graph`.
-pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
-    GraphBuilder::new().push_operations(operations).build()
+pub fn circuit_to_graph(circuit: &Circuit) -> Graph {
+    GraphBuilder::new(circuit.qubit_count())
+        .push_operations(circuit.operations())
+        .build()
 }
 
 /// Convert a `Graph` into a list of `GateOperations`.
@@ -14,10 +16,10 @@ pub fn operations_to_graph(operations: &[GateOperation]) -> Graph {
 /// To check that a manually built `Graph` is valid, use `Graph::validate`.
 /// If the original `Graph` has any manually added `ID` gates, they will not be included.
 #[must_use]
-pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
+pub fn graph_to_circuit(graph: &Graph) -> Circuit {
     use GateType::*;
 
-    let mut gates = Vec::new();
+    let mut operations = Vec::new();
     let mut skipped: HashSet<Position> = HashSet::new();
 
     for node in graph.iter_nodes_ordered_by_column() {
@@ -201,10 +203,10 @@ pub fn graph_to_operations(graph: &Graph) -> Vec<GateOperation> {
             }
         };
 
-        gates.push(operation);
+        operations.push(operation);
     }
 
-    gates
+    Circuit::new(graph.height(), operations)
 }
 
 fn extract_control_and_target(graph: &Graph, position: Position) -> (Position, Position) {
