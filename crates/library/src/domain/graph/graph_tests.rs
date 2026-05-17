@@ -1,7 +1,6 @@
 use std::f64::consts::FRAC_PI_2;
 
-use super::*;
-use crate::{EdgeView, GraphBuilder};
+use crate::{EdgeType, EdgeView, GateType, Graph, GraphBuilder, GraphError, Position};
 use EdgeType::*;
 use GateType::*;
 
@@ -67,10 +66,10 @@ fn add_node_increases_height() {
     graph.add_node(H, Position::new(0, 0), None, None).unwrap();
     assert!(graph.height() == 1);
 
-    graph.add_node(H, Position::new(0, 1), None, None).unwrap();
+    graph.add_node(H, Position::new(1, 0), None, None).unwrap();
     assert!(graph.height() == 2);
 
-    graph.add_node(H, Position::new(0, 2), None, None).unwrap();
+    graph.add_node(H, Position::new(2, 0), None, None).unwrap();
     assert!(graph.height() == 3);
 }
 
@@ -98,7 +97,7 @@ fn replace_node_increases_height() {
     graph.replace_node(Z, Position::new(0, 0), None, None);
     assert!(graph.height() == 1);
 
-    graph.replace_node(Z, Position::new(0, 1), None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None);
     assert!(graph.height() == 2);
 }
 
@@ -260,26 +259,26 @@ fn remove_nonexistent_node_is_noop() {
 }
 
 #[test]
-fn remove_node_keeps_size() {
+fn remove_node_keeps_height() {
     let mut graph = GraphBuilder::default()
         .push_h(0)
         .push_x(1)
         .push_y(2)
         .push_z(3)
         .build();
-    assert_eq!(graph.size(), 4);
-
-    graph.remove_node(Position::new(0, 3));
-    assert_eq!(graph.size(), 4);
-
-    graph.remove_node(Position::new(0, 1));
-    assert_eq!(graph.size(), 4);
+    assert_eq!(graph.height(), 4);
 
     graph.remove_node(Position::new(0, 0));
-    assert_eq!(graph.size(), 4);
+    assert_eq!(graph.height(), 4);
 
-    graph.remove_node(Position::new(0, 2));
-    assert_eq!(graph.size(), 4);
+    graph.remove_node(Position::new(1, 0));
+    assert_eq!(graph.height(), 4);
+
+    graph.remove_node(Position::new(3, 0));
+    assert_eq!(graph.height(), 4);
+
+    graph.remove_node(Position::new(2, 0));
+    assert_eq!(graph.height(), 4);
 }
 
 #[test]
@@ -380,33 +379,33 @@ fn move_node() {
 
 #[test]
 #[expect(clippy::unwrap_used)]
-fn move_node_increases_size_if_needed() {
+fn move_node_increases_height_if_needed() {
     let mut graph = Graph::new(1);
-    assert!(graph.size() == 2);
+    assert!(graph.height() == 1);
 
     graph.replace_node(T, Position::new(0, 0), None, None);
     graph
         .move_node(Position::new(0, 0), Position::new(1, 0))
         .unwrap();
-    assert!(graph.size() == 2);
+    assert!(graph.height() == 2);
 
     graph
         .move_node(Position::new(1, 0), Position::new(2, 0))
         .unwrap();
-    assert!(graph.size() == 3);
+    assert!(graph.height() == 3);
 }
 
 #[test]
 #[expect(clippy::unwrap_used)]
-fn move_node_doesnt_decrease_size() {
+fn move_node_doesnt_decrease_height() {
     let mut graph = Graph::new(3);
-    assert!(graph.size() == 3);
+    assert!(graph.height() == 3);
 
     graph.replace_node(TDG, Position::new(2, 0), None, None);
     graph
         .move_node(Position::new(2, 0), Position::new(0, 0))
         .unwrap();
-    assert!(graph.size() == 3);
+    assert!(graph.height() == 3);
 }
 
 #[test]

@@ -4,7 +4,7 @@ use getset::{CopyGetters, Getters};
 
 use crate::{
     GateType, Graph, PatternMatch, RuleBuildError, RuleMetadata, SimplificationRule,
-    application::simplifier::{
+    simplifier::{
         matrix_calculator,
         pattern::{anchor::Anchor, cache::GraphCache},
     },

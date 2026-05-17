@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::{
     AngleFormat, ContextualNodeView, EdgeView, NodeView,
-    interface::display::angle_formatter::{self, PiFormat},
+    display::angle_formatter::{self, PiFormat},
 };
 
 impl fmt::Display for NodeView {

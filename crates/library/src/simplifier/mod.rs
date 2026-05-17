@@ -1,5 +1,7 @@
 /// Contains unitary matrix calculations for quantum graphs.
 pub(crate) mod matrix_calculator;
+/// Contains functions for cleaning and normalizing `Graphs`.
+pub(crate) mod normalizer;
 pub(crate) mod pattern;
 pub(crate) mod rule;
 

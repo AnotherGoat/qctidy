@@ -2,7 +2,7 @@ use std::{f64::consts::PI, sync::LazyLock};
 
 use faer::{complex::Complex64, prelude::*};
 
-use crate::{GateOperation, Graph, domain::math, mapper};
+use crate::{Circuit, GateOperation, Graph, domain::math};
 
 const EPSILON: f64 = math::ABSOLUTE_TOLERANCE;
 
@@ -137,7 +137,7 @@ pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     }
 
     let mut result = identity(size);
-    let circuit = mapper::graph_to_circuit(graph);
+    let circuit = Circuit::from(graph);
 
     for operation in circuit.operations() {
         if let Some(unitary) = operation_to_matrix(&operation, height) {

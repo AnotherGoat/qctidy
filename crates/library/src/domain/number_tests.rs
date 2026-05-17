@@ -1,4 +1,4 @@
-use super::number::*;
+use crate::domain::number::truncate_f64_to_i64;
 
 #[test]
 fn truncate_integer_f64_to_i64() {

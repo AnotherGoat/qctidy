@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use crate::{
     Graph, PatternMatch, PatternRule, Position,
-    application::simplifier::pattern::{
+    simplifier::pattern::{
         cache::GraphCache, occupancy::OccupancyMap, pattern_match::QubitMapping,
     },
 };

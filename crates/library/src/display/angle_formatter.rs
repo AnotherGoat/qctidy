@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{domain::math, interface::display::number_formatter};
+use crate::{display::number_formatter, domain::math};
 
 /// Format to used to display operations used when displaying angles.
 #[derive(Debug, Clone, Copy)]

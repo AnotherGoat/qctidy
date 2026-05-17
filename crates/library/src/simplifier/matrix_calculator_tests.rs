@@ -1,10 +1,12 @@
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, PI};
 
-use super::matrix_calculator::*;
-
 use faer::{Mat, complex::Complex64};
 
-use crate::{EdgeType, GateType, Graph, GraphBuilder, Position, domain::math};
+use crate::{
+    EdgeType, GateType, Graph, GraphBuilder, Position,
+    domain::math,
+    simplifier::matrix_calculator::{are_graphs_equivalent, graph_circuit_matrix},
+};
 use EdgeType::*;
 use GateType::*;
 

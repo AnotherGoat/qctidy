@@ -1,13 +1,12 @@
 use std::fmt::Write;
 
 use qsimplify::{
-    AngleFormat, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
-    mapper::graph_to_circuit,
+    AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
 
 /// Convert the provided graph into Python code that uses the Qiskit library.
 pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
-    let circuit = graph_to_circuit(graph);
+    let circuit = Circuit::from(graph);
     let mut imports = Vec::<String>::new();
     let mut build_steps = Vec::new();
 

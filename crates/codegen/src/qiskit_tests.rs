@@ -1,6 +1,7 @@
-use super::qiskit;
 use qsimplify::GraphBuilder;
 use std::f64::consts::PI;
+
+use crate::qiskit;
 
 #[test]
 fn generate_empty_circuit() {

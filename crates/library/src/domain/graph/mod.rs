@@ -1,5 +1,6 @@
 pub(crate) mod edge_type;
 pub(crate) mod gate_type;
+pub(crate) mod graph_builder;
 pub(crate) mod graph_error;
 mod iterator;
 pub(crate) mod position;
@@ -7,10 +8,14 @@ mod schema;
 mod semantic_validator;
 mod structural_validator;
 
+use crate::domain::projection::{ContextualNodeView, NodeView};
+
 #[cfg(test)]
 mod gate_type_tests;
 #[cfg(test)]
 pub(crate) mod graph_asserter;
+#[cfg(test)]
+mod graph_builder_tests;
 #[cfg(test)]
 mod graph_tests;
 #[cfg(test)]
@@ -19,7 +24,7 @@ mod iterator_tests;
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    ContextualNodeView, EdgeType, GateType, NodeView, Position,
+    EdgeType, GateType, Position,
     domain::{graph::graph_error::GraphError, math},
 };
 

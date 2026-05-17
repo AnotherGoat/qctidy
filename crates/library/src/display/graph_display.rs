@@ -3,11 +3,11 @@ use std::fmt::Write;
 
 use crate::{
     AngleFormat, Graph,
-    application::simplifier::matrix_calculator,
-    interface::display::{
+    display::{
         angle_formatter::{self, PiFormat},
         number_formatter,
     },
+    simplifier::matrix_calculator,
 };
 
 /// Format used to display Dirac bra-ket notation.

@@ -1,4 +1,5 @@
-use super::angle_formatter::*;
+use crate::display::angle_formatter::format;
+use crate::{AngleFormat, PiFormat};
 use AngleFormat::*;
 use PiFormat::*;
 

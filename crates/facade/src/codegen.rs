@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
 use inew::New;
-use qsimplify::{Circuit, mapper};
+use qsimplify::{Circuit, Graph};
 use qsimplify_ports::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
 
 #[derive(Debug, Clone, Getters, CloneGetters, CopyGetters, New)]
@@ -29,7 +29,7 @@ pub fn generate_code<C: CodegenPort>(
     request: &CodeGenerationRequest,
     codegen: &C,
 ) -> Result<CodeGenerationResponse, CodeGenerationError> {
-    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
+    let graph = Graph::from(request.circuit().as_ref());
 
     let result = codegen.generate(&graph, request.target(), request.circuit_name().as_deref());
     Ok(CodeGenerationResponse::new(result))

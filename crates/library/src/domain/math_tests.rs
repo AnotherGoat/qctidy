@@ -1,7 +1,10 @@
 use faer::{complex::Complex64, mat};
 use num_rational::Ratio;
 
-use super::math::*;
+use crate::domain::math::{
+    are_floats_equal, are_matrices_equal, are_option_floats_equal, normalize_angle,
+    rationalize_in_terms_of_pi,
+};
 
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI};
 

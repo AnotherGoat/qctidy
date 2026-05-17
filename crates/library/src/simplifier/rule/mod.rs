@@ -3,7 +3,6 @@ pub(crate) mod default;
 pub(crate) mod metadata;
 pub(crate) mod pattern_rule;
 pub(crate) mod registry;
-mod validation;
 
 #[cfg(test)]
 pub(crate) mod registry_tests;

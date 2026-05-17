@@ -26,7 +26,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
 use inew::New;
-use qsimplify::{Circuit, DiracFormat, PiFormat, mapper, simplifier};
+use qsimplify::{Circuit, DiracFormat, Graph, PiFormat, simplifier};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
@@ -76,14 +76,15 @@ pub struct SimplificationResponse {
 }
 
 pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError> {
-    use DisplayFormat::*;
+    use DisplayFormat::{Grid, Matrix};
 
-    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
+    let graph: Graph = request.circuit().as_ref().into();
+
     let pi_format = request.pi_format().unwrap_or(PiFormat::Fancy);
     let dirac_format = request.dirac_format().unwrap_or(DiracFormat::Fancy);
 
     let text = match request.format() {
-        Graph => graph.display_nodes_and_edges(pi_format),
+        DisplayFormat::Graph => graph.display_nodes_and_edges(pi_format),
         Grid => graph.display_grid(pi_format),
         Matrix => graph.display_matrix(dirac_format),
     };
@@ -94,9 +95,9 @@ pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError
 pub fn simplify(
     request: &SimplificationRequest,
 ) -> Result<SimplificationResponse, SimplificationError> {
-    let graph = mapper::circuit_to_graph(request.circuit().as_ref());
+    let graph: Graph = request.circuit().as_ref().into();
     let simplified = simplifier::simplify(graph, request.iterations());
 
-    let circuit = mapper::graph_to_circuit(&simplified);
+    let circuit: Circuit = (&simplified).into();
     Ok(SimplificationResponse::new(circuit.into()))
 }

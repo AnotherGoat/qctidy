@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::fmt;
 use thiserror::Error;
 
-use crate::{EdgeType, GateOperation, GateType, Graph, Position};
+use crate::{Circuit, EdgeType, GateOperation, GateType, Graph, Position};
 
 /// Error that can occur when building a graph with `GraphBuilder`.
 #[derive(Debug, Error)]
@@ -755,4 +755,13 @@ fn check_unique_qubits(qubits: &[usize]) -> Result<(), GraphBuilderError> {
     }
 
     Ok(())
+}
+
+/// Convert a list of gate operations into a `Graph`.
+impl From<&Circuit> for Graph {
+    fn from(circuit: &Circuit) -> Self {
+        GraphBuilder::new(circuit.qubit_count())
+            .push_operations(circuit.operations())
+            .build()
+    }
 }

@@ -1,4 +1,4 @@
-use crate::{RuleRegistry, application::simplifier::rule::default};
+use crate::{RuleRegistry, simplifier::rule::default};
 
 #[test]
 fn default_registry_is_valid() {

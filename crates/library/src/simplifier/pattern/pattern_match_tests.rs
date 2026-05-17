@@ -1,6 +1,6 @@
 use crate::{
     Graph,
-    application::simplifier::{pattern::matcher, rule::default::redundancy},
+    simplifier::{pattern::matcher, rule::default::redundancy},
 };
 
 #[test]
