@@ -80,6 +80,12 @@ class ConversionFormat(Enum):
     The format works similarly to JSON, but encodes data in a more compact manner.
     The prettify and indentation parameters are ignored.
     """
+    CBOR = 3
+    """Convert to and from a CBOR binary blob.
+
+    The format is very similar to MessagePack, but with a more formal standard.
+    The prettify and indentation parameters are ignored.
+    """
 
 class CodeGenerationTarget(Enum):
     """Output format for generated code."""

@@ -18,6 +18,7 @@ pub enum ConversionFormat {
     Json,
     Xml,
     MessagePack,
+    Cbor,
 }
 
 #[derive(Debug, Error)]

@@ -1,5 +1,15 @@
 use std::{fmt, str::FromStr};
 
+use thiserror::Error;
+
+#[derive(Debug, Clone, Error)]
+pub enum GateTypeError {
+    #[error("Unknown gate type with index '{index}'")]
+    UnknownGateIndex { index: u8 },
+    #[error("Unknown gate type name or alias '{name}'")]
+    UnknownGateName { name: String },
+}
+
 /// Type of a quantum gate supported by this library.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -56,6 +66,49 @@ pub enum GateType {
     CCZ,
 }
 
+impl From<GateType> for u8 {
+    fn from(gate_type: GateType) -> Self {
+        gate_type as u8
+    }
+}
+
+impl TryFrom<u8> for GateType {
+    type Error = GateTypeError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        use GateType::*;
+
+        match value {
+            0 => Ok(ID),
+            1 => Ok(H),
+            2 => Ok(X),
+            3 => Ok(Y),
+            4 => Ok(Z),
+            5 => Ok(P),
+            6 => Ok(RX),
+            7 => Ok(RY),
+            8 => Ok(RZ),
+            9 => Ok(S),
+            10 => Ok(SDG),
+            11 => Ok(SX),
+            12 => Ok(SY),
+            13 => Ok(T),
+            14 => Ok(TDG),
+            15 => Ok(Measure),
+            16 => Ok(Swap),
+            17 => Ok(CH),
+            18 => Ok(CX),
+            19 => Ok(CY),
+            20 => Ok(CZ),
+            21 => Ok(CP),
+            22 => Ok(CSwap),
+            23 => Ok(CCX),
+            24 => Ok(CCZ),
+            _ => Err(GateTypeError::UnknownGateIndex { index: value }),
+        }
+    }
+}
+
 impl fmt::Display for GateType {
     /// Obtain the name of this gate type as a lowercase string.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -93,14 +146,8 @@ impl fmt::Display for GateType {
     }
 }
 
-impl From<GateType> for u8 {
-    fn from(gate_type: GateType) -> Self {
-        gate_type as u8
-    }
-}
-
 impl FromStr for GateType {
-    type Err = String;
+    type Err = GateTypeError;
 
     /// Create a gate type from a string written in any case combination.
     ///
@@ -132,9 +179,11 @@ impl FromStr for GateType {
             "cz" => Ok(CZ),
             "cp" | "cphase" => Ok(CP),
             "cswap" | "fredkin" => Ok(CSwap),
-            "ccx" | "ccnot" => Ok(CCX),
-            "ccz" | "toffoli" => Ok(CCZ),
-            _ => Err(format!("Unknown gate type: {name}")),
+            "ccx" | "ccnot" | "toffoli" => Ok(CCX),
+            "ccz" => Ok(CCZ),
+            _ => Err(GateTypeError::UnknownGateName {
+                name: name.to_string(),
+            }),
         }
     }
 }

@@ -264,8 +264,7 @@ fn to_string_aliases() {
     assert_eq!(GateType::from_str("fredkin").unwrap(), CSwap);
 
     assert_eq!(GateType::from_str("ccnot").unwrap(), CCX);
-
-    assert_eq!(GateType::from_str("toffoli").unwrap(), CCZ);
+    assert_eq!(GateType::from_str("toffoli").unwrap(), CCX);
 }
 
 #[test]

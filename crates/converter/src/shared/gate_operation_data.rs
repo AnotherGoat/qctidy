@@ -1,8 +1,8 @@
-use qsimplify::GateOperation;
+use qsimplify::{GateOperation, GateType};
 use qsimplify_ports::ParseError;
 
 pub(crate) struct GateOperationData {
-    pub gate: String,
+    pub gate: GateType,
     pub qubit: Option<usize>,
     pub qubit1: Option<usize>,
     pub qubit2: Option<usize>,
@@ -18,7 +18,7 @@ pub(crate) struct GateOperationData {
 }
 
 impl GateOperationData {
-    pub(crate) const fn new(gate: String) -> Self {
+    pub(crate) const fn new(gate: GateType) -> Self {
         Self {
             gate,
             qubit: None,
@@ -101,7 +101,7 @@ impl From<&GateOperation> for GateOperationData {
     fn from(operation: &GateOperation) -> Self {
         use GateOperation::*;
 
-        let gate = operation.r#type().to_string();
+        let gate = operation.r#type();
 
         match *operation {
             ID { qubit }
@@ -162,108 +162,105 @@ impl TryFrom<GateOperationData> for GateOperation {
     fn try_from(data: GateOperationData) -> Result<Self, Self::Error> {
         use GateOperation::*;
 
-        let gate = data.gate.as_str();
+        let gate = data.gate;
         let missing_field = |field: &str| ParseError::MissingRequiredField {
             field: field.to_owned(),
-            gate: gate.to_owned(),
+            gate: gate.to_string().to_owned(),
         };
 
         match gate {
-            "id" => Ok(ID {
+            GateType::ID => Ok(ID {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "h" => Ok(H {
+            GateType::H => Ok(H {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "x" => Ok(X {
+            GateType::X => Ok(X {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "y" => Ok(Y {
+            GateType::Y => Ok(Y {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "z" => Ok(Z {
+            GateType::Z => Ok(Z {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "p" => Ok(P {
-                qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
-            }),
-            "rx" => Ok(RX {
+            GateType::P => Ok(P {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
                 angle: data.angle.ok_or_else(|| missing_field("angle"))?,
             }),
-            "ry" => Ok(RY {
+            GateType::RX => Ok(RX {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
                 angle: data.angle.ok_or_else(|| missing_field("angle"))?,
             }),
-            "rz" => Ok(RZ {
+            GateType::RY => Ok(RY {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
                 angle: data.angle.ok_or_else(|| missing_field("angle"))?,
             }),
-            "s" => Ok(S {
+            GateType::RZ => Ok(RZ {
+                qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
+                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+            }),
+            GateType::S => Ok(S {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "sdg" => Ok(SDG {
+            GateType::SDG => Ok(SDG {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "sx" => Ok(SX {
+            GateType::SX => Ok(SX {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "sy" => Ok(SY {
+            GateType::SY => Ok(SY {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "t" => Ok(T {
+            GateType::T => Ok(T {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "tdg" => Ok(TDG {
+            GateType::TDG => Ok(TDG {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
             }),
-            "m" => Ok(Measure {
+            GateType::Measure => Ok(Measure {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
                 bit: data.bit.ok_or_else(|| missing_field("bit"))?,
             }),
-            "swap" => Ok(Swap {
+            GateType::Swap => Ok(Swap {
                 qubit1: data.qubit1.ok_or_else(|| missing_field("qubit1"))?,
                 qubit2: data.qubit2.ok_or_else(|| missing_field("qubit2"))?,
             }),
-            "ch" => Ok(CH {
+            GateType::CH => Ok(CH {
                 control: data.control.ok_or_else(|| missing_field("control"))?,
                 target: data.target.ok_or_else(|| missing_field("target"))?,
             }),
-            "cx" => Ok(CX {
+            GateType::CX => Ok(CX {
                 control: data.control.ok_or_else(|| missing_field("control"))?,
                 target: data.target.ok_or_else(|| missing_field("target"))?,
             }),
-            "cy" => Ok(CY {
+            GateType::CY => Ok(CY {
                 control: data.control.ok_or_else(|| missing_field("control"))?,
                 target: data.target.ok_or_else(|| missing_field("target"))?,
             }),
-            "cz" => Ok(CZ {
+            GateType::CZ => Ok(CZ {
                 qubit1: data.qubit1.ok_or_else(|| missing_field("qubit1"))?,
                 qubit2: data.qubit2.ok_or_else(|| missing_field("qubit2"))?,
             }),
-            "cp" => Ok(CP {
+            GateType::CP => Ok(CP {
                 qubit1: data.qubit1.ok_or_else(|| missing_field("qubit1"))?,
                 qubit2: data.qubit2.ok_or_else(|| missing_field("qubit2"))?,
                 angle: data.angle.ok_or_else(|| missing_field("angle"))?,
             }),
-            "cswap" => Ok(CSwap {
+            GateType::CSwap => Ok(CSwap {
                 control: data.control.ok_or_else(|| missing_field("control"))?,
                 target1: data.target1.ok_or_else(|| missing_field("target1"))?,
                 target2: data.target2.ok_or_else(|| missing_field("target2"))?,
             }),
-            "ccx" => Ok(CCX {
+            GateType::CCX => Ok(CCX {
                 control1: data.control1.ok_or_else(|| missing_field("control1"))?,
                 control2: data.control2.ok_or_else(|| missing_field("control2"))?,
                 target: data.target.ok_or_else(|| missing_field("target"))?,
             }),
-            "ccz" => Ok(CCZ {
+            GateType::CCZ => Ok(CCZ {
                 qubit1: data.qubit1.ok_or_else(|| missing_field("qubit1"))?,
                 qubit2: data.qubit2.ok_or_else(|| missing_field("qubit2"))?,
                 qubit3: data.qubit3.ok_or_else(|| missing_field("qubit3"))?,
-            }),
-            _ => Err(ParseError::UnknownGateType {
-                gate: gate.to_owned(),
             }),
         }
     }

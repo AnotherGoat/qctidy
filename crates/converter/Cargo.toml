@@ -15,9 +15,10 @@ categories = ["science", "encoding", "parser-implementations"]
 doctest = false
 
 [dependencies]
-o2o = { workspace = true }
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
+ciborium = { workspace = true }
+o2o = { workspace = true }
 quick-xml = { workspace = true }
 rmp-serde = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -10,7 +10,11 @@ pub use display::{
 pub use domain::circuit::{Circuit, GateOperation, GateOperationError};
 pub use domain::graph::graph_builder::{GraphBuilder, GraphBuilderError};
 pub use domain::graph::{
-    Graph, edge_type::EdgeType, gate_type::GateType, graph_error::GraphError, position::Position,
+    Graph,
+    edge_type::EdgeType,
+    gate_type::{GateType, GateTypeError},
+    graph_error::GraphError,
+    position::Position,
 };
 pub use domain::math::{ABSOLUTE_TOLERANCE, EPSILON, RELATIVE_TOLERANCE};
 pub use domain::projection::{ContextualNodeView, EdgeView, NodeView};

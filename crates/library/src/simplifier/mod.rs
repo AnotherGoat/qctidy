@@ -13,6 +13,7 @@ use std::sync::Arc;
 use crate::{Graph, PatternRule, RuleConfiguration, RuleLevel, RuleRegistry, SimplificationRule};
 
 /// A simplifier for quantum graphs.
+#[derive(Debug)]
 pub struct Simplifier {
     rules: Vec<Arc<dyn SimplificationRule>>,
 }

@@ -1,6 +1,6 @@
-use std::str;
+use std::str::{self};
 
-use qsimplify::Circuit;
+use qsimplify::{Circuit, GateType};
 use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
 
 use quick_xml::events::attributes::Attributes;
@@ -103,7 +103,8 @@ fn parse_circuit_attributes(
 }
 
 fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, ParseError> {
-    let mut data = GateOperationData::new(String::new());
+    let mut data = GateOperationData::new(GateType::ID);
+    let mut gate_type_seen = false;
 
     for attribute in attributes {
         let attribute = attribute.map_err(|error| ParseError::InvalidInput {
@@ -116,7 +117,12 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
         let value = String::from_utf8_lossy(attribute.value.as_ref());
 
         match key.as_ref() {
-            "type" => data.gate = value.to_string(),
+            "type" => {
+                gate_type_seen = true;
+                data.gate = value.parse().map_err(|_| ParseError::UnknownGateType {
+                    gate: value.to_string(),
+                })?;
+            }
 
             "qubit" => data.qubit = value.parse().ok(),
             "qubit1" => data.qubit1 = value.parse().ok(),
@@ -138,10 +144,16 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
             _ => {
                 return Err(ParseError::UnknownField {
                     field: key.to_string(),
-                    gate: data.gate.clone(),
+                    gate: data.gate.to_string(),
                 });
             }
         }
+    }
+
+    if !gate_type_seen {
+        return Err(ParseError::UnknownGateType {
+            gate: String::new(),
+        });
     }
 
     Ok(data)
@@ -202,7 +214,7 @@ fn write_gate(
 ) -> Result<(), quick_xml::Error> {
     let mut element = BytesStart::new("gate");
 
-    element.push_attribute(("type", operation.gate.as_str()));
+    element.push_attribute(("type", operation.gate.to_string().as_str()));
 
     push_optional_attribute(&mut element, "qubit", operation.qubit);
     push_optional_attribute(&mut element, "qubit1", operation.qubit1);

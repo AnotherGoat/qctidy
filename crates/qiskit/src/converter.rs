@@ -20,6 +20,7 @@ enum PythonConversionFormat {
     JSON,
     XML,
     MESSAGE_PACK,
+    CBOR,
 }
 
 impl From<PythonConversionFormat> for ConversionFormat {
@@ -30,6 +31,7 @@ impl From<PythonConversionFormat> for ConversionFormat {
             JSON => Self::Json,
             XML => Self::Xml,
             MESSAGE_PACK => Self::MessagePack,
+            CBOR => Self::Cbor,
         }
     }
 }

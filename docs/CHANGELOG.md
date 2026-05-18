@@ -9,7 +9,7 @@
 - `library`: Calculate the unitary matrix of a quantum graph.
 - `library`: Display a quantum graph as a unitary matrix with Dirac bra-ket notation.
 - `presenter`: Allow saving a quantum graph as a graphviz graph in GV, PNG and SVG formats.
-- `converter`: Parse and serialize quantum graphs in JSON, XML and MessagePack formats.
+- `converter`: Parse and serialize quantum graphs in JSON, XML, MessagePack and CBOR formats.
 - `codegen`: Generate code to build a circuit using Qiskit's `QuantumCircuit`.
 - `facade`: Create a DTO that stores a list of quantum gate operations in insertion order.
 - `facade`: Expose a use case for displaying the provided circuit as a graph.

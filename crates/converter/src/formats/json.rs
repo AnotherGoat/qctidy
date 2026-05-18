@@ -8,7 +8,10 @@ use serde_json::{
 };
 use serde_with::skip_serializing_none;
 
-use crate::shared::{circuit_data::CircuitData, gate_operation_data::GateOperationData};
+use crate::shared::{
+    circuit_data::CircuitData, gate_operation_data::GateOperationData,
+    readable_gate_type::ReadableGateType,
+};
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, o2o)]
@@ -27,7 +30,9 @@ struct JsonCircuitData {
 #[serde(deny_unknown_fields)]
 #[map_owned(GateOperationData)]
 struct JsonGateOperationData {
-    gate: String,
+    #[from(gate, ReadableGateType(~))]
+    #[into(gate, ~.0)]
+    gate: ReadableGateType,
     qubit: Option<usize>,
     qubit1: Option<usize>,
     qubit2: Option<usize>,
@@ -63,6 +68,15 @@ fn map_json_error(error: &Error, gate_hint: &str) -> ParseError {
         return ParseError::UnknownField {
             field,
             gate: gate_hint.to_owned(),
+        };
+    }
+
+    if let Some(gate) = message
+        .strip_prefix("Unknown gate type name or alias '")
+        .and_then(|rest| rest.split('\'').next())
+    {
+        return ParseError::UnknownGateType {
+            gate: gate.to_owned(),
         };
     }
 
