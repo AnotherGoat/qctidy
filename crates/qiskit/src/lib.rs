@@ -1,13 +1,18 @@
 mod circuit;
 mod extractor;
 
-#[cfg(feature = "presenter")]
+#[cfg(feature = "presenter-graphviz")]
 mod presenter;
 
-#[cfg(feature = "converter")]
+#[cfg(any(
+    feature = "converter-cbor",
+    feature = "converter-json",
+    feature = "converter-msgpack",
+    feature = "converter-xml",
+))]
 mod converter;
 
-#[cfg(feature = "codegen")]
+#[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 mod codegen;
 
 use pyo3::exceptions::PyValueError;
@@ -83,12 +88,20 @@ fn get_features() -> Vec<&'static str> {
     vec![
         #[cfg(feature = "analyzer")]
         "analyzer",
-        #[cfg(feature = "codegen")]
-        "codegen",
-        #[cfg(feature = "converter")]
-        "converter",
-        #[cfg(feature = "presenter")]
-        "presenter",
+        #[cfg(feature = "codegen-qiskit")]
+        "codegen-qiskit",
+        #[cfg(feature = "codegen-openqasm3")]
+        "codegen-openqasm3",
+        #[cfg(feature = "converter-cbor")]
+        "converter-cbor",
+        #[cfg(feature = "converter-json")]
+        "converter-json",
+        #[cfg(feature = "converter-msgpack")]
+        "converter-msgpack",
+        #[cfg(feature = "converter-xml")]
+        "converter-xml",
+        #[cfg(feature = "presenter-graphviz")]
+        "presenter-graphviz",
         #[cfg(feature = "estimator")]
         "estimator",
     ]
@@ -141,13 +154,18 @@ fn bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(display, module)?)?;
     module.add_function(wrap_pyfunction!(simplify, module)?)?;
 
-    #[cfg(feature = "presenter")]
+    #[cfg(feature = "presenter-graphviz")]
     presenter::register(module)?;
 
-    #[cfg(feature = "converter")]
+    #[cfg(any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ))]
     converter::register(module)?;
 
-    #[cfg(feature = "codegen")]
+    #[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
     codegen::register(module)?;
 
     Ok(())

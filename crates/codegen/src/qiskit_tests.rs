@@ -4,9 +4,10 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI};
 use crate::qiskit;
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_empty_circuit() {
     let graph = GraphBuilder::default().build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -17,6 +18,7 @@ circuit = QuantumCircuit()";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_single_qubit_circuit() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -25,7 +27,7 @@ fn generate_single_qubit_circuit() {
         .push_z(0)
         .push_t(0)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -41,9 +43,10 @@ circuit.t(0)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -68,7 +71,7 @@ fn generate_circuit_with_rotations() {
         .push_p(5.0 * FRAC_PI_4, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 import numpy
@@ -92,7 +95,7 @@ fn generate_circuit_with_zero_rotations() {
         .push_p(1e-8, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -117,7 +120,7 @@ fn generate_circuit_with_uncommon_rotations() {
         .push_p(3.555, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -132,9 +135,10 @@ circuit.p(3.555, 0)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_sy_gate() {
     let graph = GraphBuilder::default().push_sy(0).build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -155,7 +159,7 @@ fn generate_circuit_with_two_qubits() {
         .push_cy(1, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -168,6 +172,7 @@ circuit.cy(1, 0)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_orders_qubits() {
     let graph = GraphBuilder::default()
         .push_h(4)
@@ -176,7 +181,7 @@ fn generate_circuit_orders_qubits() {
         .push_z(1)
         .push_s(3)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -204,7 +209,7 @@ fn generate_circuit_orders_symmetrical_gates() {
         .push_cz(3, 2)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -229,7 +234,7 @@ fn generate_circuit_with_three_qubits() {
         .push_ccz(0, 1, 2)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -243,6 +248,7 @@ circuit.ccz(0, 1, 2)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_multiple_bits() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -252,7 +258,7 @@ fn generate_circuit_with_multiple_bits() {
         .push_measure(1, 1)
         .push_measure(2, 2)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -269,6 +275,7 @@ circuit.measure(2, 2)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_flipped_measurements() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -278,7 +285,7 @@ fn generate_circuit_with_flipped_measurements() {
         .push_measure(1, 2)
         .push_measure(2, 0)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit
@@ -295,13 +302,14 @@ circuit.measure(2, 0)";
 }
 
 #[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_custom_name() {
     let graph = GraphBuilder::default()
         .push_x(0)
         .push_y(0)
         .push_z(0)
         .build();
-    let actual = qiskit::generate(&graph, "xyz");
+    let actual = qiskit::generate(&graph, "xyz").unwrap();
 
     let expected = "\
 from qiskit import QuantumCircuit

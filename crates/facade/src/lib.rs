@@ -1,103 +1,37 @@
 #[cfg(feature = "analyzer")]
 mod analyzer;
-#[cfg(feature = "codegen")]
+#[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 mod codegen;
-#[cfg(feature = "converter")]
+#[cfg(any(
+    feature = "converter-cbor",
+    feature = "converter-json",
+    feature = "converter-msgpack",
+    feature = "converter-xml",
+))]
 mod converter;
+mod display;
 #[cfg(feature = "estimator")]
 mod estimator;
-#[cfg(feature = "presenter")]
+#[cfg(feature = "presenter-graphviz")]
 mod presenter;
+mod simplifier;
 
 #[cfg(feature = "analyzer")]
 pub use analyzer::{AnalysisRequest, AnalysisResponse, analyze};
-#[cfg(feature = "codegen")]
+#[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 pub use codegen::{CodeGenerationRequest, CodeGenerationResponse, generate_code};
-#[cfg(feature = "converter")]
+#[cfg(any(
+    feature = "converter-cbor",
+    feature = "converter-json",
+    feature = "converter-msgpack",
+    feature = "converter-xml",
+))]
 pub use converter::{
     ParseRequest, ParseResponse, SerializeRequest, SerializeResponse, parse, serialize,
 };
+pub use display::{DisplayFormat, DisplayRequest, DisplayResponse, display};
 #[cfg(feature = "estimator")]
 pub use estimator::{EstimationRequest, EstimationResponse, estimate};
-#[cfg(feature = "presenter")]
+#[cfg(feature = "presenter-graphviz")]
 pub use presenter::{PresentationRequest, PresentationResponse, present};
-use qsimplify_ports::{DisplayError, SimplificationError};
-use std::sync::Arc;
-
-use getset::{CloneGetters, CopyGetters, Getters};
-use inew::New;
-use qsimplify::{Circuit, DiracFormat, Graph, PiFormat, simplifier};
-
-#[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
-#[new(pub, const)]
-#[must_use]
-pub struct DisplayRequest {
-    #[get_clone = "pub"]
-    circuit: Arc<Circuit>,
-    #[get_copy = "pub"]
-    format: DisplayFormat,
-    #[get_copy = "pub"]
-    pi_format: Option<PiFormat>,
-    #[get_copy = "pub"]
-    dirac_format: Option<DiracFormat>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DisplayFormat {
-    Graph,
-    Grid,
-    Matrix,
-}
-
-#[derive(Debug, Clone, Getters, New)]
-#[new(pub, const)]
-#[must_use]
-pub struct DisplayResponse {
-    #[get = "pub"]
-    text: String,
-}
-
-#[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
-#[new(pub, const)]
-#[must_use]
-pub struct SimplificationRequest {
-    #[get_clone = "pub"]
-    circuit: Arc<Circuit>,
-    #[get_copy = "pub"]
-    iterations: u32,
-}
-
-#[derive(Debug, Clone, CloneGetters, New)]
-#[new(pub, const)]
-#[must_use]
-pub struct SimplificationResponse {
-    #[get_clone = "pub"]
-    circuit: Arc<Circuit>,
-}
-
-pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError> {
-    use DisplayFormat::{Grid, Matrix};
-
-    let graph: Graph = request.circuit().as_ref().into();
-
-    let pi_format = request.pi_format().unwrap_or(PiFormat::Fancy);
-    let dirac_format = request.dirac_format().unwrap_or(DiracFormat::Fancy);
-
-    let text = match request.format() {
-        DisplayFormat::Graph => graph.display_nodes_and_edges(pi_format),
-        Grid => graph.display_grid(pi_format),
-        Matrix => graph.display_matrix(dirac_format),
-    };
-
-    Ok(DisplayResponse::new(text))
-}
-
-pub fn simplify(
-    request: &SimplificationRequest,
-) -> Result<SimplificationResponse, SimplificationError> {
-    let graph: Graph = request.circuit().as_ref().into();
-    let simplified = simplifier::simplify(graph, request.iterations());
-
-    let circuit: Circuit = (&simplified).into();
-    Ok(SimplificationResponse::new(circuit.into()))
-}
+pub use simplifier::{SimplificationRequest, SimplificationResponse, simplify};

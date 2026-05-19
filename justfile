@@ -70,6 +70,14 @@ setup-coverage:
 coverage:
     cargo llvm-cov --workspace --all-features --ignore-filename-regex '(asserter)' --html --open
 
+# Set up Cargo for feature compilation testing
+setup-hack:
+    cargo install cargo-hack
+
+# Check that all the features compile by themselves (doesn't include all possible combinations)
+hack:
+    cargo hack check --each-feature
+
 # Set up Python environment for testing bindings
 setup-python:
     uv tool install maturin

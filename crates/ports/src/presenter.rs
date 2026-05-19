@@ -17,6 +17,18 @@ pub enum PresentationFormat {
     GraphvizSvg,
 }
 
+impl PresentationFormat {
+    pub const fn is_available(self) -> bool {
+        use PresentationFormat::*;
+
+        match self {
+            GraphvizGv => cfg!(feature = "presenter-graphviz"),
+            GraphvizPng => cfg!(feature = "presenter-graphviz"),
+            GraphvizSvg => cfg!(feature = "presenter-graphviz"),
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum PresentationError {
     #[error("{message}")]

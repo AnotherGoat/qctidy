@@ -18,5 +18,13 @@ doctest = false
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
 
+[features]
+default = [
+    "codegen-qiskit",
+    "codegen-openqasm3",
+]
+codegen-qiskit = []
+codegen-openqasm3 = []
+
 [lints]
 workspace = true

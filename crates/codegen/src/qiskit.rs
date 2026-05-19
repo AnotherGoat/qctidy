@@ -3,11 +3,12 @@ use std::fmt::Write;
 use qsimplify::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
+use qsimplify_ports::CodeGenerationError;
 
 const PI_FORMAT: PiFormat = PiFormat::Custom { pi: "numpy.pi" };
 
 /// Convert the provided graph into Python code that uses the Qiskit library.
-pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
+pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> Result<String, CodeGenerationError> {
     let circuit = Circuit::from(graph);
     let mut imports = Vec::<String>::new();
     let mut build_steps = Vec::new();
@@ -51,7 +52,7 @@ pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
         writeln!(output, "{step}").expect("String should always be writable");
     }
 
-    output.trim_end().to_owned()
+    Ok(output.trim_end().to_owned())
 }
 
 fn add_import(imports: &mut Vec<String>, import: &str) {

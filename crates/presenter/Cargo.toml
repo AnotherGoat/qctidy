@@ -20,5 +20,11 @@ qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
 graphviz-rust = { workspace = true }
 
+[features]
+default = [
+    "presenter-graphviz",
+]
+presenter-graphviz = []
+
 [lints]
 workspace = true

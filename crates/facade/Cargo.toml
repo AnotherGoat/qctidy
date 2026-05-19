@@ -21,11 +21,25 @@ getset = { workspace = true }
 inew = { workspace = true }
 
 [features]
-default = ["analyzer", "codegen", "converter", "presenter", "estimator"]
+default = [
+    "analyzer",
+    "codegen-qiskit",
+    "codegen-openqasm3",
+    "converter-cbor",
+    "converter-json",
+    "converter-msgpack",
+    "converter-xml",
+    "presenter-graphviz",
+    "estimator",
+]
 analyzer = []
-codegen = []
-converter = []
-presenter = []
+codegen-qiskit = []
+codegen-openqasm3 = []
+converter-cbor = []
+converter-json = []
+converter-msgpack = []
+converter-xml = []
+presenter-graphviz = []
 estimator = []
 
 [lints]

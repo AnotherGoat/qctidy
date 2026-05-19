@@ -29,12 +29,61 @@ faer = { workspace = true }
 pyo3 = { workspace = true, features = ["extension-module"] }
 
 [features]
-default = ["analyzer", "codegen", "converter", "presenter", "estimator"]
+default = [
+    "analyzer",
+    "codegen-qiskit",
+    "codegen-openqasm3",
+    "converter-cbor",
+    "converter-json",
+    "converter-msgpack",
+    "converter-xml",
+    "estimator",
+    "presenter-graphviz",
+]
 analyzer = ["dep:qsimplify-analyzer", "qsimplify-facade/analyzer"]
-codegen = ["dep:qsimplify-codegen", "qsimplify-facade/codegen"]
-converter = ["dep:qsimplify-converter", "qsimplify-facade/converter"]
-presenter = ["dep:qsimplify-presenter", "qsimplify-facade/presenter"]
+codegen-qiskit = [
+    "dep:qsimplify-codegen",
+    "qsimplify-codegen/codegen-qiskit",
+    "qsimplify-facade/codegen-qiskit",
+    "qsimplify-ports/codegen-qiskit",
+]
+codegen-openqasm3 = [
+    "dep:qsimplify-codegen",
+    "qsimplify-codegen/codegen-openqasm3",
+    "qsimplify-facade/codegen-openqasm3",
+    "qsimplify-ports/codegen-openqasm3",
+]
+converter-cbor = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-cbor",
+    "qsimplify-facade/converter-cbor",
+    "qsimplify-ports/converter-cbor",
+]
+converter-json = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-json",
+    "qsimplify-facade/converter-json",
+    "qsimplify-ports/converter-json",
+]
+converter-msgpack = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-msgpack",
+    "qsimplify-facade/converter-msgpack",
+    "qsimplify-ports/converter-msgpack",
+]
+converter-xml = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-xml",
+    "qsimplify-facade/converter-xml",
+    "qsimplify-ports/converter-xml",
+]
 estimator = ["dep:qsimplify-estimator", "qsimplify-facade/estimator"]
+presenter-graphviz = [
+    "dep:qsimplify-presenter",
+    "qsimplify-facade/presenter-graphviz",
+    "qsimplify-presenter/presenter-graphviz",
+    "qsimplify-ports/presenter-graphviz",
+]
 
 [lints]
 workspace = true

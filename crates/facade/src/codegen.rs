@@ -31,6 +31,7 @@ pub fn generate_code<C: CodegenPort>(
 ) -> Result<CodeGenerationResponse, CodeGenerationError> {
     let graph = Graph::from(request.circuit().as_ref());
 
-    let result = codegen.generate(&graph, request.target(), request.circuit_name().as_deref());
-    Ok(CodeGenerationResponse::new(result))
+    codegen
+        .generate(&graph, request.target(), request.circuit_name().as_deref())
+        .map(CodeGenerationResponse::new)
 }

@@ -17,13 +17,25 @@ doctest = false
 [dependencies]
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
-ciborium = { workspace = true }
-o2o = { workspace = true }
-quick-xml = { workspace = true }
-rmp-serde = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-serde_with = { workspace = true }
+ciborium = { workspace = true, optional = true }
+o2o = { workspace = true, optional = true }
+quick-xml = { workspace = true, optional = true }
+rmp-serde = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+serde_json = { workspace = true, optional = true }
+serde_with = { workspace = true, optional = true }
+
+[features]
+default = [
+    "converter-cbor",
+    "converter-json",
+    "converter-msgpack",
+    "converter-xml",
+]
+converter-cbor = ["dep:ciborium", "dep:o2o", "dep:serde", "dep:serde_with"]
+converter-json = ["dep:o2o", "dep:serde", "dep:serde_json", "dep:serde_with"]
+converter-msgpack = ["dep:o2o", "dep:rmp-serde", "dep:serde", "dep:serde_with"]
+converter-xml = ["dep:quick-xml"]
 
 [lints]
 workspace = true

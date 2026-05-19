@@ -21,6 +21,19 @@ pub enum ConversionFormat {
     Cbor,
 }
 
+impl ConversionFormat {
+    pub const fn is_available(self) -> bool {
+        use ConversionFormat::*;
+
+        match self {
+            Json => cfg!(feature = "converter-json"),
+            Xml => cfg!(feature = "converter-xml"),
+            MessagePack => cfg!(feature = "converter-msgpack"),
+            Cbor => cfg!(feature = "converter-cbor"),
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum ParseError {
     #[error("Invalid {format} input: {message}")]
@@ -38,6 +51,11 @@ pub enum ParseError {
     UnsupportedVersion { version: u16 },
     #[error("Unsupported conversion format")]
     UnsupportedFormat,
+    #[error("Missing feature '{feature}' required for format '{format}'")]
+    MissingFeature {
+        feature: &'static str,
+        format: ConversionFormat,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -49,4 +67,9 @@ pub enum SerializeError {
     },
     #[error("Unsupported conversion format")]
     UnsupportedFormat,
+    #[error("Missing feature '{feature}' required for format '{format}'")]
+    MissingFeature {
+        feature: &'static str,
+        format: ConversionFormat,
+    },
 }
