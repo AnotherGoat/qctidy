@@ -13,6 +13,7 @@ pub trait CodegenPort {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CodeGenerationTarget {
     Qiskit,
+    OpenQasm3,
 }
 
 #[derive(Debug, Clone, Copy, Error)]

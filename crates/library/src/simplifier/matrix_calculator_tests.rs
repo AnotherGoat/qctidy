@@ -1,4 +1,4 @@
-use std::f64::consts::{FRAC_PI_2, FRAC_PI_4, PI};
+use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use faer::{Mat, complex::Complex64};
 
@@ -297,7 +297,7 @@ fn t_matrix() {
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::from(1.0_f64),
-        (1, 1) => (Complex64::new(0.0_f64, 1.0_f64) * PI / 4.0_f64).exp(),
+        (1, 1) => (Complex64::new(0.0_f64, 1.0_f64) * FRAC_PI_4).exp(),
         _ => Complex64::default(),
     });
 
@@ -311,7 +311,7 @@ fn t_dagger_matrix() {
     let actual = graph_circuit_matrix(&graph);
     let expected = Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => Complex64::from(1.0_f64),
-        (1, 1) => (Complex64::new(0.0_f64, -1.0_f64) * PI / 4.0_f64).exp(),
+        (1, 1) => (Complex64::new(0.0_f64, -1.0_f64) * FRAC_PI_4).exp(),
         _ => Complex64::default(),
     });
 

@@ -249,6 +249,15 @@ fn rationalize_fractions_of_pi() {
 }
 
 #[test]
+fn rationalize_pi_constant_fractions() {
+    assert!(rationalize_in_terms_of_pi(FRAC_PI_2) == Some(Ratio::new(1, 2)));
+    assert!(rationalize_in_terms_of_pi(FRAC_PI_3) == Some(Ratio::new(1, 3)));
+    assert!(rationalize_in_terms_of_pi(FRAC_PI_4) == Some(Ratio::new(1, 4)));
+    assert!(rationalize_in_terms_of_pi(FRAC_PI_6) == Some(Ratio::new(1, 6)));
+    assert!(rationalize_in_terms_of_pi(FRAC_PI_8) == Some(Ratio::new(1, 8)));
+}
+
+#[test]
 fn rationalize_big_pi_denominators() {
     assert!(rationalize_in_terms_of_pi(PI / 17.0).is_none());
     assert!(rationalize_in_terms_of_pi(PI / 18.0).is_none());

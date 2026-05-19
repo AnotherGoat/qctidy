@@ -1,5 +1,8 @@
+mod openqasm3;
 mod qiskit;
 
+#[cfg(test)]
+mod openqasm3_tests;
 #[cfg(test)]
 mod qiskit_tests;
 
@@ -20,6 +23,7 @@ impl CodegenPort for CodegenAdapter {
 
         match target {
             Qiskit => qiskit::generate(graph, circuit_name.unwrap_or("circuit")),
+            OpenQasm3 => openqasm3::generate(graph),
         }
     }
 }

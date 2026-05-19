@@ -1,4 +1,4 @@
-use std::{f64::consts::PI, sync::LazyLock};
+use std::{f64::consts::FRAC_PI_4, sync::LazyLock};
 
 use faer::{complex::Complex64, prelude::*};
 
@@ -80,7 +80,7 @@ static SY_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
 static T_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => ONE,
-        (1, 1) => (I * (PI / 4.0_f64)).exp(),
+        (1, 1) => (I * FRAC_PI_4).exp(),
         _ => Complex64::default(),
     })
 });
@@ -88,7 +88,7 @@ static T_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
 static TDG_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => ONE,
-        (1, 1) => (-I * (PI / 4.0_f64)).exp(),
+        (1, 1) => (-I * FRAC_PI_4).exp(),
         _ => Complex64::default(),
     })
 });

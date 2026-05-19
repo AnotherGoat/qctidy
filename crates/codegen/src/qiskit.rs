@@ -4,6 +4,8 @@ use qsimplify::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
 
+const PI_FORMAT: PiFormat = PiFormat::Custom { pi: "numpy.pi" };
+
 /// Convert the provided graph into Python code that uses the Qiskit library.
 pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
     let circuit = Circuit::from(graph);
@@ -165,11 +167,7 @@ fn generate_rotation_gate(
     imports: &mut Vec<String>,
     build_steps: &mut Vec<String>,
 ) {
-    let formatted = format_angle(
-        angle,
-        AngleFormat::Code,
-        PiFormat::Custom { pi: "numpy.pi" },
-    );
+    let formatted = format_angle(angle, AngleFormat::Code, PI_FORMAT);
 
     if formatted == "0" {
         add_build_step_with_string_parameters(
@@ -210,11 +208,7 @@ fn generate_cp_gate(
     imports: &mut Vec<String>,
     build_steps: &mut Vec<String>,
 ) {
-    let formatted = format_angle(
-        angle,
-        AngleFormat::Code,
-        PiFormat::Custom { pi: "numpy.pi" },
-    );
+    let formatted = format_angle(angle, AngleFormat::Code, PI_FORMAT);
 
     if formatted == "0" {
         add_build_step_with_string_parameters(

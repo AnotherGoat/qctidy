@@ -1,17 +1,16 @@
 use qsimplify::GraphBuilder;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI};
 
-use crate::qiskit;
+use crate::openqasm3;
 
 #[test]
 fn generate_empty_circuit() {
     let graph = GraphBuilder::default().build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
-
-circuit = QuantumCircuit()";
+OPENQASM 3.0;
+include \"stdgates.inc\";";
 
     assert_eq!(actual, expected);
 }
@@ -25,17 +24,18 @@ fn generate_single_qubit_circuit() {
         .push_z(0)
         .push_t(0)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1)
-circuit.h(0)
-circuit.x(0)
-circuit.y(0)
-circuit.z(0)
-circuit.t(0)";
+qubit[1] q;
+h q[0];
+x q[0];
+y q[0];
+z q[0];
+t q[0];";
 
     assert_eq!(actual, expected);
 }
@@ -43,14 +43,16 @@ circuit.t(0)";
 #[test]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1, 1)
-circuit.h(0)
-circuit.measure(0, 0)";
+qubit[1] q;
+bit[1] c;
+h q[0];
+measure q[0] -> c[0];";
 
     assert_eq!(actual, expected);
 }
@@ -68,17 +70,17 @@ fn generate_circuit_with_rotations() {
         .push_p(5.0 * FRAC_PI_4, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-import numpy
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1)
-circuit.rx(numpy.pi, 0)
-circuit.ry(numpy.pi / 2, 0)
-circuit.rz(2 * numpy.pi / 3, 0)
-circuit.p(5 * numpy.pi / 4, 0)";
+qubit[1] q;
+rx(pi) q[0];
+ry(pi / 2) q[0];
+rz(2 * pi / 3) q[0];
+p(5 * pi / 4) q[0];";
 
     assert_eq!(actual, expected);
 }
@@ -92,14 +94,15 @@ fn generate_circuit_with_zero_rotations() {
         .push_p(1e-8, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1)
-circuit.p(0, 0)
-circuit.p(0, 0)";
+qubit[1] q;
+p(0) q[0];
+p(0) q[0];";
 
     assert_eq!(actual, expected,);
 }
@@ -117,16 +120,17 @@ fn generate_circuit_with_uncommon_rotations() {
         .push_p(3.555, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1)
-circuit.rx(0.222, 0)
-circuit.ry(1.333, 0)
-circuit.rz(2.444, 0)
-circuit.p(3.555, 0)";
+qubit[1] q;
+rx(0.222) q[0];
+ry(1.333) q[0];
+rz(2.444) q[0];
+p(3.555) q[0];";
 
     assert_eq!(actual, expected);
 }
@@ -134,14 +138,18 @@ circuit.p(3.555, 0)";
 #[test]
 fn generate_circuit_with_sy_gate() {
     let graph = GraphBuilder::default().push_sy(0).build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
-from qiskit.circuit.library.standard_gates import YGate
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(1)
-circuit.append(YGate().power(1 / 2), [0])";
+gate sy q {
+    ry(-pi / 2) q;
+}
+
+qubit[1] q;
+sy q[0];";
 
     assert_eq!(actual, expected);
 }
@@ -155,14 +163,15 @@ fn generate_circuit_with_two_qubits() {
         .push_cy(1, 0)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(2)
-circuit.cx(0, 1)
-circuit.cy(1, 0)";
+qubit[2] q;
+cx q[0], q[1];
+cy q[1], q[0];";
 
     assert_eq!(actual, expected);
 }
@@ -176,17 +185,18 @@ fn generate_circuit_orders_qubits() {
         .push_z(1)
         .push_s(3)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(5)
-circuit.y(0)
-circuit.z(1)
-circuit.x(2)
-circuit.s(3)
-circuit.h(4)";
+qubit[5] q;
+y q[0];
+z q[1];
+x q[2];
+s q[3];
+h q[4];";
 
     assert_eq!(actual, expected);
 }
@@ -204,16 +214,17 @@ fn generate_circuit_orders_symmetrical_gates() {
         .push_cz(3, 2)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(4)
-circuit.swap(0, 1)
-circuit.cz(0, 2)
-circuit.swap(1, 3)
-circuit.cz(2, 3)";
+qubit[4] q;
+swap q[0], q[1];
+cz q[0], q[2];
+swap q[1], q[3];
+cz q[2], q[3];";
 
     assert_eq!(actual, expected);
 }
@@ -229,15 +240,16 @@ fn generate_circuit_with_three_qubits() {
         .push_ccz(0, 1, 2)
         .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(3)
-circuit.ccx(0, 2, 1)
-circuit.cswap(1, 0, 2)
-circuit.ccz(0, 1, 2)";
+qubit[3] q;
+ccx q[0], q[2], q[1];
+cswap q[1], q[0], q[2];
+ccz q[0], q[1], q[2];";
 
     assert_eq!(actual, expected);
 }
@@ -252,18 +264,20 @@ fn generate_circuit_with_multiple_bits() {
         .push_measure(1, 1)
         .push_measure(2, 2)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(3, 3)
-circuit.h(0)
-circuit.x(1)
-circuit.y(2)
-circuit.measure(0, 0)
-circuit.measure(1, 1)
-circuit.measure(2, 2)";
+qubit[3] q;
+bit[3] c;
+h q[0];
+x q[1];
+y q[2];
+measure q[0] -> c[0];
+measure q[1] -> c[1];
+measure q[2] -> c[2];";
 
     assert_eq!(actual, expected);
 }
@@ -278,38 +292,80 @@ fn generate_circuit_with_flipped_measurements() {
         .push_measure(1, 2)
         .push_measure(2, 0)
         .build();
-    let actual = qiskit::generate(&graph, "circuit");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-circuit = QuantumCircuit(3, 3)
-circuit.h(0)
-circuit.z(1)
-circuit.t(2)
-circuit.measure(0, 1)
-circuit.measure(1, 2)
-circuit.measure(2, 0)";
+qubit[3] q;
+bit[3] c;
+h q[0];
+z q[1];
+t q[2];
+measure q[0] -> c[1];
+measure q[1] -> c[2];
+measure q[2] -> c[0];";
 
     assert_eq!(actual, expected);
 }
 
 #[test]
-fn generate_circuit_with_custom_name() {
+#[expect(clippy::unwrap_used)]
+fn generate_circuit_with_cp_gate() {
     let graph = GraphBuilder::default()
-        .push_x(0)
-        .push_y(0)
-        .push_z(0)
+        .push_cp(FRAC_PI_3, 0, 1)
+        .unwrap()
         .build();
-    let actual = qiskit::generate(&graph, "xyz");
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
-from qiskit import QuantumCircuit
+OPENQASM 3.0;
+include \"stdgates.inc\";
 
-xyz = QuantumCircuit(1)
-xyz.x(0)
-xyz.y(0)
-xyz.z(0)";
+qubit[2] q;
+cp(pi / 3) q[0], q[1];";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
+fn generate_circuit_with_ch_gate() {
+    let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
+    let actual = openqasm3::generate(&graph);
+
+    let expected = "\
+OPENQASM 3.0;
+include \"stdgates.inc\";
+
+qubit[2] q;
+ch q[0], q[1];";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn generate_circuit_with_s_gates() {
+    let graph = GraphBuilder::default()
+        .push_s(0)
+        .push_sdg(0)
+        .push_sx(0)
+        .push_t(0)
+        .push_tdg(0)
+        .build();
+    let actual = openqasm3::generate(&graph);
+
+    let expected = "\
+OPENQASM 3.0;
+include \"stdgates.inc\";
+
+qubit[1] q;
+s q[0];
+sdg q[0];
+sx q[0];
+t q[0];
+tdg q[0];";
 
     assert_eq!(actual, expected);
 }

@@ -91,6 +91,11 @@ class CodeGenerationTarget(Enum):
     """Output format for generated code."""
     QISKIT = 0
     """Generate Qiskit Python code, which uses QuantumCircuit to build circuits."""
+    OPENQASM3 = 1
+    """Generate OpenQASM 3 code.
+
+    Ignores the circuit name parameter.
+    """
 
 def get_features() -> list[str]:
     """Get a list of all optional features that are available for this compilation of QSimplify."""
