@@ -29,14 +29,34 @@ pub type RuleId = &'static str;
 pub enum RuleGroup {
     /// Rules that remove trivial but redundant repeated reversible gate operations.
     ///
+    /// All the patterns in this groups should be obvious at a glance, but harder to find in larger circuits.
     /// Examples:
-    /// - `H H -> ()`
-    /// - `CX CX -> ()`
+    /// - `H H => ()`
+    /// - `CX CX => ()`
     Redundancy,
+    /// Rulest that reduce consecutive phase gates (Z, S, T) into smaller sets.
+    ///
+    /// Examples:
+    /// - `S S => Z`
+    /// - `T T` => S`
+    PhaseCompaction,
+    /// Rules that change the basis of a set of operations, usually flipping the X-space and Z-space.
+    ///
+    /// Examples:
+    /// - `H X H => Z`
+    /// - `H Z H => X`
+    BasisChange,
+    /// Rules that reverse control and target qubits.
+    ControlReversal,
+    PauliPropagation,
+    /// Rules that replace common gate decompositions into the gate they represent.
+    GateSynthesis,
+    /// Rules that reduce the number of CX gates found in a circuit.
+    CxReduction,
     /// Rules that merge adjacent angle rotations.
     ///
     /// Examples:
-    /// - `RX(a) RX(b) -> RX(a+b)`
+    /// - `RX(a) RX(b) => RX(a+b)`
     AngleMerging,
     /// Rules that normalize equivalent circuit representations into a canonical form.
     Normalization,

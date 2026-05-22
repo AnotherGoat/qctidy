@@ -33,6 +33,7 @@ keywords = ["quantum", "quantum-computing", "quantum-circuit"]
 bit-vec = "0.9" # MIT OR Apache-2.0
 ciborium = "0.2.2" # Apache-2.0
 faer = "0.24.0" # MIT
+function_name = "0.3.0" # MIT
 getset = "0.1.6" # MIT
 graphviz-rust = "0.9.7" # MIT
 inew = { git = "https://github.com/AnotherGoat/inew" } # MIT OR Apache-2.0
@@ -75,8 +76,6 @@ unused_macro_rules = "warn"
 unused_qualifications = "warn"
 
 # Warn by default
-# Remove later
-dead_code = "allow"
 
 # https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html
 [workspace.lints.clippy]

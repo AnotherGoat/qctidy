@@ -30,6 +30,15 @@ impl RuleRegistry {
         self.rules.insert(rule.metadata().id(), rule);
     }
 
+    /// Add multiple rules to the registry at once.
+    ///
+    /// Automatically replaces any existing rules with the same IDs.
+    pub fn register_all(&mut self, rules: Vec<Arc<dyn SimplificationRule>>) {
+        for rule in rules {
+            self.register(rule);
+        }
+    }
+
     /// Get a rule by its ID.
     ///
     /// Returns `None` if the rule does not exist.

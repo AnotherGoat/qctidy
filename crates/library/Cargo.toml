@@ -17,6 +17,7 @@ doctest = false
 [dependencies]
 bit-vec = { workspace = true }
 faer = { workspace = true }
+function_name = { workspace = true }
 getset = { workspace = true }
 inew = { workspace = true }
 itertools = { workspace = true }

@@ -32,6 +32,32 @@ impl fmt::Display for PatternRuleSide {
     }
 }
 
+#[derive(Debug, Clone)]
+struct GraphStatistics {
+    gate_count: usize,
+    node_frequencies: HashMap<GateType, usize>,
+}
+
+impl GraphStatistics {
+    fn from_graph(graph: &Graph) -> Self {
+        let mut node_frequencies: HashMap<GateType, usize> = HashMap::new();
+
+        for node in graph.iter_nodes() {
+            *node_frequencies.entry(node.r#type()).or_insert(0) += 1;
+        }
+
+        let gate_count = node_frequencies
+            .iter()
+            .map(|(gate_type, count)| count / gate_type.qubit_count())
+            .sum();
+
+        GraphStatistics {
+            gate_count,
+            node_frequencies,
+        }
+    }
+}
+
 /// A simplification rule that matches a pattern and replaces it with another pattern.
 ///
 /// The main type of rule used in this library.
@@ -109,7 +135,7 @@ impl PatternRule {
         let height = lhs.height();
         let rhs_height = rhs.height();
 
-        if rhs_height > height {
+        if height != rhs_height {
             return Err(RuleBuildError::InvalidHeight {
                 lhs_height: height,
                 rhs_height,
@@ -124,12 +150,22 @@ impl PatternRule {
             return Err(RuleBuildError::IdenticalGraphs);
         }
 
+        let lhs_statistics = GraphStatistics::from_graph(&lhs);
+        let rhs_statistics = GraphStatistics::from_graph(&rhs);
+
+        if rhs_statistics.gate_count >= lhs_statistics.gate_count {
+            return Err(RuleBuildError::NonCompactingRule {
+                lhs_gate_count: lhs_statistics.gate_count,
+                rhs_gate_count: rhs_statistics.gate_count,
+            });
+        }
+
         if !matrix_calculator::are_graphs_equivalent(&lhs, &rhs) {
             return Err(RuleBuildError::NonEquivalentGraphs);
         }
 
+        let anchor = Self::extract_anchor(&lhs, &lhs_statistics)?;
         let lhs_cache = GraphCache::from_graph(&lhs);
-        let anchor = Self::extract_anchor(&lhs)?;
 
         Ok(Self {
             metadata,
@@ -170,10 +206,11 @@ impl PatternRule {
 
             match current_row {
                 None => current_row = Some(row),
-                Some(current_row) => {
-                    if row > current_row + 1 {
+                Some(prev_row) => {
+                    if row > prev_row + 1 {
                         return false;
                     }
+                    current_row = Some(row);
                 }
             }
         }
@@ -181,13 +218,11 @@ impl PatternRule {
         true
     }
 
-    fn extract_anchor(lhs: &Graph) -> Result<Anchor, RuleBuildError> {
-        let mut frequencies: HashMap<GateType, usize> = HashMap::new();
-
-        for node in lhs.iter_nodes() {
-            *frequencies.entry(node.r#type()).or_insert(0) += 1;
-        }
-
+    fn extract_anchor(
+        lhs: &Graph,
+        lhs_statistics: &GraphStatistics,
+    ) -> Result<Anchor, RuleBuildError> {
+        let node_frequencies = &lhs_statistics.node_frequencies;
         let mut best = None;
 
         for node in lhs.iter_nodes_ordered_by_column() {
@@ -196,7 +231,7 @@ impl PatternRule {
 
             let candidate = Anchor::new(position.row(), position.column(), gate_type);
             let arity = gate_type.qubit_count();
-            let frequency = *frequencies
+            let frequency = *node_frequencies
                 .get(&gate_type)
                 .ok_or(RuleBuildError::InvalidAnchor)?;
 

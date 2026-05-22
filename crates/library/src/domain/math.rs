@@ -35,6 +35,13 @@ pub fn are_floats_equal(first: f64, second: f64) -> bool {
     difference <= RELATIVE_TOLERANCE.mul_add(scale, ABSOLUTE_TOLERANCE)
 }
 
+/// Check whether a float is close to zero.
+///
+/// This compares the absolute value of the float to `EPSILON`.
+pub(crate) fn is_float_close_to_zero(value: f64) -> bool {
+    value.abs() <= EPSILON
+}
+
 /// Check whether two floats wrapped in an `Option` are approximately equal.
 ///
 /// Uses `NumPy`'s default tolerance values, which are 1e-5 for relative and 1e-8 for absolute.

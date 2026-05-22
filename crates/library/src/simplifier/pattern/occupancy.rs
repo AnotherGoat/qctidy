@@ -2,7 +2,7 @@ use bit_vec::BitVec;
 
 use crate::Position;
 
-/// A map which tracks which positions in a graph are occupied.
+/// A map which tracks which positions in a graph are occupied/covered.
 ///
 /// Useful for pattern matching algorithms.
 #[derive(Debug, Clone)]

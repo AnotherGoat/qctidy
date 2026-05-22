@@ -11,13 +11,8 @@ use inew::New;
 #[derive(Getters, CopyGetters)]
 #[must_use]
 pub(super) struct GateSchema {
-    /// The type of gate this schema is for.
-    #[get_copy = "pub"]
-    r#type: GateType,
-    /// The expected schema for node that is part of the gate.
     #[get = "pub"]
     nodes: &'static [NodeSchema],
-    /// The expected edges between the nodes.
     #[get = "pub"]
     edges: &'static [EdgeSchema],
 }
@@ -57,74 +52,22 @@ pub(super) struct EdgeSchema {
     to_index: usize,
 }
 
-macro_rules! single_schema {
-    ($gate_type:path) => {
-        GateSchema {
-            r#type: $gate_type,
-            nodes: &[NodeSchema::NoData],
-            edges: &[],
-        }
-    };
-}
+const SINGLE_SCHEMA: GateSchema = GateSchema {
+    nodes: &[NodeSchema::NoData],
+    edges: &[],
+};
 
-macro_rules! rotation_schema {
-    ($gate_type:path) => {
-        GateSchema {
-            r#type: $gate_type,
-            nodes: &[NodeSchema::Angle],
-            edges: &[],
-        }
-    };
-}
-
-macro_rules! control_schema {
-    ($gate_type:path) => {
-        GateSchema {
-            r#type: $gate_type,
-            nodes: &[NodeSchema::NoData, NodeSchema::NoData],
-            edges: &[EdgeSchema::new(Targets, 0, 1)],
-        }
-    };
-}
-
-const ID_SCHEMA: GateSchema = single_schema!(ID);
-
-const H_SCHEMA: GateSchema = single_schema!(H);
-
-const X_SCHEMA: GateSchema = single_schema!(X);
-
-const Y_SCHEMA: GateSchema = single_schema!(Y);
-
-const Z_SCHEMA: GateSchema = single_schema!(Z);
-
-const P_SCHEMA: GateSchema = rotation_schema!(P);
-
-const RX_SCHEMA: GateSchema = rotation_schema!(RX);
-
-const RY_SCHEMA: GateSchema = rotation_schema!(RY);
-
-const RZ_SCHEMA: GateSchema = rotation_schema!(RZ);
-
-const S_SCHEMA: GateSchema = single_schema!(S);
-
-const SDG_SCHEMA: GateSchema = single_schema!(SDG);
-
-const SX_SCHEMA: GateSchema = single_schema!(SX);
-
-const SY_SCHEMA: GateSchema = single_schema!(SY);
-
-const T_SCHEMA: GateSchema = single_schema!(T);
-
-const TDG_SCHEMA: GateSchema = single_schema!(TDG);
+const ROTATION_SCHEMA: GateSchema = GateSchema {
+    nodes: &[NodeSchema::Angle],
+    edges: &[],
+};
 
 const MEASURE_SCHEMA: GateSchema = GateSchema {
-    r#type: Measure,
     nodes: &[NodeSchema::Bit],
     edges: &[],
 };
 
 const SWAP_SCHEMA: GateSchema = GateSchema {
-    r#type: Swap,
     nodes: &[NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(SwapsWith, 0, 1),
@@ -132,14 +75,12 @@ const SWAP_SCHEMA: GateSchema = GateSchema {
     ],
 };
 
-const CH_SCHEMA: GateSchema = control_schema!(CH);
-
-const CX_SCHEMA: GateSchema = control_schema!(CX);
-
-const CY_SCHEMA: GateSchema = control_schema!(CY);
+const CONTROL_SCHEMA: GateSchema = GateSchema {
+    nodes: &[NodeSchema::NoData, NodeSchema::NoData],
+    edges: &[EdgeSchema::new(Targets, 0, 1)],
+};
 
 const CZ_SCHEMA: GateSchema = GateSchema {
-    r#type: CZ,
     nodes: &[NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(WorksWith, 0, 1),
@@ -148,7 +89,6 @@ const CZ_SCHEMA: GateSchema = GateSchema {
 };
 
 const CP_SCHEMA: GateSchema = GateSchema {
-    r#type: CP,
     nodes: &[NodeSchema::Angle, NodeSchema::Angle],
     edges: &[
         EdgeSchema::new(WorksWith, 0, 1),
@@ -157,7 +97,6 @@ const CP_SCHEMA: GateSchema = GateSchema {
 };
 
 const CSWAP_SCHEMA: GateSchema = GateSchema {
-    r#type: CSwap,
     nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 1),
@@ -168,7 +107,6 @@ const CSWAP_SCHEMA: GateSchema = GateSchema {
 };
 
 const CCX_SCHEMA: GateSchema = GateSchema {
-    r#type: CCX,
     nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(Targets, 0, 2),
@@ -179,7 +117,6 @@ const CCX_SCHEMA: GateSchema = GateSchema {
 };
 
 const CCZ_SCHEMA: GateSchema = GateSchema {
-    r#type: CCZ,
     nodes: &[NodeSchema::NoData, NodeSchema::NoData, NodeSchema::NoData],
     edges: &[
         EdgeSchema::new(WorksWith, 0, 1),
@@ -192,28 +129,14 @@ const CCZ_SCHEMA: GateSchema = GateSchema {
 };
 
 impl GateType {
+    /// The node and edge structure of this gate.
     pub(super) const fn schema(self) -> &'static GateSchema {
         match self {
-            ID => &ID_SCHEMA,
-            H => &H_SCHEMA,
-            X => &X_SCHEMA,
-            Y => &Y_SCHEMA,
-            Z => &Z_SCHEMA,
-            P => &P_SCHEMA,
-            RX => &RX_SCHEMA,
-            RY => &RY_SCHEMA,
-            RZ => &RZ_SCHEMA,
-            S => &S_SCHEMA,
-            SDG => &SDG_SCHEMA,
-            SX => &SX_SCHEMA,
-            SY => &SY_SCHEMA,
-            T => &T_SCHEMA,
-            TDG => &TDG_SCHEMA,
+            ID | H | X | Y | Z | S | SDG | SX | SY | T | TDG => &SINGLE_SCHEMA,
+            P | RX | RY | RZ => &ROTATION_SCHEMA,
             Measure => &MEASURE_SCHEMA,
             Swap => &SWAP_SCHEMA,
-            CH => &CH_SCHEMA,
-            CX => &CX_SCHEMA,
-            CY => &CY_SCHEMA,
+            CH | CX | CY => &CONTROL_SCHEMA,
             CZ => &CZ_SCHEMA,
             CP => &CP_SCHEMA,
             CSwap => &CSWAP_SCHEMA,

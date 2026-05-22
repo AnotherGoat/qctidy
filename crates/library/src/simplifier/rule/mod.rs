@@ -5,6 +5,8 @@ pub(crate) mod pattern_rule;
 pub(crate) mod registry;
 
 #[cfg(test)]
+pub(crate) mod pattern_rule_tests;
+#[cfg(test)]
 pub(crate) mod registry_tests;
 
 use std::fmt::Debug;
@@ -36,6 +38,11 @@ pub enum RuleBuildError {
     NonContiguousPattern,
     #[error("LHS and RHS are identical")]
     IdenticalGraphs,
+    #[error("RHS contains more gates ({rhs_gate_count}) than LHS ({lhs_gate_count})")]
+    NonCompactingRule {
+        lhs_gate_count: usize,
+        rhs_gate_count: usize,
+    },
     #[error("LHS and RHS are not equivalent")]
     NonEquivalentGraphs,
     #[error("invalid anchor")]
