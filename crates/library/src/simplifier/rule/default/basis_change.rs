@@ -22,7 +22,7 @@ pub(crate) fn hadamard_x_hadamard() -> PatternRule {
         .push_h(0)
         .build();
 
-    let rhs = GraphBuilder::new(1).push_z(0).build();
+    let rhs = GraphBuilder::default().push_z(0).build();
 
     PatternRule::new(
         RuleMetadata::new(
@@ -45,7 +45,7 @@ pub(crate) fn hadamard_z_hadamard() -> PatternRule {
         .push_h(0)
         .build();
 
-    let rhs = GraphBuilder::new(1).push_x(0).build();
+    let rhs = GraphBuilder::default().push_x(0).build();
 
     PatternRule::new(
         RuleMetadata::new(

@@ -50,7 +50,7 @@ fn graph_builder_with_initial_size() {
 }
 
 #[test]
-fn push_id_is_noop() {
+fn push_id_is_not_noop() {
     let graph = GraphBuilder::default()
         .push_id(0)
         .push_id(0)
@@ -58,12 +58,7 @@ fn push_id_is_noop() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter
-        .is_empty()
-        .has_size(0)
-        .has_width(0)
-        .has_height(0)
-        .has_bits(0);
+    asserter.has_size(3).has_width(2).has_height(2).has_bits(0);
 
     graph.validate_internal();
 }

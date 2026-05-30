@@ -7,7 +7,6 @@ use crate::{Circuit, GateOperation, GateType, Graph, Position};
 /// It assumes that the `Graph` is valid, and it will panic if it isn't.
 /// Any `Graph` built with the `GraphBuilder` will always be valid.
 /// To check that a manually built `Graph` is valid, use `Graph::validate`.
-/// If the original `Graph` has any manually added `ID` gates, they will not be included.
 impl From<&Graph> for Circuit {
     fn from(graph: &Graph) -> Self {
         use GateType::*;
@@ -25,9 +24,7 @@ impl From<&Graph> for Circuit {
             let row = position.row();
 
             let operation = match node.r#type() {
-                ID => {
-                    continue;
-                }
+                ID => GateOperation::id(row),
                 H => GateOperation::h(row),
                 X => GateOperation::x(row),
                 Y => GateOperation::y(row),

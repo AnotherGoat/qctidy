@@ -59,7 +59,7 @@ struct EdgeData {
 /// Position values of the form (row, column) are used to index the graph's nodes.
 /// Each qubit is represented by a row in the grid.
 /// Single-qubit gates occupy a single node, while multi-qubit gates use multiple related nodes (one for each qubit involved).
-/// Empty spaces have no nodes, and for practical purposes, identity gates are also considered empty.
+/// Empty spaces have no nodes.
 /// No duplicate edges (same origin, type and target) are allowed.
 /// It's recommended to use the graph builder to build the graph with ease.
 #[derive(Default, Debug, Clone)]
@@ -81,7 +81,7 @@ impl PartialEq for Graph {
     /// Check whether two graphs are equal.
     ///
     /// Node positions and data must match, as well as edges.
-    /// Edge insertion order is not taken into account.
+    /// Edge insertion order and graph width are not taken into account.
     /// Floating point values are compared using a relative tolerance of 1e-5 and an absolute tolerance of 1e-8.
     /// This means that graph equality is non-transitive, but in practice this should be fine because floats are already non-deterministic across different hardware.
     fn eq(&self, other: &Self) -> bool {
@@ -390,12 +390,10 @@ impl Graph {
         self.nodes.contains_key(&position)
     }
 
-    /// Check whether the graph has a non-identity node at the specified row and column.
+    /// Check whether the graph has a node at the specified row and column.
     #[must_use]
     pub fn is_occupied(&self, position: Position) -> bool {
-        self.nodes
-            .get(&position)
-            .is_some_and(|node| node.gate != GateType::ID)
+        self.nodes.contains_key(&position)
     }
 
     /// Retrieve a read-only projection of the node at the specified position.

@@ -102,9 +102,11 @@ impl GraphBuilder {
         self
     }
 
-    /// Push a ID gate at the end of the graph, which effectively does nothing.
-    pub const fn push_id(&mut self, _qubit: usize) -> &mut Self {
-        self
+    /// Push a ID gate at the end of the graph.
+    ///
+    /// Note that this is not a no-op, which means a node will be added.
+    pub fn push_id(&mut self, qubit: usize) -> &mut Self {
+        self.put_id(qubit, self.find_push_column(&[qubit]))
     }
 
     /// Push a H gate at the end of the graph.
@@ -336,9 +338,11 @@ impl GraphBuilder {
         ))
     }
 
-    /// Put a ID gate directly into the graph, which effectively does nothing.
-    pub(crate) const fn put_id(&mut self, _qubit: usize, _columnn: usize) -> &mut Self {
-        self
+    /// Put a ID gate directly into the graph.
+    ///
+    /// Note that this is not a no-op, which means a node will be added.
+    pub(crate) fn put_id(&mut self, qubit: usize, column: usize) -> &mut Self {
+        self.put_single(GateType::ID, qubit, column)
     }
 
     /// Put a H gate directly into the graph, which may break it when used incorrectly.

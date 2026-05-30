@@ -44,6 +44,21 @@ circuit.t(0)";
 
 #[test]
 #[expect(clippy::unwrap_used)]
+fn generate_circuit_with_identity() {
+    let graph = GraphBuilder::default().push_id(0).build();
+    let actual = qiskit::generate(&graph, "circuit").unwrap();
+
+    let expected = "\
+from qiskit import QuantumCircuit
+
+circuit = QuantumCircuit(1)
+circuit.id(0)";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
     let actual = qiskit::generate(&graph, "circuit").unwrap();

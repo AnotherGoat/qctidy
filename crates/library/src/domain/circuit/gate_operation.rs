@@ -47,7 +47,7 @@ fn format_multiple_fields(fields: &[&str]) -> String {
 #[derive(Debug, Clone, Copy)]
 #[must_use]
 pub enum GateOperation {
-    /// The identity gate. It has no practical effect.
+    /// The identity gate. It explicitly occupies a position in the graph.
     ID {
         /// The qubit that this gate is placed on.
         qubit: usize,
@@ -417,7 +417,7 @@ impl GateOperation {
         use GateOperation::*;
 
         match *self {
-            ID { .. } => vec![],
+            ID { qubit } => vec![qubit],
             H { qubit }
             | X { qubit }
             | Y { qubit }

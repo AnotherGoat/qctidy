@@ -14,7 +14,7 @@ pub enum GateTypeError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum GateType {
-    /// The identity gate. It has no practical effect.
+    /// The identity gate. It explicitly occupies a position in the graph.
     ID,
     /// Single-qubit Hadamard gate.
     H,
@@ -208,12 +208,10 @@ impl GateType {
     }
 
     /// Get the number of qubits used by this type of gate.
-    ///
-    /// Identity gates return 0 because they add no value to the circuit.
     pub(crate) const fn qubit_count(self) -> usize {
         use GateType::*;
+
         match self {
-            ID => 0,
             Swap | CH | CX | CY | CZ | CP => 2,
             CSwap | CCX | CCZ => 3,
             _ => 1,
@@ -244,13 +242,13 @@ impl GateType {
 
     /// Get the number of qubits affected by this type of gate.
     ///
-    /// Identity and measurement gates return 0 because they target a single qubit, but make no changes to it.
+    /// Measurement gates return 0 because they don't modify the quantum state.
     /// Having a target qubit doesn't guarantee that the gate has a control qubit.
     /// All single-qubit gates have a target qubit.
     pub(crate) const fn target_qubit_count(self) -> usize {
         use GateType::*;
         match self {
-            ID | Measure => 0,
+            Measure => 0,
             Swap | CSwap => 2,
             _ => 1,
         }

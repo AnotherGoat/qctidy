@@ -1,7 +1,7 @@
 use getset::{CopyGetters, Getters};
 use inew::New;
 
-use crate::GateType;
+use crate::{GateType, Position};
 
 /// An anchor point used for pattern matching.
 ///
@@ -10,9 +10,7 @@ use crate::GateType;
 #[new(pub, const)]
 pub struct Anchor {
     #[get_copy = "pub"]
-    row: usize,
-    #[get_copy = "pub"]
-    column: usize,
+    position: Position,
     #[get_copy = "pub"]
     gate_type: GateType,
 }

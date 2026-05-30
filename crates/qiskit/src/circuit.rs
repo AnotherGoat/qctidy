@@ -25,7 +25,9 @@ pub(crate) fn circuit_to_qiskit(python: Python<'_>, circuit: &Circuit) -> PyResu
 
     for operation in circuit.operations() {
         match *operation {
-            ID { .. } => {}
+            ID { qubit } => {
+                qiskit_circuit.call_method1("id", (qubit,))?;
+            }
             H { qubit } => {
                 qiskit_circuit.call_method1("h", (qubit,))?;
             }

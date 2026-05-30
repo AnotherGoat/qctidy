@@ -44,6 +44,22 @@ t q[0];";
 
 #[test]
 #[expect(clippy::unwrap_used)]
+fn generate_circuit_with_identity() {
+    let graph = GraphBuilder::default().push_id(0).build();
+    let actual = openqasm3::generate(&graph).unwrap();
+
+    let expected = "\
+OPENQASM 3.0;
+include \"stdgates.inc\";
+
+qubit[1] q;
+id q[0];";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
     let actual = openqasm3::generate(&graph).unwrap();

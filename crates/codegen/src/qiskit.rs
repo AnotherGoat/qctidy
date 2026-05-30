@@ -70,8 +70,8 @@ fn generate_gate(
     use GateOperation::*;
 
     match *operation {
-        ID { .. } => {}
-        H { qubit }
+        ID { qubit }
+        | H { qubit }
         | X { qubit }
         | Y { qubit }
         | Z { qubit }

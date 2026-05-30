@@ -5,7 +5,7 @@ use crate::{EdgeType, EdgeView, Graph, NodeView, Position, domain::graph::EdgeDa
 impl Graph {
     /// Iterate over the graph's positions that have nodes, first row and then by column.
     ///
-    /// Positions without nodes or with identity nodes are skipped.
+    /// Positions without nodes are skipped.
     pub fn iter_positions_ordered_by_row(&self) -> impl Iterator<Item = Position> + '_ {
         let height = self.height();
         let width = self.width();
@@ -20,7 +20,7 @@ impl Graph {
 
     /// Iterate over the graph's positions that have nodes, first column and then by row.
     ///
-    /// Positions without nodes or with identity nodes are skipped.
+    /// Positions without nodes are skipped.
     pub fn iter_positions_ordered_by_column(&self) -> impl Iterator<Item = Position> + '_ {
         let height = self.height();
         let width = self.width();
@@ -46,7 +46,7 @@ impl Graph {
     /// Iterate over the graph's nodes, first row by row and then column by column.
     ///
     /// This provides deterministic traversal based on a grid structure.
-    /// Empty or identity nodes are skipped.
+    /// Positions without nodes are skipped.
     pub fn iter_nodes_ordered_by_row(&self) -> impl Iterator<Item = NodeView> + '_ {
         self.iter_positions_ordered_by_row()
             .filter_map(|position| self.get_node(position))
@@ -55,7 +55,7 @@ impl Graph {
     /// Iterate over the graph's nodes, first column by column and then row by row.
     ///
     /// This provides deterministic traversal based on a grid structure.
-    /// Empty or identity nodes are skipped.
+    /// Positions without nodes are skipped.
     pub fn iter_nodes_ordered_by_column(&self) -> impl Iterator<Item = NodeView> + '_ {
         self.iter_positions_ordered_by_column()
             .filter_map(|position| self.get_node(position))

@@ -195,6 +195,17 @@ fn graph_is_equal_in_different_insertion_order() {
 }
 
 #[test]
+fn is_occupied_with_identity() {
+    let mut graph = Graph::default();
+    graph.replace_node(ID, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None);
+
+    assert!(graph.is_occupied(Position::new(0, 0)));
+    assert!(graph.is_occupied(Position::new(0, 1)));
+    assert!(!graph.is_occupied(Position::new(1, 0)));
+}
+
+#[test]
 fn is_occupied() {
     let graph = GraphBuilder::default()
         .put_x(0, 1)
@@ -705,4 +716,35 @@ fn get_node_and_edges_collects_edges_correctly() {
 
     assert!(right_view.right().is_none());
     assert!(right_view.left().is_some());
+}
+
+#[test]
+fn graph_to_circuit_includes_identity() {
+    use crate::Circuit;
+
+    let graph = GraphBuilder::default().push_id(0).push_x(0).build();
+    let circuit = Circuit::from(&graph);
+
+    assert_eq!(circuit.operations().len(), 2);
+    assert_eq!(circuit.operations()[0].r#type(), ID);
+    assert_eq!(circuit.operations()[1].r#type(), X);
+}
+
+#[test]
+fn circuit_to_graph_round_trip_with_id() {
+    use crate::{Circuit, GateOperation};
+
+    let circuit = Circuit::new(1, vec![GateOperation::id(0), GateOperation::x(0)]);
+    let graph = Graph::from(&circuit);
+
+    assert_eq!(graph.height(), 1);
+    assert_eq!(graph.iter_nodes().count(), 2);
+    assert!(graph.is_occupied(Position::new(0, 0)));
+    assert!(graph.is_occupied(Position::new(0, 1)));
+
+    let first = graph.get_node(Position::new(0, 0)).unwrap();
+    let second = graph.get_node(Position::new(0, 1)).unwrap();
+
+    assert_eq!(first.r#type(), ID);
+    assert_eq!(second.r#type(), X);
 }

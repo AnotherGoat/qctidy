@@ -6,6 +6,7 @@ use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
+        Arc::new(remove_identity()),
         Arc::new(double_hadamard()),
         Arc::new(double_x()),
         Arc::new(double_y()),
@@ -19,6 +20,24 @@ pub(crate) fn register(registry: &mut RuleRegistry) {
         Arc::new(double_ccx()),
         Arc::new(double_ccz()),
     ]);
+}
+
+#[named]
+pub(crate) fn remove_identity() -> PatternRule {
+    let lhs = GraphBuilder::default().push_id(0).build();
+    let rhs = GraphBuilder::new(1).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes identity gates.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule {} should be valid")
 }
 
 #[named]

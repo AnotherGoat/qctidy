@@ -60,7 +60,7 @@ fn generate_mappings(
     rule: &PatternRule,
     anchor_position: Position,
 ) -> impl Iterator<Item = QubitMapping> {
-    let anchor_pattern_row = rule.anchor().row();
+    let anchor_pattern_row = rule.anchor().position().row();
     let anchor_graph_row = anchor_position.row();
 
     let pattern_rows = collect_non_anchor_pattern_rows(rule);
@@ -82,7 +82,7 @@ fn generate_mappings(
 }
 
 fn collect_non_anchor_pattern_rows(rule: &PatternRule) -> Vec<usize> {
-    let anchor_row = rule.anchor().row();
+    let anchor_row = rule.anchor().position().row();
 
     (0..rule.height())
         .filter(|&row| row != anchor_row)
@@ -221,7 +221,7 @@ fn map_pattern_column_to_graph(
     anchor_graph_position: Position,
     pattern_column: usize,
 ) -> usize {
-    anchor_graph_position.column() + pattern_column - rule.anchor().column()
+    anchor_graph_position.column() + pattern_column - rule.anchor().position().column()
 }
 
 fn nodes_match(pattern_node: NodeView, graph_node: NodeView) -> bool {

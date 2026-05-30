@@ -27,6 +27,8 @@ pub type RuleId = &'static str;
 /// Groups describe the specific family or identity class that a rule belongs to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RuleGroup {
+    /// Rules that normalize equivalent circuit representations into a canonical form.
+    Canonicalization,
     /// Rules that remove trivial but redundant repeated reversible gate operations.
     ///
     /// All the patterns in this groups should be obvious at a glance, but harder to find in larger circuits.
@@ -58,8 +60,6 @@ pub enum RuleGroup {
     /// Examples:
     /// - `RX(a) RX(b) => RX(a+b)`
     AngleMerging,
-    /// Rules that normalize equivalent circuit representations into a canonical form.
-    Normalization,
     /// Rules that don't fit cleanly into any other group.
     ///
     /// Avoided whenever possible for built-in rules.

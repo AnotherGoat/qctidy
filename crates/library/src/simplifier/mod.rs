@@ -1,7 +1,5 @@
 /// Contains unitary matrix calculations for quantum graphs.
 pub(crate) mod matrix_calculator;
-/// Contains functions for cleaning and normalizing `Graphs`.
-pub(crate) mod normalizer;
 pub(crate) mod pattern;
 pub(crate) mod rule;
 
@@ -10,7 +8,10 @@ mod matrix_calculator_tests;
 
 use std::sync::Arc;
 
-use crate::{Graph, PatternRule, RuleConfiguration, RuleLevel, RuleRegistry, SimplificationRule};
+use crate::{
+    Graph, PatternRule, RuleConfiguration, RuleLevel, RuleRegistry, SimplificationRule,
+    simplifier::{self, rule::registry::DEFAULT_RULE_REGISTRY},
+};
 
 /// A simplifier for quantum graphs.
 #[derive(Debug)]
@@ -85,8 +86,16 @@ impl Simplifier {
     }
 }
 
-pub const fn simplify(graph: Graph, _iterations: u32) -> Graph {
-    graph
+pub fn simplify(graph: Graph, _iterations: u32) -> Graph {
+    let simplifier = Simplifier::new(
+        &DEFAULT_RULE_REGISTRY,
+        vec![],
+        &RuleConfiguration::new(RuleLevel::Apply),
+    );
+
+    let mut simplified = graph.clone();
+    simplifier.simplify(&mut simplified, _iterations);
+    simplified
 }
 
 pub fn simplify_with_rules(

@@ -70,7 +70,7 @@ fn parse_instruction(
     let qubit0 = get_qubit(&qubits, 0)?;
 
     let gate_operation = match r#type {
-        ID => return Ok(None),
+        ID => GateOperation::id(qubit0),
         H => GateOperation::h(qubit0),
         X => GateOperation::x(qubit0),
         Y => GateOperation::y(qubit0),

@@ -7,6 +7,7 @@ use crate::RuleId;
 
 /// Configuration for graph simplification rules.
 #[derive(Debug, Clone, Getters, CopyGetters, New)]
+#[new(pub)]
 pub struct RuleConfiguration {
     /// The default lint level for all the rules.
     #[get_copy = "pub"]
