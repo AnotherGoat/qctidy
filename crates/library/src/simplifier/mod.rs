@@ -6,11 +6,14 @@ pub(crate) mod rule;
 #[cfg(test)]
 mod matrix_calculator_tests;
 
+#[cfg(test)]
+mod simplification_tests;
+
 use std::sync::Arc;
 
 use crate::{
     Graph, PatternRule, RuleConfiguration, RuleLevel, RuleRegistry, SimplificationRule,
-    simplifier::{self, rule::registry::DEFAULT_RULE_REGISTRY},
+    simplifier::rule::registry::DEFAULT_RULE_REGISTRY,
 };
 
 /// A simplifier for quantum graphs.

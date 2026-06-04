@@ -657,7 +657,7 @@ fn serialize_id_to_xml() {
     let operation = GateOperation::id(0);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"id\" qubit=\"0\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"1\"><gate type=\"id\" qubit=\"0\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -668,7 +668,7 @@ fn serialize_h_to_xml() {
     let operation = GateOperation::h(1);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"h\" qubit=\"1\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"2\"><gate type=\"h\" qubit=\"1\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -679,7 +679,7 @@ fn serialize_x_to_xml() {
     let operation = GateOperation::x(2);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"x\" qubit=\"2\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"3\"><gate type=\"x\" qubit=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -690,7 +690,7 @@ fn serialize_y_to_xml() {
     let operation = GateOperation::y(3);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"y\" qubit=\"3\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"4\"><gate type=\"y\" qubit=\"3\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -701,7 +701,7 @@ fn serialize_z_to_xml() {
     let operation = GateOperation::z(4);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"z\" qubit=\"4\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"5\"><gate type=\"z\" qubit=\"4\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -712,7 +712,7 @@ fn serialize_p_to_xml() {
     let operation = GateOperation::try_p(1.5, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"p\" qubit=\"5\" angle=\"1.5\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"6\"><gate type=\"p\" qubit=\"5\" angle=\"1.5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -723,7 +723,7 @@ fn serialize_rx_to_xml() {
     let operation = GateOperation::try_rx(PI, 6).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"rx\" qubit=\"6\" angle=\"3.141592653589793\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"7\"><gate type=\"rx\" qubit=\"6\" angle=\"3.141592653589793\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -734,7 +734,7 @@ fn serialize_ry_to_xml() {
     let operation = GateOperation::try_ry(0.5, 7).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ry\" qubit=\"7\" angle=\"0.5\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"8\"><gate type=\"ry\" qubit=\"7\" angle=\"0.5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -745,7 +745,7 @@ fn serialize_rz_to_xml() {
     let operation = GateOperation::try_rz(2.0, 8).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"rz\" qubit=\"8\" angle=\"2\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"9\"><gate type=\"rz\" qubit=\"8\" angle=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -756,7 +756,7 @@ fn serialize_s_to_xml() {
     let operation = GateOperation::s(9);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"s\" qubit=\"9\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"10\"><gate type=\"s\" qubit=\"9\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -767,7 +767,7 @@ fn serialize_sdg_to_xml() {
     let operation = GateOperation::sdg(10);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sdg\" qubit=\"10\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"11\"><gate type=\"sdg\" qubit=\"10\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -778,7 +778,7 @@ fn serialize_sx_to_xml() {
     let operation = GateOperation::sx(11);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sx\" qubit=\"11\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"12\"><gate type=\"sx\" qubit=\"11\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -789,7 +789,7 @@ fn serialize_sy_to_xml() {
     let operation = GateOperation::sy(12);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"sy\" qubit=\"12\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"13\"><gate type=\"sy\" qubit=\"12\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -800,7 +800,7 @@ fn serialize_t_to_xml() {
     let operation = GateOperation::t(13);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"t\" qubit=\"13\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"14\"><gate type=\"t\" qubit=\"13\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -811,7 +811,7 @@ fn serialize_tdg_to_xml() {
     let operation = GateOperation::tdg(14);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"tdg\" qubit=\"14\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"15\"><gate type=\"tdg\" qubit=\"14\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -822,7 +822,7 @@ fn serialize_measure_to_xml() {
     let operation = GateOperation::measure(15, 3);
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"m\" qubit=\"15\" bit=\"3\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"16\"><gate type=\"m\" qubit=\"15\" bit=\"3\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -833,7 +833,7 @@ fn serialize_swap_to_xml() {
     let operation = GateOperation::try_swap(0, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"swap\" qubit1=\"0\" qubit2=\"5\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"6\"><gate type=\"swap\" qubit1=\"0\" qubit2=\"5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -844,7 +844,7 @@ fn serialize_ch_to_xml() {
     let operation = GateOperation::try_ch(2, 7).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ch\" control=\"2\" target=\"7\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"8\"><gate type=\"ch\" control=\"2\" target=\"7\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -855,7 +855,7 @@ fn serialize_cx_to_xml() {
     let operation = GateOperation::try_cx(3, 8).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cx\" control=\"3\" target=\"8\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"9\"><gate type=\"cx\" control=\"3\" target=\"8\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -866,7 +866,7 @@ fn serialize_cy_to_xml() {
     let operation = GateOperation::try_cy(4, 9).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cy\" control=\"4\" target=\"9\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"10\"><gate type=\"cy\" control=\"4\" target=\"9\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -877,7 +877,7 @@ fn serialize_cz_to_xml() {
     let operation = GateOperation::try_cz(1, 6).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cz\" qubit1=\"1\" qubit2=\"6\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"7\"><gate type=\"cz\" qubit1=\"1\" qubit2=\"6\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -888,7 +888,7 @@ fn serialize_cp_to_xml() {
     let operation = GateOperation::try_cp(0.75, 5, 10).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cp\" qubit1=\"5\" qubit2=\"10\" angle=\"0.75\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"11\"><gate type=\"cp\" qubit1=\"5\" qubit2=\"10\" angle=\"0.75\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -899,7 +899,7 @@ fn serialize_cswap_to_xml() {
     let operation = GateOperation::try_c_swap(0, 1, 2).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"cswap\" control=\"0\" target1=\"1\" target2=\"2\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"3\"><gate type=\"cswap\" control=\"0\" target1=\"1\" target2=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -910,7 +910,7 @@ fn serialize_ccx_to_xml() {
     let operation = GateOperation::try_ccx(0, 1, 2).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ccx\" control1=\"0\" control2=\"1\" target=\"2\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"3\"><gate type=\"ccx\" control1=\"0\" control2=\"1\" target=\"2\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -921,7 +921,7 @@ fn serialize_ccz_to_xml() {
     let operation = GateOperation::try_ccz(3, 4, 5).unwrap();
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"ccz\" qubit1=\"3\" qubit2=\"4\" qubit3=\"5\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"6\"><gate type=\"ccz\" qubit1=\"3\" qubit2=\"4\" qubit3=\"5\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -936,7 +936,7 @@ fn serialize_list_to_xml() {
     ]);
     let result = xml::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
-    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"0\"><gate type=\"h\" qubit=\"0\"/><gate type=\"cx\" control=\"0\" target=\"1\"/><gate type=\"m\" qubit=\"1\" bit=\"0\"/></circuit>";
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"2\"><gate type=\"h\" qubit=\"0\"/><gate type=\"cx\" control=\"0\" target=\"1\"/><gate type=\"m\" qubit=\"1\" bit=\"0\"/></circuit>";
 
     assert_eq!(actual, expected);
 }
@@ -952,7 +952,7 @@ fn serialize_list_to_pretty_xml() {
     let result = xml::serialize(&circuit, true, 2).unwrap();
     let actual = String::from_utf8(result).unwrap();
     let expected = r#"<?xml version="1.0" encoding="utf-8"?>
-<circuit version="1" qubit_count="0">
+<circuit version="1" qubit_count="2">
   <gate type="h" qubit="0"/>
   <gate type="cx" control="0" target="1"/>
   <gate type="m" qubit="1" bit="0"/>
@@ -1012,7 +1012,7 @@ fn serialize_to_xml_preserves_data() {
     let result = xml::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
     let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-<circuit version=\"1\" qubit_count=\"0\">\
+<circuit version=\"1\" qubit_count=\"4\">\
 <gate type=\"h\" qubit=\"0\"/>\
 <gate type=\"p\" qubit=\"3\" angle=\"1.234\"/>\
 <gate type=\"cx\" control=\"0\" target=\"1\"/>\

@@ -27,6 +27,7 @@ enum PythonDisplayFormat {
     GRAPH,
     GRID,
     MATRIX,
+    CIRCUIT,
 }
 
 impl From<PythonDisplayFormat> for DisplayFormat {
@@ -37,6 +38,7 @@ impl From<PythonDisplayFormat> for DisplayFormat {
             GRAPH => Self::Graph,
             GRID => Self::Grid,
             MATRIX => Self::Matrix,
+            CIRCUIT => Self::Circuit,
         }
     }
 }

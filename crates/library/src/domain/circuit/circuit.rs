@@ -1,13 +1,11 @@
 use getset::{CopyGetters, Getters};
-use inew::New;
 
 use crate::GateOperation;
 
-/// A collection of gate operations applied in the order of storage,
+/// A collection of gate operations applied in the order of storage.
 ///
 /// Stores the qubit count to differentiate circuits with different qubit counts but the same operations.
-#[derive(Debug, Clone, Getters, CopyGetters, New)]
-#[new(pub, const)]
+#[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct Circuit {
     /// The minimum number of qubits in the circuit built from these operations.
     ///
@@ -20,10 +18,22 @@ pub struct Circuit {
 }
 
 impl Circuit {
-    pub const fn from_operations(operations: Vec<GateOperation>) -> Self {
+    pub fn new(initial_qubit_count: usize, operations: Vec<GateOperation>) -> Self {
+        let max_qubit = operations
+            .iter()
+            .flat_map(|operation| operation.qubits())
+            .max();
+        let qubit_count = max_qubit
+            .map(|max| (max + 1).max(initial_qubit_count))
+            .unwrap_or(initial_qubit_count);
+
         Self {
-            qubit_count: 0,
+            qubit_count,
             operations,
         }
+    }
+
+    pub fn from_operations(operations: Vec<GateOperation>) -> Self {
+        Self::new(0, operations)
     }
 }

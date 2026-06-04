@@ -51,7 +51,7 @@ pub fn parse<C: ConverterPort>(
 ) -> Result<ParseResponse, ParseError> {
     converter
         .parse(&request.input(), request.format())
-        .map(|operations| ParseResponse::new(operations.into()))
+        .map(|circuit| ParseResponse::new(circuit.into()))
 }
 
 pub fn serialize<C: ConverterPort>(

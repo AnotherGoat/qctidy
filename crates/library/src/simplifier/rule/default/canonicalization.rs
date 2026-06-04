@@ -114,7 +114,7 @@ pub(crate) fn compact_columns() -> CanonicalizationRule {
             }
 
             let max_column = *columns.iter().max().unwrap();
-            let has_gap = (0..=max_column).any(|col| !columns.contains(&col));
+            let has_gap = (0..=max_column).any(|column| !columns.contains(&column));
 
             if !has_gap {
                 return Vec::new();

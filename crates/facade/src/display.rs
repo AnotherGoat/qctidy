@@ -24,6 +24,7 @@ pub enum DisplayFormat {
     Graph,
     Grid,
     Matrix,
+    Circuit,
 }
 
 #[derive(Debug, Clone, Getters, New)]
@@ -46,6 +47,7 @@ pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError
         DisplayFormat::Graph => graph.display_nodes_and_edges(pi_format),
         Grid => graph.display_grid(pi_format),
         Matrix => graph.display_matrix(dirac_format),
+        DisplayFormat::Circuit => request.circuit().display(pi_format),
     };
 
     Ok(DisplayResponse::new(text))

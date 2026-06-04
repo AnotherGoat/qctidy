@@ -702,7 +702,7 @@ fn serialize_id_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"id","qubit":0}]}"#;
+    let expected = r#"{"version":1,"qubit_count":1,"operations":[{"gate":"id","qubit":0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -714,7 +714,7 @@ fn serialize_h_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"h","qubit":1}]}"#;
+    let expected = r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":1}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -726,7 +726,7 @@ fn serialize_x_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"x","qubit":2}]}"#;
+    let expected = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"x","qubit":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -738,7 +738,7 @@ fn serialize_y_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"y","qubit":3}]}"#;
+    let expected = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"y","qubit":3}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -750,7 +750,7 @@ fn serialize_z_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"z","qubit":4}]}"#;
+    let expected = r#"{"version":1,"qubit_count":5,"operations":[{"gate":"z","qubit":4}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -763,7 +763,7 @@ fn serialize_p_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -775,7 +775,7 @@ fn serialize_rx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
+    let expected = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -788,7 +788,7 @@ fn serialize_ry_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -801,7 +801,7 @@ fn serialize_rz_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
+        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -813,7 +813,7 @@ fn serialize_s_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"s","qubit":9}]}"#;
+    let expected = r#"{"version":1,"qubit_count":10,"operations":[{"gate":"s","qubit":9}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -825,7 +825,7 @@ fn serialize_sdg_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sdg","qubit":10}]}"#;
+    let expected = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"sdg","qubit":10}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -837,7 +837,7 @@ fn serialize_sx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sx","qubit":11}]}"#;
+    let expected = r#"{"version":1,"qubit_count":12,"operations":[{"gate":"sx","qubit":11}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -849,7 +849,7 @@ fn serialize_sy_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"sy","qubit":12}]}"#;
+    let expected = r#"{"version":1,"qubit_count":13,"operations":[{"gate":"sy","qubit":12}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -861,7 +861,7 @@ fn serialize_t_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"t","qubit":13}]}"#;
+    let expected = r#"{"version":1,"qubit_count":14,"operations":[{"gate":"t","qubit":13}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -873,7 +873,7 @@ fn serialize_tdg_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"tdg","qubit":14}]}"#;
+    let expected = r#"{"version":1,"qubit_count":15,"operations":[{"gate":"tdg","qubit":14}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -886,7 +886,7 @@ fn serialize_measure_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"m","qubit":15,"bit":3}]}"#;
+        r#"{"version":1,"qubit_count":16,"operations":[{"gate":"m","qubit":15,"bit":3}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -899,7 +899,7 @@ fn serialize_swap_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"swap","qubit1":0,"qubit2":5}]}"#;
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"swap","qubit1":0,"qubit2":5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -912,7 +912,7 @@ fn serialize_ch_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ch","control":2,"target":7}]}"#;
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ch","control":2,"target":7}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -925,7 +925,7 @@ fn serialize_cx_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cx","control":3,"target":8}]}"#;
+        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"cx","control":3,"target":8}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -938,7 +938,7 @@ fn serialize_cy_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cy","control":4,"target":9}]}"#;
+        r#"{"version":1,"qubit_count":10,"operations":[{"gate":"cy","control":4,"target":9}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -951,7 +951,7 @@ fn serialize_cz_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cz","qubit1":1,"qubit2":6}]}"#;
+        r#"{"version":1,"qubit_count":7,"operations":[{"gate":"cz","qubit1":1,"qubit2":6}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -963,7 +963,7 @@ fn serialize_cp_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
+    let expected = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -975,7 +975,7 @@ fn serialize_cswap_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"cswap","control":0,"target1":1,"target2":2}]}"#;
+    let expected = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"cswap","control":0,"target1":1,"target2":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -987,7 +987,7 @@ fn serialize_ccx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ccx","control1":0,"control2":1,"target":2}]}"#;
+    let expected = r#"{"version":1,"qubit_count":3,"operations":[{"gate":"ccx","control1":0,"control2":1,"target":2}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -999,7 +999,7 @@ fn serialize_ccz_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]}"#;
+    let expected = r#"{"version":1,"qubit_count":6,"operations":[{"gate":"ccz","qubit1":3,"qubit2":4,"qubit3":5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -1015,7 +1015,7 @@ fn serialize_list_to_json() {
 
     let json = json::serialize(&circuit, false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":0,"operations":[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
+    let expected = r#"{"version":1,"qubit_count":2,"operations":[{"gate":"h","qubit":0},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -1033,7 +1033,7 @@ fn serialize_list_to_pretty_json() {
     let actual = String::from_utf8(json).unwrap();
     let expected = r#"{
   "version": 1,
-  "qubit_count": 0,
+  "qubit_count": 2,
   "operations": [
     {
       "gate": "h",
