@@ -18,14 +18,12 @@ pub struct Circuit {
 }
 
 impl Circuit {
+    #[must_use]
     pub fn new(initial_qubit_count: usize, operations: Vec<GateOperation>) -> Self {
-        let max_qubit = operations
-            .iter()
-            .flat_map(|operation| operation.qubits())
-            .max();
-        let qubit_count = max_qubit
-            .map(|max| (max + 1).max(initial_qubit_count))
-            .unwrap_or(initial_qubit_count);
+        let max_qubit = operations.iter().flat_map(GateOperation::qubits).max();
+        let qubit_count = max_qubit.map_or(initial_qubit_count, |max| {
+            (max + 1).max(initial_qubit_count)
+        });
 
         Self {
             qubit_count,
@@ -33,6 +31,7 @@ impl Circuit {
         }
     }
 
+    #[must_use]
     pub fn from_operations(operations: Vec<GateOperation>) -> Self {
         Self::new(0, operations)
     }

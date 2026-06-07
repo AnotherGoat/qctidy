@@ -196,7 +196,7 @@ impl From<&Graph> for Circuit {
             operations.push(operation);
         }
 
-        Circuit::new(graph.height(), operations)
+        Self::new(graph.height(), operations)
     }
 }
 

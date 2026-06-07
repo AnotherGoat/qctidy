@@ -142,7 +142,7 @@ fn mapping_satisfies_cache(graph: &Graph, rule: &PatternRule, mapping: &QubitMap
             return false;
         };
 
-        if !graph_row_cache.is_superset_of(rule_row_cache) {
+        if !graph_row_cache.is_superset_of(*rule_row_cache) {
             return false;
         }
     }

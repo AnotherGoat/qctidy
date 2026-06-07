@@ -40,7 +40,7 @@ pub enum RuleGroup {
     ///
     /// Examples:
     /// - `S S => Z`
-    /// - `T T` => S`
+    /// - `T T => S`
     PhaseCompaction,
     /// Rules that change the basis of a set of operations, usually flipping the X-space and Z-space.
     ///

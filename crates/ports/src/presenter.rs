@@ -18,13 +18,12 @@ pub enum PresentationFormat {
 }
 
 impl PresentationFormat {
+    #[must_use]
     pub const fn is_available(self) -> bool {
         use PresentationFormat::*;
 
         match self {
-            GraphvizGv => cfg!(feature = "presenter-graphviz"),
-            GraphvizPng => cfg!(feature = "presenter-graphviz"),
-            GraphvizSvg => cfg!(feature = "presenter-graphviz"),
+            GraphvizGv | GraphvizPng | GraphvizSvg => cfg!(feature = "presenter-graphviz"),
         }
     }
 }

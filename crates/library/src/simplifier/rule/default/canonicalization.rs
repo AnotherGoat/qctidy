@@ -39,7 +39,7 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
                 return Vec::new();
             }
 
-            let max_row = *rows.iter().max().unwrap();
+            let max_row = *rows.iter().max().expect("There should be at least 1 row");
             let has_gap = (0..=max_row).any(|row| !rows.contains(&row));
 
             if !has_gap {
@@ -173,7 +173,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                 .iter_nodes_ordered_by_row()
                 .filter(|node| {
                     node.angle()
-                        .is_some_and(|angle| angle < 0.0 || angle >= math::FULL_CYCLE)
+                        .is_some_and(|angle| !(0.0_f64..math::FULL_CYCLE).contains(&angle))
                 })
                 .map(|node| HashSet::from([node.position()]))
                 .collect()
@@ -199,14 +199,11 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                 let angle = node.angle().expect("The node should have an angle");
                 let position = node.position();
 
-                match math::normalize_angle(angle, math::FULL_CYCLE) {
-                    Ok(normalized) => {
-                        if !math::are_floats_equal(angle, normalized) {
-                            graph.replace_node(gate, position, Some(normalized), node.bit());
-                            changed = true;
-                        }
-                    }
-                    Err(_) => {}
+                if let Ok(normalized) = math::normalize_angle(angle, math::FULL_CYCLE)
+                    && !math::are_floats_equal(angle, normalized)
+                {
+                    graph.replace_node(gate, position, Some(normalized), node.bit());
+                    changed = true;
                 }
             }
 
@@ -242,22 +239,17 @@ pub(crate) fn normalize_bits() -> CanonicalizationRule {
             unique_bits.sort_unstable();
             unique_bits.dedup();
 
-            let first_gap_bit = unique_bits.windows(2).find_map(|pair| {
-                if pair[1] != pair[0] + 1 {
-                    Some(pair[1])
-                } else {
-                    None
-                }
-            });
+            let first_gap_bit = unique_bits
+                .windows(2)
+                .find_map(|pair| (pair[1] != pair[0] + 1).then(|| pair[1]));
 
-            match first_gap_bit {
-                Some(threshold) => measurements
+            first_gap_bit.map_or_else(Vec::new, |threshold| {
+                measurements
                     .iter()
                     .filter(|node| node.bit().is_some_and(|bit| bit >= threshold))
                     .map(|node| HashSet::from([node.position()]))
-                    .collect(),
-                None => Vec::new(),
-            }
+                    .collect()
+            })
         }),
         Box::new(|graph: &mut Graph| {
             let measurements: Vec<_> = graph

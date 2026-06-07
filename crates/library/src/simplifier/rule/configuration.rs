@@ -35,6 +35,7 @@ impl RuleConfiguration {
     }
 
     /// Get the current lint level for the rule with the given ID.
+    #[must_use]
     pub fn level(&self, id: RuleId) -> RuleLevel {
         self.rules.get(id).copied().unwrap_or(self.default)
     }

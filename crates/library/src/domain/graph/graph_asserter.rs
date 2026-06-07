@@ -53,7 +53,6 @@ impl NodeAsserter<'_> {
         self
     }
 
-    #[expect(clippy::unwrap_used)]
     pub(crate) fn has_angle(self, angle: f64) -> Self {
         assert!(math::are_floats_equal(self.view().angle().unwrap(), angle));
         self
@@ -136,12 +135,10 @@ impl NodeAsserter<'_> {
         self
     }
 
-    #[expect(clippy::unwrap_used)]
     fn view(&self) -> NodeView {
         self.graph.get_node(self.position).unwrap()
     }
 
-    #[expect(clippy::unwrap_used)]
     fn contextual_view(&self) -> ContextualNodeView {
         self.graph.get_contextual_view(self.position).unwrap()
     }

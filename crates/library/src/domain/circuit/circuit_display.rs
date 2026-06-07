@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::Write;
 
 use inew::New;
 
@@ -61,6 +62,7 @@ impl fmt::Display for Circuit {
 }
 
 impl Circuit {
+    #[must_use]
     pub fn display(&self, pi_format: PiFormat) -> String {
         let operations = self.operations();
         let rows = self.qubit_count();
@@ -78,14 +80,25 @@ impl Circuit {
         let label_padding = format!("{}: ", rows - 1).len();
         let mut output = String::new();
 
+        let has_top_border = packed
+            .iter()
+            .enumerate()
+            .any(|(col, _)| matches!(kinds[col][0], CellKind::Gate | CellKind::Target));
+
         for display_row in 0..calculate_display_rows(rows) {
-            if display_row > 0 {
+            let is_first_border = display_row == 0 && !has_top_border;
+
+            if display_row > 0 && !is_first_border {
                 output.push('\n');
             }
 
-            if is_content_row(display_row) {
-                let qubit = displayed_to_qubit(display_row);
+            if is_first_border {
+                continue;
+            }
 
+            let qubit = displayed_to_qubit(display_row);
+
+            if is_content_row(display_row) {
                 render_qubit_prefix(qubit, &mut output);
                 render_content_row(
                     qubit,
@@ -96,8 +109,6 @@ impl Circuit {
                     &mut output,
                 );
             } else {
-                let qubit = displayed_to_qubit(display_row);
-
                 add_padding(label_padding, &mut output);
                 render_border_row(qubit, &column_widths, &kinds, &packed, rows, &mut output);
             }
@@ -114,22 +125,34 @@ fn pack_operations(operations: &[GateOperation], rows: usize) -> Vec<PackedColum
         let qubits: Vec<usize> = operation.qubits();
         let mut found = false;
 
-        for column in packed.iter_mut() {
+        for column in &mut packed {
             let overlaps = qubits.iter().any(|&qubit| column.used_qubits[qubit]);
 
             if !overlaps {
-                for &qubit in &qubits {
-                    column.used_qubits[qubit] = true;
+                if qubits.len() > 1 {
+                    let min = qubits
+                        .iter()
+                        .copied()
+                        .min()
+                        .expect("There should be at least 2 qubits");
+                    let max = qubits
+                        .iter()
+                        .copied()
+                        .max()
+                        .expect("There should be at least 2 qubits");
+
+                    for qubit in min..=max {
+                        column.used_qubits[qubit] = true;
+                    }
+
+                    column.spans.push(GateSpan::new(min, max));
+                } else {
+                    for &qubit in &qubits {
+                        column.used_qubits[qubit] = true;
+                    }
                 }
 
                 column.operations.push(operation);
-
-                if qubits.len() > 1 {
-                    let min = qubits.iter().copied().min().unwrap();
-                    let max = qubits.iter().copied().max().unwrap();
-                    column.spans.push(GateSpan::new(min, max));
-                }
-
                 found = true;
                 break;
             }
@@ -138,15 +161,40 @@ fn pack_operations(operations: &[GateOperation], rows: usize) -> Vec<PackedColum
         if !found {
             let mut used_qubits = vec![false; rows];
 
-            for &qubit in &qubits {
-                used_qubits[qubit] = true;
+            if qubits.len() > 1 {
+                let min = qubits
+                    .iter()
+                    .copied()
+                    .min()
+                    .expect("There should be at least 2 qubits");
+                let max = qubits
+                    .iter()
+                    .copied()
+                    .max()
+                    .expect("There should be at least 2 qubits");
+
+                for qubit in min..=max {
+                    used_qubits[qubit] = true;
+                }
+            } else {
+                for &qubit in &qubits {
+                    used_qubits[qubit] = true;
+                }
             }
 
             let mut spans = Vec::new();
 
             if qubits.len() > 1 {
-                let min = qubits.iter().copied().min().unwrap();
-                let max = qubits.iter().copied().max().unwrap();
+                let min = qubits
+                    .iter()
+                    .copied()
+                    .min()
+                    .expect("There should be at least 2 qubits");
+                let max = qubits
+                    .iter()
+                    .copied()
+                    .max()
+                    .expect("There should be at least 2 qubits");
                 spans.push(GateSpan::new(min, max));
             }
 
@@ -197,7 +245,7 @@ fn apply_operation_to_cell(
         qubits,
         labels: cell_labels,
         kinds: cell_kinds,
-    } = match operation {
+    } = match *operation {
         ID { qubit }
         | H { qubit }
         | X { qubit }
@@ -211,45 +259,43 @@ fn apply_operation_to_cell(
         | TDG { qubit } => {
             let name = gate_display_name(operation.r#type());
 
-            AppliedOperation::new(vec![*qubit], vec![name], vec![CellKind::Gate])
+            AppliedOperation::new(vec![qubit], vec![name], vec![CellKind::Gate])
         }
         P { angle, qubit } | RX { angle, qubit } | RY { angle, qubit } | RZ { angle, qubit } => {
-            let formatted_angle = angle_formatter::format(*angle, AngleFormat::Algebra, pi_format);
+            let formatted_angle = angle_formatter::format(angle, AngleFormat::Algebra, pi_format);
             let name = gate_display_name(operation.r#type());
 
             AppliedOperation::new(
-                vec![*qubit],
+                vec![qubit],
                 vec![format!("{name}({formatted_angle})")],
                 vec![CellKind::Gate],
             )
         }
-        Measure { qubit, bit } => AppliedOperation::new(
-            vec![*qubit],
-            vec![format!("M({bit})")],
-            vec![CellKind::Gate],
-        ),
+        Measure { qubit, bit } => {
+            AppliedOperation::new(vec![qubit], vec![format!("M({bit})")], vec![CellKind::Gate])
+        }
         Swap { qubit1, qubit2 } => AppliedOperation::new(
-            vec![*qubit1, *qubit2],
+            vec![qubit1, qubit2],
             vec![SWAP_NODE.into(), SWAP_NODE.into()],
             vec![CellKind::Swap, CellKind::Swap],
         ),
         CH { control, target } => AppliedOperation::new(
-            vec![*control, *target],
+            vec![control, target],
             vec![CONTROL_NODE.into(), "H".into()],
             vec![CellKind::Control, CellKind::Target],
         ),
         CX { control, target } => AppliedOperation::new(
-            vec![*control, *target],
+            vec![control, target],
             vec![CONTROL_NODE.into(), "X".into()],
             vec![CellKind::Control, CellKind::Target],
         ),
         CY { control, target } => AppliedOperation::new(
-            vec![*control, *target],
+            vec![control, target],
             vec![CONTROL_NODE.into(), "Y".into()],
             vec![CellKind::Control, CellKind::Target],
         ),
         CZ { qubit1, qubit2 } => AppliedOperation::new(
-            vec![*qubit1, *qubit2],
+            vec![qubit1, qubit2],
             vec![CONTROL_NODE.into(), CONTROL_NODE.into()],
             vec![CellKind::Control, CellKind::Control],
         ),
@@ -258,11 +304,11 @@ fn apply_operation_to_cell(
             qubit1,
             qubit2,
         } => {
-            let formatted_angle = angle_formatter::format(*angle, AngleFormat::Algebra, pi_format);
+            let formatted_angle = angle_formatter::format(angle, AngleFormat::Algebra, pi_format);
             let label = format!("{CONTROL_NODE}({formatted_angle})");
 
             AppliedOperation::new(
-                vec![*qubit1, *qubit2],
+                vec![qubit1, qubit2],
                 vec![label.clone(), label],
                 vec![CellKind::Control, CellKind::Control],
             )
@@ -272,7 +318,7 @@ fn apply_operation_to_cell(
             target1,
             target2,
         } => AppliedOperation::new(
-            vec![*control, *target1, *target2],
+            vec![control, target1, target2],
             vec![CONTROL_NODE.into(), SWAP_NODE.into(), SWAP_NODE.into()],
             vec![CellKind::Control, CellKind::Swap, CellKind::Swap],
         ),
@@ -281,7 +327,7 @@ fn apply_operation_to_cell(
             control2,
             target,
         } => AppliedOperation::new(
-            vec![*control1, *control2, *target],
+            vec![control1, control2, target],
             vec![CONTROL_NODE.into(), CONTROL_NODE.into(), "X".into()],
             vec![CellKind::Control, CellKind::Control, CellKind::Target],
         ),
@@ -290,7 +336,7 @@ fn apply_operation_to_cell(
             qubit2,
             qubit3,
         } => AppliedOperation::new(
-            vec![*qubit1, *qubit2, *qubit3],
+            vec![qubit1, qubit2, qubit3],
             vec![
                 CONTROL_NODE.into(),
                 CONTROL_NODE.into(),
@@ -315,8 +361,16 @@ fn apply_operation_to_cell(
     }
 
     if qubits.len() > 1 {
-        let min = qubits.iter().copied().min().unwrap();
-        let max = qubits.iter().copied().max().unwrap();
+        let min = qubits
+            .iter()
+            .copied()
+            .min()
+            .expect("There should be at least 2 qubits");
+        let max = qubits
+            .iter()
+            .copied()
+            .max()
+            .expect("There should be at least 2 qubits");
 
         for qubit in min..=max {
             if labels[column][qubit].is_none() {
@@ -343,22 +397,24 @@ fn gate_display_name(gate_type: GateType) -> String {
     name.into()
 }
 
-fn calculate_display_rows(qubit_rows: usize) -> usize {
+const fn calculate_display_rows(qubit_rows: usize) -> usize {
     2 * qubit_rows + 1
 }
 
-fn is_content_row(display_row: usize) -> bool {
+const fn is_content_row(display_row: usize) -> bool {
     display_row % 2 == 1
 }
 
-fn displayed_to_qubit(display_row: usize) -> usize {
+#[expect(clippy::integer_division)]
+const fn displayed_to_qubit(display_row: usize) -> usize {
     display_row / 2
 }
 
 fn render_qubit_prefix(qubit: usize, output: &mut String) {
-    output.push_str(&format!("{qubit}: "));
+    write!(output, "{qubit}: ").expect("String should always be writable");
 }
 
+#[expect(clippy::integer_division)]
 fn render_content_row(
     qubit: usize,
     columns: usize,
@@ -372,7 +428,9 @@ fn render_content_row(
 
         match kinds[column][qubit] {
             CellKind::Gate | CellKind::Target => {
-                let label = labels[column][qubit].as_ref().unwrap();
+                let label = labels[column][qubit]
+                    .as_ref()
+                    .expect("Kinds and labels should be in sync");
                 let content_width = width - 2;
                 let label_length = label.chars().count();
                 let right_padding = content_width - 1 - label_length;
@@ -388,7 +446,9 @@ fn render_content_row(
                 output.push('├');
             }
             CellKind::Control | CellKind::Swap => {
-                let label = labels[column][qubit].as_ref().unwrap();
+                let label = labels[column][qubit]
+                    .as_ref()
+                    .expect("Kinds and labels should be in sync");
                 let character_count = label.chars().count();
                 let left_padding = (width - character_count) / 2;
                 let right_padding = width - character_count - left_padding;
@@ -432,6 +492,7 @@ fn add_padding(label_padding: usize, output: &mut String) {
     }
 }
 
+#[expect(clippy::integer_division)]
 fn render_border_row(
     qubit: usize,
     column_widths: &[usize],
@@ -453,9 +514,10 @@ fn render_border_row(
             CellKind::HorizontalWire
         };
 
-        let connected = packed[column].spans.iter().any(|&GateSpan { min, max }| {
-            has_qubit_above(qubit) && min <= qubit - 1 && qubit <= max
-        });
+        let connected = packed[column]
+            .spans
+            .iter()
+            .any(|&GateSpan { min, max }| has_qubit_above(qubit) && min < qubit && qubit <= max);
 
         let above_is_boxed = matches!(above_kind, CellKind::Gate | CellKind::Target);
         let below_is_boxed = matches!(below_kind, CellKind::Gate | CellKind::Target);
@@ -488,28 +550,26 @@ fn render_border_row(
             }
 
             output.push(end);
-        } else {
-            if connected {
-                for i in 0..width {
-                    if i == width / 2 {
-                        output.push('│');
-                    } else {
-                        output.push(' ');
-                    }
-                }
-            } else {
-                for _ in 0..width {
+        } else if connected {
+            for i in 0..width {
+                if i == width / 2 {
+                    output.push('│');
+                } else {
                     output.push(' ');
                 }
+            }
+        } else {
+            for _ in 0..width {
+                output.push(' ');
             }
         }
     }
 }
 
-fn has_qubit_above(qubit: usize) -> bool {
+const fn has_qubit_above(qubit: usize) -> bool {
     qubit > 0
 }
 
-fn has_qubit_below(qubit: usize, qubit_count: usize) -> bool {
+const fn has_qubit_below(qubit: usize, qubit_count: usize) -> bool {
     qubit < qubit_count
 }

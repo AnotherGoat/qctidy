@@ -143,7 +143,7 @@ impl Graph {
     ///
     /// O(1).
     #[must_use]
-    pub fn width(&self) -> usize {
+    pub const fn width(&self) -> usize {
         self.time_step_count
     }
 
@@ -157,7 +157,7 @@ impl Graph {
     ///
     /// O(1).
     #[must_use]
-    pub fn height(&self) -> usize {
+    pub const fn height(&self) -> usize {
         self.qubit_count
     }
 
@@ -171,7 +171,7 @@ impl Graph {
     ///
     /// O(1).
     #[must_use]
-    pub fn bits(&self) -> usize {
+    pub const fn bits(&self) -> usize {
         self.bit_count
     }
 
@@ -238,14 +238,14 @@ impl Graph {
         let node = NodeData { gate, angle, bit };
 
         if self.has_node_at(position) {
-            self.replace_existing_node(position, node);
+            self.replace_existing_node(position, &node);
             return;
         }
 
         self.insert_new_node(position, node);
     }
 
-    fn replace_existing_node(&mut self, position: Position, node: NodeData) {
+    fn replace_existing_node(&mut self, position: Position, node: &NodeData) {
         let previous = self.nodes.insert(position, node.clone());
 
         if let Some(bit) = node.bit {

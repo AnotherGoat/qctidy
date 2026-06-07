@@ -23,6 +23,14 @@ format:
 lint:
     cargo clippy --workspace
 
+# Try to apply some lint suggestions without breaking anything
+fix:
+    cargo clippy --workspace --fix
+
+# Apply lint suggestions even if there are unstaged changes
+force-fix:
+    cargo clippy --workspace --fix --allow-dirty
+
 # Check that all crates compile without errors
 check:
     cargo check --workspace

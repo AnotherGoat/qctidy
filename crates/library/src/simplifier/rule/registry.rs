@@ -19,6 +19,7 @@ pub struct RuleRegistry {
 
 impl RuleRegistry {
     /// Create a new empty `RuleRegistry`.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -42,6 +43,7 @@ impl RuleRegistry {
     /// Get a rule by its ID.
     ///
     /// Returns `None` if the rule does not exist.
+    #[must_use]
     pub fn get(&self, id: &str) -> Option<Arc<dyn SimplificationRule>> {
         self.rules.get(id).cloned()
     }

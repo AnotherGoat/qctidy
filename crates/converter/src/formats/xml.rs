@@ -1,4 +1,4 @@
-use std::str::{self};
+use std::str;
 
 use qsimplify::{Circuit, GateType};
 use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};

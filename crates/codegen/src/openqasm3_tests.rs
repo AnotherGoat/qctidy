@@ -4,7 +4,6 @@ use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI};
 use crate::openqasm3;
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_empty_circuit() {
     let graph = GraphBuilder::default().build();
     let actual = openqasm3::generate(&graph).unwrap();
@@ -17,7 +16,6 @@ include \"stdgates.inc\";";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_single_qubit_circuit() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -43,7 +41,6 @@ t q[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_identity() {
     let graph = GraphBuilder::default().push_id(0).build();
     let actual = openqasm3::generate(&graph).unwrap();
@@ -59,7 +56,6 @@ id q[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
     let actual = openqasm3::generate(&graph).unwrap();
@@ -77,7 +73,6 @@ measure q[0] -> c[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_rotations() {
     let graph = GraphBuilder::default()
         .push_rx(PI, 0)
@@ -105,7 +100,6 @@ p(5 * pi / 4) q[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_zero_rotations() {
     let graph = GraphBuilder::default()
         .push_p(0.0, 0)
@@ -127,7 +121,6 @@ p(0) q[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_uncommon_rotations() {
     let graph = GraphBuilder::default()
         .push_rx(0.222, 0)
@@ -174,7 +167,6 @@ sy q[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_two_qubits() {
     let graph = GraphBuilder::default()
         .push_cx(0, 1)
@@ -221,7 +213,6 @@ h q[4];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_orders_symmetrical_gates() {
     let graph = GraphBuilder::default()
         .push_swap(1, 0)
@@ -249,7 +240,6 @@ cz q[2], q[3];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_three_qubits() {
     let graph = GraphBuilder::default()
         .push_ccx(0, 2, 1)
@@ -274,7 +264,6 @@ ccz q[0], q[1], q[2];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_multiple_bits() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -303,7 +292,6 @@ measure q[2] -> c[2];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_flipped_measurements() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -332,7 +320,6 @@ measure q[2] -> c[0];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_cp_gate() {
     let graph = GraphBuilder::default()
         .push_cp(FRAC_PI_3, 0, 1)
@@ -351,7 +338,6 @@ cp(pi / 3) q[0], q[1];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_ch_gate() {
     let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
     let actual = openqasm3::generate(&graph).unwrap();
@@ -367,7 +353,6 @@ ch q[0], q[1];";
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn generate_circuit_with_s_gates() {
     let graph = GraphBuilder::default()
         .push_s(0)

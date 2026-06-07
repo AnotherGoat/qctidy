@@ -140,7 +140,7 @@ pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     let circuit = Circuit::from(graph);
 
     for operation in circuit.operations() {
-        if let Some(unitary) = operation_to_matrix(&operation, height) {
+        if let Some(unitary) = operation_to_matrix(operation, height) {
             result = &unitary * &result;
         }
     }

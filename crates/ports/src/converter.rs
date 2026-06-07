@@ -22,6 +22,7 @@ pub enum ConversionFormat {
 }
 
 impl ConversionFormat {
+    #[must_use]
     pub const fn is_available(self) -> bool {
         use ConversionFormat::*;
 

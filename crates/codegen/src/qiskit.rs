@@ -31,7 +31,7 @@ pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> Result<String, Code
     }
 
     for operation in circuit.operations() {
-        generate_gate(circuit_name, &operation, &mut imports, &mut build_steps);
+        generate_gate(circuit_name, operation, &mut imports, &mut build_steps);
     }
 
     imports.sort_by(|first, second| {

@@ -1,6 +1,7 @@
 use std::f64::consts::FRAC_PI_2;
 
 use crate::domain::circuit::circuit_mother;
+use crate::{Circuit, GateOperation};
 
 #[test]
 fn empty_circuit() {
@@ -13,7 +14,7 @@ fn empty_circuit() {
 fn single_id_gate() {
     let circuit = circuit_mother::single_id();
     let result = circuit.to_string();
-    let expected = r"   ┌────┐
+    let expected = "   ┌────┐
 0: ┤ Id ├
    └────┘";
 
@@ -24,7 +25,7 @@ fn single_id_gate() {
 fn single_h_gate() {
     let circuit = circuit_mother::single_h();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ H ├
    └───┘";
 
@@ -35,7 +36,7 @@ fn single_h_gate() {
 fn single_x_gate() {
     let circuit = circuit_mother::single_x();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ X ├
    └───┘";
 
@@ -46,7 +47,7 @@ fn single_x_gate() {
 fn single_y_gate() {
     let circuit = circuit_mother::single_y();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ Y ├
    └───┘";
 
@@ -57,7 +58,7 @@ fn single_y_gate() {
 fn single_z_gate() {
     let circuit = circuit_mother::single_z();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ Z ├
    └───┘";
 
@@ -68,7 +69,7 @@ fn single_z_gate() {
 fn rotation_p_gate() {
     let circuit = circuit_mother::single_p(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"   ┌────────┐
+    let expected = "   ┌────────┐
 0: ┤ P(π/2) ├
    └────────┘";
 
@@ -79,7 +80,7 @@ fn rotation_p_gate() {
 fn rotation_rx_gate() {
     let circuit = circuit_mother::single_rx(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"   ┌─────────┐
+    let expected = "   ┌─────────┐
 0: ┤ RX(π/2) ├
    └─────────┘";
 
@@ -90,7 +91,7 @@ fn rotation_rx_gate() {
 fn rotation_ry_gate() {
     let circuit = circuit_mother::single_ry(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"   ┌─────────┐
+    let expected = "   ┌─────────┐
 0: ┤ RY(π/2) ├
    └─────────┘";
 
@@ -101,7 +102,7 @@ fn rotation_ry_gate() {
 fn rotation_rz_gate() {
     let circuit = circuit_mother::single_rz(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"   ┌─────────┐
+    let expected = "   ┌─────────┐
 0: ┤ RZ(π/2) ├
    └─────────┘";
 
@@ -112,7 +113,7 @@ fn rotation_rz_gate() {
 fn single_s_gate() {
     let circuit = circuit_mother::single_s();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ S ├
    └───┘";
 
@@ -123,7 +124,7 @@ fn single_s_gate() {
 fn single_sdg_gate() {
     let circuit = circuit_mother::single_sdg();
     let result = circuit.to_string();
-    let expected = r"   ┌────┐
+    let expected = "   ┌────┐
 0: ┤ S† ├
    └────┘";
 
@@ -134,7 +135,7 @@ fn single_sdg_gate() {
 fn single_sx_gate() {
     let circuit = circuit_mother::single_sx();
     let result = circuit.to_string();
-    let expected = r"   ┌────┐
+    let expected = "   ┌────┐
 0: ┤ √X ├
    └────┘";
 
@@ -145,7 +146,7 @@ fn single_sx_gate() {
 fn single_sy_gate() {
     let circuit = circuit_mother::single_sy();
     let result = circuit.to_string();
-    let expected = r"   ┌────┐
+    let expected = "   ┌────┐
 0: ┤ √Y ├
    └────┘";
 
@@ -156,7 +157,7 @@ fn single_sy_gate() {
 fn single_t_gate() {
     let circuit = circuit_mother::single_t();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ T ├
    └───┘";
 
@@ -167,7 +168,7 @@ fn single_t_gate() {
 fn single_tdg_gate() {
     let circuit = circuit_mother::single_tdg();
     let result = circuit.to_string();
-    let expected = r"   ┌────┐
+    let expected = "   ┌────┐
 0: ┤ T† ├
    └────┘";
 
@@ -178,7 +179,7 @@ fn single_tdg_gate() {
 fn measurement_on_bit_5() {
     let circuit = circuit_mother::single_measure();
     let result = circuit.to_string();
-    let expected = r"   ┌──────┐
+    let expected = "   ┌──────┐
 0: ┤ M(5) ├
    └──────┘";
 
@@ -189,7 +190,7 @@ fn measurement_on_bit_5() {
 fn swap_gate() {
     let circuit = circuit_mother::single_swap();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ×
    │
 1: ×
@@ -202,7 +203,7 @@ fn swap_gate() {
 fn swap_gate_inverted() {
     let circuit = circuit_mother::single_swap_inverted();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ×
    │
 1: ×
@@ -215,7 +216,7 @@ fn swap_gate_inverted() {
 fn ch_gate_bottom() {
     let circuit = circuit_mother::single_ch_bottom();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ──■──
    ┌─┴─┐
 1: ┤ H ├
@@ -228,7 +229,7 @@ fn ch_gate_bottom() {
 fn ch_gate_top() {
     let circuit = circuit_mother::single_ch_top();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ H ├
    └─┬─┘
 1: ──■──
@@ -241,7 +242,7 @@ fn ch_gate_top() {
 fn cx_gate_bottom() {
     let circuit = circuit_mother::single_cx_bottom();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ──■──
    ┌─┴─┐
 1: ┤ X ├
@@ -254,7 +255,7 @@ fn cx_gate_bottom() {
 fn cx_gate_top() {
     let circuit = circuit_mother::single_cx_top();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ X ├
    └─┬─┘
 1: ──■──
@@ -267,7 +268,7 @@ fn cx_gate_top() {
 fn cy_gate_bottom() {
     let circuit = circuit_mother::single_cy_bottom();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ──■──
    ┌─┴─┐
 1: ┤ Y ├
@@ -280,7 +281,7 @@ fn cy_gate_bottom() {
 fn cy_gate_top() {
     let circuit = circuit_mother::single_cy_top();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ Y ├
    └─┬─┘
 1: ──■──
@@ -293,7 +294,7 @@ fn cy_gate_top() {
 fn cz_gate() {
     let circuit = circuit_mother::single_cz();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■
    │
 1: ■
@@ -306,7 +307,7 @@ fn cz_gate() {
 fn cz_gate_inverted() {
     let circuit = circuit_mother::single_cz_inverted();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■
    │
 1: ■
@@ -319,7 +320,7 @@ fn cz_gate_inverted() {
 fn cp_gate() {
     let circuit = circuit_mother::single_cp(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■(π/2)
       │
 1: ■(π/2)
@@ -332,7 +333,7 @@ fn cp_gate() {
 fn cp_gate_inverted() {
     let circuit = circuit_mother::single_cp_inverted(FRAC_PI_2);
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■(π/2)
       │
 1: ■(π/2)
@@ -345,7 +346,7 @@ fn cp_gate_inverted() {
 fn cswap_gate_top() {
     let circuit = circuit_mother::single_cswap_top();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■
    │
 1: ×
@@ -360,7 +361,7 @@ fn cswap_gate_top() {
 fn cswap_gate_middle() {
     let circuit = circuit_mother::single_cswap_middle();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ×
    │
 1: ■
@@ -375,7 +376,7 @@ fn cswap_gate_middle() {
 fn cswap_gate_bottom() {
     let circuit = circuit_mother::single_cswap_bottom();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ×
    │
 1: ×
@@ -390,7 +391,7 @@ fn cswap_gate_bottom() {
 fn ccx_gate_bottom() {
     let circuit = circuit_mother::single_ccx_bottom();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ──■──
      │
 1: ──■──
@@ -405,7 +406,7 @@ fn ccx_gate_bottom() {
 fn ccx_gate_middle() {
     let circuit = circuit_mother::single_ccx_middle();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ──■──
    ┌─┴─┐
 1: ┤ X ├
@@ -420,7 +421,7 @@ fn ccx_gate_middle() {
 fn ccx_gate_top() {
     let circuit = circuit_mother::single_ccx_top();
     let result = circuit.to_string();
-    let expected = r"   ┌───┐
+    let expected = "   ┌───┐
 0: ┤ X ├
    └─┬─┘
 1: ──■──
@@ -435,13 +436,71 @@ fn ccx_gate_top() {
 fn ccz_gate() {
     let circuit = circuit_mother::single_ccz();
     let result = circuit.to_string();
-    let expected = r"
+    let expected = "
 0: ■
    │
 1: ■
    │
 2: ■
     ";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn multi_qubit_with_gap_h() {
+    let circuit = Circuit::from_operations(vec![
+        GateOperation::try_cx(0, 2).unwrap(),
+        GateOperation::h(1),
+    ]);
+    let result = circuit.to_string();
+    let expected = "
+0: ──■───────
+     │  ┌───┐
+1: ──│──┤ H ├
+   ┌─┴─┐└───┘
+2: ┤ X ├─────
+   └───┘     ";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn multi_qubit_with_gap_cz() {
+    let circuit = Circuit::from_operations(vec![
+        GateOperation::try_cx(0, 2).unwrap(),
+        GateOperation::try_cz(1, 3).unwrap(),
+    ]);
+    let result = circuit.to_string();
+    let expected = "
+0: ──■───
+     │
+1: ──│──■
+   ┌─┴─┐│
+2: ┤ X ├│
+   └───┘│
+3: ─────■
+         ";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn h_pushed_after_three_multi_qubit() {
+    let circuit = Circuit::from_operations(vec![
+        GateOperation::try_cx(0, 2).unwrap(),
+        GateOperation::try_cy(0, 2).unwrap(),
+        GateOperation::try_cz(0, 2).unwrap(),
+        GateOperation::h(1),
+    ]);
+    let result = circuit.to_string();
+    let expected = "
+0: ──■────■──■─────
+     │    │  │┌───┐
+1: ──│────│──│┤ H ├
+   ┌─┴─┐┌─┴─┐│└───┘
+2: ┤ X ├┤ Y ├■─────
+   └───┘└───┘      ";
 
     assert_eq!(result, expected);
 }

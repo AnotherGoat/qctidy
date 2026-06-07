@@ -42,6 +42,6 @@ impl TryFrom<CircuitData> for Circuit {
             .map(GateOperation::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Circuit::new(data.qubit_count, operations))
+        Ok(Self::new(data.qubit_count, operations))
     }
 }

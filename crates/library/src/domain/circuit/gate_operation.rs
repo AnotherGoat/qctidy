@@ -417,8 +417,8 @@ impl GateOperation {
         use GateOperation::*;
 
         match *self {
-            ID { qubit } => vec![qubit],
-            H { qubit }
+            ID { qubit }
+            | H { qubit }
             | X { qubit }
             | Y { qubit }
             | Z { qubit }

@@ -17,6 +17,7 @@ pub enum CodeGenerationTarget {
 }
 
 impl CodeGenerationTarget {
+    #[must_use]
     pub const fn is_available(self) -> bool {
         use CodeGenerationTarget::*;
 

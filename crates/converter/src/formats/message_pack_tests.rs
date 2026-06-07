@@ -6,7 +6,6 @@ use qsimplify_ports::{ConversionFormat, ParseError};
 use crate::message_pack;
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn msgpack_round_trip_empty_list() {
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![])).unwrap();
     let parsed = message_pack::parse(&serialized).unwrap();
@@ -15,7 +14,6 @@ fn msgpack_round_trip_empty_list() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_id() {
     let operation = GateOperation::id(0);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -30,7 +28,6 @@ fn msgpack_round_trip_id() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_h() {
     let operation = GateOperation::h(1);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -45,7 +42,6 @@ fn msgpack_round_trip_h() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_x() {
     let operation = GateOperation::x(2);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -60,7 +56,6 @@ fn msgpack_round_trip_x() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_y() {
     let operation = GateOperation::y(3);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -75,7 +70,6 @@ fn msgpack_round_trip_y() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_z() {
     let operation = GateOperation::z(4);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -90,7 +84,6 @@ fn msgpack_round_trip_z() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_p() {
     let operation = GateOperation::try_p(1.5, 5).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -108,7 +101,6 @@ fn msgpack_round_trip_p() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_rx() {
     let operation = GateOperation::try_rx(PI, 6).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -126,7 +118,6 @@ fn msgpack_round_trip_rx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ry() {
     let operation = GateOperation::try_ry(0.5, 7).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -144,7 +135,6 @@ fn msgpack_round_trip_ry() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_rz() {
     let operation = GateOperation::try_rz(2.0, 8).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -162,7 +152,6 @@ fn msgpack_round_trip_rz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_s() {
     let operation = GateOperation::s(9);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -177,7 +166,6 @@ fn msgpack_round_trip_s() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_sdg() {
     let operation = GateOperation::sdg(10);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -192,7 +180,6 @@ fn msgpack_round_trip_sdg() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_sx() {
     let operation = GateOperation::sx(11);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -207,7 +194,6 @@ fn msgpack_round_trip_sx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn round_trop_sy() {
     let operation = GateOperation::sy(12);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -222,7 +208,6 @@ fn round_trop_sy() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_t() {
     let operation = GateOperation::t(13);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -237,7 +222,6 @@ fn msgpack_round_trip_t() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_tdg() {
     let operation = GateOperation::tdg(14);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -252,7 +236,6 @@ fn msgpack_round_trip_tdg() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_measure() {
     let operation = GateOperation::measure(15, 3);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -270,7 +253,6 @@ fn msgpack_round_trip_measure() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_swap() {
     let operation = GateOperation::try_swap(0, 5).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -288,7 +270,6 @@ fn msgpack_round_trip_swap() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ch() {
     let operation = GateOperation::try_ch(2, 7).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -306,7 +287,6 @@ fn msgpack_round_trip_ch() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cx() {
     let operation = GateOperation::try_cx(3, 8).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -324,7 +304,6 @@ fn msgpack_round_trip_cx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cy() {
     let operation = GateOperation::try_cy(4, 9).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -342,7 +321,6 @@ fn msgpack_round_trip_cy() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cz() {
     let operation = GateOperation::try_cz(1, 6).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -360,7 +338,6 @@ fn msgpack_round_trip_cz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cp() {
     let operation = GateOperation::try_cp(0.75, 5, 10).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -383,7 +360,6 @@ fn msgpack_round_trip_cp() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_cswap() {
     let operation = GateOperation::try_c_swap(0, 1, 2).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -406,7 +382,6 @@ fn msgpack_round_trip_cswap() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ccx() {
     let operation = GateOperation::try_ccx(0, 1, 2).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -429,7 +404,6 @@ fn msgpack_round_trip_ccx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_ccz() {
     let operation = GateOperation::try_ccz(3, 4, 5).unwrap();
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
@@ -452,7 +426,6 @@ fn msgpack_round_trip_ccz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used, clippy::panic)]
 fn msgpack_round_trip_list() {
     let circuit = Circuit::from_operations(vec![
         GateOperation::h(0),
@@ -488,7 +461,6 @@ fn msgpack_round_trip_list() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn parse_empty_msgpack_input_fails() {
     let result = message_pack::parse(b"");
 
@@ -502,7 +474,6 @@ fn parse_empty_msgpack_input_fails() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn parse_corrupted_msgpack_input_fails() {
     let result = message_pack::parse(b"\x00\x01\x02\x03\xff\xfe");
 

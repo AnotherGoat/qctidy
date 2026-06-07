@@ -37,9 +37,9 @@ fn reconnect_rhs_edges(graph: &mut Graph, rule: &PatternRule, pattern_match: &Pa
     let inserted_positions = collect_inserted_rhs_positions(rule, pattern_match);
 
     for rhs_node in rule.rhs().iter_nodes() {
-        if map_rhs_position_to_graph(rule, pattern_match, rhs_node.position()) == None {
+        if map_rhs_position_to_graph(rule, pattern_match, rhs_node.position()).is_none() {
             continue;
-        };
+        }
 
         reconnect_rhs_node_edges(graph, rule, rhs_node, &inserted_positions, pattern_match);
     }

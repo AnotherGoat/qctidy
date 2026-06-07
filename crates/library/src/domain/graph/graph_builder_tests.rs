@@ -137,7 +137,6 @@ fn push_single_gates_in_different_rows() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_rotation_and_measure_gates_store_payloads() {
     let graph = GraphBuilder::default()
         .push_p(FRAC_PI_2, 0)
@@ -188,7 +187,6 @@ fn push_rotation_and_measure_gates_store_payloads() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_control_creates_multiple_nodes() {
     let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
@@ -202,7 +200,6 @@ fn push_control_creates_multiple_nodes() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_control_creates_relationships() {
     let graph = GraphBuilder::default()
         .push_cx(0, 1)
@@ -238,7 +235,6 @@ fn push_control_creates_relationships() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_swap_builds_swap_pair() {
     let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
@@ -255,7 +251,6 @@ fn push_swap_builds_swap_pair() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_cz_builds_symmetric_edges() {
     let graph = GraphBuilder::default()
         .push_cz(0, 1)
@@ -285,7 +280,6 @@ fn push_cz_builds_symmetric_edges() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_cp_builds_edges_and_payload() {
     let graph = GraphBuilder::default()
         .push_cp(PI, 0, 1)
@@ -331,7 +325,6 @@ fn push_cp_builds_edges_and_payload() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_cswap_builds_control_and_swap_edges() {
     let graph = GraphBuilder::default().push_cswap(1, 0, 2).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
@@ -363,7 +356,6 @@ fn push_cswap_builds_control_and_swap_edges() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_ccx_builds_two_control_qubits() {
     let graph = GraphBuilder::default().push_ccx(2, 0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
@@ -392,7 +384,6 @@ fn push_ccx_builds_two_control_qubits() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn push_ccz_builds_triple_symmetric_edges() {
     let graph = GraphBuilder::default().push_ccz(2, 1, 0).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
@@ -413,7 +404,6 @@ fn push_ccz_builds_triple_symmetric_edges() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_p_rejects_infinity() {
     let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_p(f64::INFINITY, 0);
@@ -437,7 +427,6 @@ fn push_p_rejects_infinity() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_p_rejects_nan() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_p(f64::NAN, 0);
@@ -449,7 +438,6 @@ fn push_p_rejects_nan() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_rx_rejects_infinity() {
     let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_rx(f64::INFINITY, 0);
@@ -473,7 +461,6 @@ fn push_rx_rejects_infinity() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_rx_rejects_nan() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_rx(f64::NAN, 0);
@@ -485,7 +472,6 @@ fn push_rx_rejects_nan() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_ry_rejects_infinity() {
     let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_ry(f64::INFINITY, 0);
@@ -509,7 +495,6 @@ fn push_ry_rejects_infinity() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_ry_rejects_nan() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_ry(f64::NAN, 0);
@@ -521,7 +506,6 @@ fn push_ry_rejects_nan() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_rz_rejects_infinity() {
     let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_rz(f64::INFINITY, 0);
@@ -545,7 +529,6 @@ fn push_rz_rejects_infinity() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_rz_rejects_nan() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_rz(f64::NAN, 0);
@@ -557,7 +540,6 @@ fn push_rz_rejects_nan() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_swap_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_swap(0, 0);
@@ -569,7 +551,6 @@ fn push_swap_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_ch_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_ch(0, 0);
@@ -581,7 +562,6 @@ fn push_ch_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cx_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_cx(0, 0);
@@ -593,7 +573,6 @@ fn push_cx_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cy_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_cy(0, 0);
@@ -605,7 +584,6 @@ fn push_cy_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cz_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_cz(0, 0);
@@ -617,7 +595,6 @@ fn push_cz_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cp_rejects_infinity() {
     let mut builder1 = GraphBuilder::default();
     let positive = builder1.push_cp(f64::INFINITY, 0, 1);
@@ -641,7 +618,6 @@ fn push_cp_rejects_infinity() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cp_rejects_nan() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_cp(f64::NAN, 0, 1);
@@ -653,7 +629,6 @@ fn push_cp_rejects_nan() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cp_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_cp(PI, 0, 0);
@@ -665,7 +640,6 @@ fn push_cp_rejects_same_qubit() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_cswap_rejects_repeated_qubits() {
     let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_cswap(0, 0, 1);
@@ -701,7 +675,6 @@ fn push_cswap_rejects_repeated_qubits() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_ccx_rejects_repeated_qubits() {
     let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_ccx(1, 1, 0);
@@ -737,7 +710,6 @@ fn push_ccx_rejects_repeated_qubits() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn push_ccz_rejects_repeated_qubits() {
     let mut builder1 = GraphBuilder::default();
     let first_two = builder1.push_ccz(1, 1, 2);

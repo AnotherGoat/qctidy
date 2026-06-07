@@ -5,9 +5,10 @@ pub(crate) mod rule;
 
 #[cfg(test)]
 mod matrix_calculator_tests;
-
 #[cfg(test)]
 mod simplification_tests;
+#[cfg(test)]
+pub(crate) mod simplifier_mother;
 
 use std::sync::Arc;
 
@@ -23,6 +24,7 @@ pub struct Simplifier {
 }
 
 impl Simplifier {
+    #[must_use]
     pub fn new(
         registry: &RuleRegistry,
         custom_rules: Vec<PatternRule>,
@@ -34,7 +36,7 @@ impl Simplifier {
             let level = configuration.level(rule.metadata().id());
 
             if level != RuleLevel::Off {
-                rules.push(rule.clone());
+                rules.push(Arc::clone(rule));
             }
         }
 
@@ -49,7 +51,7 @@ impl Simplifier {
     ///
     /// Stops early if no changes are detected between two iterations.
     pub fn simplify(&self, graph: &mut Graph, max_iterations: u32) {
-        self.simplify_internal(graph, &self.rules, max_iterations);
+        simplify_internal(graph, &self.rules, max_iterations);
     }
 
     pub fn simplify_with_rules(
@@ -64,41 +66,19 @@ impl Simplifier {
             rules.push(Arc::new(extra_rule));
         }
 
-        self.simplify_internal(graph, &rules, max_iterations);
-    }
-
-    fn simplify_internal(
-        &self,
-        graph: &mut Graph,
-        rules: &Vec<Arc<dyn SimplificationRule>>,
-        max_iterations: u32,
-    ) {
-        for _ in 0..max_iterations {
-            let mut changed = false;
-
-            for rule in rules {
-                if rule.apply(graph) {
-                    changed = true;
-                }
-            }
-
-            if !changed {
-                break;
-            }
-        }
+        simplify_internal(graph, &rules, max_iterations);
     }
 }
 
-pub fn simplify(graph: Graph, _iterations: u32) -> Graph {
+pub fn simplify(mut graph: Graph, iterations: u32) -> Graph {
     let simplifier = Simplifier::new(
         &DEFAULT_RULE_REGISTRY,
         vec![],
         &RuleConfiguration::new(RuleLevel::Apply),
     );
 
-    let mut simplified = graph.clone();
-    simplifier.simplify(&mut simplified, _iterations);
-    simplified
+    simplifier.simplify(&mut graph, iterations);
+    graph
 }
 
 pub fn simplify_with_rules(
@@ -107,4 +87,24 @@ pub fn simplify_with_rules(
     _iterations: u32,
 ) -> Graph {
     graph
+}
+
+fn simplify_internal(
+    graph: &mut Graph,
+    rules: &Vec<Arc<dyn SimplificationRule>>,
+    max_iterations: u32,
+) {
+    for _ in 0..max_iterations {
+        let mut changed = false;
+
+        for rule in rules {
+            if rule.apply(graph) {
+                changed = true;
+            }
+        }
+
+        if !changed {
+            break;
+        }
+    }
 }

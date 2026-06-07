@@ -67,8 +67,9 @@ pub enum GateType {
 }
 
 impl From<GateType> for u8 {
+    #[expect(clippy::as_conversions)]
     fn from(gate_type: GateType) -> Self {
-        gate_type as u8
+        gate_type as Self
     }
 }
 
@@ -182,7 +183,7 @@ impl FromStr for GateType {
             "ccx" | "ccnot" | "toffoli" => Ok(CCX),
             "ccz" => Ok(CCZ),
             _ => Err(GateTypeError::UnknownGateName {
-                name: name.to_string(),
+                name: name.to_owned(),
             }),
         }
     }

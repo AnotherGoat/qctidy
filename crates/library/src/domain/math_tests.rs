@@ -117,7 +117,6 @@ fn very_close_matrices_are_equal() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn normalize_zero_angle() {
     assert!(are_floats_equal(
         normalize_angle(0.0, 4.0 * PI).unwrap(),
@@ -130,7 +129,6 @@ fn normalize_zero_angle() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn normalize_positive_angle() {
     assert!(are_floats_equal(normalize_angle(PI, 4.0 * PI).unwrap(), PI));
     assert!(are_floats_equal(
@@ -164,7 +162,6 @@ fn normalize_positive_angle() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn normalize_negative_angle() {
     assert!(are_floats_equal(
         normalize_angle(-PI, 4.0 * PI).unwrap(),
@@ -201,7 +198,6 @@ fn normalize_negative_angle() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn normalize_edge_cases() {
     normalize_angle(f64::INFINITY, 1.0).unwrap_err();
     normalize_angle(f64::NEG_INFINITY, 1.0).unwrap_err();

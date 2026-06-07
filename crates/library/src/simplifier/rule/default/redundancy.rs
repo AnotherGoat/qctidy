@@ -19,6 +19,11 @@ pub(crate) fn register(registry: &mut RuleRegistry) {
         Arc::new(double_cswap()),
         Arc::new(double_ccx()),
         Arc::new(double_ccz()),
+        Arc::new(null_phase()),
+        Arc::new(null_rx()),
+        Arc::new(null_ry()),
+        Arc::new(null_rz()),
+        Arc::new(null_cp()),
     ]);
 }
 
@@ -295,6 +300,111 @@ pub(crate) fn double_ccz() -> PatternRule {
         RuleMetadata::new(
             function_name!(),
             "Removes consecutive CCZ gates.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule should be valid")
+}
+
+#[named]
+pub(crate) fn null_phase() -> PatternRule {
+    let lhs = GraphBuilder::default()
+        .push_p(0.0, 0)
+        .expect("Angle should be valid")
+        .build();
+    let rhs = GraphBuilder::new(1).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes phase gates that have no phase angle.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule should be valid")
+}
+
+#[named]
+pub(crate) fn null_rx() -> PatternRule {
+    let lhs = GraphBuilder::default()
+        .push_rx(0.0, 0)
+        .expect("Angle should be valid")
+        .build();
+    let rhs = GraphBuilder::new(1).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes RX gates that have no rotation angle.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule should be valid")
+}
+
+#[named]
+pub(crate) fn null_ry() -> PatternRule {
+    let lhs = GraphBuilder::default()
+        .push_ry(0.0, 0)
+        .expect("Angle should be valid")
+        .build();
+    let rhs = GraphBuilder::new(1).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes RY gates that have no rotation angle.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule should be valid")
+}
+
+#[named]
+pub(crate) fn null_rz() -> PatternRule {
+    let lhs = GraphBuilder::default()
+        .push_rz(0.0, 0)
+        .expect("Angle should be valid")
+        .build();
+    let rhs = GraphBuilder::new(1).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes RZ gates that have no rotation angle.",
+            RuleGroup::Redundancy,
+            100,
+        ),
+        lhs,
+        rhs,
+    )
+    .expect("Built-in rule should be valid")
+}
+
+#[named]
+pub(crate) fn null_cp() -> PatternRule {
+    let lhs = GraphBuilder::default()
+        .push_cp(0.0, 0, 1)
+        .expect("Angle should be valid and all qubits should be different")
+        .build();
+    let rhs = GraphBuilder::new(2).build();
+
+    PatternRule::new(
+        RuleMetadata::new(
+            function_name!(),
+            "Removes CP gates that have no phase angle.",
             RuleGroup::Redundancy,
             100,
         ),

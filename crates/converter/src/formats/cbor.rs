@@ -1,4 +1,6 @@
-use ciborium::de::from_reader;
+use std::io;
+
+use ciborium::de::{self, from_reader};
 use ciborium::ser::into_writer;
 use o2o::o2o;
 use qsimplify::Circuit;
@@ -69,7 +71,7 @@ pub fn parse(input: &[u8]) -> Result<Circuit, ParseError> {
     Circuit::try_from(generic)
 }
 
-fn map_decode_error(error: &ciborium::de::Error<std::io::Error>) -> ParseError {
+fn map_decode_error(error: &de::Error<io::Error>) -> ParseError {
     let message = error.to_string();
 
     if message.contains("unknown field") {

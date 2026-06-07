@@ -53,7 +53,7 @@ In addition, use the following naming conventions:
 
 - Use `thiserror` to define library errors with descriptive error messages.
 - Always suffix error types with `Error`.
-- Avoid using `unwrap()` in library code.
+- Avoid using `unwrap()` and `panic!()` in library code.
 - Use `expect()` to check invariants that should be "impossible to reach" in production code.
 - Leave error handling to the caller in client implementations. Just returning `Result<T>` is fine most of the time.
 - If a function can fail or return nothing, make it return `Result<Option<T>>` to separate success with no results from actual errors.
@@ -78,6 +78,7 @@ In addition, use the following naming conventions:
 - Integration tests live in a `tests/` directory inside the relevant crate.
 - Name tests descriptively, but don't add the `test` prefix to its functions. Take the name of the original function as a reference when naming them.
 - No minimum coverage threshold is enforced yet, but all public functions should have at least one test covering the "happy" execution path.
+- It's fine to use `unwrap()` and `panic!()` in tests.
 
 ## Commit Style
 

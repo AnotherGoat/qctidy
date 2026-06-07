@@ -3,7 +3,6 @@ use std::str::FromStr;
 use crate::GateType::{self, *};
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_id() {
     let original = ID;
     let string = original.to_string();
@@ -12,7 +11,6 @@ fn to_string_roundtrip_id() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_h() {
     let original = H;
     let string = original.to_string();
@@ -21,7 +19,6 @@ fn to_string_roundtrip_h() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_x() {
     let original = X;
     let string = original.to_string();
@@ -30,7 +27,6 @@ fn to_string_roundtrip_x() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_y() {
     let original = Y;
     let string = original.to_string();
@@ -39,7 +35,6 @@ fn to_string_roundtrip_y() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_z() {
     let original = Z;
     let string = original.to_string();
@@ -48,7 +43,6 @@ fn to_string_roundtrip_z() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_p() {
     let original = P;
     let string = original.to_string();
@@ -57,7 +51,6 @@ fn to_string_roundtrip_p() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_rx() {
     let original = RX;
     let string = original.to_string();
@@ -66,7 +59,6 @@ fn to_string_roundtrip_rx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_ry() {
     let original = RY;
     let string = original.to_string();
@@ -75,7 +67,6 @@ fn to_string_roundtrip_ry() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_rz() {
     let original = RZ;
     let string = original.to_string();
@@ -84,7 +75,6 @@ fn to_string_roundtrip_rz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_s() {
     let original = S;
     let string = original.to_string();
@@ -93,7 +83,6 @@ fn to_string_roundtrip_s() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_sdg() {
     let original = SDG;
     let string = original.to_string();
@@ -102,7 +91,6 @@ fn to_string_roundtrip_sdg() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_sx() {
     let original = SX;
     let string = original.to_string();
@@ -111,7 +99,6 @@ fn to_string_roundtrip_sx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_sy() {
     let original = SY;
     let string = original.to_string();
@@ -120,7 +107,6 @@ fn to_string_roundtrip_sy() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_t() {
     let original = T;
     let string = original.to_string();
@@ -129,7 +115,6 @@ fn to_string_roundtrip_t() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_tdg() {
     let original = TDG;
     let string = original.to_string();
@@ -138,7 +123,6 @@ fn to_string_roundtrip_tdg() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_measure() {
     let original = Measure;
     let string = original.to_string();
@@ -147,7 +131,6 @@ fn to_string_roundtrip_measure() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_swap() {
     let original = Swap;
     let string = original.to_string();
@@ -156,7 +139,6 @@ fn to_string_roundtrip_swap() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_ch() {
     let original = CH;
     let string = original.to_string();
@@ -165,7 +147,6 @@ fn to_string_roundtrip_ch() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_cx() {
     let original = CX;
     let string = original.to_string();
@@ -174,7 +155,6 @@ fn to_string_roundtrip_cx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_cy() {
     let original = CY;
     let string = original.to_string();
@@ -183,7 +163,6 @@ fn to_string_roundtrip_cy() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_cz() {
     let original = CZ;
     let string = original.to_string();
@@ -192,7 +171,6 @@ fn to_string_roundtrip_cz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_cp() {
     let original = CP;
     let string = original.to_string();
@@ -201,7 +179,6 @@ fn to_string_roundtrip_cp() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_cswap() {
     let original = CSwap;
     let string = original.to_string();
@@ -210,7 +187,6 @@ fn to_string_roundtrip_cswap() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_ccx() {
     let original = CCX;
     let string = original.to_string();
@@ -219,7 +195,6 @@ fn to_string_roundtrip_ccx() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_roundtrip_ccz() {
     let original = CCZ;
     let string = original.to_string();
@@ -228,7 +203,6 @@ fn to_string_roundtrip_ccz() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_aliases() {
     assert_eq!(GateType::from_str("i").unwrap(), ID);
     assert_eq!(GateType::from_str("id").unwrap(), ID);
@@ -268,7 +242,6 @@ fn to_string_aliases() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_unknown_returns_error() {
     GateType::from_str("unknown").unwrap_err();
     GateType::from_str("???").unwrap_err();
@@ -277,7 +250,6 @@ fn to_string_unknown_returns_error() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_case_insensitive() {
     assert_eq!(GateType::from_str("H").unwrap(), H);
     assert_eq!(GateType::from_str("HADAMARD").unwrap(), H);

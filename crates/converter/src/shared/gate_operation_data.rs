@@ -165,7 +165,7 @@ impl TryFrom<GateOperationData> for GateOperation {
         let gate = data.gate;
         let missing_field = |field: &str| ParseError::MissingRequiredField {
             field: field.to_owned(),
-            gate: gate.to_string().to_owned(),
+            gate: gate.to_string(),
         };
 
         match gate {

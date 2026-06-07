@@ -72,35 +72,35 @@ impl GateTypeBitset {
         self.bits & (1 << u8::from(gate_type)) != 0
     }
 
-    pub fn is_superset_of(&self, other: &Self) -> bool {
+    pub const fn is_superset_of(self, other: Self) -> bool {
         (self.bits & other.bits) == other.bits
     }
 
-    pub fn intersects(&self, other: &Self) -> bool {
+    pub const fn intersects(self, other: Self) -> bool {
         (self.bits & other.bits) != 0
     }
 
-    pub fn union(&self, other: &Self) -> Self {
+    pub const fn union(self, other: Self) -> Self {
         Self {
             bits: self.bits | other.bits,
         }
     }
 
-    pub fn intersection(&self, other: &Self) -> Self {
+    pub const fn intersection(self, other: Self) -> Self {
         Self {
             bits: self.bits & other.bits,
         }
     }
 
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(self) -> bool {
         self.bits == 0
     }
 
-    pub fn clear(&mut self) {
+    pub const fn clear(&mut self) {
         self.bits = 0;
     }
 
-    pub fn bits(&self) -> u64 {
+    pub const fn bits(self) -> u64 {
         self.bits
     }
 }

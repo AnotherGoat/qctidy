@@ -110,7 +110,6 @@ Edges:
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_rotation_gates() {
     let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
@@ -208,7 +207,6 @@ Edges:
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_swap_cycle() {
     let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
 
@@ -228,7 +226,6 @@ Edges:
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_control_gates() {
     let graph = GraphBuilder::default()
         .push_cx(0, 1)
@@ -258,7 +255,6 @@ Edges:
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn to_string_sorts_edges_of_same_type() {
     let graph = GraphBuilder::default()
         .push_ccx(1, 2, 0)
@@ -381,7 +377,6 @@ fn display_grid_multiple_rows_and_columns() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn display_grid_with_angle() {
     let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
@@ -403,7 +398,6 @@ fn display_grid_with_angle() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn display_grid_with_multiple_angles_alignment() {
     let graph = GraphBuilder::default()
         .push_rx(FRAC_PI_2, 0)
@@ -419,7 +413,6 @@ fn display_grid_with_multiple_angles_alignment() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn display_grid_mixed_angle_and_normal() {
     let graph = GraphBuilder::default()
         .push_h(0)

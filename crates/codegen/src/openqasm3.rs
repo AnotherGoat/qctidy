@@ -23,7 +23,7 @@ pub(crate) fn generate(graph: &Graph) -> Result<String, CodeGenerationError> {
     }
 
     for operation in circuit.operations() {
-        generate_gate(&operation, &mut has_sy_gate, &mut build_steps);
+        generate_gate(operation, &mut has_sy_gate, &mut build_steps);
     }
 
     let mut output = String::new();

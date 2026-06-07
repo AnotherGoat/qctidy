@@ -57,7 +57,6 @@ fn iter_positions_ordered_by_column_in_sparse_graph() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn iter_nodes_ordered_by_row() {
     let graph = GraphBuilder::default()
         .push_h(0)
@@ -95,7 +94,6 @@ fn iter_positions_ordered_by_row_in_sparse_graph() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn iter_nodes_ordered_by_column() {
     let graph = GraphBuilder::default()
         .push_h(0)

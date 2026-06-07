@@ -29,7 +29,6 @@ fn empty_sized_graph() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn add_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 0);
@@ -42,7 +41,6 @@ fn add_node() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn add_node_fails_if_it_exists() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
@@ -58,7 +56,6 @@ fn add_node_fails_if_it_exists() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn add_node_increases_height() {
     let mut graph = Graph::new(1);
     assert!(graph.height() == 1);
@@ -74,7 +71,6 @@ fn add_node_increases_height() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn replace_node_overwrites_existing_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 0);
@@ -176,7 +172,6 @@ fn graph_is_equal_with_angles() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn graph_is_equal_in_different_insertion_order() {
     let mut graph1 = Graph::default();
     let mut graph2 = Graph::default();
@@ -293,7 +288,6 @@ fn remove_node_keeps_height() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn remove_node_removes_associated_edges() {
     let mut graph = Graph::default();
 
@@ -312,7 +306,6 @@ fn remove_node_removes_associated_edges() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn removing_middle_node_reconnects_neighbors() {
     let mut graph = Graph::default();
 
@@ -341,7 +334,6 @@ fn removing_middle_node_reconnects_neighbors() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn move_nonexistent_node_fails() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 3);
@@ -369,7 +361,6 @@ fn null_move() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn move_node() {
     let mut graph = Graph::default();
 
@@ -389,7 +380,6 @@ fn move_node() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn move_node_increases_height_if_needed() {
     let mut graph = Graph::new(1);
     assert!(graph.height() == 1);
@@ -407,7 +397,6 @@ fn move_node_increases_height_if_needed() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn move_node_doesnt_decrease_height() {
     let mut graph = Graph::new(3);
     assert!(graph.height() == 3);
@@ -420,7 +409,6 @@ fn move_node_doesnt_decrease_height() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn move_node_overwrites_destination() {
     let mut graph = Graph::default();
 
@@ -437,7 +425,6 @@ fn move_node_overwrites_destination() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn move_node_preserves_edges() {
     let mut graph = Graph::default();
 
@@ -468,7 +455,6 @@ fn move_node_preserves_edges() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn add_edge_fails_when_missing_nodes() {
     let mut graph = Graph::default();
     let start = Position::new(0, 0);
@@ -485,7 +471,6 @@ fn add_edge_fails_when_missing_nodes() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn add_edge_is_idempotent() {
     let mut graph = Graph::default();
 
@@ -503,7 +488,6 @@ fn add_edge_is_idempotent() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn add_bidirectional_edge_creates_two_edges() {
     let mut graph = Graph::default();
 
@@ -530,7 +514,6 @@ fn add_bidirectional_edge_creates_two_edges() {
 }
 
 #[test]
-#[expect(clippy::panic)]
 fn connect_row_neighbors_fails_if_node_is_missing() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
@@ -544,7 +527,6 @@ fn connect_row_neighbors_fails_if_node_is_missing() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_relinks_correctly() {
     let mut graph = Graph::default();
 
@@ -573,7 +555,6 @@ fn connect_row_neighbors_relinks_correctly() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn connect_row_neighbors_removes_direct_connection() {
     let mut graph = Graph::default();
 
@@ -598,7 +579,6 @@ fn connect_row_neighbors_removes_direct_connection() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn remove_edge_removes_outgoing_and_incoming_entries() {
     let mut graph = Graph::default();
 
@@ -675,7 +655,6 @@ fn clear_removes_everything() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn clear_edges_keeps_nodes() {
     let mut graph = Graph::default();
 
@@ -695,7 +674,6 @@ fn clear_edges_keeps_nodes() {
 }
 
 #[test]
-#[expect(clippy::unwrap_used)]
 fn get_node_and_edges_collects_edges_correctly() {
     let mut graph = Graph::default();
 

@@ -29,7 +29,7 @@ impl fmt::Display for PatternRuleSide {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use PatternRuleSide::*;
 
-        match self {
+        match *self {
             Left => write!(f, "LHS"),
             Right => write!(f, "RHS"),
         }
@@ -55,9 +55,9 @@ impl GraphStatistics {
             .iter()
             .map(|(gate_type, count)| count / gate_type.qubit_count())
             .sum();
-        let gate_types = node_frequencies.keys().cloned().collect();
+        let gate_types = node_frequencies.keys().copied().collect();
 
-        GraphStatistics {
+        Self {
             gate_count,
             gate_types,
             node_frequencies,
@@ -232,14 +232,11 @@ impl PatternRule {
 
     fn validate_forbidden_lhs_gates(graph: &Graph) -> Result<(), RuleBuildError> {
         for node in graph.iter_nodes() {
-            match node.r#type() {
-                GateType::Measure => {
-                    return Err(RuleBuildError::ContainsForbiddenGate {
-                        side: PatternRuleSide::Left,
-                        gate_type: node.r#type(),
-                    });
-                }
-                _ => {}
+            if node.r#type() == GateType::Measure {
+                return Err(RuleBuildError::ContainsForbiddenGate {
+                    side: PatternRuleSide::Left,
+                    gate_type: node.r#type(),
+                });
             }
         }
 
@@ -301,13 +298,13 @@ impl PatternRule {
                 .get(&gate_type)
                 .ok_or(RuleBuildError::InvalidAnchor)?;
 
-            match &best {
+            match best {
                 None => {
                     best = Some((candidate, arity, frequency));
                 }
                 Some((_, best_arity, best_frequency)) => {
-                    let is_better_candidate = arity > *best_arity
-                        || (arity == *best_arity && frequency < *best_frequency);
+                    let is_better_candidate =
+                        arity > best_arity || (arity == best_arity && frequency < best_frequency);
 
                     if is_better_candidate {
                         best = Some((candidate, arity, frequency));
