@@ -115,6 +115,7 @@ pub fn graph_to_graphviz(
     }
 }
 
+#[expect(clippy::wildcard_enum_match_arm)]
 fn map_io_error(error: &io::Error) -> PresentationError {
     use PresentationError::*;
     use io::ErrorKind::*;
@@ -243,7 +244,8 @@ fn find_node_label(node: &NodeView) -> String {
         Measure => {
             format!("M({})", node.bit().unwrap_or_default())
         }
-        _ => type_data,
+        ID | H | X | Y | Z | S | SDG | SX | SY | T | TDG | Swap | CH | CX | CY | CZ | CSwap
+        | CCX | CCZ => type_data,
     };
 
     format!(

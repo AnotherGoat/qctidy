@@ -1,3 +1,5 @@
+#![allow(clippy::approx_constant)]
+
 use faer::{complex::Complex64, mat};
 use num_rational::Ratio;
 
@@ -45,7 +47,6 @@ fn are_close_floats_equal() {
 }
 
 #[test]
-#[expect(clippy::approx_constant)]
 fn are_very_close_floats_equal() {
     assert!(are_floats_equal(0.0, 1e-8));
     assert!(are_floats_equal(0.3, 0.300_000_01));

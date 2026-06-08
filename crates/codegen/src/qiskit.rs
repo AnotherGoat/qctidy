@@ -280,6 +280,7 @@ fn add_build_step_with_string_parameters(
     build_steps.push(format!("{circuit_name}.{gate_name}({joined_parameters})"));
 }
 
+#[expect(clippy::wildcard_enum_match_arm)]
 fn get_qiskit_gate_name(gate_type: GateType) -> String {
     use GateType::*;
 

@@ -243,6 +243,7 @@ impl PatternRule {
         Ok(())
     }
 
+    #[expect(clippy::wildcard_enum_match_arm)]
     fn validate_forbidden_rhs_gates(graph: &Graph) -> Result<(), RuleBuildError> {
         use GateType::*;
 

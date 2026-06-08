@@ -391,7 +391,9 @@ fn gate_display_name(gate_type: GateType) -> String {
         TDG => "T†",
         Swap => "Swap",
         CSwap => "CSwap",
-        _ => return gate_type.to_string().to_ascii_uppercase(),
+        H | X | Y | Z | P | RX | RY | RZ | S | T | Measure | CH | CX | CY | CZ | CP | CCX | CCZ => {
+            return gate_type.to_string().to_ascii_uppercase();
+        }
     };
 
     name.into()

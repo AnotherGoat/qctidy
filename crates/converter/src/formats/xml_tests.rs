@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_enum_match_arm)]
+
 use std::f64::consts::PI;
 
 use qsimplify::{Circuit, GateOperation, math};

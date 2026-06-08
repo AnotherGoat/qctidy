@@ -352,7 +352,7 @@ unwrap_in_result = "warn"
 unwrap_used = "warn"
 use_debug = "warn"
 verbose_file_reads = "warn"
-# DISABLED: wildcard_enum_match_arm = "warn"
+wildcard_enum_match_arm = "warn"
 
 # Style
 

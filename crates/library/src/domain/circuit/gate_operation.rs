@@ -459,6 +459,7 @@ impl GateOperation {
 
     /// Get all the bits used by this operation.
     #[must_use]
+    #[expect(clippy::wildcard_enum_match_arm)]
     pub fn bits(&self) -> Vec<usize> {
         use GateOperation::*;
 

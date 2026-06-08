@@ -213,9 +213,9 @@ impl GateType {
         use GateType::*;
 
         match self {
+            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | Measure => 1,
             Swap | CH | CX | CY | CZ | CP => 2,
             CSwap | CCX | CCZ => 3,
-            _ => 1,
         }
     }
 
@@ -229,10 +229,12 @@ impl GateType {
     /// If a gate has control qubits, it also has at least one target qubit.
     pub(crate) const fn control_qubit_count(self) -> usize {
         use GateType::*;
+
         match self {
+            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | Measure
+            | Swap => 0,
             CH | CX | CY | CZ | CP | CSwap => 1,
             CCX | CCZ => 2,
-            _ => 0,
         }
     }
 
@@ -248,10 +250,12 @@ impl GateType {
     /// All single-qubit gates have a target qubit.
     pub(crate) const fn target_qubit_count(self) -> usize {
         use GateType::*;
+
         match self {
             Measure => 0,
+            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | CH | CX | CY
+            | CZ | CP | CCX | CCZ => 1,
             Swap | CSwap => 2,
-            _ => 1,
         }
     }
 
@@ -261,6 +265,7 @@ impl GateType {
     }
 
     /// Get the number of classical bits used by this type of gate.
+    #[expect(clippy::wildcard_enum_match_arm)]
     pub(crate) const fn bit_count(self) -> usize {
         use GateType::*;
 

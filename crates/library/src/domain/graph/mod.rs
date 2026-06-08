@@ -612,7 +612,7 @@ impl Graph {
                 match edge.edge_type {
                     Right => left = Some(source),
                     Targets => controlled_by.push(source),
-                    _ => {}
+                    SwapsWith | WorksWith => {}
                 }
             }
         }
