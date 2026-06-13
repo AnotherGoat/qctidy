@@ -44,6 +44,8 @@ struct JsonGateOperationData {
     target1: Option<usize>,
     target2: Option<usize>,
     angle: Option<f64>,
+    angle2: Option<f64>,
+    angle3: Option<f64>,
     bit: Option<usize>,
 }
 

@@ -130,6 +130,17 @@ pub enum GateOperation {
         /// The qubit that this gate is placed on.
         qubit: usize,
     },
+    /// Single-qubit general U gate with three angles: theta, phi, lambda.
+    U {
+        /// The theta angle of this U gate, rotation in the X axis.
+        theta: f64,
+        /// The phi angle of this U gate, rotation in the Y axis.
+        phi: f64,
+        /// The lambda angle of this U gate, rotation in the Z axis.
+        lambda: f64,
+        /// The qubit that this gate is placed on.
+        qubit: usize,
+    },
     /// Single-qubit measurement gate. Stores its results on a particular bit.
     Measure {
         /// The qubit that this gate is placed on.
@@ -286,6 +297,30 @@ impl GateOperation {
         Self::TDG { qubit }
     }
 
+    pub const fn try_u(
+        theta: f64,
+        phi: f64,
+        lambda: f64,
+        qubit: usize,
+    ) -> Result<Self, GateOperationError> {
+        if !theta.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: theta });
+        }
+        if !phi.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: phi });
+        }
+        if !lambda.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: lambda });
+        }
+
+        Ok(Self::U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        })
+    }
+
     pub const fn measure(qubit: usize, bit: usize) -> Self {
         Self::Measure { qubit, bit }
     }
@@ -398,6 +433,7 @@ impl GateOperation {
             SY { .. } => GateType::SY,
             T { .. } => GateType::T,
             TDG { .. } => GateType::TDG,
+            U { .. } => GateType::U,
             Measure { .. } => GateType::Measure,
             Swap { .. } => GateType::Swap,
             CH { .. } => GateType::CH,
@@ -432,6 +468,7 @@ impl GateOperation {
             | SY { qubit }
             | T { qubit }
             | TDG { qubit }
+            | U { qubit, .. }
             | Measure { qubit, .. } => vec![qubit],
             Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } | CP { qubit1, qubit2, .. } => {
                 vec![qubit1, qubit2]

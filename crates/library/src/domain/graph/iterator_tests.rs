@@ -45,9 +45,9 @@ fn iter_positions_ordered_by_column() {
 fn iter_positions_ordered_by_column_in_sparse_graph() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(2, 4), None, None);
-    graph.replace_node(Y, Position::new(0, 2), None, None);
-    graph.replace_node(Z, Position::new(1, 0), None, None);
+    graph.replace_node(X, Position::new(2, 4), None, None, None, None);
+    graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
 
     let positions: Vec<_> = graph.iter_positions_ordered_by_column().collect();
     assert_eq!(positions.len(), 3);
@@ -82,9 +82,9 @@ fn iter_nodes_ordered_by_row() {
 fn iter_positions_ordered_by_row_in_sparse_graph() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(2, 4), None, None);
-    graph.replace_node(Y, Position::new(0, 2), None, None);
-    graph.replace_node(Z, Position::new(1, 0), None, None);
+    graph.replace_node(X, Position::new(2, 4), None, None, None, None);
+    graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
 
     let positions: Vec<_> = graph.iter_positions_ordered_by_row().collect();
     assert_eq!(positions.len(), 3);

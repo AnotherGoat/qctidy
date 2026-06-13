@@ -11,5 +11,7 @@ pub struct NodeView {
     r#type: GateType,
     position: Position,
     angle: Option<f64>,
+    angle2: Option<f64>,
+    angle3: Option<f64>,
     bit: Option<usize>,
 }

@@ -33,7 +33,9 @@ fn add_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 0);
 
-    graph.add_node(ID, position, None, None).unwrap();
+    graph
+        .add_node(ID, position, None, None, None, None)
+        .unwrap();
 
     let node = graph.get_node(position).unwrap();
     assert_eq!(node.r#type(), ID);
@@ -45,9 +47,9 @@ fn add_node_fails_if_it_exists() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
 
-    graph.replace_node(X, node_position, None, None);
+    graph.replace_node(X, node_position, None, None, None, None);
 
-    let result = graph.add_node(Y, node_position, None, None);
+    let result = graph.add_node(Y, node_position, None, None, None, None);
 
     match result {
         Err(GraphError::NodeAlreadyExists { position }) => assert_eq!(position, node_position),
@@ -60,13 +62,19 @@ fn add_node_increases_height() {
     let mut graph = Graph::new(1);
     assert!(graph.height() == 1);
 
-    graph.add_node(H, Position::new(0, 0), None, None).unwrap();
+    graph
+        .add_node(H, Position::new(0, 0), None, None, None, None)
+        .unwrap();
     assert!(graph.height() == 1);
 
-    graph.add_node(H, Position::new(1, 0), None, None).unwrap();
+    graph
+        .add_node(H, Position::new(1, 0), None, None, None, None)
+        .unwrap();
     assert!(graph.height() == 2);
 
-    graph.add_node(H, Position::new(2, 0), None, None).unwrap();
+    graph
+        .add_node(H, Position::new(2, 0), None, None, None, None)
+        .unwrap();
     assert!(graph.height() == 3);
 }
 
@@ -75,8 +83,8 @@ fn replace_node_overwrites_existing_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 0);
 
-    graph.replace_node(X, position, None, None);
-    graph.replace_node(Y, position, None, None);
+    graph.replace_node(X, position, None, None, None, None);
+    graph.replace_node(Y, position, None, None, None, None);
 
     let node = graph.get_node(position).unwrap();
     assert_eq!(node.r#type(), Y);
@@ -87,13 +95,13 @@ fn replace_node_increases_height() {
     let mut graph = Graph::new(1);
     assert!(graph.height() == 1);
 
-    graph.replace_node(Z, Position::new(0, 0), None, None);
+    graph.replace_node(Z, Position::new(0, 0), None, None, None, None);
     assert!(graph.height() == 1);
 
-    graph.replace_node(Z, Position::new(0, 0), None, None);
+    graph.replace_node(Z, Position::new(0, 0), None, None, None, None);
     assert!(graph.height() == 1);
 
-    graph.replace_node(Z, Position::new(1, 0), None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
     assert!(graph.height() == 2);
 }
 
@@ -101,7 +109,7 @@ fn replace_node_increases_height() {
 fn empty_space_has_no_node() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 2), None, None);
+    graph.replace_node(X, Position::new(0, 2), None, None, None, None);
 
     assert!(!graph.has_node_at(Position::new(0, 0)));
     assert!(graph.get_node(Position::new(0, 0)).is_none());
@@ -111,10 +119,10 @@ fn empty_space_has_no_node() {
 fn graph_width() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 0), None, None, None, None);
     assert_eq!(graph.width(), 1);
 
-    graph.replace_node(X, Position::new(0, 5), None, None);
+    graph.replace_node(X, Position::new(0, 5), None, None, None, None);
     assert_eq!(graph.width(), 6);
 }
 
@@ -122,10 +130,10 @@ fn graph_width() {
 fn graph_height() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 0), None, None, None, None);
     assert_eq!(graph.height(), 1);
 
-    graph.replace_node(X, Position::new(5, 0), None, None);
+    graph.replace_node(X, Position::new(5, 0), None, None, None, None);
     assert_eq!(graph.height(), 6);
 }
 
@@ -133,8 +141,8 @@ fn graph_height() {
 fn bits_counts_highest_measurement_bit() {
     let mut graph = Graph::default();
 
-    graph.replace_node(Measure, Position::new(0, 0), None, Some(0));
-    graph.replace_node(Measure, Position::new(1, 0), None, Some(3));
+    graph.replace_node(Measure, Position::new(0, 0), None, None, None, Some(0));
+    graph.replace_node(Measure, Position::new(1, 0), None, None, None, Some(3));
 
     assert_eq!(graph.bits(), 4);
 }
@@ -162,11 +170,11 @@ fn graph_is_equal_with_angles() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph1.replace_node(RX, first, Some(0.0_f64), None);
-    graph1.replace_node(P, second, Some(FRAC_PI_2), None);
+    graph1.replace_node(RX, first, Some(0.0_f64), None, None, None);
+    graph1.replace_node(P, second, Some(FRAC_PI_2), None, None, None);
 
-    graph2.replace_node(RX, first, Some(1e-8_f64), None);
-    graph2.replace_node(P, second, Some(1e-8_f64 + FRAC_PI_2), None);
+    graph2.replace_node(RX, first, Some(1e-8_f64), None, None, None);
+    graph2.replace_node(P, second, Some(1e-8_f64 + FRAC_PI_2), None, None, None);
 
     assert_eq!(graph1, graph2);
 }
@@ -178,12 +186,12 @@ fn graph_is_equal_in_different_insertion_order() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph1.replace_node(X, first, None, None);
-    graph1.replace_node(Y, second, None, None);
+    graph1.replace_node(X, first, None, None, None, None);
+    graph1.replace_node(Y, second, None, None, None, None);
     graph1.add_edge(Right, first, second).unwrap();
 
-    graph2.replace_node(Y, second, None, None);
-    graph2.replace_node(X, first, None, None);
+    graph2.replace_node(Y, second, None, None, None, None);
+    graph2.replace_node(X, first, None, None, None, None);
     graph2.add_edge(Right, first, second).unwrap();
 
     assert_eq!(graph1, graph2);
@@ -192,8 +200,8 @@ fn graph_is_equal_in_different_insertion_order() {
 #[test]
 fn is_occupied_with_identity() {
     let mut graph = Graph::default();
-    graph.replace_node(ID, Position::new(0, 0), None, None);
-    graph.replace_node(X, Position::new(0, 1), None, None);
+    graph.replace_node(ID, Position::new(0, 0), None, None, None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None, None, None);
 
     assert!(graph.is_occupied(Position::new(0, 0)));
     assert!(graph.is_occupied(Position::new(0, 1)));
@@ -226,12 +234,12 @@ fn is_occupied() {
 fn has_node_at() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 1), None, None);
-    graph.replace_node(Y, Position::new(0, 2), None, None);
-    graph.replace_node(Z, Position::new(1, 0), None, None);
-    graph.replace_node(X, Position::new(1, 2), None, None);
-    graph.replace_node(Y, Position::new(2, 0), None, None);
-    graph.replace_node(Z, Position::new(2, 1), None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None, None, None);
+    graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
+    graph.replace_node(X, Position::new(1, 2), None, None, None, None);
+    graph.replace_node(Y, Position::new(2, 0), None, None, None, None);
+    graph.replace_node(Z, Position::new(2, 1), None, None, None, None);
 
     assert!(!graph.has_node_at(Position::new(0, 0)));
     assert!(graph.has_node_at(Position::new(0, 1)));
@@ -257,7 +265,7 @@ fn doesnt_have_nodes_outside() {
 fn remove_nonexistent_node_is_noop() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 0), None, None);
+    graph.replace_node(X, Position::new(0, 0), None, None, None, None);
 
     graph.remove_node(Position::new(1, 1));
 
@@ -294,8 +302,8 @@ fn remove_node_removes_associated_edges() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
 
@@ -313,9 +321,9 @@ fn removing_middle_node_reconnects_neighbors() {
     let second = Position::new(0, 1);
     let third = Position::new(0, 2);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
-    graph.replace_node(Z, third, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
+    graph.replace_node(Z, third, None, None, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
 
@@ -338,8 +346,8 @@ fn move_nonexistent_node_fails() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 3);
 
-    graph.replace_node(X, Position::new(0, 1), None, None);
-    graph.replace_node(Y, Position::new(0, 2), None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None, None, None);
+    graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
 
     let result = graph.move_node(node_position, Position::new(1, 3));
 
@@ -353,7 +361,7 @@ fn move_nonexistent_node_fails() {
 fn null_move() {
     let mut graph = Graph::default();
 
-    graph.replace_node(H, Position::new(0, 0), None, None);
+    graph.replace_node(H, Position::new(0, 0), None, None, None, None);
 
     let result = graph.move_node(Position::new(0, 0), Position::new(0, 0));
 
@@ -364,9 +372,9 @@ fn null_move() {
 fn move_node() {
     let mut graph = Graph::default();
 
-    graph.replace_node(X, Position::new(0, 1), None, None);
-    graph.replace_node(Y, Position::new(1, 2), None, None);
-    graph.replace_node(Z, Position::new(0, 3), None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None, None, None);
+    graph.replace_node(Y, Position::new(1, 2), None, None, None, None);
+    graph.replace_node(Z, Position::new(0, 3), None, None, None, None);
 
     graph
         .move_node(Position::new(0, 1), Position::new(1, 1))
@@ -384,7 +392,7 @@ fn move_node_increases_height_if_needed() {
     let mut graph = Graph::new(1);
     assert!(graph.height() == 1);
 
-    graph.replace_node(T, Position::new(0, 0), None, None);
+    graph.replace_node(T, Position::new(0, 0), None, None, None, None);
     graph
         .move_node(Position::new(0, 0), Position::new(1, 0))
         .unwrap();
@@ -401,7 +409,7 @@ fn move_node_doesnt_decrease_height() {
     let mut graph = Graph::new(3);
     assert!(graph.height() == 3);
 
-    graph.replace_node(TDG, Position::new(2, 0), None, None);
+    graph.replace_node(TDG, Position::new(2, 0), None, None, None, None);
     graph
         .move_node(Position::new(2, 0), Position::new(0, 0))
         .unwrap();
@@ -415,8 +423,8 @@ fn move_node_overwrites_destination() {
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
 
-    graph.replace_node(X, start, None, None);
-    graph.replace_node(Y, end, None, None);
+    graph.replace_node(X, start, None, None, None, None);
+    graph.replace_node(Y, end, None, None, None, None);
 
     graph.move_node(start, end).unwrap();
 
@@ -428,10 +436,10 @@ fn move_node_overwrites_destination() {
 fn move_node_preserves_edges() {
     let mut graph = Graph::default();
 
-    graph.replace_node(H, Position::new(0, 1), None, None);
-    graph.replace_node(Y, Position::new(1, 1), None, None);
-    graph.replace_node(CX, Position::new(0, 0), None, None);
-    graph.replace_node(CX, Position::new(1, 0), None, None);
+    graph.replace_node(H, Position::new(0, 1), None, None, None, None);
+    graph.replace_node(Y, Position::new(1, 1), None, None, None, None);
+    graph.replace_node(CX, Position::new(0, 0), None, None, None, None);
+    graph.replace_node(CX, Position::new(1, 0), None, None, None, None);
 
     graph
         .add_edge(Right, Position::new(0, 0), Position::new(0, 1))
@@ -460,7 +468,7 @@ fn add_edge_fails_when_missing_nodes() {
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
 
-    graph.replace_node(X, start, None, None);
+    graph.replace_node(X, start, None, None, None, None);
 
     let result = graph.add_edge(Right, start, end);
 
@@ -477,8 +485,8 @@ fn add_edge_is_idempotent() {
     let start = Position::new(0, 0);
     let end = Position::new(0, 1);
 
-    graph.replace_node(X, start, None, None);
-    graph.replace_node(X, end, None, None);
+    graph.replace_node(X, start, None, None, None, None);
+    graph.replace_node(X, end, None, None, None, None);
 
     graph.add_edge(Right, start, end).unwrap();
     assert_eq!(graph.iter_edges_from(start).count(), 1);
@@ -494,8 +502,8 @@ fn add_bidirectional_edge_creates_two_edges() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
 
     graph.add_edge(WorksWith, first, second).unwrap();
 
@@ -534,9 +542,9 @@ fn connect_row_neighbors_relinks_correctly() {
     let middle = Position::new(0, 1);
     let end = Position::new(0, 2);
 
-    graph.replace_node(X, start, None, None);
-    graph.replace_node(Y, middle, None, None);
-    graph.replace_node(Z, end, None, None);
+    graph.replace_node(X, start, None, None, None, None);
+    graph.replace_node(Y, middle, None, None, None, None);
+    graph.replace_node(Z, end, None, None, None, None);
 
     graph.connect_row_neighbors(middle).unwrap();
 
@@ -562,9 +570,9 @@ fn connect_row_neighbors_removes_direct_connection() {
     let second = Position::new(0, 1);
     let third = Position::new(0, 2);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
-    graph.replace_node(Z, third, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
+    graph.replace_node(Z, third, None, None, None, None);
 
     graph.add_edge(Right, first, third).unwrap();
 
@@ -585,8 +593,8 @@ fn remove_edge_removes_outgoing_and_incoming_entries() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
 
@@ -601,8 +609,8 @@ fn next_in_row_returns_correct_node() {
     let position = Position::new(0, 0);
     let next_position = Position::new(0, 2);
 
-    graph.replace_node(X, position, None, None);
-    graph.replace_node(Y, next_position, None, None);
+    graph.replace_node(X, position, None, None, None, None);
+    graph.replace_node(Y, next_position, None, None, None, None);
 
     let next = graph.next_in_row(position);
 
@@ -614,7 +622,7 @@ fn next_in_row_none_if_no_next_exists() {
     let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
-    graph.replace_node(X, position, None, None);
+    graph.replace_node(X, position, None, None, None, None);
 
     assert_eq!(graph.next_in_row(position), None);
 }
@@ -625,8 +633,8 @@ fn previous_in_row_returns_correct_node() {
     let position = Position::new(0, 2);
     let previous_position = Position::new(0, 0);
 
-    graph.replace_node(X, previous_position, None, None);
-    graph.replace_node(Y, position, None, None);
+    graph.replace_node(X, previous_position, None, None, None, None);
+    graph.replace_node(Y, position, None, None, None, None);
 
     let previous = graph.previous_in_row(position);
 
@@ -638,7 +646,7 @@ fn previous_in_row_none_if_no_previous_exists() {
     let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
-    graph.replace_node(X, position, None, None);
+    graph.replace_node(X, position, None, None, None, None);
 
     assert_eq!(graph.previous_in_row(position), None);
 }
@@ -661,8 +669,8 @@ fn clear_edges_keeps_nodes() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
 
@@ -680,8 +688,8 @@ fn get_node_and_edges_collects_edges_correctly() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph.replace_node(X, first, None, None);
-    graph.replace_node(Y, second, None, None);
+    graph.replace_node(X, first, None, None, None, None);
+    graph.replace_node(Y, second, None, None, None, None);
 
     graph.add_edge(Right, first, second).unwrap();
 

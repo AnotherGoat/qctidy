@@ -154,6 +154,30 @@ fn msgpack_round_trip_rz() {
 }
 
 #[test]
+fn msgpack_round_trip_u() {
+    let operation = GateOperation::try_u(1.234, 2.345, 3.456, 3).unwrap();
+    let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();
+    let parsed = message_pack::parse(&serialized).unwrap();
+
+    assert_eq!(parsed.operations().len(), 1);
+
+    match parsed.operations()[0] {
+        GateOperation::U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            assert_eq!(qubit, 3);
+            assert!((theta - 1.234).abs() < f64::EPSILON);
+            assert!((phi - 2.345).abs() < f64::EPSILON);
+            assert!((lambda - 3.456).abs() < f64::EPSILON);
+        }
+        _ => panic!("Expected U gate"),
+    }
+}
+
+#[test]
 fn msgpack_round_trip_s() {
     let operation = GateOperation::s(9);
     let serialized = message_pack::serialize(&Circuit::from_operations(vec![operation])).unwrap();

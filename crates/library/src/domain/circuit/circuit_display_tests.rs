@@ -99,6 +99,17 @@ fn rotation_ry_gate() {
 }
 
 #[test]
+fn single_u_gate() {
+    let circuit = circuit_mother::single_u(FRAC_PI_2, FRAC_PI_2, FRAC_PI_2);
+    let result = circuit.to_string();
+    let expected = "   ┌──────────────────┐
+0: ┤ U(π/2, π/2, π/2) ├
+   └──────────────────┘";
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn rotation_rz_gate() {
     let circuit = circuit_mother::single_rz(FRAC_PI_2);
     let result = circuit.to_string();

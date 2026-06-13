@@ -165,8 +165,8 @@ fn normalize_angles_close_to_boundary_in_range() {
 #[test]
 fn normalize_angles_close_to_boundary_detected() {
     use crate::domain::math;
-    let below_zero = -1e-7;
-    let above_full_cycle = math::FULL_CYCLE + 1e-7;
+    let below_zero = -1e-7_f64;
+    let above_full_cycle = math::FULL_CYCLE + 1e-7_f64;
 
     let graph = GraphBuilder::default()
         .push_rx(below_zero, 0)

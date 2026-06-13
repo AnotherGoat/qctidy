@@ -61,6 +61,12 @@ impl GraphBuilder {
             SY { qubit } => self.put_sy(qubit, column),
             T { qubit } => self.put_t(qubit, column),
             TDG { qubit } => self.put_tdg(qubit, column),
+            U {
+                theta,
+                phi,
+                lambda,
+                qubit,
+            } => self.put_u(theta, phi, lambda, qubit, column),
             Measure { qubit, bit } => self.put_measure(qubit, bit, column),
             Swap { qubit1, qubit2 } => self.put_swap(qubit1, qubit2, column),
             CH { control, target } => self.put_ch(control, target, column),
@@ -193,6 +199,29 @@ impl GraphBuilder {
     /// Push a TDG gate at the end of the graph.
     pub fn push_tdg(&mut self, qubit: usize) -> &mut Self {
         self.put_tdg(qubit, self.find_push_column(&[qubit]))
+    }
+
+    /// Push a U gate at the end of the graph.
+    pub fn push_u(
+        &mut self,
+        theta: f64,
+        phi: f64,
+        lambda: f64,
+        qubit: usize,
+    ) -> Result<&mut Self, GraphBuilderError> {
+        if !theta.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
+        }
+
+        if !phi.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: phi });
+        }
+
+        if !lambda.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: lambda });
+        }
+
+        Ok(self.put_u(theta, phi, lambda, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a Measure gate at the end of the graph.
@@ -368,7 +397,8 @@ impl GraphBuilder {
     fn put_single(&mut self, gate: GateType, qubit: usize, column: usize) -> &mut Self {
         let position = Position::new(qubit, column);
 
-        self.graph.replace_node(gate, position, None, None);
+        self.graph
+            .replace_node(gate, position, None, None, None, None);
         self.graph
             .connect_row_neighbors(position)
             .expect("The added node should exist");
@@ -407,7 +437,8 @@ impl GraphBuilder {
     ) -> &mut Self {
         let position = Position::new(qubit, column);
 
-        self.graph.replace_node(gate, position, Some(angle), None);
+        self.graph
+            .replace_node(gate, position, Some(angle), None, None, None);
         self.graph
             .connect_row_neighbors(position)
             .expect("The added node should exist");
@@ -447,12 +478,40 @@ impl GraphBuilder {
         self.put_single(GateType::TDG, qubit, column)
     }
 
+    /// Put a U gate directly into the graph, which may break it when used incorrectly.
+    pub(crate) fn put_u(
+        &mut self,
+        theta: f64,
+        phi: f64,
+        lambda: f64,
+        qubit: usize,
+        column: usize,
+    ) -> &mut Self {
+        let position = Position::new(qubit, column);
+
+        self.graph.replace_node(
+            GateType::U,
+            position,
+            Some(theta),
+            Some(phi),
+            Some(lambda),
+            None,
+        );
+        self.graph
+            .connect_row_neighbors(position)
+            .expect("The added node should exist");
+
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
+        self
+    }
+
     /// Put a Measure gate directly into the graph, which may break it when used incorrectly.
     pub(crate) fn put_measure(&mut self, qubit: usize, bit: usize, column: usize) -> &mut Self {
         let position = Position::new(qubit, column);
 
         self.graph
-            .replace_node(GateType::Measure, position, None, Some(bit));
+            .replace_node(GateType::Measure, position, None, None, None, Some(bit));
         self.graph
             .connect_row_neighbors(position)
             .expect("The added node should exist");
@@ -467,8 +526,10 @@ impl GraphBuilder {
         let first = Position::new(qubit1, column);
         let second = Position::new(qubit2, column);
 
-        self.graph.replace_node(GateType::Swap, first, None, None);
-        self.graph.replace_node(GateType::Swap, second, None, None);
+        self.graph
+            .replace_node(GateType::Swap, first, None, None, None, None);
+        self.graph
+            .replace_node(GateType::Swap, second, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::SwapsWith, first, second)
@@ -526,8 +587,10 @@ impl GraphBuilder {
         let control = Position::new(control_qubit, column);
         let target = Position::new(target_qubit, column);
 
-        self.graph.replace_node(gate, control, None, None);
-        self.graph.replace_node(gate, target, None, None);
+        self.graph
+            .replace_node(gate, control, None, None, None, None);
+        self.graph
+            .replace_node(gate, target, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::Targets, control, target)
@@ -550,8 +613,10 @@ impl GraphBuilder {
         let first = Position::new(qubit1, column);
         let second = Position::new(qubit2, column);
 
-        self.graph.replace_node(GateType::CZ, first, None, None);
-        self.graph.replace_node(GateType::CZ, second, None, None);
+        self.graph
+            .replace_node(GateType::CZ, first, None, None, None, None);
+        self.graph
+            .replace_node(GateType::CZ, second, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::WorksWith, first, second)
@@ -581,9 +646,9 @@ impl GraphBuilder {
         let second = Position::new(qubit2, column);
 
         self.graph
-            .replace_node(GateType::CP, first, Some(angle), None);
+            .replace_node(GateType::CP, first, Some(angle), None, None, None);
         self.graph
-            .replace_node(GateType::CP, second, Some(angle), None);
+            .replace_node(GateType::CP, second, Some(angle), None, None, None);
 
         self.graph
             .add_edge(EdgeType::WorksWith, first, second)
@@ -614,11 +679,11 @@ impl GraphBuilder {
         let target2 = Position::new(target_qubit2, column);
 
         self.graph
-            .replace_node(GateType::CSwap, control, None, None);
+            .replace_node(GateType::CSwap, control, None, None, None, None);
         self.graph
-            .replace_node(GateType::CSwap, target1, None, None);
+            .replace_node(GateType::CSwap, target1, None, None, None, None);
         self.graph
-            .replace_node(GateType::CSwap, target2, None, None);
+            .replace_node(GateType::CSwap, target2, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::Targets, control, target1)
@@ -657,9 +722,12 @@ impl GraphBuilder {
         let control2 = Position::new(control_qubit2, column);
         let target = Position::new(target_qubit, column);
 
-        self.graph.replace_node(GateType::CCX, control1, None, None);
-        self.graph.replace_node(GateType::CCX, control2, None, None);
-        self.graph.replace_node(GateType::CCX, target, None, None);
+        self.graph
+            .replace_node(GateType::CCX, control1, None, None, None, None);
+        self.graph
+            .replace_node(GateType::CCX, control2, None, None, None, None);
+        self.graph
+            .replace_node(GateType::CCX, target, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::Targets, control1, target)
@@ -698,9 +766,12 @@ impl GraphBuilder {
         let second = Position::new(qubit2, column);
         let third = Position::new(qubit3, column);
 
-        self.graph.replace_node(GateType::CCZ, first, None, None);
-        self.graph.replace_node(GateType::CCZ, second, None, None);
-        self.graph.replace_node(GateType::CCZ, third, None, None);
+        self.graph
+            .replace_node(GateType::CCZ, first, None, None, None, None);
+        self.graph
+            .replace_node(GateType::CCZ, second, None, None, None, None);
+        self.graph
+            .replace_node(GateType::CCZ, third, None, None, None, None);
 
         self.graph
             .add_edge(EdgeType::WorksWith, first, second)

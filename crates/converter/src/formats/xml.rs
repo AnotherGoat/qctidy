@@ -138,6 +138,8 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
             "target2" => data.target2 = value.parse().ok(),
 
             "angle" => data.angle = value.parse().ok(),
+            "angle2" => data.angle2 = value.parse().ok(),
+            "angle3" => data.angle3 = value.parse().ok(),
 
             "bit" => data.bit = value.parse().ok(),
 
@@ -234,6 +236,16 @@ fn write_gate(
     if let Some(angle) = operation.angle {
         let angle_string = angle.to_string();
         element.push_attribute(("angle", angle_string.as_str()));
+    }
+
+    if let Some(angle2) = operation.angle2 {
+        let angle2_string = angle2.to_string();
+        element.push_attribute(("angle2", angle2_string.as_str()));
+    }
+
+    if let Some(angle3) = operation.angle3 {
+        let angle3_string = angle3.to_string();
+        element.push_attribute(("angle3", angle3_string.as_str()));
     }
 
     writer.write_event(Event::Empty(element))

@@ -49,7 +49,7 @@ fn empty_matrix() {
 #[test]
 fn identity_matrix() {
     let mut identity2 = Graph::default();
-    identity2.replace_node(ID, Position::new(0, 0), None, None);
+    identity2.replace_node(ID, Position::new(0, 0), None, None, None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity2),
@@ -57,8 +57,8 @@ fn identity_matrix() {
     ));
 
     let mut identity4 = Graph::default();
-    identity4.replace_node(ID, Position::new(0, 0), None, None);
-    identity4.replace_node(ID, Position::new(1, 0), None, None);
+    identity4.replace_node(ID, Position::new(0, 0), None, None, None, None);
+    identity4.replace_node(ID, Position::new(1, 0), None, None, None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity4),
@@ -66,9 +66,9 @@ fn identity_matrix() {
     ));
 
     let mut identity8 = Graph::default();
-    identity8.replace_node(ID, Position::new(0, 0), None, None);
-    identity8.replace_node(ID, Position::new(1, 0), None, None);
-    identity8.replace_node(ID, Position::new(2, 0), None, None);
+    identity8.replace_node(ID, Position::new(0, 0), None, None, None, None);
+    identity8.replace_node(ID, Position::new(1, 0), None, None, None, None);
+    identity8.replace_node(ID, Position::new(2, 0), None, None, None, None);
 
     assert!(math::are_matrices_equal(
         &graph_circuit_matrix(&identity8),
@@ -109,9 +109,9 @@ fn x_matrix() {
 fn x_matrix_surrounded_by_identities() {
     let mut graph = Graph::default();
 
-    graph.replace_node(ID, Position::new(0, 0), None, None);
-    graph.replace_node(X, Position::new(0, 1), None, None);
-    graph.replace_node(ID, Position::new(0, 2), None, None);
+    graph.replace_node(ID, Position::new(0, 0), None, None, None, None);
+    graph.replace_node(X, Position::new(0, 1), None, None, None, None);
+    graph.replace_node(ID, Position::new(0, 2), None, None, None, None);
 
     graph
         .add_edge(Right, Position::new(0, 0), Position::new(0, 1))

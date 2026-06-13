@@ -80,6 +80,11 @@ pub(crate) fn single_tdg() -> Circuit {
     Circuit::from_operations(vec![GateOperation::tdg(0)])
 }
 
+/// Create a circuit with a single `U` gate.
+pub(crate) fn single_u(theta: f64, phi: f64, lambda: f64) -> Circuit {
+    Circuit::from_operations(vec![GateOperation::try_u(theta, phi, lambda, 0).unwrap()])
+}
+
 /// Create a circuit with a single `Measure` gate.
 pub(crate) fn single_measure() -> Circuit {
     Circuit::from_operations(vec![GateOperation::measure(0, 5)])

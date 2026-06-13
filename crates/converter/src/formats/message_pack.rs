@@ -56,6 +56,10 @@ struct MessagePackGateOperationData {
     target2: Option<usize>,
     #[serde(rename = "a", default)]
     angle: Option<f64>,
+    #[serde(rename = "a2", default)]
+    angle2: Option<f64>,
+    #[serde(rename = "a3", default)]
+    angle3: Option<f64>,
     #[serde(rename = "b", default)]
     bit: Option<usize>,
 }

@@ -8,10 +8,12 @@ pub use display::{
     graph_display::DiracFormat,
 };
 pub use domain::circuit::{Circuit, GateOperation, GateOperationError};
+pub use domain::graph::gate_metadata::GATE_METADATAS;
 pub use domain::graph::graph_builder::{GraphBuilder, GraphBuilderError};
 pub use domain::graph::{
     Graph,
     edge_type::EdgeType,
+    gate_metadata::GateMetadata,
     gate_type::{GateType, GateTypeError},
     graph_error::GraphError,
     position::Position,

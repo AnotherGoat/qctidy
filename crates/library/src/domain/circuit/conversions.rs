@@ -51,6 +51,13 @@ impl From<&Graph> for Circuit {
                 SY => GateOperation::sy(row),
                 T => GateOperation::t(row),
                 TDG => GateOperation::tdg(row),
+                U => {
+                    let theta = node.angle().expect("U gate must have theta");
+                    let phi = node.angle2().expect("U gate must have phi");
+                    let lambda = node.angle3().expect("U gate must have lambda");
+
+                    GateOperation::try_u(theta, phi, lambda, row).expect("Angles should be finite")
+                }
                 Measure => {
                     let bit = node.bit().expect("Measure gate must have a bit");
                     GateOperation::measure(row, bit)

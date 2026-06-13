@@ -27,6 +27,8 @@ fn insert_rhs_nodes(graph: &mut Graph, rule: &PatternRule, pattern_match: &Patte
                 rhs_node.r#type(),
                 graph_position,
                 rhs_node.angle(),
+                rhs_node.angle2(),
+                rhs_node.angle3(),
                 rhs_node.bit(),
             )
             .expect("LHS nodes should already be removed");

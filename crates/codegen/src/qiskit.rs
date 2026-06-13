@@ -92,6 +92,35 @@ fn generate_gate(
                 "{circuit_name}.append(YGate().power(1 / 2), [{qubit}])"
             ));
         }
+        U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            imports.push("from qiskit.circuit.library.standard_gates import UGate".to_owned());
+
+            let formatted_theta = format_angle(theta, AngleFormat::Code, PI_FORMAT);
+            let formatted_phi = format_angle(phi, AngleFormat::Code, PI_FORMAT);
+            let formatted_lambda = format_angle(lambda, AngleFormat::Code, PI_FORMAT);
+
+            let angle_str =
+                if formatted_theta == "0" && formatted_phi == "0" && formatted_lambda == "0" {
+                    "0, 0, 0".to_owned()
+                } else if formatted_theta.contains("numpy.pi")
+                    || formatted_phi.contains("numpy.pi")
+                    || formatted_lambda.contains("numpy.pi")
+                {
+                    add_import(imports, "import numpy");
+                    format!("{formatted_theta}, {formatted_phi}, {formatted_lambda}")
+                } else {
+                    format!("{theta}, {phi}, {lambda}")
+                };
+
+            build_steps.push(format!(
+                "{circuit_name}.append(UGate({angle_str}), [{qubit}])"
+            ));
+        }
         Measure { qubit, bit } => {
             add_build_step_with_parameters(circuit_name, &[qubit, bit], operation, build_steps);
         }

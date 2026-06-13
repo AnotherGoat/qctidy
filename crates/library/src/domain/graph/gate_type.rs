@@ -2,6 +2,8 @@ use std::{fmt, str::FromStr};
 
 use thiserror::Error;
 
+use crate::GATE_METADATAS;
+
 #[derive(Debug, Clone, Error)]
 pub enum GateTypeError {
     #[error("Unknown gate type with index '{index}'")]
@@ -44,6 +46,8 @@ pub enum GateType {
     T,
     /// Single-qubit T dagger gate. The conjugate transpose of the T gate.
     TDG,
+    /// Single-qubit general unitary gate with three rotation angles: theta, phi, lambda.
+    U,
     /// Single-qubit measurement gate. Stores its results on a particular bit.
     Measure,
     /// Two-qubit SWAP gate.
@@ -95,18 +99,33 @@ impl TryFrom<u8> for GateType {
             12 => Ok(SY),
             13 => Ok(T),
             14 => Ok(TDG),
-            15 => Ok(Measure),
-            16 => Ok(Swap),
-            17 => Ok(CH),
-            18 => Ok(CX),
-            19 => Ok(CY),
-            20 => Ok(CZ),
-            21 => Ok(CP),
-            22 => Ok(CSwap),
-            23 => Ok(CCX),
-            24 => Ok(CCZ),
+            15 => Ok(U),
+            16 => Ok(Measure),
+            17 => Ok(Swap),
+            18 => Ok(CH),
+            19 => Ok(CX),
+            20 => Ok(CY),
+            21 => Ok(CZ),
+            22 => Ok(CP),
+            23 => Ok(CSwap),
+            24 => Ok(CCX),
+            25 => Ok(CCZ),
             _ => Err(GateTypeError::UnknownGateIndex { index: value }),
         }
+    }
+}
+
+impl From<GateType> for usize {
+    fn from(gate_type: GateType) -> Self {
+        gate_type as Self
+    }
+}
+
+impl TryFrom<usize> for GateType {
+    type Error = GateTypeError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        Self::try_from(value as u8)
     }
 }
 
@@ -131,6 +150,7 @@ impl fmt::Display for GateType {
             SY => "sy",
             T => "t",
             TDG => "tdg",
+            U => "u",
             Measure => "m",
             Swap => "swap",
             CH => "ch",
@@ -172,6 +192,7 @@ impl FromStr for GateType {
             "sy" | "sqrty" => Ok(SY),
             "t" => Ok(T),
             "td" | "tdg" => Ok(TDG),
+            "u" | "u3" => Ok(U),
             "m" | "measure" => Ok(Measure),
             "swap" => Ok(Swap),
             "ch" => Ok(CH),
@@ -190,56 +211,25 @@ impl FromStr for GateType {
 }
 
 impl GateType {
-    /// Check whether this gate type is a phase gate or not.
-    pub(crate) const fn is_phase(self) -> bool {
-        use GateType::*;
-        matches!(self, P | CP)
-    }
-
-    /// Check whether this gate type is a rotation gate or not.
-    pub(crate) const fn is_rotation(self) -> bool {
-        use GateType::*;
-        matches!(self, RX | RY | RZ)
-    }
-
-    /// Check whether this gate type is a square root or not.
-    pub(crate) const fn is_square_root(self) -> bool {
-        use GateType::*;
-        matches!(self, S | SDG | SX | SY)
-    }
-
     /// Get the number of qubits used by this type of gate.
-    pub(crate) const fn qubit_count(self) -> usize {
-        use GateType::*;
-
-        match self {
-            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | Measure => 1,
-            Swap | CH | CX | CY | CZ | CP => 2,
-            CSwap | CCX | CCZ => 3,
-        }
+    pub(crate) fn qubit_count(self) -> usize {
+        GATE_METADATAS[usize::from(self)].qubit_count()
     }
 
     /// Check whether this gate type uses multiple qubits or not.
-    pub(crate) const fn is_multi_qubit(self) -> bool {
+    pub(crate) fn is_multi_qubit(self) -> bool {
         self.qubit_count() > 1
     }
 
     /// Get the number of control qubits used by this type of gate.
     ///
     /// If a gate has control qubits, it also has at least one target qubit.
-    pub(crate) const fn control_qubit_count(self) -> usize {
-        use GateType::*;
-
-        match self {
-            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | Measure
-            | Swap => 0,
-            CH | CX | CY | CZ | CP | CSwap => 1,
-            CCX | CCZ => 2,
-        }
+    pub(crate) fn control_qubit_count(self) -> usize {
+        GATE_METADATAS[usize::from(self)].control_qubit_count()
     }
 
     /// Check whether this gate type has control and target qubits or not.
-    pub(crate) const fn is_controlled(self) -> bool {
+    pub(crate) fn is_controlled(self) -> bool {
         self.control_qubit_count() > 0
     }
 
@@ -248,30 +238,32 @@ impl GateType {
     /// Measurement gates return 0 because they don't modify the quantum state.
     /// Having a target qubit doesn't guarantee that the gate has a control qubit.
     /// All single-qubit gates have a target qubit.
-    pub(crate) const fn target_qubit_count(self) -> usize {
-        use GateType::*;
-
-        match self {
-            Measure => 0,
-            ID | H | X | Y | Z | P | RX | RY | RZ | S | SDG | SX | SY | T | TDG | CH | CX | CY
-            | CZ | CP | CCX | CCZ => 1,
-            Swap | CSwap => 2,
-        }
+    pub(crate) fn target_qubit_count(self) -> usize {
+        GATE_METADATAS[usize::from(self)].target_qubit_count()
     }
 
     /// Check whether this gate type has a single control and a single target qubit.
-    pub(crate) const fn is_single_controlled(self) -> bool {
+    pub(crate) fn is_single_controlled(self) -> bool {
         self.control_qubit_count() == 1 && self.target_qubit_count() == 1
     }
 
     /// Get the number of classical bits used by this type of gate.
-    #[expect(clippy::wildcard_enum_match_arm)]
-    pub(crate) const fn bit_count(self) -> usize {
-        use GateType::*;
+    pub(crate) fn bit_count(self) -> usize {
+        GATE_METADATAS[usize::from(self)].bit_count()
+    }
 
-        match self {
-            Measure => 1,
-            _ => 0,
-        }
+    /// Check whether this gate type is a phase gate or not.
+    pub(crate) fn is_phase(self) -> bool {
+        GATE_METADATAS[usize::from(self)].is_phase()
+    }
+
+    /// Check whether this gate type is a rotation gate or not.
+    pub(crate) fn is_rotation(self) -> bool {
+        GATE_METADATAS[usize::from(self)].is_rotation()
+    }
+
+    /// Check whether this gate type is a square root or not.
+    pub(crate) fn is_square_root(self) -> bool {
+        GATE_METADATAS[usize::from(self)].is_square_root()
     }
 }

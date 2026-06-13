@@ -4,6 +4,7 @@ use std::fmt::Write;
 use inew::New;
 
 use crate::AngleFormat;
+use crate::GATE_METADATAS;
 use crate::GateOperation;
 use crate::GateType;
 use crate::PiFormat;
@@ -271,6 +272,24 @@ fn apply_operation_to_cell(
                 vec![CellKind::Gate],
             )
         }
+        U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            let formatted_theta = angle_formatter::format(theta, AngleFormat::Algebra, pi_format);
+            let formatted_phi = angle_formatter::format(phi, AngleFormat::Algebra, pi_format);
+            let formatted_lambda = angle_formatter::format(lambda, AngleFormat::Algebra, pi_format);
+
+            AppliedOperation::new(
+                vec![qubit],
+                vec![format!(
+                    "U({formatted_theta}, {formatted_phi}, {formatted_lambda})"
+                )],
+                vec![CellKind::Gate],
+            )
+        }
         Measure { qubit, bit } => {
             AppliedOperation::new(vec![qubit], vec![format!("M({bit})")], vec![CellKind::Gate])
         }
@@ -381,22 +400,9 @@ fn apply_operation_to_cell(
 }
 
 fn gate_display_name(gate_type: GateType) -> String {
-    use GateType::*;
-
-    let name = match gate_type {
-        ID => "Id",
-        SDG => "S†",
-        SX => "√X",
-        SY => "√Y",
-        TDG => "T†",
-        Swap => "Swap",
-        CSwap => "CSwap",
-        H | X | Y | Z | P | RX | RY | RZ | S | T | Measure | CH | CX | CY | CZ | CP | CCX | CCZ => {
-            return gate_type.to_string().to_ascii_uppercase();
-        }
-    };
-
-    name.into()
+    GATE_METADATAS[gate_type as u8 as usize]
+        .display_name()
+        .to_string()
 }
 
 const fn calculate_display_rows(qubit_rows: usize) -> usize {

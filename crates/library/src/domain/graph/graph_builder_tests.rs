@@ -540,6 +540,94 @@ fn push_rz_rejects_nan() {
 }
 
 #[test]
+fn push_u_stores_payloads() {
+    let theta = 1.234_f64;
+    let phi = 2.345_f64;
+    let lambda = 3.456_f64;
+    let graph = GraphBuilder::default()
+        .push_u(theta, phi, lambda, 3)
+        .unwrap()
+        .build();
+    let asserter = GraphAsserter::new(&graph);
+
+    asserter.has_size(1).has_width(1).has_height(4).has_bits(0);
+
+    asserter
+        .node_at(Position::new(3, 0))
+        .is(U)
+        .has_angle(theta)
+        .has_no_bit();
+
+    graph.validate_internal();
+}
+
+#[test]
+fn push_u_rejects_infinity_theta() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(f64::INFINITY, 0.0, 0.0, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_infinite()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+fn push_u_rejects_infinity_phi() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(0.0, f64::INFINITY, 0.0, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_infinite()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+fn push_u_rejects_infinity_lambda() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(0.0, 0.0, f64::INFINITY, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_infinite()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+fn push_u_rejects_nan_theta() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(f64::NAN, 0.0, 0.0, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+fn push_u_rejects_nan_phi() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(0.0, f64::NAN, 0.0, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
+fn push_u_rejects_nan_lambda() {
+    let mut builder = GraphBuilder::default();
+    let result = builder.push_u(0.0, 0.0, f64::NAN, 0);
+
+    match result {
+        Err(GraphBuilderError::NonFiniteAngle { angle }) => assert!(angle.is_nan()),
+        _ => panic!("Expected NonFiniteAngle error, got: {result:?}"),
+    }
+}
+
+#[test]
 fn push_swap_rejects_same_qubit() {
     let mut builder = GraphBuilder::default();
     let result = builder.push_swap(0, 0);

@@ -1,4 +1,5 @@
 pub(crate) mod edge_type;
+pub(crate) mod gate_metadata;
 pub(crate) mod gate_type;
 pub(crate) mod graph_builder;
 pub(crate) mod graph_error;
@@ -33,6 +34,8 @@ use crate::{
 struct NodeData {
     pub(self) gate: GateType,
     pub(self) angle: Option<f64>,
+    pub(self) angle2: Option<f64>,
+    pub(self) angle3: Option<f64>,
     pub(self) bit: Option<usize>,
 }
 
@@ -40,6 +43,8 @@ impl PartialEq for NodeData {
     fn eq(&self, other: &Self) -> bool {
         self.gate == other.gate
             && math::are_option_floats_equal(self.angle, other.angle)
+            && math::are_option_floats_equal(self.angle2, other.angle2)
+            && math::are_option_floats_equal(self.angle3, other.angle3)
             && self.bit == other.bit
     }
 }
@@ -196,13 +201,21 @@ impl Graph {
         gate: GateType,
         position: Position,
         angle: Option<f64>,
+        angle2: Option<f64>,
+        angle3: Option<f64>,
         bit: Option<usize>,
     ) -> Result<(), GraphError> {
         if self.has_node_at(position) {
             return Err(GraphError::NodeAlreadyExists { position });
         }
 
-        let node = NodeData { gate, angle, bit };
+        let node = NodeData {
+            gate,
+            angle,
+            angle2,
+            angle3,
+            bit,
+        };
         self.insert_new_node(position, node);
         Ok(())
     }
@@ -233,9 +246,17 @@ impl Graph {
         gate: GateType,
         position: Position,
         angle: Option<f64>,
+        angle2: Option<f64>,
+        angle3: Option<f64>,
         bit: Option<usize>,
     ) {
-        let node = NodeData { gate, angle, bit };
+        let node = NodeData {
+            gate,
+            angle,
+            angle2,
+            angle3,
+            bit,
+        };
 
         if self.has_node_at(position) {
             self.replace_existing_node(position, &node);
@@ -402,9 +423,16 @@ impl Graph {
     /// Exposes node data in a view-friendly format, decoupling the internal representation from consumers.
     #[must_use]
     pub fn get_node(&self, position: Position) -> Option<NodeView> {
-        self.nodes
-            .get(&position)
-            .map(|node| NodeView::new(node.gate, position, node.angle, node.bit))
+        self.nodes.get(&position).map(|node| {
+            NodeView::new(
+                node.gate,
+                position,
+                node.angle,
+                node.angle2,
+                node.angle3,
+                node.bit,
+            )
+        })
     }
 
     /// Add a new edge to the graph.

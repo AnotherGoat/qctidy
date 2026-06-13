@@ -189,6 +189,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
             }
 
             let mut changed = false;
+
             for node in nodes {
                 let gate = node.r#type();
 
@@ -202,7 +203,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                 if let Ok(normalized) = math::normalize_angle(angle, math::FULL_CYCLE)
                     && !math::are_floats_equal(angle, normalized)
                 {
-                    graph.replace_node(gate, position, Some(normalized), node.bit());
+                    graph.replace_node(gate, position, Some(normalized), None, None, node.bit());
                     changed = true;
                 }
             }
@@ -280,7 +281,7 @@ pub(crate) fn normalize_bits() -> CanonicalizationRule {
                 let position = node.position();
                 let old_bit = node.bit().expect("Measure node should have a bit");
                 let new_bit = mapping[&old_bit];
-                graph.replace_node(GateType::Measure, position, None, Some(new_bit));
+                graph.replace_node(GateType::Measure, position, None, None, None, Some(new_bit));
             }
 
             true

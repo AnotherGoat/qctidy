@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 use crate::{
     GateType, Graph, GraphBuilder, PatternRule, Position, RuleBuildError, RuleGroup, RuleMetadata,
@@ -11,7 +11,14 @@ fn metadata() -> RuleMetadata {
 #[test]
 fn fails_with_invalid_left_side() {
     let mut lhs = Graph::default();
-    lhs.replace_node(GateType::X, Position::new(0, 0), Some(PI), Some(1));
+    lhs.replace_node(
+        GateType::X,
+        Position::new(0, 0),
+        Some(PI),
+        Some(0.0_f64),
+        Some(FRAC_PI_2),
+        Some(1),
+    );
 
     let rhs = GraphBuilder::default().push_x(0).build();
 
@@ -25,7 +32,14 @@ fn fails_with_invalid_right_side() {
     let lhs = GraphBuilder::default().push_x(0).build();
 
     let mut rhs = Graph::default();
-    rhs.replace_node(GateType::X, Position::new(0, 0), Some(PI), Some(1));
+    rhs.replace_node(
+        GateType::X,
+        Position::new(0, 0),
+        Some(PI),
+        Some(0.0_f64),
+        Some(FRAC_PI_2),
+        Some(1),
+    );
 
     let result = PatternRule::new(metadata(), lhs, rhs);
 
@@ -138,5 +152,5 @@ fn creates_valid_rule() {
 
     let result = PatternRule::new(metadata(), lhs, rhs);
 
-    assert!(result.is_ok());
+    result.unwrap();
 }

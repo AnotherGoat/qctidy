@@ -179,6 +179,15 @@ fn operation_to_matrix(operation: &GateOperation, height: usize) -> Option<Mat<C
         SY { qubit } => embed_single_gate(height, qubit, &SY_MATRIX),
         T { qubit } => embed_single_gate(height, qubit, &T_MATRIX),
         TDG { qubit } => embed_single_gate(height, qubit, &TDG_MATRIX),
+        U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            let matrix = u_matrix(theta, phi, lambda);
+            embed_single_gate(height, qubit, &matrix)
+        }
         Swap { qubit1, qubit2 } => swap_gate(height, qubit1, qubit2),
         CH { control, target } => control_gate(height, &[control], target, &H_MATRIX),
         CX { control, target } => control_gate(height, &[control], target, &X_MATRIX),
@@ -260,6 +269,18 @@ fn rz_matrix(angle: f64) -> Mat<Complex64> {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => (I * -half_angle).exp(),
         (1, 1) => (I * half_angle).exp(),
+        _ => Complex64::default(),
+    })
+}
+
+fn u_matrix(theta: f64, phi: f64, lambda: f64) -> Mat<Complex64> {
+    let half_theta = theta / 2.0_f64;
+
+    Mat::from_fn(2, 2, |row, column| match (row, column) {
+        (0, 0) => half_theta.cos() * ONE,
+        (0, 1) => -(I * lambda).exp() * half_theta.sin() * ONE,
+        (1, 0) => (I * phi).exp() * half_theta.sin() * ONE,
+        (1, 1) => (I * (phi + lambda)).exp() * half_theta.cos() * ONE,
         _ => Complex64::default(),
     })
 }

@@ -123,6 +123,14 @@ fn to_string_roundtrip_tdg() {
 }
 
 #[test]
+fn to_string_roundtrip_u() {
+    let original = U;
+    let string = original.to_string();
+    let parsed = GateType::from_str(&string).unwrap();
+    assert_eq!(original, parsed);
+}
+
+#[test]
 fn to_string_roundtrip_measure() {
     let original = Measure;
     let string = original.to_string();
@@ -230,6 +238,8 @@ fn to_string_aliases() {
     assert_eq!(GateType::from_str("td").unwrap(), TDG);
 
     assert_eq!(GateType::from_str("measure").unwrap(), Measure);
+
+    assert_eq!(GateType::from_str("u3").unwrap(), U);
 
     assert_eq!(GateType::from_str("cnot").unwrap(), CX);
 

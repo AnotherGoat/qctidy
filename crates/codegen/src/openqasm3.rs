@@ -73,6 +73,20 @@ fn generate_gate(operation: &GateOperation, has_sy_gate: &mut bool, build_steps:
             *has_sy_gate = true;
             build_steps.push(format!("sy q[{qubit}];"));
         }
+        U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            let formatted_theta = format_angle(theta, AngleFormat::Code, PiFormat::Lowercase);
+            let formatted_phi = format_angle(phi, AngleFormat::Code, PiFormat::Lowercase);
+            let formatted_lambda = format_angle(lambda, AngleFormat::Code, PiFormat::Lowercase);
+
+            build_steps.push(format!(
+                "u({formatted_theta},{formatted_phi},{formatted_lambda}) q[{qubit}];"
+            ));
+        }
         Measure { qubit, bit } => {
             build_steps.push(format!("measure q[{qubit}] -> c[{bit}];"));
         }

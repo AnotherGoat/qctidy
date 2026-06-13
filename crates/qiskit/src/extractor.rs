@@ -81,6 +81,13 @@ fn parse_instruction(
         SY => GateOperation::sy(qubit0),
         T => GateOperation::t(qubit0),
         TDG => GateOperation::tdg(qubit0),
+        U => GateOperation::try_u(
+            get_parameter(&parameters, 0)?,
+            get_parameter(&parameters, 1)?,
+            get_parameter(&parameters, 2)?,
+            qubit0,
+        )
+        .map_err(|error: GateOperationError| to_py_error(&error))?,
         P => GateOperation::try_p(get_parameter(&parameters, 0)?, qubit0)
             .map_err(|error: GateOperationError| to_py_error(&error))?,
         RX => GateOperation::try_rx(get_parameter(&parameters, 0)?, qubit0)

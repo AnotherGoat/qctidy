@@ -244,6 +244,24 @@ fn find_node_label(node: &NodeView) -> String {
         Measure => {
             format!("M({})", node.bit().unwrap_or_default())
         }
+        U => {
+            let theta = formatter::format_angle(
+                node.angle().unwrap_or_default(),
+                AngleFormat::Algebra,
+                PiFormat::Fancy,
+            );
+            let phi = formatter::format_angle(
+                node.angle2().unwrap_or_default(),
+                AngleFormat::Algebra,
+                PiFormat::Fancy,
+            );
+            let lambda = formatter::format_angle(
+                node.angle3().unwrap_or_default(),
+                AngleFormat::Algebra,
+                PiFormat::Fancy,
+            );
+            format!("U({theta},{phi},{lambda})")
+        }
         ID | H | X | Y | Z | S | SDG | SX | SY | T | TDG | Swap | CH | CX | CY | CZ | CSwap
         | CCX | CCZ => type_data,
     };
@@ -264,7 +282,7 @@ fn find_node_color(node: &NodeView) -> String {
         H | CH => RED,
         X | RX | SX | CX | CCX => BLUE,
         Y | RY | SY | CY => ORANGE,
-        Z | P | RZ | S | SDG | T | TDG | CZ | CP | CCZ => GREEN,
+        Z | P | RZ | S | SDG | T | TDG | U | CZ | CP | CCZ => GREEN,
         Swap | CSwap => PURPLE,
         Measure => GRAY,
     };

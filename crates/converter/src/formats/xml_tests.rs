@@ -149,6 +149,29 @@ fn parse_rz_from_xml() {
 }
 
 #[test]
+fn parse_u_from_xml() {
+    let input = r#"<circuit version="1" qubit_count="4"><gate type="u" qubit="3" angle="1.234" angle2="2.345" angle3="3.456"/></circuit>"#;
+    let circuit = xml::parse(input.as_bytes()).unwrap();
+
+    assert_eq!(circuit.operations().len(), 1);
+
+    match circuit.operations()[0] {
+        GateOperation::U {
+            theta,
+            phi,
+            lambda,
+            qubit,
+        } => {
+            assert_eq!(qubit, 3);
+            assert!(math::are_floats_equal(theta, 1.234));
+            assert!(math::are_floats_equal(phi, 2.345));
+            assert!(math::are_floats_equal(lambda, 3.456));
+        }
+        _ => panic!("Expected U gate"),
+    }
+}
+
+#[test]
 fn parse_s_from_xml() {
     let input = r#"<circuit version="1" qubit_count="10"><gate type="s" qubit="9"/></circuit>"#;
     let circuit = xml::parse(input.as_bytes()).unwrap();
@@ -679,6 +702,16 @@ fn serialize_rx_to_xml() {
     let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(result).unwrap();
     let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"7\"><gate type=\"rx\" qubit=\"6\" angle=\"3.141592653589793\"/></circuit>";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn serialize_u_to_xml() {
+    let operation = GateOperation::try_u(1.234, 2.345, 3.456, 3).unwrap();
+    let result = xml::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
+    let actual = String::from_utf8(result).unwrap();
+    let expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?><circuit version=\"1\" qubit_count=\"4\"><gate type=\"u\" qubit=\"3\" angle=\"1.234\" angle2=\"2.345\" angle3=\"3.456\"/></circuit>";
 
     assert_eq!(actual, expected);
 }

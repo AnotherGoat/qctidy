@@ -38,9 +38,16 @@ impl Graph {
     /// The iteration order is not guaranteed and depends on the internal `HashMap`.
     /// Use `iter_nodes_by_row` or `iter_nodes_by_column` for deterministic traversal.
     pub fn iter_nodes(&self) -> impl Iterator<Item = NodeView> + '_ {
-        self.nodes
-            .iter()
-            .map(|(position, node)| NodeView::new(node.gate, *position, node.angle, node.bit))
+        self.nodes.iter().map(|(position, node)| {
+            NodeView::new(
+                node.gate,
+                *position,
+                node.angle,
+                node.angle2,
+                node.angle3,
+                node.bit,
+            )
+        })
     }
 
     /// Iterate over the graph's nodes, first row by row and then column by column.

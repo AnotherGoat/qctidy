@@ -4,7 +4,7 @@ use crate::{
     Graph, Position,
     domain::graph::{
         GraphError,
-        schema::{EdgeSchema, GateSchema},
+        schema::{EdgeSchema, GateSchema, NodeSchema},
     },
 };
 
@@ -201,6 +201,12 @@ fn backtrack(
 
         if node_schema.has_angle() != node.angle().is_some()
             || node_schema.has_bit() != node.bit().is_some()
+        {
+            continue;
+        }
+
+        if matches!(node_schema, NodeSchema::TripleAngle)
+            && (node.angle2().is_none() || node.angle3().is_none())
         {
             continue;
         }

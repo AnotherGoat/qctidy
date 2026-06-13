@@ -70,6 +70,19 @@ pub(crate) fn circuit_to_qiskit(python: Python<'_>, circuit: &Circuit) -> PyResu
             TDG { qubit } => {
                 qiskit_circuit.call_method1("tdg", (qubit,))?;
             }
+            U {
+                theta,
+                phi,
+                lambda,
+                qubit,
+            } => {
+                let u_gate = python
+                    .import("qiskit.circuit.library")?
+                    .getattr("UGate")?
+                    .call1((theta, phi, lambda))?;
+
+                qiskit_circuit.call_method1("append", (u_gate, vec![qubit]))?;
+            }
             Measure { qubit, bit } => {
                 qiskit_circuit.call_method1("measure", (qubit, bit))?;
             }

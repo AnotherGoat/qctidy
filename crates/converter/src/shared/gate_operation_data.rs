@@ -14,6 +14,8 @@ pub(crate) struct GateOperationData {
     pub target1: Option<usize>,
     pub target2: Option<usize>,
     pub angle: Option<f64>,
+    pub angle2: Option<f64>,
+    pub angle3: Option<f64>,
     pub bit: Option<usize>,
 }
 
@@ -32,6 +34,8 @@ impl GateOperationData {
             target1: None,
             target2: None,
             angle: None,
+            angle2: None,
+            angle3: None,
             bit: None,
         }
     }
@@ -91,6 +95,16 @@ impl GateOperationData {
         self
     }
 
+    const fn angle2(mut self, angle2: f64) -> Self {
+        self.angle2 = Some(angle2);
+        self
+    }
+
+    const fn angle3(mut self, angle3: f64) -> Self {
+        self.angle3 = Some(angle3);
+        self
+    }
+
     const fn bit(mut self, bit: usize) -> Self {
         self.bit = Some(bit);
         self
@@ -119,6 +133,16 @@ impl From<&GateOperation> for GateOperationData {
             | RX { angle, qubit }
             | RY { angle, qubit }
             | RZ { angle, qubit } => Self::new(gate).qubit(qubit).angle(angle),
+            U {
+                theta,
+                phi,
+                lambda,
+                qubit,
+            } => Self::new(gate)
+                .qubit(qubit)
+                .angle(theta)
+                .angle2(phi)
+                .angle3(lambda),
             Measure { qubit, bit } => Self::new(gate).qubit(qubit).bit(bit),
             Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } => {
                 Self::new(gate).qubit1(qubit1).qubit2(qubit2)
@@ -217,6 +241,12 @@ impl TryFrom<GateOperationData> for GateOperation {
             }),
             GateType::TDG => Ok(TDG {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
+            }),
+            GateType::U => Ok(U {
+                qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
+                theta: data.angle.ok_or_else(|| missing_field("theta"))?,
+                phi: data.angle2.ok_or_else(|| missing_field("phi"))?,
+                lambda: data.angle3.ok_or_else(|| missing_field("lambda"))?,
             }),
             GateType::Measure => Ok(Measure {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
