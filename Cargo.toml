@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    # Benchmarks
+    "benchmarks",
     # Composition root
     "crates/cli",
     "crates/qiskit",

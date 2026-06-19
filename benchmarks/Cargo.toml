@@ -1,0 +1,12 @@
+[package]
+name = "benchmarks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+criterion = "0.5.1"
+qsimplify = { path = "../crates/library" }
+
+[[bench]]
+name = "performance"
+harness = false

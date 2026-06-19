@@ -1,0 +1,204 @@
+{
+    "datetime": "2026-06-18T19:52:39.028996+00:00",
+    "version": "rust-criterion",
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_cancellation_chain[1]",
+            "fullname": "benches/performance.rs::test_cancellation_chain[1]",
+            "params": {
+                "n_qubits": 1
+            },
+            "param": "1",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.00036350833333333334,
+                "max": 0.0008963168674698795,
+                "mean": 0.000470703159745673
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cancellation_chain[2]",
+            "fullname": "benches/performance.rs::test_cancellation_chain[2]",
+            "params": {
+                "n_qubits": 2
+            },
+            "param": "2",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.0008063944444444445,
+                "max": 0.0014956857142857144,
+                "mean": 0.0009992797632449734
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cancellation_chain[4]",
+            "fullname": "benches/performance.rs::test_cancellation_chain[4]",
+            "params": {
+                "n_qubits": 4
+            },
+            "param": "4",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.001974511111111111,
+                "max": 0.003153577777777778,
+                "mean": 0.0023984031111111102
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cancellation_chain[8]",
+            "fullname": "benches/performance.rs::test_cancellation_chain[8]",
+            "params": {
+                "n_qubits": 8
+            },
+            "param": "8",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.0052421,
+                "max": 0.0081913,
+                "mean": 0.006287891666666666
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cnot_cascade[2]",
+            "fullname": "benches/performance.rs::test_cnot_cascade[2]",
+            "params": {
+                "n_qubits": 2
+            },
+            "param": "2",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.0010944924528301886,
+                "max": 0.001614811111111111,
+                "mean": 0.001266628034195303
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cnot_cascade[4]",
+            "fullname": "benches/performance.rs::test_cnot_cascade[4]",
+            "params": {
+                "n_qubits": 4
+            },
+            "param": "4",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.00741288,
+                "max": 0.0194086,
+                "mean": 0.009877104800000001
+            }
+        },
+        {
+            "group": null,
+            "name": "test_cnot_cascade[8]",
+            "fullname": "benches/performance.rs::test_cnot_cascade[8]",
+            "params": {
+                "n_qubits": 8
+            },
+            "param": "8",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.1603435,
+                "max": 0.3254393,
+                "mean": 0.194538464
+            }
+        },
+        {
+            "group": null,
+            "name": "test_irreducible_brick_wall[1]",
+            "fullname": "benches/performance.rs::test_irreducible_brick_wall[1]",
+            "params": {
+                "n_qubits": 1
+            },
+            "param": "1",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.0002690042857142857,
+                "max": 0.0006888964285714285,
+                "mean": 0.0003596386508232897
+            }
+        },
+        {
+            "group": null,
+            "name": "test_irreducible_brick_wall[2]",
+            "fullname": "benches/performance.rs::test_irreducible_brick_wall[2]",
+            "params": {
+                "n_qubits": 2
+            },
+            "param": "2",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.00152464375,
+                "max": 0.0025553375,
+                "mean": 0.001875604875
+            }
+        },
+        {
+            "group": null,
+            "name": "test_irreducible_brick_wall[4]",
+            "fullname": "benches/performance.rs::test_irreducible_brick_wall[4]",
+            "params": {
+                "n_qubits": 4
+            },
+            "param": "4",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.01656525,
+                "max": 0.0277658,
+                "mean": 0.0231258425
+            }
+        },
+        {
+            "group": null,
+            "name": "test_irreducible_brick_wall[8]",
+            "fullname": "benches/performance.rs::test_irreducible_brick_wall[8]",
+            "params": {
+                "n_qubits": 8
+            },
+            "param": "8",
+            "extra_info": {
+                "language": "Rust",
+                "framework": "Criterion"
+            },
+            "stats": {
+                "min": 0.4038564,
+                "max": 0.6151905,
+                "mean": 0.470590633
+            }
+        }
+    ]
+}
