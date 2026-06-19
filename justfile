@@ -76,7 +76,7 @@ setup-coverage:
 
 # Generate code coverage report for all crates
 coverage:
-    cargo llvm-cov --workspace --all-features --ignore-filename-regex '(asserter)' --html --open
+    cargo llvm-cov --workspace --all-features --ignore-filename-regex '(asserter|mother)' --html --open
 
 # Set up Cargo for feature compilation testing
 setup-hack:
@@ -108,3 +108,26 @@ qiskit-release:
 # Example: just qiskit-release-features converter,codegen
 qiskit-release-features features:
     uv run maturin build -m crates/qiskit/Cargo.toml --release --no-default-features --features {{features}}
+
+# Run the REST API server in debug mode (optionally with selected features)
+# Example: just serve "converter-json,presenter-graphviz"
+serve +features="":
+    cargo run -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
+
+# Run the REST API server in release mode (optionally with selected features)
+# Example: just serve-release "converter-json,presenter-graphviz"
+serve-release +features="":
+    cargo run --release -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
+
+# Install cargo-watch for hot reload
+setup-watch:
+    cargo install cargo-watch
+
+# Run the REST API server with hot reload (optionally with selected features)
+# Example: just watch "converter-json,presenter-graphviz"
+watch +features="":
+    cargo watch -x "run -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}"
+
+# Run the TUI application with all features
+tui:
+    cargo run -p qsimplify-tui

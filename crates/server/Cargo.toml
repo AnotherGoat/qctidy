@@ -12,7 +12,82 @@ keywords.workspace = true
 categories = ["science", "network-programming"]
 
 [dependencies]
+qsimplify = { path = "../library" }
+qsimplify-analyzer = { path = "../analyzer", optional = true }
+qsimplify-codegen = { path = "../codegen", optional = true }
+qsimplify-converter = { path = "../converter", optional = true }
+qsimplify-estimator = { path = "../estimator", optional = true }
 qsimplify-facade = { path = "../facade" }
+qsimplify-presenter = { path = "../presenter", optional = true }
+qsimplify-ports = { path = "../ports" }
+axum = "0.8"
+base64 = "0.22"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { version = "1", features = ["full"] }
+thiserror = { workspace = true }
+utoipa = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+
+[features]
+default = [
+    "analyzer",
+    "codegen-qiskit",
+    "codegen-openqasm3",
+    "converter-cbor",
+    "converter-json",
+    "converter-msgpack",
+    "converter-xml",
+    "estimator",
+    "presenter-graphviz",
+]
+analyzer = ["dep:qsimplify-analyzer", "qsimplify-facade/analyzer"]
+codegen-qiskit = [
+    "dep:qsimplify-codegen",
+    "qsimplify-codegen/codegen-qiskit",
+    "qsimplify-facade/codegen-qiskit",
+    "qsimplify-ports/codegen-qiskit",
+]
+codegen-openqasm3 = [
+    "dep:qsimplify-codegen",
+    "qsimplify-codegen/codegen-openqasm3",
+    "qsimplify-facade/codegen-openqasm3",
+    "qsimplify-ports/codegen-openqasm3",
+]
+converter-cbor = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-cbor",
+    "qsimplify-facade/converter-cbor",
+    "qsimplify-ports/converter-cbor",
+]
+converter-json = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-json",
+    "qsimplify-facade/converter-json",
+    "qsimplify-ports/converter-json",
+]
+converter-msgpack = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-msgpack",
+    "qsimplify-facade/converter-msgpack",
+    "qsimplify-ports/converter-msgpack",
+]
+converter-xml = [
+    "dep:qsimplify-converter",
+    "qsimplify-converter/converter-xml",
+    "qsimplify-facade/converter-xml",
+    "qsimplify-ports/converter-xml",
+]
+estimator = ["dep:qsimplify-estimator", "qsimplify-facade/estimator"]
+presenter-graphviz = [
+    "dep:qsimplify-presenter",
+    "qsimplify-facade/presenter-graphviz",
+    "qsimplify-presenter/presenter-graphviz",
+    "qsimplify-ports/presenter-graphviz",
+]
 
 [lints]
 workspace = true

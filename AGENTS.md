@@ -59,7 +59,7 @@ Also take a look at the [justfile](justfile) for more references.
 ## Version control
 
 - Don't add files to `.gitignore`.
-- Don't modify files that aren't being tracked by Git.
+- Don't modify files that are ignored by Git.
 
 ## Boundaries
 
