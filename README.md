@@ -84,7 +84,13 @@ The project is composed of various Rust crates, which focus on making it modular
 
 The architecture of the project is based on the [hexagonal architecture](https://alistair.cockburn.us/hexagonal-architecture), and is used to separate ports and adapters, which decouples the facade from the optional service crates.
 
-![Architecture diagram](images/architecture.drawio.png)
+### High level architecture
+
+![High level architecture diagram](images/architecture_high.drawio.png)
+
+### Low level architecture
+
+![Low level architecture diagram](images/architecture_low.drawio.png)
 
 ## Useful Commands
 

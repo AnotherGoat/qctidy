@@ -1,0 +1,23 @@
+[package]
+name = "qsimplify-tui"
+description = "Terminal user interface for QSimplify"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+readme.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories = ["science", "command-line-utilities"]
+
+[dependencies]
+qsimplify = { path = "../library" }
+qsimplify-converter = { path = "../converter" }
+qsimplify-ports = { path = "../ports" }
+crossterm = { workspace = true }
+fuzzy-matcher = { workspace = true }
+ratatui = { workspace = true }
+
+[lints]
+workspace = true
