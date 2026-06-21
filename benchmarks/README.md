@@ -1,45 +1,50 @@
-# QSimplify-RS Benchmarks
+# QSimplify Benchmarks
 
-Este directorio contiene todo el ecosistema de pruebas de rendimiento (benchmarks) diseñado para estresar el núcleo del optimizador de circuitos cuánticos en Rust (`qsimplify-rs`) y compararlo con la implementación original en Python.
+This directory contains the full performance benchmark ecosystem designed to stress the Rust quantum circuit optimizer core (`qsimplify-rs`) and compare it with the original Python implementation.
 
-## 📂 Estructura del Directorio
+## Directory Structure
 
-El ecosistema está dividido en las siguientes subcarpetas de manera modular:
+The benchmark ecosystem is divided into the following modular subdirectories:
 
-- **`benches/`**: Contiene el código fuente puro en Rust (`performance.rs`) que define y ejecuta los algoritmos de prueba (Cancellation Chain, CNOT Cascade, Irreducible Brick Wall) utilizando la librería estadísticamente rigurosa **`criterion`**.
-- **`scripts/`**: Contiene scripts utilitarios escritos en Python (`export_rust_json.py`, `generate_speedup_table.py`, `plot_rust_results.py`). Se encargan de recolectar la salida cruda de Criterion, darle formato JSON y generar gráficos y tablas comparativas.
-- **`results/`**: Es la carpeta de salida generada automáticamente. Aquí es donde los scripts arrojan los gráficos finales (`.png`), el JSON consolidado (`rust_benchmark_results.json`) y las tablas de mejora cruzada o *Speedup* (`.csv` y `.md`).
+- **`benches/`**: Contains the pure Rust source code (`performance.rs`) that defines and runs the benchmark algorithms (Cancellation Chain, CNOT Cascade, Irreducible Brick Wall) using the statistically rigorous **`criterion`** library.
+- **`scripts/`**: Contains utility scripts written in Python (`export_rust_json.py`, `generate_speedup_table.py`, `plot_rust_results.py`). They collect Criterion's raw output, format it as JSON, and generate comparison charts and tables.
+- **`results/`**: The automatically generated output directory. This is where the scripts write the final charts (`.png`), consolidated JSON (`rust_benchmark_results.json`), and cross-implementation speedup tables (`.csv` and `.md`).
 
-Además de estas carpetas, en la raíz de este directorio encontrarás dos archivos ejecutables clave:
-- **`run_benchmarks.ps1`**: Es el script orquestador para Windows. Se encarga de llamar a Rust, ejecutar Python, recopilar los datos y limpiar todo con un solo comando.
-- **`run_benchmarks.sh`**: Es el equivalente exacto del anterior, pero diseñado para ejecutarse en sistemas operativos Mac o Linux.
+In addition to these directories, the root of this directory contains two key executable files:
 
-## 🤔 Contexto: ¿Por qué utilizamos scripts de Python adicionales?
+- **`run_benchmarks.ps1`**: The Windows orchestration script. It calls Rust, runs Python, collects the data, and cleans everything up with a single command.
+- **`run_benchmarks.sh`**: The equivalent script for macOS and Linux systems.
 
-A diferencia de Python (que utilizaba la librería `pytest-benchmark` para generar un único archivo JSON directamente tras correr las pruebas), la herramienta de medición estándar en Rust (**Criterion**) no exporta un solo archivo consolidado. Por defecto, Criterion genera una inmensa y compleja estructura de carpetas oculta dentro de `target/criterion/`, creando cientos de micro-archivos JSON para cada iteración y estadística de prueba de forma separada.
+## About Python Usage
 
-Para solucionar esta limitación, se implementó la **capa de automatización** (`scripts/`). Estos utilitarios navegan profundamente por la carpeta oculta de Criterion, extraen matemáticamente los valores promedio y los consolidan en un único archivo limpio (`rust_benchmark_results.json`), replicando exactamente el formato antiguo. Sin estos scripts, generar los gráficos comparativos de forma directa hubiera sido imposible.
+Unlike Python, which used the `pytest-benchmark` library to generate a single JSON file directly after running the benchmarks, Rust's standard benchmarking tool (**Criterion**) does not export one consolidated file. By default, Criterion generates a large and complex hidden directory structure inside `target/criterion/`, creating hundreds of small JSON files for each iteration and benchmark statistic separately.
 
-## 🚀 ¿Cómo ejecutar las pruebas?
+To work around this limitation, the **automation layer** (`scripts/`) was implemented. These utilities traverse Criterion's hidden directory structure, extract the mean values mathematically, and consolidate them into a single clean file (`rust_benchmark_results.json`) that exactly replicates the previous format. Without these scripts, generating the comparison charts directly would not have been practical.
 
-No necesitas ejecutar comandos de Rust o Python manualmente. Todo el flujo de recolección de datos, ejecución estadística y graficado ha sido envuelto en los ejecutables automatizados de la raíz.
+## Running the Benchmarks
 
-### Para usuarios de Windows (PowerShell)
-Abre tu terminal, ingresa a esta carpeta (`benchmarks/`) y ejecuta:
+You do not need to run Rust or Python commands manually. The full data collection, statistical execution, and chart generation flow is wrapped in the automated executables at the root of this directory.
+
+### For Windows Users (PowerShell)
+
+Enter the `benchmarks/` directory and run:
+
 ```powershell
 .\run_benchmarks.ps1 -UpdateCharts
 ```
 
-### Para usuarios de Mac / Linux (Bash)
-Abre tu terminal, ingresa a esta carpeta (`benchmarks/`) y ejecuta:
+### For macOS / Linux Users (Bash)
+
+Enter the `benchmarks/` directory and run:
+
 ```bash
 ./run_benchmarks.sh --update-charts
 ```
 
-### ¿Qué hace este comando?
-1. **Compila y ejecuta** internamente `cargo bench` bajo el capó.
-2. **Extrae** los resultados ocultos generados por Criterion (`target/criterion`) usando los scripts de Python descritos arriba.
-3. **Consolida** todo en un único archivo de resultados estructurado compatible con el formato antiguo.
-4. (Opcional) Si usas el parámetro `-UpdateCharts` o `--update-charts`, regenerará instantáneamente los gráficos de barras y las tablas de Speedup en la carpeta `results/`.
+### What Does This Command Do?
+1. **Builds and runs** `cargo bench` internally.
+2. **Extracts** the hidden results generated by Criterion (`target/criterion`) using the Python scripts described above.
+3. **Consolidates** everything into a single structured results file compatible with the previous format.
+4. (Optional) If you use the `-UpdateCharts` or `--update-charts` parameter, it immediately regenerates the bar charts and speedup tables in the `results/` directory.
 
-*(Nota: Los scripts están diseñados en modo "escritura", lo que significa que sobreescribirán los resultados antiguos en la carpeta `results/` automáticamente sin que tengas que borrar nada).*
+*(Note: The scripts are designed to run in write mode, which means they automatically overwrite old results in the `results/` directory without requiring you to delete anything manually.)*

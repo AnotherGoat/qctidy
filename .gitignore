@@ -8,12 +8,15 @@ target/
 **/*.env
 
 # Python bindings tests
-**/*.py
+*.py
 
 # Output formats
 **/*.gv
 **/*.png
 **/*.svg
+
+# Benchmark results
+benchmarks/results/**
 
 # Draw.io backups
 **/*.bkp
