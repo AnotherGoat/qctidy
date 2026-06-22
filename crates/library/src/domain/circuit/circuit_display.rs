@@ -112,6 +112,10 @@ impl Circuit {
             } else {
                 add_padding(label_padding, &mut output);
                 render_border_row(qubit, &column_widths, &kinds, &packed, rows, &mut output);
+
+                if has_qubit_above(qubit) && has_qubit_below(qubit, rows) {
+                    trim_current_line_end(&mut output);
+                }
             }
         }
 
@@ -262,13 +266,23 @@ fn apply_operation_to_cell(
 
             AppliedOperation::new(vec![qubit], vec![name], vec![CellKind::Gate])
         }
-        P { angle, qubit } | RX { angle, qubit } | RY { angle, qubit } | RZ { angle, qubit } => {
-            let formatted_angle = angle_formatter::format(angle, AngleFormat::Algebra, pi_format);
+        P { theta, qubit } | RX { theta, qubit } | RY { theta, qubit } => {
+            let formatted_theta = angle_formatter::format(theta, AngleFormat::Algebra, pi_format);
             let name = gate_display_name(operation.r#type());
 
             AppliedOperation::new(
                 vec![qubit],
-                vec![format!("{name}({formatted_angle})")],
+                vec![format!("{name}({formatted_theta})")],
+                vec![CellKind::Gate],
+            )
+        }
+        RZ { phi, qubit } => {
+            let formatted_phi = angle_formatter::format(phi, AngleFormat::Algebra, pi_format);
+            let name = gate_display_name(operation.r#type());
+
+            AppliedOperation::new(
+                vec![qubit],
+                vec![format!("{name}({formatted_phi})")],
                 vec![CellKind::Gate],
             )
         }
@@ -319,12 +333,12 @@ fn apply_operation_to_cell(
             vec![CellKind::Control, CellKind::Control],
         ),
         CP {
-            angle,
+            theta,
             qubit1,
             qubit2,
         } => {
-            let formatted_angle = angle_formatter::format(angle, AngleFormat::Algebra, pi_format);
-            let label = format!("{CONTROL_NODE}({formatted_angle})");
+            let formatted_theta = angle_formatter::format(theta, AngleFormat::Algebra, pi_format);
+            let label = format!("{CONTROL_NODE}({formatted_theta})");
 
             AppliedOperation::new(
                 vec![qubit1, qubit2],
@@ -571,6 +585,12 @@ fn render_border_row(
                 output.push(' ');
             }
         }
+    }
+}
+
+fn trim_current_line_end(output: &mut String) {
+    while output.ends_with(' ') {
+        output.pop();
     }
 }
 

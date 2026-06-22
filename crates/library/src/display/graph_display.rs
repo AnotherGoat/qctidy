@@ -102,7 +102,9 @@ impl Graph {
             if let Some(node) = self.get_node(position) {
                 let mut label = node.r#type().to_string().to_ascii_uppercase();
 
-                if let Some(angle) = node.angle() {
+                let parameter = node.semantic_angle();
+
+                if let Some(angle) = parameter {
                     label.push('(');
                     label.push_str(&angle_formatter::format(
                         angle,

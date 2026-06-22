@@ -66,8 +66,11 @@ fn generate_gate(operation: &GateOperation, has_sy_gate: &mut bool, build_steps:
         | TDG { qubit } => {
             add_build_step(qubit, operation, build_steps);
         }
-        P { angle, qubit } | RX { angle, qubit } | RY { angle, qubit } | RZ { angle, qubit } => {
-            generate_rotation_gate(angle, qubit, operation, build_steps);
+        P { theta, qubit } | RX { theta, qubit } | RY { theta, qubit } => {
+            generate_rotation_gate(theta, qubit, operation, build_steps);
+        }
+        RZ { phi, qubit } => {
+            generate_rotation_gate(phi, qubit, operation, build_steps);
         }
         SY { qubit } => {
             *has_sy_gate = true;
@@ -97,11 +100,11 @@ fn generate_gate(operation: &GateOperation, has_sy_gate: &mut bool, build_steps:
             add_build_step_with_parameters(&[control, target], operation, build_steps);
         }
         CP {
-            angle,
+            theta,
             qubit1,
             qubit2,
         } => {
-            generate_cp_gate(angle, qubit1, qubit2, operation, build_steps);
+            generate_cp_gate(theta, qubit1, qubit2, operation, build_steps);
         }
         CSwap {
             control,

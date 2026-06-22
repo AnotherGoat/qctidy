@@ -42,9 +42,9 @@ impl Graph {
             NodeView::new(
                 node.gate,
                 *position,
-                node.angle,
-                node.angle2,
-                node.angle3,
+                node.theta,
+                node.phi,
+                node.lambda,
                 node.bit,
             )
         })

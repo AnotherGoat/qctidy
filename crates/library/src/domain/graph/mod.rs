@@ -33,18 +33,18 @@ use crate::{
 #[must_use]
 struct NodeData {
     pub(self) gate: GateType,
-    pub(self) angle: Option<f64>,
-    pub(self) angle2: Option<f64>,
-    pub(self) angle3: Option<f64>,
+    pub(self) theta: Option<f64>,
+    pub(self) phi: Option<f64>,
+    pub(self) lambda: Option<f64>,
     pub(self) bit: Option<usize>,
 }
 
 impl PartialEq for NodeData {
     fn eq(&self, other: &Self) -> bool {
         self.gate == other.gate
-            && math::are_option_floats_equal(self.angle, other.angle)
-            && math::are_option_floats_equal(self.angle2, other.angle2)
-            && math::are_option_floats_equal(self.angle3, other.angle3)
+            && math::are_option_floats_equal(self.theta, other.theta)
+            && math::are_option_floats_equal(self.phi, other.phi)
+            && math::are_option_floats_equal(self.lambda, other.lambda)
             && self.bit == other.bit
     }
 }
@@ -200,9 +200,9 @@ impl Graph {
         &mut self,
         gate: GateType,
         position: Position,
-        angle: Option<f64>,
-        angle2: Option<f64>,
-        angle3: Option<f64>,
+        theta: Option<f64>,
+        phi: Option<f64>,
+        lambda: Option<f64>,
         bit: Option<usize>,
     ) -> Result<(), GraphError> {
         if self.has_node_at(position) {
@@ -211,9 +211,9 @@ impl Graph {
 
         let node = NodeData {
             gate,
-            angle,
-            angle2,
-            angle3,
+            theta,
+            phi,
+            lambda,
             bit,
         };
         self.insert_new_node(position, node);
@@ -245,16 +245,16 @@ impl Graph {
         &mut self,
         gate: GateType,
         position: Position,
-        angle: Option<f64>,
-        angle2: Option<f64>,
-        angle3: Option<f64>,
+        theta: Option<f64>,
+        phi: Option<f64>,
+        lambda: Option<f64>,
         bit: Option<usize>,
     ) {
         let node = NodeData {
             gate,
-            angle,
-            angle2,
-            angle3,
+            theta,
+            phi,
+            lambda,
             bit,
         };
 
@@ -427,9 +427,9 @@ impl Graph {
             NodeView::new(
                 node.gate,
                 position,
-                node.angle,
-                node.angle2,
-                node.angle3,
+                node.theta,
+                node.phi,
+                node.lambda,
                 node.bit,
             )
         })

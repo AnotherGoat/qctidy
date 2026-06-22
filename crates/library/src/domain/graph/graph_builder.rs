@@ -51,10 +51,10 @@ impl GraphBuilder {
             X { qubit } => self.put_x(qubit, column),
             Y { qubit } => self.put_y(qubit, column),
             Z { qubit } => self.put_z(qubit, column),
-            P { angle, qubit } => self.put_p(angle, qubit, column),
-            RX { angle, qubit } => self.put_rx(angle, qubit, column),
-            RY { angle, qubit } => self.put_ry(angle, qubit, column),
-            RZ { angle, qubit } => self.put_rz(angle, qubit, column),
+            P { theta, qubit } => self.put_p(theta, qubit, column),
+            RX { theta, qubit } => self.put_rx(theta, qubit, column),
+            RY { theta, qubit } => self.put_ry(theta, qubit, column),
+            RZ { phi, qubit } => self.put_rz(phi, qubit, column),
             S { qubit } => self.put_s(qubit, column),
             SDG { qubit } => self.put_sdg(qubit, column),
             SX { qubit } => self.put_sx(qubit, column),
@@ -74,10 +74,10 @@ impl GraphBuilder {
             CY { control, target } => self.put_cy(control, target, column),
             CZ { qubit1, qubit2 } => self.put_cz(qubit1, qubit2, column),
             CP {
-                angle,
+                theta,
                 qubit1,
                 qubit2,
-            } => self.put_cp(angle, qubit1, qubit2, column),
+            } => self.put_cp(theta, qubit1, qubit2, column),
             CSwap {
                 control,
                 target1,
@@ -136,39 +136,39 @@ impl GraphBuilder {
     }
 
     /// Push a P gate at the end of the graph.
-    pub fn push_p(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
-        if !angle.is_finite() {
-            return Err(GraphBuilderError::NonFiniteAngle { angle });
+    pub fn push_p(&mut self, theta: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !theta.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_p(angle, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_p(theta, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RX gate at the end of the graph.
-    pub fn push_rx(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
-        if !angle.is_finite() {
-            return Err(GraphBuilderError::NonFiniteAngle { angle });
+    pub fn push_rx(&mut self, theta: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !theta.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_rx(angle, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_rx(theta, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RY gate at the end of the graph.
-    pub fn push_ry(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
-        if !angle.is_finite() {
-            return Err(GraphBuilderError::NonFiniteAngle { angle });
+    pub fn push_ry(&mut self, theta: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !theta.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_ry(angle, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_ry(theta, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a RZ gate at the end of the graph.
-    pub fn push_rz(&mut self, angle: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
-        if !angle.is_finite() {
-            return Err(GraphBuilderError::NonFiniteAngle { angle });
+    pub fn push_rz(&mut self, phi: f64, qubit: usize) -> Result<&mut Self, GraphBuilderError> {
+        if !phi.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: phi });
         }
 
-        Ok(self.put_rz(angle, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_rz(phi, qubit, self.find_push_column(&[qubit])))
     }
 
     /// Push a S gate at the end of the graph.
@@ -298,18 +298,18 @@ impl GraphBuilder {
     /// Push a CP gate at the end of the graph.
     pub fn push_cp(
         &mut self,
-        angle: f64,
+        theta: f64,
         qubit1: usize,
         qubit2: usize,
     ) -> Result<&mut Self, GraphBuilderError> {
-        if !angle.is_finite() {
-            return Err(GraphBuilderError::NonFiniteAngle { angle });
+        if !theta.is_finite() {
+            return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
         check_unique_qubits(&[qubit1, qubit2])?;
 
         Ok(self.put_cp(
-            angle,
+            theta,
             qubit1,
             qubit2,
             self.find_push_column(&[qubit1, qubit2]),
@@ -409,36 +409,46 @@ impl GraphBuilder {
     }
 
     /// Put a P gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_p(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_rotation(GateType::P, angle, qubit, column)
+    pub(crate) fn put_p(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::P, theta, qubit, column)
     }
 
     /// Put a RX gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_rx(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_rotation(GateType::RX, angle, qubit, column)
+    pub(crate) fn put_rx(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::RX, theta, qubit, column)
     }
 
     /// Put a RY gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_ry(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_rotation(GateType::RY, angle, qubit, column)
+    pub(crate) fn put_ry(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::RY, theta, qubit, column)
     }
 
     /// Put a RZ gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_rz(&mut self, angle: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_rotation(GateType::RZ, angle, qubit, column)
+    pub(crate) fn put_rz(&mut self, phi: f64, qubit: usize, column: usize) -> &mut Self {
+        let position = Position::new(qubit, column);
+
+        self.graph
+            .replace_node(GateType::RZ, position, None, Some(phi), None, None);
+        self.graph
+            .connect_row_neighbors(position)
+            .expect("The added node should exist");
+
+        #[cfg(debug_assertions)]
+        self.graph.validate_internal();
+        self
     }
 
-    fn put_rotation(
+    fn put_theta_rotation(
         &mut self,
         gate: GateType,
-        angle: f64,
+        theta: f64,
         qubit: usize,
         column: usize,
     ) -> &mut Self {
         let position = Position::new(qubit, column);
 
         self.graph
-            .replace_node(gate, position, Some(angle), None, None, None);
+            .replace_node(gate, position, Some(theta), None, None, None);
         self.graph
             .connect_row_neighbors(position)
             .expect("The added node should exist");
@@ -637,7 +647,7 @@ impl GraphBuilder {
     /// Put a CP gate directly into the graph, which may break it when used incorrectly.
     pub(crate) fn put_cp(
         &mut self,
-        angle: f64,
+        theta: f64,
         qubit1: usize,
         qubit2: usize,
         column: usize,
@@ -646,9 +656,9 @@ impl GraphBuilder {
         let second = Position::new(qubit2, column);
 
         self.graph
-            .replace_node(GateType::CP, first, Some(angle), None, None, None);
+            .replace_node(GateType::CP, first, Some(theta), None, None, None);
         self.graph
-            .replace_node(GateType::CP, second, Some(angle), None, None, None);
+            .replace_node(GateType::CP, second, Some(theta), None, None, None);
 
         self.graph
             .add_edge(EdgeType::WorksWith, first, second)

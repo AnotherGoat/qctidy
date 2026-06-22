@@ -172,7 +172,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
             graph
                 .iter_nodes_ordered_by_row()
                 .filter(|node| {
-                    node.angle()
+                    node.semantic_angle()
                         .is_some_and(|angle| !(0.0_f64..math::FULL_CYCLE).contains(&angle))
                 })
                 .map(|node| HashSet::from([node.position()]))
@@ -181,7 +181,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
         Box::new(|graph: &mut Graph| {
             let nodes: Vec<NodeView> = graph
                 .iter_nodes_ordered_by_row()
-                .filter(|node| node.angle().is_some())
+                .filter(|node| node.semantic_angle().is_some())
                 .collect();
 
             if nodes.is_empty() {
@@ -197,13 +197,26 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                     continue;
                 }
 
-                let angle = node.angle().expect("The node should have an angle");
+                let angle = node
+                    .semantic_angle()
+                    .expect("The node should have an angle");
                 let position = node.position();
 
-                if let Ok(normalized) = math::normalize_angle(angle, math::FULL_CYCLE)
+                let normalized = if math::is_float_close_to_zero(angle) {
+                    Ok(0.0)
+                } else {
+                    math::normalize_angle(angle, math::FULL_CYCLE)
+                };
+
+                if let Ok(normalized) = normalized
                     && !math::are_floats_equal(angle, normalized)
                 {
-                    graph.replace_node(gate, position, Some(normalized), None, None, node.bit());
+                    let (theta, phi, lambda) = match gate {
+                        RZ => (node.theta(), Some(normalized), node.lambda()),
+                        _ => (Some(normalized), node.phi(), node.lambda()),
+                    };
+
+                    graph.replace_node(gate, position, theta, phi, lambda, node.bit());
                     changed = true;
                 }
             }

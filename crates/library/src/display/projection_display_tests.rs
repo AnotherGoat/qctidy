@@ -43,7 +43,7 @@ fn node_view_single_qubit_to_string() {
 #[test]
 fn node_view_display_with_angle() {
     let rx_node = NodeView::new(RX, Position::new(0, 0), Some(FRAC_PI_2), None, None, None);
-    assert_eq!(rx_node.to_string(), "RX(angle=pi/2) at (0, 0)");
+    assert_eq!(rx_node.to_string(), "RX(theta=pi/2) at (0, 0)");
 
     let ry_node = NodeView::new(
         RY,
@@ -55,30 +55,30 @@ fn node_view_display_with_angle() {
     );
     assert_eq!(
         ry_node.display(PiFormat::Uppercase),
-        "RY(angle=3PI) at (1, 2)"
+        "RY(theta=3PI) at (1, 2)"
     );
 
     let rz_node = NodeView::new(
         RZ,
         Position::new(0, 1),
+        None,
         Some(2.0_f64 * FRAC_PI_3),
         None,
         None,
-        None,
     );
-    assert_eq!(rz_node.display(PiFormat::Fancy), "RZ(angle=2π/3) at (0, 1)");
+    assert_eq!(rz_node.display(PiFormat::Fancy), "RZ(phi=2π/3) at (0, 1)");
 
     let p_node = NodeView::new(P, Position::new(2, 0), Some(PI), None, None, None);
     assert_eq!(
         p_node.display(PiFormat::Custom { pi: "CustomPi" }),
-        "P(angle=CustomPi) at (2, 0)"
+        "P(theta=CustomPi) at (2, 0)"
     );
 }
 
 #[test]
 fn node_view_rotation_with_zero_angle_to_string() {
-    let node = NodeView::new(RZ, Position::new(1, 1), Some(0.0_f64), None, None, None);
-    assert_eq!(node.to_string(), "RZ(angle=0) at (1, 1)");
+    let node = NodeView::new(RZ, Position::new(1, 1), None, Some(0.0_f64), None, None);
+    assert_eq!(node.to_string(), "RZ(phi=0) at (1, 1)");
 }
 
 #[test]
@@ -139,19 +139,19 @@ fn edge_view_display_with_angles() {
 
     assert_eq!(
         edge.to_string(),
-        "[right] from RX(angle=pi/2) at (0, 0) to RX(angle=pi/3) at (0, 1)"
+        "[right] from RX(theta=pi/2) at (0, 0) to RX(theta=pi/3) at (0, 1)"
     );
     assert_eq!(
         edge.display(PiFormat::Uppercase),
-        "[right] from RX(angle=PI/2) at (0, 0) to RX(angle=PI/3) at (0, 1)"
+        "[right] from RX(theta=PI/2) at (0, 0) to RX(theta=PI/3) at (0, 1)"
     );
     assert_eq!(
         edge.display(PiFormat::Fancy),
-        "[right] from RX(angle=π/2) at (0, 0) to RX(angle=π/3) at (0, 1)"
+        "[right] from RX(theta=π/2) at (0, 0) to RX(theta=π/3) at (0, 1)"
     );
     assert_eq!(
         edge.display(PiFormat::Custom { pi: "CustomPi" }),
-        "[right] from RX(angle=CustomPi/2) at (0, 0) to RX(angle=CustomPi/3) at (0, 1)"
+        "[right] from RX(theta=CustomPi/2) at (0, 0) to RX(theta=CustomPi/3) at (0, 1)"
     );
 }
 
@@ -332,11 +332,11 @@ fn contextual_node_view_display_with_pi_format() {
     let origin = NodeView::new(P, Position::new(0, 0), Some(FRAC_PI_3), None, None, None);
     let view = ContextualNodeView::new(origin, None, None, vec![], vec![], None, vec![]);
 
-    assert_eq!(view.display(PiFormat::Lowercase), "P(angle=pi/3) at (0, 0)");
-    assert_eq!(view.display(PiFormat::Uppercase), "P(angle=PI/3) at (0, 0)");
-    assert_eq!(view.display(PiFormat::Fancy), "P(angle=π/3) at (0, 0)");
+    assert_eq!(view.display(PiFormat::Lowercase), "P(theta=pi/3) at (0, 0)");
+    assert_eq!(view.display(PiFormat::Uppercase), "P(theta=PI/3) at (0, 0)");
+    assert_eq!(view.display(PiFormat::Fancy), "P(theta=π/3) at (0, 0)");
     assert_eq!(
         view.display(PiFormat::Custom { pi: "Pi" }),
-        "P(angle=Pi/3) at (0, 0)"
+        "P(theta=Pi/3) at (0, 0)"
     );
 }
