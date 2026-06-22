@@ -40,17 +40,17 @@ pub(crate) fn circuit_to_qiskit(python: Python<'_>, circuit: &Circuit) -> PyResu
             Z { qubit } => {
                 qiskit_circuit.call_method1("z", (qubit,))?;
             }
-            P { angle, qubit } => {
-                qiskit_circuit.call_method1("p", (angle, qubit))?;
+            P { theta, qubit } => {
+                qiskit_circuit.call_method1("p", (theta, qubit))?;
             }
-            RX { angle, qubit } => {
-                qiskit_circuit.call_method1("rx", (angle, qubit))?;
+            RX { theta, qubit } => {
+                qiskit_circuit.call_method1("rx", (theta, qubit))?;
             }
-            RY { angle, qubit } => {
-                qiskit_circuit.call_method1("ry", (angle, qubit))?;
+            RY { theta, qubit } => {
+                qiskit_circuit.call_method1("ry", (theta, qubit))?;
             }
-            RZ { angle, qubit } => {
-                qiskit_circuit.call_method1("rz", (angle, qubit))?;
+            RZ { phi, qubit } => {
+                qiskit_circuit.call_method1("rz", (phi, qubit))?;
             }
             S { qubit } => {
                 qiskit_circuit.call_method1("s", (qubit,))?;
@@ -102,11 +102,11 @@ pub(crate) fn circuit_to_qiskit(python: Python<'_>, circuit: &Circuit) -> PyResu
                 qiskit_circuit.call_method1("cz", (qubit1, qubit2))?;
             }
             CP {
-                angle,
+                theta,
                 qubit1,
                 qubit2,
             } => {
-                qiskit_circuit.call_method1("cp", (angle, qubit1, qubit2))?;
+                qiskit_circuit.call_method1("cp", (theta, qubit1, qubit2))?;
             }
             CSwap {
                 control,

@@ -13,9 +13,9 @@ pub(crate) struct GateOperationData {
     pub target: Option<usize>,
     pub target1: Option<usize>,
     pub target2: Option<usize>,
-    pub angle: Option<f64>,
-    pub angle2: Option<f64>,
-    pub angle3: Option<f64>,
+    pub theta: Option<f64>,
+    pub phi: Option<f64>,
+    pub lambda: Option<f64>,
     pub bit: Option<usize>,
 }
 
@@ -33,9 +33,9 @@ impl GateOperationData {
             target: None,
             target1: None,
             target2: None,
-            angle: None,
-            angle2: None,
-            angle3: None,
+            theta: None,
+            phi: None,
+            lambda: None,
             bit: None,
         }
     }
@@ -90,18 +90,18 @@ impl GateOperationData {
         self
     }
 
-    const fn angle(mut self, angle: f64) -> Self {
-        self.angle = Some(angle);
+    const fn theta(mut self, theta: f64) -> Self {
+        self.theta = Some(theta);
         self
     }
 
-    const fn angle2(mut self, angle2: f64) -> Self {
-        self.angle2 = Some(angle2);
+    const fn phi(mut self, phi: f64) -> Self {
+        self.phi = Some(phi);
         self
     }
 
-    const fn angle3(mut self, angle3: f64) -> Self {
-        self.angle3 = Some(angle3);
+    const fn lambda(mut self, lambda: f64) -> Self {
+        self.lambda = Some(lambda);
         self
     }
 
@@ -129,10 +129,10 @@ impl From<&GateOperation> for GateOperationData {
             | SY { qubit }
             | T { qubit }
             | TDG { qubit } => Self::new(gate).qubit(qubit),
-            P { angle, qubit }
-            | RX { angle, qubit }
-            | RY { angle, qubit }
-            | RZ { angle, qubit } => Self::new(gate).qubit(qubit).angle(angle),
+            P { theta, qubit } | RX { theta, qubit } | RY { theta, qubit } => {
+                Self::new(gate).qubit(qubit).theta(theta)
+            }
+            RZ { phi, qubit } => Self::new(gate).qubit(qubit).phi(phi),
             U {
                 theta,
                 phi,
@@ -140,9 +140,9 @@ impl From<&GateOperation> for GateOperationData {
                 qubit,
             } => Self::new(gate)
                 .qubit(qubit)
-                .angle(theta)
-                .angle2(phi)
-                .angle3(lambda),
+                .theta(theta)
+                .phi(phi)
+                .lambda(lambda),
             Measure { qubit, bit } => Self::new(gate).qubit(qubit).bit(bit),
             Swap { qubit1, qubit2 } | CZ { qubit1, qubit2 } => {
                 Self::new(gate).qubit1(qubit1).qubit2(qubit2)
@@ -151,10 +151,10 @@ impl From<&GateOperation> for GateOperationData {
                 Self::new(gate).control(control).target(target)
             }
             CP {
-                angle,
+                theta,
                 qubit1,
                 qubit2,
-            } => Self::new(gate).qubit1(qubit1).qubit2(qubit2).angle(angle),
+            } => Self::new(gate).qubit1(qubit1).qubit2(qubit2).theta(theta),
             CSwap {
                 control,
                 target1,
@@ -210,19 +210,19 @@ impl TryFrom<GateOperationData> for GateOperation {
             }),
             GateType::P => Ok(P {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+                theta: data.theta.ok_or_else(|| missing_field("theta"))?,
             }),
             GateType::RX => Ok(RX {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+                theta: data.theta.ok_or_else(|| missing_field("theta"))?,
             }),
             GateType::RY => Ok(RY {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+                theta: data.theta.ok_or_else(|| missing_field("theta"))?,
             }),
             GateType::RZ => Ok(RZ {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+                phi: data.phi.ok_or_else(|| missing_field("phi"))?,
             }),
             GateType::S => Ok(S {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
@@ -244,9 +244,9 @@ impl TryFrom<GateOperationData> for GateOperation {
             }),
             GateType::U => Ok(U {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
-                theta: data.angle.ok_or_else(|| missing_field("theta"))?,
-                phi: data.angle2.ok_or_else(|| missing_field("phi"))?,
-                lambda: data.angle3.ok_or_else(|| missing_field("lambda"))?,
+                theta: data.theta.ok_or_else(|| missing_field("theta"))?,
+                phi: data.phi.ok_or_else(|| missing_field("phi"))?,
+                lambda: data.lambda.ok_or_else(|| missing_field("lambda"))?,
             }),
             GateType::Measure => Ok(Measure {
                 qubit: data.qubit.ok_or_else(|| missing_field("qubit"))?,
@@ -275,7 +275,7 @@ impl TryFrom<GateOperationData> for GateOperation {
             GateType::CP => Ok(CP {
                 qubit1: data.qubit1.ok_or_else(|| missing_field("qubit1"))?,
                 qubit2: data.qubit2.ok_or_else(|| missing_field("qubit2"))?,
-                angle: data.angle.ok_or_else(|| missing_field("angle"))?,
+                theta: data.theta.ok_or_else(|| missing_field("theta"))?,
             }),
             GateType::CSwap => Ok(CSwap {
                 control: data.control.ok_or_else(|| missing_field("control"))?,

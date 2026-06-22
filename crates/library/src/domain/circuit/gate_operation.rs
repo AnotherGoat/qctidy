@@ -75,28 +75,28 @@ pub enum GateOperation {
     /// Single-qubit phase gate.
     P {
         /// The phase shift applied to this gate.
-        angle: f64,
+        theta: f64,
         /// The qubit that this gate is placed on.
         qubit: usize,
     },
     /// Single-qubit rotation gate, which rotates around the X axis.
     RX {
         /// The angle that this gate is rotated by.
-        angle: f64,
+        theta: f64,
         /// The qubit that this gate is placed on.
         qubit: usize,
     },
     /// Single-qubit rotation gate, which rotates around the Y axis.
     RY {
         /// The angle that this gate is rotated by.
-        angle: f64,
+        theta: f64,
         /// The qubit that this gate is placed on.
         qubit: usize,
     },
     /// Single-qubit rotation gate, which rotates around the Z axis.
     RZ {
         /// The angle that this gate is rotated by.
-        angle: f64,
+        phi: f64,
         /// The qubit that this gate is placed on.
         qubit: usize,
     },
@@ -186,7 +186,7 @@ pub enum GateOperation {
     /// Two-qubit controlled phase gate.
     CP {
         /// The phase shift applied to this gate.
-        angle: f64,
+        theta: f64,
         /// The first qubit.
         qubit1: usize,
         /// The second qubit.
@@ -241,36 +241,36 @@ impl GateOperation {
         Self::Z { qubit }
     }
 
-    pub const fn try_p(angle: f64, qubit: usize) -> Result<Self, GateOperationError> {
-        if !angle.is_finite() {
-            return Err(GateOperationError::NonFiniteAngle { angle });
+    pub const fn try_p(theta: f64, qubit: usize) -> Result<Self, GateOperationError> {
+        if !theta.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(Self::P { angle, qubit })
+        Ok(Self::P { theta, qubit })
     }
 
-    pub const fn try_rx(angle: f64, qubit: usize) -> Result<Self, GateOperationError> {
-        if !angle.is_finite() {
-            return Err(GateOperationError::NonFiniteAngle { angle });
+    pub const fn try_rx(theta: f64, qubit: usize) -> Result<Self, GateOperationError> {
+        if !theta.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(Self::RX { angle, qubit })
+        Ok(Self::RX { theta, qubit })
     }
 
-    pub const fn try_ry(angle: f64, qubit: usize) -> Result<Self, GateOperationError> {
-        if !angle.is_finite() {
-            return Err(GateOperationError::NonFiniteAngle { angle });
+    pub const fn try_ry(theta: f64, qubit: usize) -> Result<Self, GateOperationError> {
+        if !theta.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(Self::RY { angle, qubit })
+        Ok(Self::RY { theta, qubit })
     }
 
-    pub const fn try_rz(angle: f64, qubit: usize) -> Result<Self, GateOperationError> {
-        if !angle.is_finite() {
-            return Err(GateOperationError::NonFiniteAngle { angle });
+    pub const fn try_rz(phi: f64, qubit: usize) -> Result<Self, GateOperationError> {
+        if !phi.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: phi });
         }
 
-        Ok(Self::RZ { angle, qubit })
+        Ok(Self::RZ { phi, qubit })
     }
 
     pub const fn s(qubit: usize) -> Self {
@@ -350,15 +350,15 @@ impl GateOperation {
         Ok(Self::CZ { qubit1, qubit2 })
     }
 
-    pub fn try_cp(angle: f64, qubit1: usize, qubit2: usize) -> Result<Self, GateOperationError> {
-        if !angle.is_finite() {
-            return Err(GateOperationError::NonFiniteAngle { angle });
+    pub fn try_cp(theta: f64, qubit1: usize, qubit2: usize) -> Result<Self, GateOperationError> {
+        if !theta.is_finite() {
+            return Err(GateOperationError::NonFiniteAngle { angle: theta });
         }
 
         check_indices(&["qubit1", "qubit2"], &[qubit1, qubit2])?;
 
         Ok(Self::CP {
-            angle,
+            theta,
             qubit1,
             qubit2,
         })

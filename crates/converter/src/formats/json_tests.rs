@@ -84,15 +84,15 @@ fn parse_z_from_json() {
 #[test]
 fn parse_p_from_json() {
     let input =
-        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"theta":1.5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
 
     match circuit.operations()[0] {
-        GateOperation::P { qubit, angle } => {
+        GateOperation::P { qubit, theta } => {
             assert_eq!(qubit, 5);
-            assert!(math::are_floats_equal(angle, 1.5));
+            assert!(math::are_floats_equal(theta, 1.5));
         }
         _ => panic!("Expected P gate"),
     }
@@ -100,15 +100,15 @@ fn parse_p_from_json() {
 
 #[test]
 fn parse_rx_from_json() {
-    let input = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
+    let input = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"theta":3.141592653589793}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
 
     match circuit.operations()[0] {
-        GateOperation::RX { qubit, angle } => {
+        GateOperation::RX { qubit, theta } => {
             assert_eq!(qubit, 6);
-            assert!(math::are_floats_equal(angle, PI));
+            assert!(math::are_floats_equal(theta, PI));
         }
         _ => panic!("Expected RX gate"),
     }
@@ -117,15 +117,15 @@ fn parse_rx_from_json() {
 #[test]
 fn parse_ry_from_json() {
     let input =
-        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"theta":0.5}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
 
     match circuit.operations()[0] {
-        GateOperation::RY { qubit, angle } => {
+        GateOperation::RY { qubit, theta } => {
             assert_eq!(qubit, 7);
-            assert!(math::are_floats_equal(angle, 0.5));
+            assert!(math::are_floats_equal(theta, 0.5));
         }
         _ => panic!("Expected RY gate"),
     }
@@ -133,16 +133,15 @@ fn parse_ry_from_json() {
 
 #[test]
 fn parse_rz_from_json() {
-    let input =
-        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
+    let input = r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"phi":2.0}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
 
     match circuit.operations()[0] {
-        GateOperation::RZ { qubit, angle } => {
+        GateOperation::RZ { qubit, phi } => {
             assert_eq!(qubit, 8);
-            assert!(math::are_floats_equal(angle, 2.0));
+            assert!(math::are_floats_equal(phi, 2.0));
         }
         _ => panic!("Expected RZ gate"),
     }
@@ -150,7 +149,7 @@ fn parse_rz_from_json() {
 
 #[test]
 fn parse_u_from_json() {
-    let input = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"u","qubit":3,"angle":1.234,"angle2":2.345,"angle3":3.456}]}"#;
+    let input = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"u","qubit":3,"theta":1.234,"phi":2.345,"lambda":3.456}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -352,7 +351,7 @@ fn parse_cz_from_json() {
 
 #[test]
 fn parse_cp_from_json() {
-    let input = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
+    let input = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"theta":0.75}]}"#;
     let circuit = json::parse(input.as_bytes()).unwrap();
 
     assert_eq!(circuit.operations().len(), 1);
@@ -361,11 +360,11 @@ fn parse_cp_from_json() {
         GateOperation::CP {
             qubit1,
             qubit2,
-            angle,
+            theta,
         } => {
             assert_eq!(qubit1, 5);
             assert_eq!(qubit2, 10);
-            assert!(math::are_floats_equal(angle, 0.75));
+            assert!(math::are_floats_equal(theta, 0.75));
         }
         _ => panic!("Expected CP gate"),
     }
@@ -558,7 +557,7 @@ fn parse_missing_required_field_fails() {
 
     match result {
         Err(ParseError::MissingRequiredField { field, gate }) => {
-            assert_eq!(field, "angle");
+            assert_eq!(field, "theta");
             assert_eq!(gate, "cp");
         }
         _ => panic!("Expected MissingRequiredField error, got: {result:?}"),
@@ -741,7 +740,7 @@ fn serialize_p_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"angle":1.5}]}"#;
+        r#"{"version":1,"qubit_count":6,"operations":[{"gate":"p","qubit":5,"theta":1.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -752,7 +751,7 @@ fn serialize_rx_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"angle":3.141592653589793}]}"#;
+    let expected = r#"{"version":1,"qubit_count":7,"operations":[{"gate":"rx","qubit":6,"theta":3.141592653589793}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -763,7 +762,7 @@ fn serialize_u_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"u","qubit":3,"angle":1.234,"angle2":2.345,"angle3":3.456}]}"#;
+    let expected = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"u","qubit":3,"theta":1.234,"phi":2.345,"lambda":3.456}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -775,7 +774,7 @@ fn serialize_ry_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"angle":0.5}]}"#;
+        r#"{"version":1,"qubit_count":8,"operations":[{"gate":"ry","qubit":7,"theta":0.5}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -787,7 +786,7 @@ fn serialize_rz_to_json() {
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
     let expected =
-        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"angle":2.0}]}"#;
+        r#"{"version":1,"qubit_count":9,"operations":[{"gate":"rz","qubit":8,"phi":2.0}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -936,7 +935,7 @@ fn serialize_cp_to_json() {
 
     let json = json::serialize(&Circuit::from_operations(vec![operation]), false, 0).unwrap();
     let actual = String::from_utf8(json).unwrap();
-    let expected = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"angle":0.75}]}"#;
+    let expected = r#"{"version":1,"qubit_count":11,"operations":[{"gate":"cp","qubit1":5,"qubit2":10,"theta":0.75}]}"#;
 
     assert_eq!(actual, expected);
 }
@@ -1043,9 +1042,9 @@ fn parse_then_serialize_preserves_data() {
     }
 
     match parsed.operations()[1] {
-        GateOperation::P { qubit, angle } => {
+        GateOperation::P { qubit, theta } => {
             assert_eq!(qubit, 3);
-            assert!(math::are_floats_equal(angle, 1.234),);
+            assert!(math::are_floats_equal(theta, 1.234),);
         }
         _ => panic!("Expected P gate"),
     }
@@ -1069,7 +1068,7 @@ fn parse_then_serialize_preserves_data() {
 
 #[test]
 fn serialize_then_parse_preserves_data() {
-    let circuit = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"h","qubit":0},{"gate":"p","qubit":3,"angle":1.234},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
+    let circuit = r#"{"version":1,"qubit_count":4,"operations":[{"gate":"h","qubit":0},{"gate":"p","qubit":3,"theta":1.234},{"gate":"cx","control":0,"target":1},{"gate":"m","qubit":1,"bit":0}]}"#;
 
     let parsed = json::parse(circuit.as_bytes()).unwrap();
     let serialized = json::serialize(&parsed, false, 0).unwrap();

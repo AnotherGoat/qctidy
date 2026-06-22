@@ -124,9 +124,9 @@ fn to_string_rotation_gates() {
 
     let expected = "\
 Nodes:
-RX(angle=pi/2) at (0, 0)
-RY(angle=3pi) at (1, 0)
-RZ(angle=2pi/3) at (2, 0)
+RX(theta=pi/2) at (0, 0)
+RY(theta=3pi) at (1, 0)
+RZ(phi=2pi/3) at (2, 0)
 
 Edges:
 (empty)";

@@ -4,6 +4,7 @@ use itertools::Itertools;
 
 use crate::{
     EdgeType, EdgeView, Graph, NodeView, PatternMatch, PatternRule, Position,
+    domain::math,
     simplifier::pattern::{
         cache::GraphCache, occupancy::OccupancyMap, pattern_match::QubitMapping,
     },
@@ -226,6 +227,21 @@ fn map_pattern_column_to_graph(
 
 fn nodes_match(pattern_node: NodeView, graph_node: NodeView) -> bool {
     pattern_node.r#type() == graph_node.r#type()
+        && node_parameters_match(pattern_node.theta(), graph_node.theta())
+        && node_parameters_match(pattern_node.phi(), graph_node.phi())
+        && node_parameters_match(pattern_node.lambda(), graph_node.lambda())
+        && pattern_node.bit() == graph_node.bit()
+}
+
+fn node_parameters_match(pattern_parameter: Option<f64>, graph_parameter: Option<f64>) -> bool {
+    match (pattern_parameter, graph_parameter) {
+        (Some(pattern_parameter), Some(graph_parameter))
+            if math::are_floats_equal(pattern_parameter, 0.0) =>
+        {
+            math::is_float_close_to_zero(graph_parameter)
+        }
+        _ => math::are_option_floats_equal(pattern_parameter, graph_parameter),
+    }
 }
 
 fn relationships_match(

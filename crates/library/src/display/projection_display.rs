@@ -19,12 +19,32 @@ impl NodeView {
     pub fn display(&self, pi_format: PiFormat) -> String {
         let type_data = self.r#type().to_string().to_ascii_uppercase();
 
-        let angle_data = self
-            .angle()
-            .map(|angle| {
+        let theta_data = self
+            .theta()
+            .map(|theta| {
                 format!(
-                    "(angle={})",
-                    angle_formatter::format(angle, AngleFormat::Algebra, pi_format)
+                    "(theta={})",
+                    angle_formatter::format(theta, AngleFormat::Algebra, pi_format)
+                )
+            })
+            .unwrap_or_default();
+
+        let phi_data = self
+            .phi()
+            .map(|phi| {
+                format!(
+                    "(phi={})",
+                    angle_formatter::format(phi, AngleFormat::Algebra, pi_format)
+                )
+            })
+            .unwrap_or_default();
+
+        let lambda_data = self
+            .lambda()
+            .map(|lambda| {
+                format!(
+                    "(lambda={})",
+                    angle_formatter::format(lambda, AngleFormat::Algebra, pi_format)
                 )
             })
             .unwrap_or_default();
@@ -35,9 +55,11 @@ impl NodeView {
             .unwrap_or_default();
 
         format!(
-            "{}{}{} at {}",
+            "{}{}{}{}{} at {}",
             type_data,
-            angle_data,
+            theta_data,
+            phi_data,
+            lambda_data,
             bit_data,
             self.position()
         )

@@ -10,8 +10,17 @@ use crate::{GateType, Position};
 pub struct NodeView {
     r#type: GateType,
     position: Position,
-    angle: Option<f64>,
-    angle2: Option<f64>,
-    angle3: Option<f64>,
+    theta: Option<f64>,
+    phi: Option<f64>,
+    lambda: Option<f64>,
     bit: Option<usize>,
+}
+
+impl NodeView {
+    pub(crate) fn semantic_angle(&self) -> Option<f64> {
+        match self.r#type() {
+            GateType::RZ => self.phi(),
+            _ => self.theta(),
+        }
+    }
 }

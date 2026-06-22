@@ -199,14 +199,14 @@ fn backtrack(
             .expect("Component should have a node");
         let node_schema = &context.schema.nodes()[j];
 
-        if node_schema.has_angle() != node.angle().is_some()
-            || node_schema.has_bit() != node.bit().is_some()
-        {
+        let has_angle = node.theta().is_some() || node.phi().is_some() || node.lambda().is_some();
+
+        if node_schema.has_angle() != has_angle || node_schema.has_bit() != node.bit().is_some() {
             continue;
         }
 
         if matches!(node_schema, NodeSchema::TripleAngle)
-            && (node.angle2().is_none() || node.angle3().is_none())
+            && (node.theta().is_none() || node.phi().is_none() || node.lambda().is_none())
         {
             continue;
         }

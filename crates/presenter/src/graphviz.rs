@@ -233,30 +233,38 @@ fn find_node_label(node: &NodeView) -> String {
     let type_data = node.r#type().to_string().to_ascii_uppercase();
 
     let top_label = match node.r#type() {
-        P | RX | RY | RZ | CP => {
-            let angle = formatter::format_angle(
-                node.angle().unwrap_or_default(),
+        P | RX | RY | CP => {
+            let theta = formatter::format_angle(
+                node.theta().unwrap_or_default(),
                 AngleFormat::Algebra,
                 PiFormat::Fancy,
             );
-            format!("{type_data}({angle})")
+            format!("{type_data}({theta})")
+        }
+        RZ => {
+            let phi = formatter::format_angle(
+                node.phi().unwrap_or_default(),
+                AngleFormat::Algebra,
+                PiFormat::Fancy,
+            );
+            format!("{type_data}({phi})")
         }
         Measure => {
             format!("M({})", node.bit().unwrap_or_default())
         }
         U => {
             let theta = formatter::format_angle(
-                node.angle().unwrap_or_default(),
+                node.theta().unwrap_or_default(),
                 AngleFormat::Algebra,
                 PiFormat::Fancy,
             );
             let phi = formatter::format_angle(
-                node.angle2().unwrap_or_default(),
+                node.phi().unwrap_or_default(),
                 AngleFormat::Algebra,
                 PiFormat::Fancy,
             );
             let lambda = formatter::format_angle(
-                node.angle3().unwrap_or_default(),
+                node.lambda().unwrap_or_default(),
                 AngleFormat::Algebra,
                 PiFormat::Fancy,
             );

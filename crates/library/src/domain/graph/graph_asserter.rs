@@ -54,12 +54,15 @@ impl NodeAsserter<'_> {
     }
 
     pub(crate) fn has_angle(self, angle: f64) -> Self {
-        assert!(math::are_floats_equal(self.view().angle().unwrap(), angle));
+        assert!(math::are_floats_equal(
+            self.view().semantic_angle().unwrap(),
+            angle
+        ));
         self
     }
 
     pub(crate) fn has_no_angle(self) -> Self {
-        assert!(self.view().angle().is_none());
+        assert!(self.view().semantic_angle().is_none());
         self
     }
 

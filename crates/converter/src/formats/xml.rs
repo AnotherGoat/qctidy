@@ -137,9 +137,9 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
             "target1" => data.target1 = value.parse().ok(),
             "target2" => data.target2 = value.parse().ok(),
 
-            "angle" => data.angle = value.parse().ok(),
-            "angle2" => data.angle2 = value.parse().ok(),
-            "angle3" => data.angle3 = value.parse().ok(),
+            "theta" => data.theta = value.parse().ok(),
+            "phi" => data.phi = value.parse().ok(),
+            "lambda" => data.lambda = value.parse().ok(),
 
             "bit" => data.bit = value.parse().ok(),
 
@@ -233,19 +233,19 @@ fn write_gate(
 
     push_optional_attribute(&mut element, "bit", operation.bit);
 
-    if let Some(angle) = operation.angle {
-        let angle_string = angle.to_string();
-        element.push_attribute(("angle", angle_string.as_str()));
+    if let Some(theta) = operation.theta {
+        let theta_string = theta.to_string();
+        element.push_attribute(("theta", theta_string.as_str()));
     }
 
-    if let Some(angle2) = operation.angle2 {
-        let angle2_string = angle2.to_string();
-        element.push_attribute(("angle2", angle2_string.as_str()));
+    if let Some(phi) = operation.phi {
+        let phi_string = phi.to_string();
+        element.push_attribute(("phi", phi_string.as_str()));
     }
 
-    if let Some(angle3) = operation.angle3 {
-        let angle3_string = angle3.to_string();
-        element.push_attribute(("angle3", angle3_string.as_str()));
+    if let Some(lambda) = operation.lambda {
+        let lambda_string = lambda.to_string();
+        element.push_attribute(("lambda", lambda_string.as_str()));
     }
 
     writer.write_event(Event::Empty(element))

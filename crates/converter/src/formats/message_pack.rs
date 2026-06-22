@@ -55,11 +55,11 @@ struct MessagePackGateOperationData {
     #[serde(rename = "t2", default)]
     target2: Option<usize>,
     #[serde(rename = "a", default)]
-    angle: Option<f64>,
+    theta: Option<f64>,
     #[serde(rename = "a2", default)]
-    angle2: Option<f64>,
+    phi: Option<f64>,
     #[serde(rename = "a3", default)]
-    angle3: Option<f64>,
+    lambda: Option<f64>,
     #[serde(rename = "b", default)]
     bit: Option<usize>,
 }

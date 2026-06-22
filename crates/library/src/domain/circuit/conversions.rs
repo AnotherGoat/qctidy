@@ -30,20 +30,20 @@ impl From<&Graph> for Circuit {
                 Y => GateOperation::y(row),
                 Z => GateOperation::z(row),
                 P => {
-                    let angle = node.angle().expect("P gate must have an angle");
-                    GateOperation::try_p(angle, row).expect("Angle should be finite")
+                    let theta = node.theta().expect("P gate must have a theta angle");
+                    GateOperation::try_p(theta, row).expect("Angle should be finite")
                 }
                 RX => {
-                    let angle = node.angle().expect("RX gate must have an angle");
-                    GateOperation::try_rx(angle, row).expect("Angle should be finite")
+                    let theta = node.theta().expect("RX gate must have a theta angle");
+                    GateOperation::try_rx(theta, row).expect("Angle should be finite")
                 }
                 RY => {
-                    let angle = node.angle().expect("RY gate must have an angle");
-                    GateOperation::try_ry(angle, row).expect("Angle should be finite")
+                    let theta = node.theta().expect("RY gate must have a theta angle");
+                    GateOperation::try_ry(theta, row).expect("Angle should be finite")
                 }
                 RZ => {
-                    let angle = node.angle().expect("RZ gate must have an angle");
-                    GateOperation::try_rz(angle, row).expect("Angle should be finite")
+                    let phi = node.phi().expect("RZ gate must have a phi angle");
+                    GateOperation::try_rz(phi, row).expect("Angle should be finite")
                 }
                 S => GateOperation::s(row),
                 SDG => GateOperation::sdg(row),
@@ -52,9 +52,9 @@ impl From<&Graph> for Circuit {
                 T => GateOperation::t(row),
                 TDG => GateOperation::tdg(row),
                 U => {
-                    let theta = node.angle().expect("U gate must have theta");
-                    let phi = node.angle2().expect("U gate must have phi");
-                    let lambda = node.angle3().expect("U gate must have lambda");
+                    let theta = node.theta().expect("U gate must have a theta angle");
+                    let phi = node.phi().expect("U gate must have a phi angle");
+                    let lambda = node.lambda().expect("U gate must have a lambda angle");
 
                     GateOperation::try_u(theta, phi, lambda, row).expect("Angles should be finite")
                 }
@@ -117,12 +117,12 @@ impl From<&Graph> for Circuit {
                     let edges = graph
                         .get_contextual_view(position)
                         .expect("CP must have edges");
-                    let angle = node.angle().expect("CP gate must have an angle");
+                    let theta = node.theta().expect("CP gate must have a theta angle");
 
                     let other = edges.works_with()[0].position();
                     skipped.insert(other);
 
-                    GateOperation::try_cp(angle, row, other.row())
+                    GateOperation::try_cp(theta, row, other.row())
                         .expect("Angle should be finite and qubits should be distinct")
                 }
                 CSwap => {

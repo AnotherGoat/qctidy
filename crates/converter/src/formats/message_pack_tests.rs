@@ -94,9 +94,9 @@ fn msgpack_round_trip_p() {
     assert_eq!(parsed.operations().len(), 1);
 
     match parsed.operations()[0] {
-        GateOperation::P { qubit, angle } => {
+        GateOperation::P { qubit, theta } => {
             assert_eq!(qubit, 5);
-            assert!((angle - 1.5).abs() < f64::EPSILON);
+            assert!((theta - 1.5).abs() < f64::EPSILON);
         }
         _ => panic!("Expected P gate"),
     }
@@ -111,9 +111,9 @@ fn msgpack_round_trip_rx() {
     assert_eq!(parsed.operations().len(), 1);
 
     match parsed.operations()[0] {
-        GateOperation::RX { qubit, angle } => {
+        GateOperation::RX { qubit, theta } => {
             assert_eq!(qubit, 6);
-            assert!((angle - PI).abs() < f64::EPSILON);
+            assert!((theta - PI).abs() < f64::EPSILON);
         }
         _ => panic!("Expected RX gate"),
     }
@@ -128,9 +128,9 @@ fn msgpack_round_trip_ry() {
     assert_eq!(parsed.operations().len(), 1);
 
     match parsed.operations()[0] {
-        GateOperation::RY { qubit, angle } => {
+        GateOperation::RY { qubit, theta } => {
             assert_eq!(qubit, 7);
-            assert!((angle - 0.5).abs() < f64::EPSILON);
+            assert!((theta - 0.5).abs() < f64::EPSILON);
         }
         _ => panic!("Expected RY gate"),
     }
@@ -145,9 +145,9 @@ fn msgpack_round_trip_rz() {
     assert_eq!(parsed.operations().len(), 1);
 
     match parsed.operations()[0] {
-        GateOperation::RZ { qubit, angle } => {
+        GateOperation::RZ { qubit, phi } => {
             assert_eq!(qubit, 8);
-            assert!((angle - 2.0).abs() < f64::EPSILON);
+            assert!((phi - 2.0).abs() < f64::EPSILON);
         }
         _ => panic!("Expected RZ gate"),
     }
@@ -375,11 +375,11 @@ fn msgpack_round_trip_cp() {
         GateOperation::CP {
             qubit1,
             qubit2,
-            angle,
+            theta,
         } => {
             assert_eq!(qubit1, 5);
             assert_eq!(qubit2, 10);
-            assert!((angle - 0.75).abs() < f64::EPSILON);
+            assert!((theta - 0.75).abs() < f64::EPSILON);
         }
         _ => panic!("Expected CP gate"),
     }

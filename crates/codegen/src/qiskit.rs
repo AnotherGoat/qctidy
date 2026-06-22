@@ -82,8 +82,11 @@ fn generate_gate(
         | TDG { qubit } => {
             add_build_step(circuit_name, qubit, operation, build_steps);
         }
-        P { angle, qubit } | RX { angle, qubit } | RY { angle, qubit } | RZ { angle, qubit } => {
-            generate_rotation_gate(circuit_name, angle, qubit, operation, imports, build_steps);
+        P { theta, qubit } | RX { theta, qubit } | RY { theta, qubit } => {
+            generate_rotation_gate(circuit_name, theta, qubit, operation, imports, build_steps);
+        }
+        RZ { phi, qubit } => {
+            generate_rotation_gate(circuit_name, phi, qubit, operation, imports, build_steps);
         }
         SY { qubit } => {
             imports.push("from qiskit.circuit.library.standard_gates import YGate".to_owned());
@@ -136,13 +139,13 @@ fn generate_gate(
             );
         }
         CP {
-            angle,
+            theta,
             qubit1,
             qubit2,
         } => {
             generate_cp_gate(
                 circuit_name,
-                angle,
+                theta,
                 qubit1,
                 qubit2,
                 operation,
