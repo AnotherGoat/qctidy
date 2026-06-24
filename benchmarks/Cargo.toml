@@ -1,11 +1,11 @@
 [package]
 name = "benchmarks"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-criterion = "0.8.2"
 qsimplify = { path = "../crates/library" }
+criterion = { workspace = true }
 
 [[bench]]
 name = "performance"
