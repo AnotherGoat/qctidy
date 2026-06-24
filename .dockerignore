@@ -1,0 +1,14 @@
+benchmarks/
+docs/
+images/
+out/
+
+target/
+
+.vscode/
+
+**/*.env
+
+*.py
+
+**/*.bkp

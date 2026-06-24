@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-criterion = "0.5.1"
+criterion = "0.8.2"
 qsimplify = { path = "../crates/library" }
 
 [[bench]]
