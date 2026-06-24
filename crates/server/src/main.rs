@@ -1,7 +1,7 @@
 mod docs;
 mod error;
-mod features;
-mod health;
+mod schema;
+mod use_cases;
 
 #[cfg(any(
     feature = "converter-cbor",
@@ -10,52 +10,6 @@ mod health;
     feature = "converter-xml",
 ))]
 mod circuit;
-
-#[cfg(any(
-    feature = "converter-cbor",
-    feature = "converter-json",
-    feature = "converter-msgpack",
-    feature = "converter-xml",
-))]
-mod display;
-
-#[cfg(any(
-    feature = "converter-cbor",
-    feature = "converter-json",
-    feature = "converter-msgpack",
-    feature = "converter-xml",
-))]
-mod simplify;
-
-#[cfg(any(
-    feature = "converter-cbor",
-    feature = "converter-json",
-    feature = "converter-msgpack",
-    feature = "converter-xml",
-))]
-mod convert;
-
-#[cfg(all(
-    any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
-    any(
-        feature = "converter-cbor",
-        feature = "converter-json",
-        feature = "converter-msgpack",
-        feature = "converter-xml",
-    ),
-))]
-mod codegen;
-
-#[cfg(all(
-    feature = "presenter-graphviz",
-    any(
-        feature = "converter-cbor",
-        feature = "converter-json",
-        feature = "converter-msgpack",
-        feature = "converter-xml",
-    ),
-))]
-mod present;
 
 use axum::Router;
 use axum::response::Redirect;
@@ -79,8 +33,8 @@ fn build_router() -> Router {
     )]
     let mut app = Router::new()
         .route("/", get(|| async { Redirect::permanent("/docs") }))
-        .route("/health", get(health::handler))
-        .route("/features", get(features::handler))
+        .route("/health", get(use_cases::query::health::handler))
+        .route("/features", get(use_cases::query::features::handler))
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", docs::build()));
 
     #[cfg(any(
@@ -93,9 +47,18 @@ fn build_router() -> Router {
         use axum::routing::post;
 
         app = app
-            .route("/display", post(display::handler))
-            .route("/simplify", post(simplify::handler))
-            .route("/convert", post(convert::handler));
+            .route(
+                "/display",
+                post(use_cases::command::display_circuit::handler),
+            )
+            .route(
+                "/simplify",
+                post(use_cases::command::simplify_circuit::handler),
+            )
+            .route(
+                "/convert",
+                post(use_cases::command::convert_circuit::handler),
+            );
     }
 
     #[cfg(all(
@@ -110,7 +73,7 @@ fn build_router() -> Router {
     {
         use axum::routing::post;
 
-        app = app.route("/codegen", post(codegen::handler));
+        app = app.route("/codegen", post(use_cases::command::generate_code::handler));
     }
 
     #[cfg(all(
@@ -125,7 +88,10 @@ fn build_router() -> Router {
     {
         use axum::routing::post;
 
-        app = app.route("/present", post(present::handler));
+        app = app.route(
+            "/present",
+            post(use_cases::command::present_circuit::handler),
+        );
     }
 
     app

@@ -11,18 +11,25 @@ use qsimplify_ports::ConversionFormat;
 
 use crate::circuit;
 use crate::error::ApiError;
+use crate::schema;
 
 #[derive(Deserialize, ToSchema)]
-pub(crate) struct ConvertRequestBody {
+pub(crate) struct ConvertCircuitRequest {
+    #[schema(value_type = schema::ConversionFormatName, example = "json")]
     source_format: String,
+    #[schema(value_type = schema::ConversionFormatName, example = "cbor")]
     target_format: String,
+    #[schema(value_type = schema::CircuitPayload, example = schema::example_circuit_payload)]
     circuit: serde_json::Value,
 }
 
 #[derive(Serialize, ToSchema)]
-pub(crate) struct ConvertResponseBody {
+pub(crate) struct ConvertCircuitResponse {
+    #[schema(value_type = schema::ConversionFormatName, example = "json")]
     source_format: String,
+    #[schema(value_type = schema::ConversionFormatName, example = "cbor")]
     target_format: String,
+    #[schema(value_type = schema::CircuitPayload, example = schema::example_circuit_payload)]
     circuit: serde_json::Value,
 }
 
@@ -35,17 +42,17 @@ struct Base64Circuit {
 #[utoipa::path(
     post,
     path = "/convert",
-    request_body = ConvertRequestBody,
+    request_body = ConvertCircuitRequest,
     responses(
-        (status = 200, description = "Circuit converted successfully", body = ConvertResponseBody),
+        (status = 200, description = "Circuit converted successfully", body = ConvertCircuitResponse),
         (status = 400, description = "Bad request"),
         (status = 500, description = "Internal server error"),
     ),
     tag = "conversion",
 )]
 pub(crate) async fn handler(
-    Json(body): Json<ConvertRequestBody>,
-) -> Result<Json<ConvertResponseBody>, ApiError> {
+    Json(body): Json<ConvertCircuitRequest>,
+) -> Result<Json<ConvertCircuitResponse>, ApiError> {
     let source_format = circuit::parse_conversion_format(&body.source_format).ok_or_else(|| {
         ApiError::BadRequest(format!("Unknown source_format: {}", body.source_format))
     })?;
@@ -74,7 +81,7 @@ pub(crate) async fn handler(
     )
     .map_err(|error| ApiError::Internal(format!("Serialize error: {error}")))?;
 
-    Ok(Json(ConvertResponseBody {
+    Ok(Json(ConvertCircuitResponse {
         source_format: body.source_format,
         target_format: body.target_format,
         circuit: encode_circuit(serialized.bytes().as_ref(), target_format)?,

@@ -1,8 +1,8 @@
 use utoipa::OpenApi as OpenApiMacro;
 use utoipa::openapi::OpenApi;
 
-use crate::features;
-use crate::health;
+use crate::schema;
+use crate::use_cases::query::{features, health};
 
 #[cfg(any(
     feature = "converter-cbor",
@@ -10,7 +10,7 @@ use crate::health;
     feature = "converter-msgpack",
     feature = "converter-xml",
 ))]
-use crate::{convert, display, simplify};
+use crate::use_cases::command::{convert_circuit, display_circuit, simplify_circuit};
 
 #[cfg(all(
     any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
@@ -21,7 +21,7 @@ use crate::{convert, display, simplify};
         feature = "converter-xml",
     ),
 ))]
-use crate::codegen;
+use crate::use_cases::command::generate_code;
 
 #[cfg(all(
     feature = "presenter-graphviz",
@@ -32,7 +32,7 @@ use crate::codegen;
         feature = "converter-xml",
     ),
 ))]
-use crate::present;
+use crate::use_cases::command::present_circuit;
 
 #[derive(OpenApiMacro)]
 #[openapi(
@@ -56,13 +56,24 @@ struct CoreApiDoc;
 ))]
 #[derive(OpenApiMacro)]
 #[openapi(
-    paths(display::handler, simplify::handler, convert::handler),
+    paths(display_circuit::handler, simplify_circuit::handler, convert_circuit::handler),
     components(schemas(
-        display::DisplayRequestBody,
-        simplify::SimplifyRequestBody,
-        simplify::SimplifyResponseBody,
-        convert::ConvertRequestBody,
-        convert::ConvertResponseBody,
+        display_circuit::DisplayCircuitRequest,
+        simplify_circuit::SimplifyCircuitRequest,
+        simplify_circuit::SimplifyCircuitResponse,
+        convert_circuit::ConvertCircuitRequest,
+        convert_circuit::ConvertCircuitResponse,
+        schema::Base64Circuit,
+        schema::Circuit,
+        schema::CircuitPayload,
+        schema::CodeGenerationTargetName,
+        schema::ConversionFormatName,
+        schema::DiracFormatName,
+        schema::DisplayFormatName,
+        schema::GateName,
+        schema::GateOperation,
+        schema::PiFormatName,
+        schema::PresentationFormatName,
     )),
     tags(
         (name = "circuit", description = "Circuit operations"),
@@ -82,10 +93,10 @@ struct ConverterApiDoc;
 ))]
 #[derive(OpenApiMacro)]
 #[openapi(
-    paths(codegen::handler),
+    paths(generate_code::handler),
     components(schemas(
-        codegen::CodegenRequestBody,
-        codegen::CodegenResponseBody,
+        generate_code::GenerateCodeRequest,
+        generate_code::GenerateCodeResponse,
     )),
     tags(
         (name = "codegen", description = "Code generation"),
@@ -104,9 +115,9 @@ struct CodegenApiDoc;
 ))]
 #[derive(OpenApiMacro)]
 #[openapi(
-    paths(present::handler),
+    paths(present_circuit::handler),
     components(schemas(
-        present::PresentRequestBody,
+        present_circuit::PresentCircuitRequest,
     )),
     tags(
         (name = "presentation", description = "Circuit visualization"),

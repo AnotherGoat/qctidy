@@ -7,7 +7,6 @@ use serde_json::json;
 pub(crate) enum ApiError {
     #[error("{0}")]
     BadRequest(String),
-
     #[error("{0}")]
     Internal(String),
 }

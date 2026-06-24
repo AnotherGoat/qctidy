@@ -9,33 +9,37 @@ use qsimplify_ports::CodeGenerationTarget;
 
 use crate::circuit;
 use crate::error::ApiError;
+use crate::schema;
 
 #[derive(Deserialize, ToSchema)]
-pub(crate) struct CodegenRequestBody {
+pub(crate) struct GenerateCodeRequest {
+    #[schema(value_type = schema::Circuit, example = schema::example_circuit)]
     circuit: serde_json::Value,
+    #[schema(value_type = schema::CodeGenerationTargetName, example = "qiskit")]
     target: String,
+    #[schema(example = "circuit")]
     circuit_name: Option<String>,
 }
 
 #[derive(Serialize, ToSchema)]
-pub(crate) struct CodegenResponseBody {
+pub(crate) struct GenerateCodeResponse {
     code: String,
 }
 
 #[utoipa::path(
     post,
     path = "/codegen",
-    request_body = CodegenRequestBody,
+    request_body = GenerateCodeRequest,
     responses(
-        (status = 200, description = "Code generated successfully", body = CodegenResponseBody),
+        (status = 200, description = "Code generated successfully", body = GenerateCodeResponse),
         (status = 400, description = "Bad request"),
         (status = 500, description = "Internal server error"),
     ),
     tag = "codegen",
 )]
 pub(crate) async fn handler(
-    Json(body): Json<CodegenRequestBody>,
-) -> Result<Json<CodegenResponseBody>, ApiError> {
+    Json(body): Json<GenerateCodeRequest>,
+) -> Result<Json<GenerateCodeResponse>, ApiError> {
     let circ = circuit::from_json(&body.circuit)?;
 
     let target = match body.target.to_lowercase().as_str() {
@@ -48,7 +52,7 @@ pub(crate) async fn handler(
     let response = qsimplify_facade::generate_code(&request, &CodegenAdapter)
         .map_err(|error| ApiError::Internal(error.to_string()))?;
 
-    Ok(Json(CodegenResponseBody {
+    Ok(Json(GenerateCodeResponse {
         code: response.code().clone(),
     }))
 }

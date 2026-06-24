@@ -11,18 +11,22 @@ use qsimplify_presenter::GraphvizPresenter;
 
 use crate::circuit;
 use crate::error::ApiError;
+use crate::schema;
 
 #[derive(Deserialize, ToSchema)]
-pub(crate) struct PresentRequestBody {
+pub(crate) struct PresentCircuitRequest {
+    #[schema(value_type = schema::Circuit, example = schema::example_circuit)]
     circuit: serde_json::Value,
+    #[schema(value_type = schema::PresentationFormatName, example = "graphviz_png")]
     format: String,
+    #[schema(example = 300)]
     dpi: Option<u32>,
 }
 
 #[utoipa::path(
     post,
     path = "/present",
-    request_body = PresentRequestBody,
+    request_body = PresentCircuitRequest,
     responses(
         (status = 200, description = "Circuit presented successfully", content_type = "image/png", body = Vec::<u8>),
         (status = 400, description = "Bad request"),
@@ -31,7 +35,7 @@ pub(crate) struct PresentRequestBody {
     tag = "presentation",
 )]
 pub(crate) async fn handler(
-    Json(body): Json<PresentRequestBody>,
+    Json(body): Json<PresentCircuitRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let circ = circuit::from_json(&body.circuit)?;
 

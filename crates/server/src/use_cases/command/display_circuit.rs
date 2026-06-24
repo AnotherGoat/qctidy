@@ -12,19 +12,24 @@ use qsimplify_facade::DisplayRequest;
 
 use crate::circuit;
 use crate::error::ApiError;
+use crate::schema;
 
 #[derive(Deserialize, ToSchema)]
-pub(crate) struct DisplayRequestBody {
+pub(crate) struct DisplayCircuitRequest {
+    #[schema(value_type = schema::Circuit, example = schema::example_circuit)]
     circuit: serde_json::Value,
+    #[schema(value_type = schema::DisplayFormatName, example = "circuit")]
     format: String,
+    #[schema(value_type = schema::PiFormatName, example = "fancy")]
     pi_format: Option<String>,
+    #[schema(value_type = schema::DiracFormatName, example = "fancy")]
     dirac_format: Option<String>,
 }
 
 #[utoipa::path(
     post,
     path = "/display",
-    request_body = DisplayRequestBody,
+    request_body = DisplayCircuitRequest,
     responses(
         (status = 200, description = "Circuit displayed successfully", content_type = "text/plain", body = String),
         (status = 400, description = "Bad request"),
@@ -33,7 +38,7 @@ pub(crate) struct DisplayRequestBody {
     tag = "circuit",
 )]
 pub(crate) async fn handler(
-    Json(body): Json<DisplayRequestBody>,
+    Json(body): Json<DisplayCircuitRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let circ = circuit::from_json(&body.circuit)?;
 

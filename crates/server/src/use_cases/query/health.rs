@@ -5,5 +5,5 @@
     tag = "health",
 )]
 pub(crate) async fn handler() -> &'static str {
-    "OK"
+    "ok"
 }
