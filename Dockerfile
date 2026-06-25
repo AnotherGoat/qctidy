@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1-labs
 # Steps to run the image:
 # docker build -t qsimplify-server .
 # docker run --rm -p 3000:3000 qsimplify-server
