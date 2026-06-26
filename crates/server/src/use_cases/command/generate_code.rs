@@ -29,6 +29,7 @@ pub(crate) struct GenerateCodeResponse {
 #[utoipa::path(
     post,
     path = "/codegen",
+    operation_id = "generate_code",
     request_body = GenerateCodeRequest,
     responses(
         (status = 200, description = "Code generated successfully", body = GenerateCodeResponse),

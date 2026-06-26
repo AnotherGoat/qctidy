@@ -26,6 +26,7 @@ pub(crate) struct SimplifyCircuitResponse {
 #[utoipa::path(
     post,
     path = "/simplify",
+    operation_id = "simplify_circuit",
     request_body = SimplifyCircuitRequest,
     responses(
         (status = 200, description = "Circuit simplified successfully", body = SimplifyCircuitResponse),

@@ -26,6 +26,7 @@ pub(crate) struct PresentCircuitRequest {
 #[utoipa::path(
     post,
     path = "/present",
+    operation_id = "present_circuit",
     request_body = PresentCircuitRequest,
     responses(
         (status = 200, description = "Circuit presented successfully", content_type = "image/png", body = Vec::<u8>),

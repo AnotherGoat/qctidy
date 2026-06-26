@@ -197,10 +197,10 @@ pub(crate) enum CodeGenerationTargetName {
 #[derive(Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum PresentationFormatName {
-    GraphvizGv,
-    Gv,
     GraphvizPng,
     Png,
+    GraphvizGv,
+    Gv,
     GraphvizSvg,
     Svg,
 }

@@ -10,6 +10,7 @@ pub(crate) struct FeaturesResponse {
 #[utoipa::path(
     get,
     path = "/features",
+    operation_id = "get_features",
     responses((status = 200, description = "List of enabled features", body = FeaturesResponse)),
     tag = "health",
 )]

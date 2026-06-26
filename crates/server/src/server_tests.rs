@@ -81,6 +81,45 @@ async fn docs_redirect_returns_303() {
     assert_eq!(response.status(), 303);
 }
 
+#[tokio::test]
+async fn openapi_uses_unique_operation_ids_and_paths() {
+    let app = build_router();
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/docs/openapi.json")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+    assert_eq!(
+        body["paths"]["/features"]["get"]["operationId"],
+        "get_features"
+    );
+    assert_eq!(body["paths"]["/health"]["get"]["operationId"], "get_health");
+
+    #[cfg(all(
+        any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    ))]
+    assert_eq!(
+        body["paths"]["/codegen"]["post"]["operationId"],
+        "generate_code"
+    );
+}
+
 #[cfg(all(feature = "converter-json", feature = "converter-xml"))]
 #[tokio::test]
 async fn convert_returns_json_circuit_inline_when_target_is_json() {

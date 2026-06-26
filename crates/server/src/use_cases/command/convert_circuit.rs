@@ -42,6 +42,7 @@ struct Base64Circuit {
 #[utoipa::path(
     post,
     path = "/convert",
+    operation_id = "convert_circuit",
     request_body = ConvertCircuitRequest,
     responses(
         (status = 200, description = "Circuit converted successfully", body = ConvertCircuitResponse),

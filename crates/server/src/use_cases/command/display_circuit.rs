@@ -29,6 +29,7 @@ pub(crate) struct DisplayCircuitRequest {
 #[utoipa::path(
     post,
     path = "/display",
+    operation_id = "display_circuit",
     request_body = DisplayCircuitRequest,
     responses(
         (status = 200, description = "Circuit displayed successfully", content_type = "text/plain", body = String),
