@@ -16,6 +16,7 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+serde = { workspace = true, features = ["derive"] }
 
 [lints]
 workspace = true

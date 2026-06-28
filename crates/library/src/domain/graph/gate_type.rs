@@ -212,7 +212,7 @@ impl FromStr for GateType {
 
 impl GateType {
     /// Get the number of qubits used by this type of gate.
-    pub(crate) fn qubit_count(self) -> usize {
+    pub fn qubit_count(self) -> usize {
         GATE_METADATAS[usize::from(self)].qubit_count()
     }
 
@@ -229,7 +229,7 @@ impl GateType {
     }
 
     /// Check whether this gate type has control and target qubits or not.
-    pub(crate) fn is_controlled(self) -> bool {
+    pub fn is_controlled(self) -> bool {
         self.control_qubit_count() > 0
     }
 
@@ -243,7 +243,7 @@ impl GateType {
     }
 
     /// Check whether this gate type has a single control and a single target qubit.
-    pub(crate) fn is_single_controlled(self) -> bool {
+    pub fn is_single_controlled(self) -> bool {
         self.control_qubit_count() == 1 && self.target_qubit_count() == 1
     }
 
@@ -258,12 +258,12 @@ impl GateType {
     }
 
     /// Check whether this gate type is a rotation gate or not.
-    pub(crate) fn is_rotation(self) -> bool {
+    pub fn is_rotation(self) -> bool {
         GATE_METADATAS[usize::from(self)].is_rotation()
     }
 
     /// Check whether this gate type is a square root or not.
-    pub(crate) fn is_square_root(self) -> bool {
+    pub fn is_square_root(self) -> bool {
         GATE_METADATAS[usize::from(self)].is_square_root()
     }
 }
