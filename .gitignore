@@ -23,3 +23,6 @@ benchmarks/results/**
 
 # Documentation images
 !images/*.png
+
+# Caché del estimador
+pricing_cache.json

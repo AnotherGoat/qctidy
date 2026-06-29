@@ -12,6 +12,9 @@ use crate::use_cases::query::{features, health};
 ))]
 use crate::use_cases::command::{convert_circuit, display_circuit, simplify_circuit};
 
+#[cfg(feature = "estimator")]
+use crate::use_cases::command::estimate_circuit;
+
 #[cfg(all(
     any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
     any(
@@ -125,6 +128,20 @@ struct CodegenApiDoc;
 )]
 struct PresenterApiDoc;
 
+#[cfg(feature = "estimator")]
+#[derive(OpenApiMacro)]
+#[openapi(
+    paths(estimate_circuit::handler),
+    components(schemas(
+        estimate_circuit::EstimateCircuitRequest,
+        estimate_circuit::EstimateCircuitResponse,
+    )),
+    tags(
+        (name = "estimator", description = "Circuit cost estimation"),
+    ),
+)]
+struct EstimatorApiDoc;
+
 pub(crate) fn build() -> OpenApi {
     let mut spec = CoreApiDoc::openapi();
 
@@ -162,6 +179,11 @@ pub(crate) fn build() -> OpenApi {
     ))]
     {
         spec.merge(PresenterApiDoc::openapi());
+    }
+
+    #[cfg(feature = "estimator")]
+    {
+        spec.merge(EstimatorApiDoc::openapi());
     }
 
     spec

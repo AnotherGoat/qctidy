@@ -94,6 +94,16 @@ fn build_router() -> Router {
         );
     }
 
+    #[cfg(feature = "estimator")]
+    {
+        use axum::routing::post;
+
+        app = app.route(
+            "/estimate",
+            post(use_cases::command::estimate_circuit::handler),
+        );
+    }
+
     app
 }
 

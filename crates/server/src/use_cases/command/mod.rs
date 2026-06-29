@@ -43,3 +43,6 @@ pub(crate) mod present_circuit;
     feature = "converter-xml",
 ))]
 pub(crate) mod simplify_circuit;
+
+#[cfg(feature = "estimator")]
+pub(crate) mod estimate_circuit;
