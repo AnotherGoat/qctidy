@@ -14,11 +14,14 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[pyclass(name = "PresentationFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(non_camel_case_types)]
+#[expect(clippy::enum_variant_names)]
 enum PythonPresentationFormat {
-    GRAPHVIZ_GV,
-    GRAPHVIZ_PNG,
-    GRAPHVIZ_SVG,
+    #[pyo3(name = "GRAPHVIZ_GV")]
+    GraphvizGv,
+    #[pyo3(name = "GRAPHVIZ_PNG")]
+    GraphvizPng,
+    #[pyo3(name = "GRAPHVIZ_SVG")]
+    GraphvizSvg,
 }
 
 impl From<PythonPresentationFormat> for PresentationFormat {
@@ -26,9 +29,9 @@ impl From<PythonPresentationFormat> for PresentationFormat {
         use PythonPresentationFormat::*;
 
         match value {
-            GRAPHVIZ_GV => Self::GraphvizGv,
-            GRAPHVIZ_PNG => Self::GraphvizPng,
-            GRAPHVIZ_SVG => Self::GraphvizSvg,
+            GraphvizGv => Self::GraphvizGv,
+            GraphvizPng => Self::GraphvizPng,
+            GraphvizSvg => Self::GraphvizSvg,
         }
     }
 }

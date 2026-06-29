@@ -4,7 +4,11 @@ mod converter;
 mod estimator;
 mod presenter;
 
-pub use analyzer::{AnalysisError, AnalyzerPort};
+pub use analyzer::{
+    AnalysisError, AnalysisMetrics, AnalysisMode, AnalysisResult, AnalyzerPort,
+    DeltaAnalysisMetrics, DeltaAnalysisResult, DeltaDetailedAnalysisMetrics,
+    DetailedAnalysisMetrics,
+};
 pub use codegen::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
 pub use converter::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 pub use estimator::{EstimationError, EstimatorPort};

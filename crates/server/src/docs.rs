@@ -16,6 +16,17 @@ use crate::use_cases::command::{convert_circuit, display_circuit, simplify_circu
 use crate::use_cases::command::estimate_circuit;
 
 #[cfg(all(
+    feature = "analyzer",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
+use crate::use_cases::command::{analyze_circuit, compare_circuits};
+
+#[cfg(all(
     any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
     any(
         feature = "converter-cbor",
@@ -86,6 +97,30 @@ struct CoreApiDoc;
 struct ConverterApiDoc;
 
 #[cfg(all(
+    feature = "analyzer",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
+#[derive(OpenApiMacro)]
+#[openapi(
+    paths(analyze_circuit::handler, compare_circuits::handler),
+    components(schemas(
+        analyze_circuit::AnalyzeCircuitRequest,
+        analyze_circuit::AnalyzeCircuitResponse,
+        compare_circuits::CompareCircuitsRequest,
+        compare_circuits::CompareCircuitsResponse,
+    )),
+    tags(
+        (name = "analysis", description = "Circuit analysis"),
+    ),
+)]
+struct AnalyzerApiDoc;
+
+#[cfg(all(
     any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
     any(
         feature = "converter-cbor",
@@ -153,6 +188,19 @@ pub(crate) fn build() -> OpenApi {
     ))]
     {
         spec.merge(ConverterApiDoc::openapi());
+    }
+
+    #[cfg(all(
+        feature = "analyzer",
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    ))]
+    {
+        spec.merge(AnalyzerApiDoc::openapi());
     }
 
     #[cfg(all(

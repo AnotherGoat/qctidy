@@ -27,6 +27,7 @@ fn build_router() -> Router {
             feature = "converter-msgpack",
             feature = "converter-xml",
             any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
+            feature = "analyzer",
             feature = "presenter-graphviz",
         )),
         allow(unused_mut)
@@ -58,6 +59,29 @@ fn build_router() -> Router {
             .route(
                 "/convert",
                 post(use_cases::command::convert_circuit::handler),
+            );
+    }
+
+    #[cfg(all(
+        feature = "analyzer",
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    ))]
+    {
+        use axum::routing::post;
+
+        app = app
+            .route(
+                "/analyze",
+                post(use_cases::command::analyze_circuit::handler),
+            )
+            .route(
+                "/compare",
+                post(use_cases::command::compare_circuits::handler),
             );
     }
 
