@@ -2450,7 +2450,7 @@ name = "qsimplify-estimator"
 version = "0.1.0"
 dependencies = [
  "qsimplify",
- "qsimplify-analyzer",
+ "qsimplify-ports",
  "regex",
  "reqwest",
  "scraper",

@@ -27,6 +27,18 @@ pub(crate) fn example_circuit() -> serde_json::Value {
     })
 }
 
+#[cfg_attr(
+    not(all(
+        feature = "analyzer",
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    )),
+    expect(dead_code, reason = "used by analyzer endpoint schema examples")
+)]
 pub(crate) fn example_comparison_circuit() -> serde_json::Value {
     json!({
         "version": 1,

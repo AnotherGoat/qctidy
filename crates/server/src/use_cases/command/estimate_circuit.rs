@@ -1,10 +1,10 @@
 use axum::extract::Json;
-use qsimplify::Graph;
+use qsimplify_estimator::EstimatorAdapter;
+use qsimplify_facade::EstimationRequest;
 use serde::Deserialize;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use qsimplify_estimator::BackendProfile;
 use crate::circuit;
 use crate::error::ApiError;
 use crate::schema;
@@ -58,25 +58,20 @@ pub(crate) struct EstimateCircuitResponse {
 pub(crate) async fn handler(
     Json(body): Json<EstimateCircuitRequest>,
 ) -> Result<Json<EstimateCircuitResponse>, ApiError> {
-    let circ = circuit::from_json(&body.circuit)?;
-    let graph = Graph::from(circ.as_ref());
+    let circuit = circuit::from_json(&body.circuit)?;
     let shots = body.shots.unwrap_or(1024);
+    let request = EstimationRequest::new(circuit, shots);
 
-    let profile = BackendProfile::default();
+    let response = tokio::task::spawn_blocking(move || {
+        qsimplify_facade::estimate(&request, &EstimatorAdapter)
+    })
+    .await
+    .map_err(|error| ApiError::Internal(error.to_string()))?
+    .map_err(|error| ApiError::Internal(error.to_string()))?;
 
-    let heuristic_time = qsimplify_estimator::estimate_execution_time(&graph, shots, &profile);
-
-    // false = intentar usar caché
-    let pricing = qsimplify_estimator::get_pricing_data(false).await;
-
-    let estimates = qsimplify_estimator::calculate_costs(
-        &pricing,
-        heuristic_time,
-        shots,
-        profile.base_time_ns,
-    );
-
-    let api_estimates = estimates
+    let api_estimates = response
+        .estimation()
+        .costs
         .into_iter()
         .map(|p| ApiProviderCostEstimates {
             provider: p.provider,
@@ -94,5 +89,7 @@ pub(crate) async fn handler(
         })
         .collect();
 
-    Ok(Json(EstimateCircuitResponse { estimates: api_estimates }))
+    Ok(Json(EstimateCircuitResponse {
+        estimates: api_estimates,
+    }))
 }

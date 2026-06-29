@@ -40,7 +40,12 @@ default = [
     "estimator",
     "presenter-graphviz",
 ]
-analyzer = ["dep:qsimplify-analyzer", "qsimplify-facade/analyzer"]
+analyzer = [
+    "dep:qsimplify-analyzer",
+    "qsimplify-analyzer/analyzer",
+    "qsimplify-facade/analyzer",
+    "qsimplify-ports/analyzer",
+]
 codegen-qiskit = [
     "dep:qsimplify-codegen",
     "qsimplify-codegen/codegen-qiskit",
@@ -77,7 +82,12 @@ converter-xml = [
     "qsimplify-facade/converter-xml",
     "qsimplify-ports/converter-xml",
 ]
-estimator = ["dep:qsimplify-estimator", "qsimplify-facade/estimator"]
+estimator = [
+    "dep:qsimplify-estimator",
+    "qsimplify-estimator/estimator",
+    "qsimplify-facade/estimator",
+    "qsimplify-ports/estimator",
+]
 presenter-graphviz = [
     "dep:qsimplify-presenter",
     "qsimplify-facade/presenter-graphviz",

@@ -23,20 +23,24 @@ thiserror = { workspace = true }
 
 [features]
 default = [
+    "analyzer",
     "codegen-qiskit",
     "codegen-openqasm3",
     "converter-cbor",
     "converter-json",
     "converter-msgpack",
     "converter-xml",
+    "estimator",
     "presenter-graphviz"
 ]
+analyzer = []
 codegen-qiskit = []
 codegen-openqasm3 = []
 converter-cbor = []
 converter-json = []
 converter-msgpack = []
 converter-xml = []
+estimator = []
 presenter-graphviz = []
 
 [lints]

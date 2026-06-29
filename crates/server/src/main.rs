@@ -118,7 +118,15 @@ fn build_router() -> Router {
         );
     }
 
-    #[cfg(feature = "estimator")]
+    #[cfg(all(
+        feature = "estimator",
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    ))]
     {
         use axum::routing::post;
 

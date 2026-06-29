@@ -4,6 +4,9 @@ mod extractor;
 #[cfg(feature = "analyzer")]
 mod analyzer;
 
+#[cfg(feature = "estimator")]
+mod estimator;
+
 #[cfg(feature = "presenter-graphviz")]
 mod presenter;
 
@@ -168,6 +171,9 @@ fn bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
     #[cfg(feature = "analyzer")]
     analyzer::register(module)?;
+
+    #[cfg(feature = "estimator")]
+    estimator::register(module)?;
 
     #[cfg(feature = "presenter-graphviz")]
     presenter::register(module)?;

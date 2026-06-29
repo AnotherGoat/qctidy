@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/// Perfil de pesos heurísticos que representa la arquitectura de un hardware cuántico (QPU).
-/// Se utiliza para simular el costo en tiempo de las operaciones lógicas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Heuristic weight profile for a quantum processing unit (QPU) architecture.
+/// Used to simulate the execution-time cost of logical operations.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct BackendProfile {
     pub phase_cost: f64,
     pub single_qubit_cost: f64,
@@ -13,7 +13,7 @@ pub struct BackendProfile {
     pub measure_cost: f64,
     pub reset_cost: f64,
     pub repetition_delay_cost: f64,
-    /// Tiempo base en nanosegundos al que equivalen los costos heurísticos
+    /// Base time in nanoseconds represented by one heuristic cost unit.
     pub base_time_ns: f64,
 }
 
@@ -34,7 +34,7 @@ impl Default for BackendProfile {
     }
 }
 
-/// Representa el costo estimado final de un plan específico de un proveedor
+/// Estimated final cost for a specific provider plan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EstimatedCost {
     pub provider: String,
@@ -43,7 +43,7 @@ pub struct EstimatedCost {
     pub cost_usd: Option<f64>,
 }
 
-/// Representa un reporte de costos agrupado por el proveedor principal (ej. AWS Braket, IBM)
+/// Cost estimates grouped by top-level provider, such as AWS Braket or IBM.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProviderCostEstimates {
     pub provider: String,
@@ -51,8 +51,7 @@ pub struct ProviderCostEstimates {
     pub estimates: Vec<EstimatedCost>,
 }
 
-/// Respuesta completa del estimador, empaquetando el tiempo heurístico simulado
-/// y las cotizaciones financieras en USD.
+/// Complete estimator response with simulated heuristic time and USD cost quotes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EstimationResponse {
     pub execution_time: f64,

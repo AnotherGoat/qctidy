@@ -2,31 +2,34 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::Circuit;
-use qsimplify_ports::{EstimationError, EstimatorPort};
+use qsimplify::{Circuit, Graph};
+use qsimplify_ports::{Estimation, EstimationError, EstimatorPort};
 
-#[derive(Debug, Clone, CloneGetters, New)]
+#[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct EstimationRequest {
     #[get_clone = "pub"]
     circuit: Arc<Circuit>,
+    #[get_copy = "pub"]
+    shots: usize,
 }
 
-#[derive(Debug, Clone, Copy, CopyGetters, New)]
+#[derive(Debug, Clone, CloneGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct EstimationResponse {
-    #[get_copy = "pub"]
-    execution_time: f64,
-    #[get_copy = "pub"]
-    cost: f64,
+    #[get_clone = "pub"]
+    estimation: Estimation,
 }
 
-#[expect(clippy::unimplemented)]
 pub fn estimate<E: EstimatorPort>(
-    _request: &EstimationRequest,
-    _estimator: &E,
+    request: &EstimationRequest,
+    estimator: &E,
 ) -> Result<EstimationResponse, EstimationError> {
-    unimplemented!()
+    let graph = Graph::from(request.circuit().as_ref());
+
+    estimator
+        .estimate(&graph, request.shots())
+        .map(EstimationResponse::new)
 }

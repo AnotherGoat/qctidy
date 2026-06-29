@@ -8,9 +8,11 @@ FROM rust:1.90-alpine3.22 AS builder
 ARG UID=1000
 ARG GID=1000
 
-# Install Graphviz SDK and other build dependencies
+# Install Graphviz, TLS, and other build dependencies
 RUN apk add --no-cache \
     build-base=0.5-r3 \
+    openssl-dev=3.5.7-r0 \
+    openssl-libs-static=3.5.7-r0 \
     graphviz-dev=12.2.1-r0 \
     pkgconf=2.4.3-r0
 
@@ -103,19 +105,22 @@ ARG GID=1000
 RUN addgroup -g "$GID" appgroup && \
     adduser -D -u "$UID" -G appgroup appuser
 
-# Install Graphviz
-RUN apk add --no-cache graphviz=12.2.1-r0
+# Install runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates=20260611-r0 \
+    graphviz=12.2.1-r0 \
+    openssl=3.5.7-r0
 
 # Copy the binary built in the previous stage
 COPY --from=builder /usr/local/bin/qsimplify-server /usr/local/bin/qsimplify-server
 
-ENV HOST=0.0.0.0
-ENV PORT=3000
+ENV API_HOST=0.0.0.0
+ENV API_PORT=3000
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/health" || exit 1
+    CMD wget -q -O /dev/null "http://127.0.0.1:${API_PORT}/health" || exit 1
 
 USER appuser
 

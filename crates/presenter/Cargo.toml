@@ -18,13 +18,13 @@ doctest = false
 [dependencies]
 qsimplify = { path = "../library" }
 qsimplify-ports = { path = "../ports" }
-graphviz-rust = { workspace = true }
+graphviz-rust = { workspace = true, optional = true }
 
 [features]
 default = [
     "presenter-graphviz",
 ]
-presenter-graphviz = []
+presenter-graphviz = ["dep:graphviz-rust"]
 
 [lints]
 workspace = true

@@ -11,7 +11,9 @@ pub use analyzer::{
 };
 pub use codegen::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
 pub use converter::{ConversionFormat, ConverterPort, ParseError, SerializeError};
-pub use estimator::{EstimationError, EstimatorPort};
+pub use estimator::{
+    EstimatedCost, Estimation, EstimationError, EstimatorPort, ProviderCostEstimates,
+};
 pub use presenter::{PresentationError, PresentationFormat, PresenterPort};
 
 use thiserror::Error;

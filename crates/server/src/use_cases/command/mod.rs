@@ -66,5 +66,13 @@ pub(crate) mod present_circuit;
 ))]
 pub(crate) mod simplify_circuit;
 
-#[cfg(feature = "estimator")]
+#[cfg(all(
+    feature = "estimator",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
 pub(crate) mod estimate_circuit;

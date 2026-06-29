@@ -12,7 +12,15 @@ use crate::use_cases::query::{features, health};
 ))]
 use crate::use_cases::command::{convert_circuit, display_circuit, simplify_circuit};
 
-#[cfg(feature = "estimator")]
+#[cfg(all(
+    feature = "estimator",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
 use crate::use_cases::command::estimate_circuit;
 
 #[cfg(all(
@@ -163,7 +171,15 @@ struct CodegenApiDoc;
 )]
 struct PresenterApiDoc;
 
-#[cfg(feature = "estimator")]
+#[cfg(all(
+    feature = "estimator",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
 #[derive(OpenApiMacro)]
 #[openapi(
     paths(estimate_circuit::handler),
@@ -229,7 +245,15 @@ pub(crate) fn build() -> OpenApi {
         spec.merge(PresenterApiDoc::openapi());
     }
 
-    #[cfg(feature = "estimator")]
+    #[cfg(all(
+        feature = "estimator",
+        any(
+            feature = "converter-cbor",
+            feature = "converter-json",
+            feature = "converter-msgpack",
+            feature = "converter-xml",
+        ),
+    ))]
     {
         spec.merge(EstimatorApiDoc::openapi());
     }
