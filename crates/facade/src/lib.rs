@@ -17,7 +17,9 @@ mod presenter;
 mod simplifier;
 
 #[cfg(feature = "analyzer")]
-pub use analyzer::{AnalysisRequest, AnalysisResponse, analyze};
+pub use analyzer::{
+    AnalysisRequest, AnalysisResponse, ComparisonRequest, ComparisonResponse, analyze, compare,
+};
 #[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 pub use codegen::{CodeGenerationRequest, CodeGenerationResponse, generate_code};
 #[cfg(any(

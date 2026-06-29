@@ -16,6 +16,7 @@ doctest = false
 
 [dependencies]
 qsimplify = { path = "../library" }
+qsimplify-ports = { path = "../ports" }
 serde = { workspace = true, features = ["derive"] }
 
 [lints]

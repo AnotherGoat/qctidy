@@ -27,6 +27,19 @@ pub(crate) fn example_circuit() -> serde_json::Value {
     })
 }
 
+pub(crate) fn example_comparison_circuit() -> serde_json::Value {
+    json!({
+        "version": 1,
+        "qubit_count": 3,
+        "operations": [
+            { "gate": "h", "qubit": 0 },
+            { "gate": "x", "qubit": 1 },
+            { "gate": "cx", "control": 0, "target": 2 },
+            { "gate": "m", "qubit": 2, "bit": 0 }
+        ]
+    })
+}
+
 fn example_base64_circuit() -> serde_json::Value {
     json!({
         "encoding": "base64",

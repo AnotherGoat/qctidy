@@ -15,9 +15,9 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[pyclass(name = "CodeGenerationTarget", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(clippy::upper_case_acronyms)]
 enum PythonCodeGenerationTarget {
-    QISKIT,
+    #[pyo3(name = "QISKIT")]
+    Qiskit,
 }
 
 impl From<PythonCodeGenerationTarget> for CodeGenerationTarget {
@@ -25,7 +25,7 @@ impl From<PythonCodeGenerationTarget> for CodeGenerationTarget {
         use PythonCodeGenerationTarget::*;
 
         match value {
-            QISKIT => Self::Qiskit,
+            Qiskit => Self::Qiskit,
         }
     }
 }

@@ -15,12 +15,15 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[pyclass(name = "ConversionFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(clippy::upper_case_acronyms, non_camel_case_types)]
 enum PythonConversionFormat {
-    JSON,
-    XML,
-    MESSAGE_PACK,
-    CBOR,
+    #[pyo3(name = "JSON")]
+    Json,
+    #[pyo3(name = "XML")]
+    Xml,
+    #[pyo3(name = "MESSAGE_PACK")]
+    MessagePack,
+    #[pyo3(name = "CBOR")]
+    Cbor,
 }
 
 impl From<PythonConversionFormat> for ConversionFormat {
@@ -28,10 +31,10 @@ impl From<PythonConversionFormat> for ConversionFormat {
         use PythonConversionFormat::*;
 
         match value {
-            JSON => Self::Json,
-            XML => Self::Xml,
-            MESSAGE_PACK => Self::MessagePack,
-            CBOR => Self::Cbor,
+            Json => Self::Json,
+            Xml => Self::Xml,
+            MessagePack => Self::MessagePack,
+            Cbor => Self::Cbor,
         }
     }
 }

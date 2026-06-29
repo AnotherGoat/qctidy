@@ -1,6 +1,9 @@
 mod circuit;
 mod extractor;
 
+#[cfg(feature = "analyzer")]
+mod analyzer;
+
 #[cfg(feature = "presenter-graphviz")]
 mod presenter;
 
@@ -22,12 +25,15 @@ use qsimplify_facade::{DisplayFormat, DisplayRequest, SimplificationRequest};
 
 #[pyclass(name = "DisplayFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(clippy::upper_case_acronyms)]
 enum PythonDisplayFormat {
-    GRAPH,
-    GRID,
-    MATRIX,
-    CIRCUIT,
+    #[pyo3(name = "GRAPH")]
+    Graph,
+    #[pyo3(name = "GRID")]
+    Grid,
+    #[pyo3(name = "MATRIX")]
+    Matrix,
+    #[pyo3(name = "CIRCUIT")]
+    Circuit,
 }
 
 impl From<PythonDisplayFormat> for DisplayFormat {
@@ -35,21 +41,23 @@ impl From<PythonDisplayFormat> for DisplayFormat {
         use PythonDisplayFormat::*;
 
         match value {
-            GRAPH => Self::Graph,
-            GRID => Self::Grid,
-            MATRIX => Self::Matrix,
-            CIRCUIT => Self::Circuit,
+            Graph => Self::Graph,
+            Grid => Self::Grid,
+            Matrix => Self::Matrix,
+            Circuit => Self::Circuit,
         }
     }
 }
 
 #[pyclass(name = "PiFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(clippy::upper_case_acronyms)]
 enum PythonPiFormat {
-    LOWERCASE,
-    UPPERCASE,
-    FANCY,
+    #[pyo3(name = "LOWERCASE")]
+    Lowercase,
+    #[pyo3(name = "UPPERCASE")]
+    Uppercase,
+    #[pyo3(name = "FANCY")]
+    Fancy,
 }
 
 impl From<PythonPiFormat> for PiFormat {
@@ -57,20 +65,22 @@ impl From<PythonPiFormat> for PiFormat {
         use PythonPiFormat::*;
 
         match value {
-            LOWERCASE => Self::Lowercase,
-            UPPERCASE => Self::Uppercase,
-            FANCY => Self::Fancy,
+            Lowercase => Self::Lowercase,
+            Uppercase => Self::Uppercase,
+            Fancy => Self::Fancy,
         }
     }
 }
 
 #[pyclass(name = "DiracFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[expect(clippy::upper_case_acronyms)]
 enum PythonDiracFormat {
-    ASCII,
-    FANCY,
-    NONE,
+    #[pyo3(name = "ASCII")]
+    Ascii,
+    #[pyo3(name = "FANCY")]
+    Fancy,
+    #[pyo3(name = "NONE")]
+    None,
 }
 
 impl From<PythonDiracFormat> for DiracFormat {
@@ -78,9 +88,9 @@ impl From<PythonDiracFormat> for DiracFormat {
         use PythonDiracFormat::*;
 
         match value {
-            ASCII => Self::Ascii,
-            FANCY => Self::Fancy,
-            NONE => Self::None,
+            Ascii => Self::Ascii,
+            Fancy => Self::Fancy,
+            None => Self::None,
         }
     }
 }
@@ -155,6 +165,9 @@ fn bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(get_features, module)?)?;
     module.add_function(wrap_pyfunction!(display, module)?)?;
     module.add_function(wrap_pyfunction!(simplify, module)?)?;
+
+    #[cfg(feature = "analyzer")]
+    analyzer::register(module)?;
 
     #[cfg(feature = "presenter-graphviz")]
     presenter::register(module)?;

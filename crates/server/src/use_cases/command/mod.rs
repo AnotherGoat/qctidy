@@ -1,4 +1,26 @@
 #[cfg(all(
+    feature = "analyzer",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
+pub(crate) mod analyze_circuit;
+
+#[cfg(all(
+    feature = "analyzer",
+    any(
+        feature = "converter-cbor",
+        feature = "converter-json",
+        feature = "converter-msgpack",
+        feature = "converter-xml",
+    ),
+))]
+pub(crate) mod compare_circuits;
+
+#[cfg(all(
     any(feature = "codegen-qiskit", feature = "codegen-openqasm3"),
     any(
         feature = "converter-cbor",

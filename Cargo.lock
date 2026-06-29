@@ -1849,6 +1849,7 @@ name = "qsimplify-analyzer"
 version = "0.1.0"
 dependencies = [
  "qsimplify",
+ "qsimplify-ports",
  "serde",
 ]
 
