@@ -14,7 +14,11 @@ import {
 import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
 import { GATE_REGISTRY, type GateData } from "~/components/gate";
 import React from "react";
-import { buildJsonFromGrid, simplifyCircuit, buildGridFromJson } from "~/lib/api";
+import {
+  buildJsonFromGrid,
+  simplifyCircuit,
+  buildGridFromJson,
+} from "~/lib/api";
 import { Button } from "~/components/ui/button";
 import { GateEditor } from "~/components/gate-editor";
 
@@ -69,7 +73,7 @@ export default function Home() {
       activationConstraint: {
         distance: 5,
       },
-    })
+    }),
   );
 
   useEffect(() => {
@@ -296,8 +300,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-transparent">
-      <header className="flex-shrink-0 p-6 w-full flex items-center justify-center glass-panel m-2 rounded-xl text-white text-4xl font-extrabold tracking-tight">
+    <div className="flex h-screen min-w-0 flex-col overflow-hidden bg-transparent">
+      <header className="m-2 flex flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-950/80 p-6 text-4xl font-extrabold tracking-tight text-white shadow-2xl backdrop-blur-md">
         <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-md">
           QSimplify
         </span>
@@ -311,24 +315,28 @@ export default function Home() {
         onDragCancel={handleDragCancel}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-row h-full w-full p-2 gap-4">
-          <aside className="flex flex-col gap-4 flex-shrink-0 p-4 glass-panel w-72 overflow-y-auto">
+        <div className="flex min-h-0 w-full flex-1 flex-row gap-4 overflow-hidden p-2">
+          <aside
+            className={`glass-panel flex w-72 flex-shrink-0 flex-col gap-4 overflow-x-hidden overscroll-contain p-4 ${activeDrag ? "overflow-y-hidden" : "overflow-y-auto"}`}
+          >
             <GateSidebar />
           </aside>
 
-          <main className="w-full flex-1 min-h-0 min-w-0 p-6 flex flex-col gap-4 glass-panel text-white overflow-y-auto">
+          <main className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden overscroll-contain p-6 text-white">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold tracking-tight">Original Circuit</h2>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Original Circuit
+              </h2>
               <div className="flex gap-3">
-                <Button 
+                <Button
                   onClick={clearCircuit}
                   variant="outline"
                   className="bg-red-500/10 hover:bg-red-500 hover:text-white border-red-500/50 text-red-200 font-bold py-2 px-6 rounded-full transition-all"
                 >
                   Clear All
                 </Button>
-                <Button 
-                  onClick={handleSimplify} 
+                <Button
+                  onClick={handleSimplify}
                   disabled={isSimplifying}
                   className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-8 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all animate-pulse hover:animate-none disabled:opacity-50"
                 >
@@ -336,10 +344,10 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            
+
             <Circuit
               grid={grid}
-              preview={preview}
+              preview={activeDrag ? preview : null}
               onAddRowTop={addRowTop}
               onAddRowBottom={addRowBottom}
               onRemoveRow={deleteRow}
@@ -374,7 +382,9 @@ export default function Home() {
                 if (source === "sidebar") {
                   const key = activeDrag.data.current?.gateKey;
                   const GateComponent = GATE_REGISTRY[key];
-                  return GateComponent ? <GateComponent id={key} isOverlay={true} /> : null;
+                  return GateComponent ? (
+                    <GateComponent id={key} isOverlay={true} />
+                  ) : null;
                 }
 
                 const id = String(activeDrag.id);
@@ -383,7 +393,13 @@ export default function Home() {
                   for (const cell of row) {
                     if (cell?.id === id) {
                       const GateComponent = cell.type;
-                      return <GateComponent {...cell.props} id={cell.id} isOverlay={true} />;
+                      return (
+                        <GateComponent
+                          {...cell.props}
+                          id={cell.id}
+                          isOverlay={true}
+                        />
+                      );
                     }
                   }
                 }

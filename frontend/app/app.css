@@ -65,7 +65,11 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+    background-image: radial-gradient(
+      circle at center,
+      #1a1a2e 0%,
+      #0f0f1a 100%
+    );
   }
 }
 

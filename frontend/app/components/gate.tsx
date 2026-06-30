@@ -24,6 +24,16 @@ const COLOR_CLASSES: Record<GateColor, string> = {
   [GateColor.Yellow]: "bg-yellow-300 hover:bg-yellow-500",
 };
 
+const ACTIVE_COLOR_CLASSES: Record<GateColor, string> = {
+  [GateColor.Gray]: "!bg-gray-500",
+  [GateColor.Red]: "!bg-red-500",
+  [GateColor.Green]: "!bg-green-500",
+  [GateColor.Blue]: "!bg-blue-500",
+  [GateColor.Pink]: "!bg-pink-500",
+  [GateColor.Orange]: "!bg-orange-500",
+  [GateColor.Yellow]: "!bg-yellow-500",
+};
+
 export enum GateShape {
   Circle = "circle",
   RoundedRect = "roundedRect",
@@ -58,30 +68,36 @@ export const Gate = ({
     },
   });
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = draggable;
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    draggable;
 
   const style = isOverlay
     ? { pointerEvents: "none" as const }
-    : {
-        transform: CSS.Translate.toString(transform),
-        zIndex: isDragging ? 1000 : undefined,
-        position: isDragging ? "relative" : undefined,
-        pointerEvents: isDragging ? "none" : "auto",
-        opacity: isDragging ? 0.4 : 1,
-      };
+    : onSidebar
+      ? undefined
+      : {
+          transform: CSS.Translate.toString(transform),
+          zIndex: isDragging ? 1000 : undefined,
+          position: isDragging ? "relative" : undefined,
+          pointerEvents: isDragging ? "none" : "auto",
+        };
 
   const baseClasses =
     "w-14 h-14 relative font-bold text-lg flex flex-col items-center justify-center gap-0 border-2 border-white/20 shadow-lg text-black transition-transform";
   const shapeClasses =
     shape === GateShape.Circle ? "rounded-full" : "rounded-xl";
-  const colorClasses = isDragging || isOverlay
-    ? COLOR_CLASSES[color].replace("300", "400")
-    : COLOR_CLASSES[color];
+  const colorClasses =
+    isDragging || isOverlay
+      ? ACTIVE_COLOR_CLASSES[color]
+      : COLOR_CLASSES[color];
 
   const draggableProps = isOverlay ? {} : { ...listeners, ...attributes };
 
   return (
-    <div ref={isOverlay ? undefined : setNodeRef} style={style as React.CSSProperties}>
+    <div
+      ref={isOverlay ? undefined : setNodeRef}
+      style={style as React.CSSProperties}
+    >
       <Button
         id={id}
         variant="default"
@@ -125,7 +141,7 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
     onClick,
   }) => {
     const finalId = onSidebar ? config.label : (id ?? uuidv4());
-    
+
     let subtitle = undefined;
     if (config.usesAngle) subtitle = formatAngle(angle);
     if (config.usesClassicalBit) subtitle = `c[${classicalBit}]`;
@@ -212,7 +228,11 @@ export const TGate = createGate({ label: "T", color: GateColor.Yellow });
 
 export const TdgGate = createGate({ label: "Tdg", color: GateColor.Yellow });
 
-export const MeasureGate = createGate({ label: "M", color: GateColor.Gray, usesClassicalBit: true });
+export const MeasureGate = createGate({
+  label: "M",
+  color: GateColor.Gray,
+  usesClassicalBit: true,
+});
 
 export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   I: IdGate,

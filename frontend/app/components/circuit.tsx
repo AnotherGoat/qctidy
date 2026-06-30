@@ -15,7 +15,7 @@ export interface CircuitProps {
   readOnly?: boolean;
 }
 
-function trimRow(row: (GateState | null)[]) {
+function trimRow(row: GateState[]) {
   let lastNonNull = -1;
 
   for (let i = row.length - 1; i >= 0; i--) {
@@ -38,8 +38,8 @@ export const Circuit: React.FC<CircuitProps> = ({
   readOnly = false,
 }) => {
   return (
-    <div className="flex flex-col w-full flex-shrink-0 border border-white/20 rounded-xl overflow-hidden glass-panel">
-      <div className="overflow-auto p-4 pb-12 overscroll-contain">
+    <div className="glass-panel flex w-full flex-shrink-0 flex-col overflow-hidden rounded-xl border border-white/20">
+      <div className="overflow-x-auto overflow-y-clip overscroll-x-contain p-4 pb-12">
         <div className="min-h-max">
           <div className="grid grid-cols-[auto_1fr] gap-x-2 auto-rows-max">
             <div className="flex items-center justify-center">
@@ -111,7 +111,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                                   })()}
                                 </div>
                                 <div className="w-4 h-20 flex-shrink-0" />
-                              </React.Fragment>
+                              </React.Fragment>,
                             );
                           }
                           return elements;
@@ -149,7 +149,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                                     <div className="absolute w-1.5 h-16 bg-blue-500 rounded-full shadow-[0_0_12px_rgba(59,130,246,1)] animate-pulse" />
                                   </div>
                                 )}
-                                
+
                                 {i < trimmed.length && (
                                   <>
                                     <div
@@ -165,7 +165,9 @@ export const Circuit: React.FC<CircuitProps> = ({
                                             {...cell.props}
                                             id={cell.id}
                                             onSidebar={false}
-                                            onClick={() => onGateClick?.(rowIndex, i, cell)}
+                                            onClick={() =>
+                                              onGateClick?.(rowIndex, i, cell)
+                                            }
                                           />
                                         );
                                       })()}
@@ -173,14 +175,14 @@ export const Circuit: React.FC<CircuitProps> = ({
                                     <div className="w-4 h-20 flex-shrink-0" />
                                   </>
                                 )}
-                              </React.Fragment>
+                              </React.Fragment>,
                             );
                           }
 
                           return elements;
                         })()}
-                    </div>
-                  </DroppableRow>
+                      </div>
+                    </DroppableRow>
                   )}
                 </React.Fragment>
               );
