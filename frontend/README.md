@@ -6,6 +6,7 @@ Esta es la interfaz gráfica oficial para **QSimplify**, un simplificador de cir
 
 * **Diseño Interfaz Gráfica**: Interfaz moderna basada en "Glassmorphism" con un tema oscuro elegante y animaciones fluidas, utilizando TailwindCSS.
 * **Drag & Drop (Arrastrar y Soltar)**: Sistema robusto construido sobre `@dnd-kit/core`. Permite mover compuertas libremente, insertarlas en medio del circuito, y eliminarlas arrastrándolas fuera de la cuadrícula.
+* **Edición Interactiva**: Al hacer clic en las compuertas, se abre un menú flotante para configurar sus parámetros matemáticos en tiempo real (por ejemplo, definir los grados para las compuertas de rotación como `Rx` o asignar el cable clásico para la medición `M`).
 * **Integración con API Backend**: Comunicación automática y sin problemas de CORS con el servidor de Rust (DuckDNS) a través del proxy de Vite.
 * **Compuertas Soportadas**:
   * *Básicas*: I, H, X, Y, Z, S, Sdg.
@@ -53,6 +54,7 @@ Tu aplicación estará disponible en `http://localhost:5173`.
   * `circuit.tsx`: Componente principal que dibuja las filas de los qubits y maneja la renderización de las celdas.
   * `gate.tsx`: Definición visual y lógica de las compuertas cuánticas (colores, tamaños, IDs).
   * `gate-sidebar.tsx`: Panel lateral con el catálogo completo de compuertas disponibles.
+  * `gate-editor.tsx`: Menú flotante interactivo para configurar los ángulos y bits de las compuertas.
 * `app/lib/`
   * `api.ts`: Lógica de conexión (Fetch) para enviar los circuitos a la API de Rust y recibir la respuesta.
 * `app/routes/`

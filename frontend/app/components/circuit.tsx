@@ -11,6 +11,7 @@ export interface CircuitProps {
   onAddRowTop: () => void;
   onAddRowBottom: () => void;
   onRemoveRow: (rowIndex: number) => void;
+  onGateClick?: (rowIndex: number, colIndex: number, gate: GateState) => void;
   readOnly?: boolean;
 }
 
@@ -33,6 +34,7 @@ export const Circuit: React.FC<CircuitProps> = ({
   onAddRowTop,
   onAddRowBottom,
   onRemoveRow,
+  onGateClick,
   readOnly = false,
 }) => {
   return (
@@ -163,6 +165,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                                             {...cell.props}
                                             id={cell.id}
                                             onSidebar={false}
+                                            onClick={() => onGateClick?.(rowIndex, i, cell)}
                                           />
                                         );
                                       })()}

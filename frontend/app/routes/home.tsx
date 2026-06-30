@@ -6,6 +6,9 @@ import {
   DndContext,
   DragOverlay,
   pointerWithin,
+  useSensor,
+  useSensors,
+  PointerSensor,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
@@ -13,6 +16,7 @@ import { GATE_REGISTRY, type GateData } from "~/components/gate";
 import React from "react";
 import { buildJsonFromGrid, simplifyCircuit, buildGridFromJson } from "~/lib/api";
 import { Button } from "~/components/ui/button";
+import { GateEditor } from "~/components/gate-editor";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -36,6 +40,12 @@ export default function Home() {
     column: number;
   } | null>(null);
 
+  const [editingGate, setEditingGate] = useState<{
+    row: number;
+    column: number;
+    gate: GateState;
+  } | null>(null);
+
   const [simplifiedGrid, setSimplifiedGrid] = useState<Grid | null>(null);
   const [isSimplifying, setIsSimplifying] = useState(false);
 
@@ -53,6 +63,14 @@ export default function Home() {
       setIsSimplifying(false);
     }
   };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
 
   useEffect(() => {
     const handler = (e: MouseEvent) => setMouseX(e.clientX);
@@ -203,7 +221,10 @@ export default function Home() {
         const newGate: GateState = {
           id: crypto.randomUUID(),
           type: gateComponent,
-          props: {},
+          props: {
+            angle: 0,
+            classicalBit: 0,
+          },
         };
 
         newGrid[rowIndex].splice(insertIndex, 0, newGate);
@@ -256,6 +277,24 @@ export default function Home() {
     setSimplifiedGrid(null);
   };
 
+  const handleGateClick = (row: number, column: number, gate: GateState) => {
+    setEditingGate({ row, column, gate });
+  };
+
+  const handleGateSave = (newProps: any) => {
+    if (!editingGate) return;
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((r) => [...r]);
+      const { row, column } = editingGate;
+      newGrid[row][column] = {
+        ...newGrid[row][column],
+        props: newProps,
+      };
+      return newGrid;
+    });
+    setEditingGate(null);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-transparent">
       <header className="flex-shrink-0 p-6 w-full flex items-center justify-center glass-panel m-2 rounded-xl text-white text-4xl font-extrabold tracking-tight">
@@ -265,6 +304,7 @@ export default function Home() {
       </header>
 
       <DndContext
+        sensors={sensors}
         collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
@@ -303,6 +343,7 @@ export default function Home() {
               onAddRowTop={addRowTop}
               onAddRowBottom={addRowBottom}
               onRemoveRow={deleteRow}
+              onGateClick={handleGateClick}
             />
 
             {simplifiedGrid && (
@@ -352,6 +393,14 @@ export default function Home() {
             : null}
         </DragOverlay>
       </DndContext>
+
+      {editingGate && (
+        <GateEditor
+          gate={editingGate.gate}
+          onSave={handleGateSave}
+          onClose={() => setEditingGate(null)}
+        />
+      )}
     </div>
   );
 }

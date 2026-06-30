@@ -46,11 +46,11 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
                 control2: (r + 1) % qubit_count,
                 target: (r + 2) % qubit_count
              };
-        } else if (gateName === "measure") {
+        } else if (gateName === "measure" || gateName === "m") {
              op = {
                 gate: "m",
                 qubit: r,
-                bit: r // Dummy bit mapping
+                bit: cell.props?.classicalBit !== undefined ? cell.props.classicalBit : r
              };
         } else {
             // Single qubit gate
@@ -60,7 +60,8 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
             };
             
             if (cell.props?.angle !== undefined) {
-                op.angle = cell.props.angle;
+                // Convert angle from degrees to radians for the backend
+                op.theta = cell.props.angle * (Math.PI / 180);
             }
         }
 
@@ -74,7 +75,7 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
       qubit_count,
       operations,
     },
-    iterations: 1,
+    iterations: 10,
   };
 }
 
@@ -117,7 +118,8 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
       id: crypto.randomUUID(),
       type,
       props: {
-        angle: op.angle,
+        angle: op.theta !== undefined ? op.theta * (180 / Math.PI) : undefined,
+        classicalBit: op.bit,
       },
     });
   }

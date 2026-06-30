@@ -37,6 +37,7 @@ interface GateProps {
   shape?: GateShape;
   subtitle?: string;
   isOverlay?: boolean;
+  onClick?: () => void;
 }
 
 export const Gate = ({
@@ -47,6 +48,7 @@ export const Gate = ({
   shape = GateShape.RoundedRect,
   subtitle,
   isOverlay = false,
+  onClick,
 }: GateProps) => {
   const draggable = useDraggable({
     id,
@@ -84,6 +86,7 @@ export const Gate = ({
         id={id}
         variant="default"
         className={`${baseClasses} ${shapeClasses} ${colorClasses}`}
+        onClick={onClick}
         {...draggableProps}
       >
         <span className="text-xl">{label}</span>
@@ -99,7 +102,9 @@ export interface GateData {
   id?: string;
   onSidebar?: boolean;
   angle?: number;
+  classicalBit?: number;
   isOverlay?: boolean;
+  onClick?: () => void;
 }
 
 interface GateConfig {
@@ -107,6 +112,7 @@ interface GateConfig {
   color: GateColor;
   shape?: GateShape;
   usesAngle?: boolean;
+  usesClassicalBit?: boolean;
 }
 
 const createGate = (config: GateConfig): React.FC<GateData> => {
@@ -114,10 +120,15 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
     id,
     onSidebar = true,
     angle = 0,
+    classicalBit = 0,
     isOverlay = false,
+    onClick,
   }) => {
     const finalId = onSidebar ? config.label : (id ?? uuidv4());
-    const subtitle = config.usesAngle ? formatAngle(angle) : undefined;
+    
+    let subtitle = undefined;
+    if (config.usesAngle) subtitle = formatAngle(angle);
+    if (config.usesClassicalBit) subtitle = `c[${classicalBit}]`;
 
     return (
       <Gate
@@ -128,6 +139,7 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
         onSidebar={onSidebar}
         subtitle={subtitle}
         isOverlay={isOverlay}
+        onClick={onClick}
       />
     );
   };
@@ -200,7 +212,7 @@ export const TGate = createGate({ label: "T", color: GateColor.Yellow });
 
 export const TdgGate = createGate({ label: "Tdg", color: GateColor.Yellow });
 
-export const MeasureGate = createGate({ label: "M", color: GateColor.Gray });
+export const MeasureGate = createGate({ label: "M", color: GateColor.Gray, usesClassicalBit: true });
 
 export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   I: IdGate,
