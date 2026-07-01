@@ -55,6 +55,14 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
                 ? cell.props.classicalBit
                 : r,
           };
+        } else if (gateName === "u") {
+          op = {
+            gate: "u",
+            qubit: r,
+          };
+          if (cell.props?.angle !== undefined) op.theta = cell.props.angle * (Math.PI / 180);
+          if (cell.props?.phi !== undefined) op.phi = cell.props.phi * (Math.PI / 180);
+          if (cell.props?.lambda !== undefined) op.lambda = cell.props.lambda * (Math.PI / 180);
         } else {
           // Single qubit gate
           op = {
@@ -124,6 +132,8 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
       type,
       props: {
         angle: op.theta !== undefined ? op.theta * (180 / Math.PI) : undefined,
+        phi: op.phi !== undefined ? op.phi * (180 / Math.PI) : undefined,
+        lambda: op.lambda !== undefined ? op.lambda * (180 / Math.PI) : undefined,
         classicalBit: op.bit,
       },
     });

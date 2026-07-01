@@ -118,16 +118,20 @@ export interface GateData {
   id?: string;
   onSidebar?: boolean;
   angle?: number;
+  phi?: number;
+  lambda?: number;
   classicalBit?: number;
   isOverlay?: boolean;
   onClick?: () => void;
 }
 
 interface GateConfig {
+  id?: string;
   label: string;
   color: GateColor;
   shape?: GateShape;
   usesAngle?: boolean;
+  usesThreeAngles?: boolean;
   usesClassicalBit?: boolean;
 }
 
@@ -136,6 +140,8 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
     id,
     onSidebar = true,
     angle = 0,
+    phi = 0,
+    lambda = 0,
     classicalBit = 0,
     isOverlay = false,
     onClick,
@@ -143,7 +149,11 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
     const finalId = onSidebar ? config.label : (id ?? uuidv4());
 
     let subtitle = undefined;
-    if (config.usesAngle) subtitle = formatAngle(angle);
+    if (config.usesThreeAngles) {
+      subtitle = `${formatAngle(angle)}, ${formatAngle(phi)}, ${formatAngle(lambda)}`;
+    } else if (config.usesAngle) {
+      subtitle = formatAngle(angle);
+    }
     if (config.usesClassicalBit) subtitle = `c[${classicalBit}]`;
 
     return (
@@ -159,7 +169,7 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
       />
     );
   };
-  GateComponent.displayName = config.label;
+  GateComponent.displayName = config.id || config.label;
   return GateComponent;
 };
 
@@ -218,15 +228,22 @@ export const RzGate = createGate({
 
 export const SGate = createGate({ label: "S", color: GateColor.Blue });
 
-export const SdgGate = createGate({ label: "Sdg", color: GateColor.Blue });
+export const SdgGate = createGate({ id: "Sdg", label: "S\u{2020}", color: GateColor.Blue });
 
-export const SxGate = createGate({ label: "Sx", color: GateColor.Red });
+export const SxGate = createGate({ id: "Sx", label: "\u{221A}X", color: GateColor.Red });
 
-export const SyGate = createGate({ label: "Sy", color: GateColor.Green });
+export const SyGate = createGate({ id: "Sy", label: "\u{221A}Y", color: GateColor.Green });
 
 export const TGate = createGate({ label: "T", color: GateColor.Yellow });
 
-export const TdgGate = createGate({ label: "Tdg", color: GateColor.Yellow });
+export const TdgGate = createGate({ id: "Tdg", label: "T\u{2020}", color: GateColor.Yellow });
+
+export const UGate = createGate({
+  id: "U",
+  label: "U",
+  color: GateColor.Orange,
+  usesThreeAngles: true,
+});
 
 export const MeasureGate = createGate({
   label: "M",
@@ -250,5 +267,6 @@ export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   Sy: SyGate,
   T: TGate,
   Tdg: TdgGate,
+  U: UGate,
   M: MeasureGate,
 };

@@ -13,14 +13,19 @@ export const GateEditor: React.FC<GateEditorProps> = ({
   onSave,
   onClose,
 }) => {
-  const gateName = gate.type.displayName || "";
+  const gateName = gate.type.displayName || gate.id;
   const isAngleGate = ["P", "Rx", "Ry", "Rz"].includes(gateName);
+  const isUGate = gateName === "U";
   const isMeasureGate = gateName === "M";
 
   const [angleStr, setAngleStr] = useState(String(gate.props.angle ?? 0));
+  const [phiStr, setPhiStr] = useState(String(gate.props.phi ?? 0));
+  const [lambdaStr, setLambdaStr] = useState(String(gate.props.lambda ?? 0));
   const [classicalBitStr, setClassicalBitStr] = useState(
     String(gate.props.classicalBit ?? 0),
   );
+  
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,9 +36,42 @@ export const GateEditor: React.FC<GateEditorProps> = ({
   }, [onClose]);
 
   const handleSave = () => {
+    setErrorMsg(null);
     const newProps = { ...gate.props };
-    if (isAngleGate) newProps.angle = Number(angleStr) || 0;
-    if (isMeasureGate) newProps.classicalBit = Number(classicalBitStr) || 0;
+
+    if (isAngleGate || isUGate) {
+      const angleVal = Number(angleStr);
+      if (isNaN(angleVal) || angleVal < 0 || angleVal > 720) {
+        setErrorMsg("El ángulo (Theta) debe estar entre 0 y 720 grados.");
+        return;
+      }
+      newProps.angle = angleVal;
+    }
+
+    if (isUGate) {
+      const phiVal = Number(phiStr);
+      if (isNaN(phiVal) || phiVal < 0 || phiVal > 720) {
+        setErrorMsg("El ángulo (Phi) debe estar entre 0 y 720 grados.");
+        return;
+      }
+      newProps.phi = phiVal;
+
+      const lambdaVal = Number(lambdaStr);
+      if (isNaN(lambdaVal) || lambdaVal < 0 || lambdaVal > 720) {
+        setErrorMsg("El ángulo (Lambda) debe estar entre 0 y 720 grados.");
+        return;
+      }
+      newProps.lambda = lambdaVal;
+    }
+
+    if (isMeasureGate) {
+      const bitVal = Number(classicalBitStr);
+      if (isNaN(bitVal) || !Number.isInteger(bitVal) || bitVal < 0) {
+        setErrorMsg("El bit clásico debe ser un número entero mayor o igual a 0.");
+        return;
+      }
+      newProps.classicalBit = bitVal;
+    }
     onSave(newProps);
   };
 
@@ -50,10 +88,16 @@ export const GateEditor: React.FC<GateEditorProps> = ({
           <span className="text-blue-400">Settings:</span> {gateName} Gate
         </h3>
 
-        {isAngleGate && (
+        {errorMsg && (
+          <div className="mb-4 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+            {errorMsg}
+          </div>
+        )}
+
+        {(isAngleGate || isUGate) && (
           <div className="flex flex-col gap-2 mb-6">
             <label className="text-sm font-semibold text-gray-300">
-              Angle (Degrees)
+              {isUGate ? "Theta (Degrees)" : "Angle (Degrees)"}
             </label>
             <input
               type="number"
@@ -67,6 +111,43 @@ export const GateEditor: React.FC<GateEditorProps> = ({
               Value between 0 and 720 degrees.
             </p>
           </div>
+        )}
+
+        {isUGate && (
+          <>
+            <div className="flex flex-col gap-2 mb-6">
+              <label className="text-sm font-semibold text-gray-300">
+                Phi (Degrees)
+              </label>
+              <input
+                type="number"
+                value={phiStr}
+                onChange={(e) => setPhiStr(e.target.value)}
+                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                min={0}
+                max={720}
+              />
+              <p className="text-xs text-gray-500">
+                Value between 0 and 720 degrees.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 mb-6">
+              <label className="text-sm font-semibold text-gray-300">
+                Lambda (Degrees)
+              </label>
+              <input
+                type="number"
+                value={lambdaStr}
+                onChange={(e) => setLambdaStr(e.target.value)}
+                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                min={0}
+                max={720}
+              />
+              <p className="text-xs text-gray-500">
+                Value between 0 and 720 degrees.
+              </p>
+            </div>
+          </>
         )}
 
         {isMeasureGate && (
@@ -87,7 +168,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
           </div>
         )}
 
-        {!isAngleGate && !isMeasureGate && (
+        {!isAngleGate && !isUGate && !isMeasureGate && (
           <div className="mb-6 text-gray-400 italic">
             This gate does not have editable properties.
           </div>
@@ -101,7 +182,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
           >
             Cancel
           </Button>
-          {(isAngleGate || isMeasureGate) && (
+          {(isAngleGate || isUGate || isMeasureGate) && (
             <Button
               onClick={handleSave}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6"

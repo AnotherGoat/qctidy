@@ -15,6 +15,7 @@ import {
   SyGate,
   TGate,
   TdgGate,
+  UGate,
   MeasureGate,
 } from "./gate";
 
@@ -53,6 +54,7 @@ export const GateSidebar: React.FC<{}> = () => {
           <SyGate />
           <TGate />
           <TdgGate />
+          <UGate />
         </div>
       </div>
 
