@@ -22,6 +22,49 @@ import {
 import { Button } from "~/components/ui/button";
 import { GateEditor } from "~/components/gate-editor";
 
+function alignGrid(grid: Grid): Grid {
+  const newGrid = grid.map(row => [...row]);
+  const multiQubits = new Map<string, {row: number, col: number}[]>();
+  
+  for (let r = 0; r < newGrid.length; r++) {
+    for (let c = 0; c < newGrid[r].length; c++) {
+      const cell = newGrid[r][c];
+      if (cell?.props.multiQubitId) {
+        if (!multiQubits.has(cell.props.multiQubitId)) {
+          multiQubits.set(cell.props.multiQubitId, []);
+        }
+        multiQubits.get(cell.props.multiQubitId)!.push({row: r, col: c});
+      }
+    }
+  }
+  
+  let changed = true;
+  let iters = 0;
+  while (changed && iters < 100) {
+    changed = false;
+    iters++;
+    for (const [id, nodes] of multiQubits.entries()) {
+      const currentNodes = nodes.map(n => {
+        const c = newGrid[n.row].findIndex(g => g?.props.multiQubitId === id);
+        return { row: n.row, col: c };
+      });
+      
+      const maxCol = Math.max(...currentNodes.map(n => n.col));
+      
+      for (const node of currentNodes) {
+        if (node.col < maxCol && node.col !== -1) {
+          const diff = maxCol - node.col;
+          for (let i = 0; i < diff; i++) {
+             newGrid[node.row].splice(node.col, 0, null as any);
+          }
+          changed = true;
+        }
+      }
+    }
+  }
+  return newGrid;
+}
+
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "QSimplify" },
@@ -58,7 +101,7 @@ export default function Home() {
       setIsSimplifying(true);
       const jsonRequest = buildJsonFromGrid(grid);
       const response = await simplifyCircuit(jsonRequest);
-      const newGrid = buildGridFromJson(response);
+      const newGrid = alignGrid(buildGridFromJson(response));
       setSimplifiedGrid(newGrid);
     } catch (e) {
       console.error(e);
@@ -159,10 +202,20 @@ export default function Home() {
           for (let row = 0; row < newGrid.length; row++) {
             const idx = newGrid[row].findIndex((g) => g?.id === active.id);
             if (idx !== -1) {
-              newGrid[row].splice(idx, 1);
+              const cell = newGrid[row][idx];
+              if (cell?.props.multiQubitId) {
+                for (let r = 0; r < newGrid.length; r++) {
+                  if (r === row) continue;
+                  const partnerIdx = newGrid[r].findIndex(g => g?.props.multiQubitId === cell.props.multiQubitId);
+                  if (partnerIdx !== -1) {
+                    newGrid[r][partnerIdx] = null as any;
+                  }
+                }
+              }
+              newGrid[row][idx] = null as any;
             }
           }
-          return newGrid;
+          return alignGrid(newGrid);
         });
       }
       return;
@@ -222,6 +275,36 @@ export default function Home() {
 
         if (!gateComponent) return newGrid;
 
+        if (["CX", "CY", "CZ", "CH", "CP", "SWAP"].includes(gateKey)) {
+          const isSwap = gateKey === "SWAP";
+          const multiQubitId = crypto.randomUUID();
+          
+          let targetRowIndex = rowIndex + 1;
+          if (targetRowIndex >= newGrid.length) {
+            targetRowIndex = Math.max(0, rowIndex - 1);
+          }
+          if (targetRowIndex === rowIndex) {
+            newGrid.push([]);
+            targetRowIndex = 1;
+          }
+
+          const controlNode: GateState = {
+            id: crypto.randomUUID(),
+            type: gateComponent,
+            props: { multiQubitId, multiQubitRole: isSwap ? "qubit1" : "control" },
+          };
+
+          const targetNode: GateState = {
+            id: crypto.randomUUID(),
+            type: gateComponent,
+            props: { multiQubitId, multiQubitRole: isSwap ? "qubit2" : "target" },
+          };
+
+          newGrid[rowIndex].splice(insertIndex, 0, controlNode);
+          newGrid[targetRowIndex].splice(insertIndex, 0, targetNode);
+          return alignGrid(newGrid);
+        }
+
         const newGate: GateState = {
           id: crypto.randomUUID(),
           type: gateComponent,
@@ -232,7 +315,7 @@ export default function Home() {
         };
 
         newGrid[rowIndex].splice(insertIndex, 0, newGate);
-        return newGrid;
+        return alignGrid(newGrid);
       }
 
       let movingGate: GateState | null = null;
@@ -253,6 +336,58 @@ export default function Home() {
         return newGrid;
       }
 
+      if (movingGate.props.multiQubitId) {
+        let partnerRow = -1;
+        let partnerCol = -1;
+        let partnerGate: GateState | null = null;
+
+        for (let r = 0; r < newGrid.length; r++) {
+          for (let c = 0; c < newGrid[r].length; c++) {
+            if (newGrid[r][c]?.props.multiQubitId === movingGate.props.multiQubitId && newGrid[r][c]?.id !== movingGate.id) {
+              partnerRow = r;
+              partnerCol = c;
+              partnerGate = newGrid[r][c];
+            }
+          }
+        }
+
+        if (partnerGate) {
+          const rowDiff = partnerRow - fromRow;
+          let targetPartnerRow = rowIndex + rowDiff;
+
+          if (targetPartnerRow < 0) targetPartnerRow = 0;
+          if (targetPartnerRow >= newGrid.length) targetPartnerRow = newGrid.length - 1;
+
+          if (targetPartnerRow === rowIndex) {
+            targetPartnerRow = rowIndex + (rowDiff > 0 ? 1 : -1);
+            if (targetPartnerRow < 0) targetPartnerRow = 1;
+            while (targetPartnerRow >= newGrid.length) {
+              newGrid.push([]);
+            }
+          }
+
+          // Remove both (remove higher row first to not affect lower row indexing)
+          if (fromRow > partnerRow) {
+            newGrid[fromRow].splice(fromColumn, 1);
+            newGrid[partnerRow].splice(partnerCol, 1);
+          } else {
+            newGrid[partnerRow].splice(partnerCol, 1);
+            newGrid[fromRow].splice(fromColumn, 1);
+          }
+
+          let insertIdx1 = insertIndex;
+          let insertIdx2 = insertIndex;
+
+          if (fromRow === rowIndex && fromColumn < insertIdx1) insertIdx1--;
+          if (partnerRow === targetPartnerRow && partnerCol < insertIdx2) insertIdx2--;
+
+          newGrid[rowIndex].splice(insertIdx1, 0, movingGate);
+          newGrid[targetPartnerRow].splice(insertIdx2, 0, partnerGate);
+
+          return alignGrid(newGrid);
+        }
+      }
+
       newGrid[fromRow].splice(fromColumn, 1);
 
       if (fromRow === rowIndex && fromColumn < insertIndex) {
@@ -260,7 +395,7 @@ export default function Home() {
       }
 
       newGrid[rowIndex].splice(insertIndex, 0, movingGate);
-      return newGrid;
+      return alignGrid(newGrid);
     });
   };
 
@@ -273,7 +408,20 @@ export default function Home() {
   };
 
   const deleteRow = (rowIndex: number) => {
-    setGrid((previous) => previous.filter((_, index) => index !== rowIndex));
+    setGrid((previous) => {
+      const rowToDelete = previous[rowIndex];
+      if (!rowToDelete) return previous;
+      
+      const multiQubitIdsToRemove = new Set(
+        rowToDelete.map(cell => cell?.props.multiQubitId).filter(Boolean)
+      );
+
+      return previous
+        .filter((_, index) => index !== rowIndex)
+        .map(row => 
+          row.filter(cell => !cell?.props.multiQubitId || !multiQubitIdsToRemove.has(cell.props.multiQubitId))
+        );
+    });
   };
 
   const clearCircuit = () => {
@@ -285,16 +433,56 @@ export default function Home() {
     setEditingGate({ row, column, gate });
   };
 
-  const handleGateSave = (newProps: any) => {
+  const handleGateSave = (newProps: any, moveInstructions?: { controlRow?: number; targetRow?: number }) => {
     if (!editingGate) return;
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((r) => [...r]);
-      const { row, column } = editingGate;
+      const { row, column, gate } = editingGate;
+      
+      if (moveInstructions && gate.props.multiQubitId) {
+        let cRow = -1, cCol = -1, tRow = -1, tCol = -1;
+        let cGate: GateState | null = null, tGate: GateState | null = null;
+        for (let r=0; r<newGrid.length; r++) {
+          for (let c=0; c<newGrid[r].length; c++) {
+            if (newGrid[r][c]?.props.multiQubitId === gate.props.multiQubitId) {
+              if (newGrid[r][c].props.multiQubitRole === "control" || newGrid[r][c].props.multiQubitRole === "qubit1") { cRow = r; cCol = c; cGate = newGrid[r][c]; }
+              else if (newGrid[r][c].props.multiQubitRole === "target" || newGrid[r][c].props.multiQubitRole === "qubit2") { tRow = r; tCol = c; tGate = newGrid[r][c]; }
+            }
+          }
+        }
+        
+        if (cRow !== -1 && tRow !== -1 && cGate && tGate) {
+          if (cRow > tRow) {
+            newGrid[cRow].splice(cCol, 1);
+            newGrid[tRow].splice(tCol, 1);
+          } else {
+            newGrid[tRow].splice(tCol, 1);
+            newGrid[cRow].splice(cCol, 1);
+          }
+          
+          let newCRow = moveInstructions.controlRow ?? cRow;
+          let newTRow = moveInstructions.targetRow ?? tRow;
+          
+          while (Math.max(newCRow, newTRow) >= newGrid.length) {
+            newGrid.push([]);
+          }
+          
+          if (newCRow > newTRow) {
+             newGrid[newCRow].splice(column, 0, { ...cGate, props: { ...cGate.props, ...newProps } });
+             newGrid[newTRow].splice(column, 0, { ...tGate, props: { ...tGate.props, ...newProps } });
+          } else {
+             newGrid[newTRow].splice(column, 0, { ...tGate, props: { ...tGate.props, ...newProps } });
+             newGrid[newCRow].splice(column, 0, { ...cGate, props: { ...cGate.props, ...newProps } });
+          }
+          return alignGrid(newGrid);
+        }
+      }
+
       newGrid[row][column] = {
         ...newGrid[row][column],
         props: newProps,
       };
-      return newGrid;
+      return alignGrid(newGrid);
     });
     setEditingGate(null);
   };
@@ -398,6 +586,7 @@ export default function Home() {
                           {...cell.props}
                           id={cell.id}
                           isOverlay={true}
+                          onSidebar={false}
                         />
                       );
                     }
@@ -413,6 +602,7 @@ export default function Home() {
       {editingGate && (
         <GateEditor
           gate={editingGate.gate}
+          grid={grid}
           onSave={handleGateSave}
           onClose={() => setEditingGate(null)}
         />

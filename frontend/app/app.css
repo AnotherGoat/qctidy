@@ -75,5 +75,5 @@
 
 /* Glassmorphism utilities */
 .glass-panel {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl rounded-xl;
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-xl;
 }

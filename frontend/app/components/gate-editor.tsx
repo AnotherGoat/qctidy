@@ -2,14 +2,18 @@ import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import type { GateState } from "~/routes/home";
 
+import type { Grid } from "./circuit";
+
 interface GateEditorProps {
   gate: GateState;
-  onSave: (props: any) => void;
+  grid?: Grid;
+  onSave: (props: any, moveInstructions?: { controlRow?: number; targetRow?: number }) => void;
   onClose: () => void;
 }
 
 export const GateEditor: React.FC<GateEditorProps> = ({
   gate,
+  grid,
   onSave,
   onClose,
 }) => {
@@ -25,6 +29,24 @@ export const GateEditor: React.FC<GateEditorProps> = ({
     String(gate.props.classicalBit ?? 0),
   );
   
+  const isMultiQubit = !!gate.props.multiQubitId;
+  const [controlRowStr, setControlRowStr] = useState<string>("");
+  const [targetRowStr, setTargetRowStr] = useState<string>("");
+
+  useEffect(() => {
+    if (isMultiQubit && grid) {
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[r].length; c++) {
+          const cell = grid[r][c];
+          if (cell?.props.multiQubitId === gate.props.multiQubitId) {
+            if (cell.props.multiQubitRole === "control" || cell.props.multiQubitRole === "qubit1") setControlRowStr(String(r));
+            if (cell.props.multiQubitRole === "target" || cell.props.multiQubitRole === "qubit2") setTargetRowStr(String(r));
+          }
+        }
+      }
+    }
+  }, [gate, grid, isMultiQubit]);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,7 +94,24 @@ export const GateEditor: React.FC<GateEditorProps> = ({
       }
       newProps.classicalBit = bitVal;
     }
-    onSave(newProps);
+
+    let moveInstructions;
+    if (isMultiQubit) {
+      const cRow = Number(controlRowStr);
+      const tRow = Number(targetRowStr);
+      const maxRow = grid ? grid.length - 1 : Infinity;
+      if (isNaN(cRow) || isNaN(tRow) || cRow < 0 || tRow < 0 || cRow > maxRow || tRow > maxRow || !Number.isInteger(cRow) || !Number.isInteger(tRow)) {
+        setErrorMsg(`Los Qubits deben ser números enteros entre 0 y ${maxRow}.`);
+        return;
+      }
+      if (cRow === tRow) {
+        setErrorMsg("El Control y el Target no pueden estar en el mismo Qubit.");
+        return;
+      }
+      moveInstructions = { controlRow: cRow, targetRow: tRow };
+    }
+
+    onSave(newProps, moveInstructions);
   };
 
   return (
@@ -168,7 +207,38 @@ export const GateEditor: React.FC<GateEditorProps> = ({
           </div>
         )}
 
-        {!isAngleGate && !isUGate && !isMeasureGate && (
+        {isMultiQubit && (
+          <>
+            <div className="flex flex-col gap-2 mb-6">
+              <label className="text-sm font-semibold text-gray-300">
+                Control Qubit (Row)
+              </label>
+              <input
+                type="number"
+                value={controlRowStr}
+                onChange={(e) => setControlRowStr(e.target.value)}
+                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                min={0}
+                max={grid ? grid.length - 1 : undefined}
+              />
+            </div>
+            <div className="flex flex-col gap-2 mb-6">
+              <label className="text-sm font-semibold text-gray-300">
+                Target Qubit (Row)
+              </label>
+              <input
+                type="number"
+                value={targetRowStr}
+                onChange={(e) => setTargetRowStr(e.target.value)}
+                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                min={0}
+                max={grid ? grid.length - 1 : undefined}
+              />
+            </div>
+          </>
+        )}
+
+        {!isAngleGate && !isUGate && !isMeasureGate && !isMultiQubit && (
           <div className="mb-6 text-gray-400 italic">
             This gate does not have editable properties.
           </div>
@@ -182,7 +252,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
           >
             Cancel
           </Button>
-          {(isAngleGate || isUGate || isMeasureGate) && (
+          {(isAngleGate || isUGate || isMeasureGate || isMultiQubit) && (
             <Button
               onClick={handleSave}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6"

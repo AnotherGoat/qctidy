@@ -81,7 +81,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                         data-row={rowIndex}
                         style={{
                           backgroundImage:
-                            "repeating-linear-gradient(to right, rgba(255,255,255,0.7) 0 7px, transparent 7px 14px)",
+                            "repeating-linear-gradient(to right, rgba(255,255,255,0.2) 0 7px, transparent 7px 14px)",
                           backgroundPosition: "0 50%",
                           backgroundRepeat: "repeat-x",
                           backgroundSize: "auto 2px",
@@ -94,22 +94,50 @@ export const Circuit: React.FC<CircuitProps> = ({
                             const cell = trimmed[i];
                             elements.push(
                               <React.Fragment key={i}>
-                                <div
-                                  data-cell
-                                  className="w-20 h-20 flex items-center justify-center flex-shrink-0"
-                                >
-                                  {(() => {
-                                    const GateComponent = cell.type;
-                                    return (
-                                      <GateComponent
-                                        {...cell.props}
-                                        id={cell.id}
-                                        onSidebar={false}
-                                        isOverlay={false}
-                                      />
-                                    );
-                                  })()}
-                                </div>
+                                  <div
+                                    data-cell
+                                    className="w-20 h-20 flex items-center justify-center flex-shrink-0 relative"
+                                  >
+                                    {(() => {
+                                      if (!cell) return null;
+                                      
+                                      let partnerRow = -1;
+                                      if (cell.props.multiQubitId) {
+                                        for (let r = 0; r < grid.length; r++) {
+                                          if (r === rowIndex) continue;
+                                          const p = grid[r][i];
+                                          if (p?.props.multiQubitId === cell.props.multiQubitId) {
+                                            partnerRow = r;
+                                            break;
+                                          }
+                                        }
+                                      }
+
+                                      const GateComponent = cell.type;
+                                      return (
+                                        <>
+                                          {partnerRow !== -1 && partnerRow > rowIndex && (
+                                            <div
+                                              className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none"
+                                              style={{
+                                                height: `${(partnerRow - rowIndex) * 80}px`,
+                                                top: '50%',
+                                                left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                zIndex: -1
+                                              }}
+                                            />
+                                          )}
+                                          <GateComponent
+                                            {...cell.props}
+                                            id={cell.id}
+                                            onSidebar={false}
+                                            isOverlay={false}
+                                          />
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
                                 <div className="w-4 h-20 flex-shrink-0" />
                               </React.Fragment>,
                             );
@@ -125,7 +153,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                         data-row={rowIndex}
                         style={{
                           backgroundImage:
-                            "repeating-linear-gradient(to right, rgba(255,255,255,0.7) 0 7px, transparent 7px 14px)",
+                            "repeating-linear-gradient(to right, rgba(255,255,255,0.2) 0 7px, transparent 7px 14px)",
                           backgroundPosition: "0 50%",
                           backgroundRepeat: "repeat-x",
                           backgroundSize: "auto 2px",
@@ -152,26 +180,53 @@ export const Circuit: React.FC<CircuitProps> = ({
 
                                 {i < trimmed.length && (
                                   <>
-                                    <div
-                                      data-cell
-                                      className="w-20 h-20 flex items-center justify-center flex-shrink-0 z-10"
-                                    >
-                                      {(() => {
-                                        const cell = trimmed[i];
-                                        if (!cell) return null;
-                                        const GateComponent = cell.type;
-                                        return (
-                                          <GateComponent
-                                            {...cell.props}
-                                            id={cell.id}
-                                            onSidebar={false}
-                                            onClick={() =>
-                                              onGateClick?.(rowIndex, i, cell)
+                                      <div
+                                        data-cell
+                                        className="w-20 h-20 flex items-center justify-center flex-shrink-0 z-10 relative"
+                                      >
+                                        {(() => {
+                                          const cell = trimmed[i];
+                                          if (!cell) return null;
+                                          const GateComponent = cell.type;
+
+                                          let partnerRow = -1;
+                                          if (cell.props.multiQubitId) {
+                                            for (let r = 0; r < grid.length; r++) {
+                                              if (r === rowIndex) continue;
+                                              const p = grid[r][i];
+                                              if (p?.props.multiQubitId === cell.props.multiQubitId) {
+                                                partnerRow = r;
+                                                break;
+                                              }
                                             }
-                                          />
-                                        );
-                                      })()}
-                                    </div>
+                                          }
+
+                                          return (
+                                            <>
+                                              {partnerRow !== -1 && partnerRow > rowIndex && (
+                                                <div
+                                                  className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none"
+                                                  style={{
+                                                    height: `${(partnerRow - rowIndex) * 80}px`,
+                                                    top: '50%',
+                                                    left: '50%',
+                                                    transform: 'translateX(-50%)',
+                                                    zIndex: -1
+                                                  }}
+                                                />
+                                              )}
+                                              <GateComponent
+                                                {...cell.props}
+                                                id={cell.id}
+                                                onSidebar={false}
+                                                onClick={() =>
+                                                  onGateClick?.(rowIndex, i, cell)
+                                                }
+                                              />
+                                            </>
+                                          );
+                                        })()}
+                                      </div>
                                     <div className="w-4 h-20 flex-shrink-0" />
                                   </>
                                 )}

@@ -43,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <div className="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
+    <div className="min-h-screen w-full">
       <Outlet />
     </div>
   );

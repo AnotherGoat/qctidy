@@ -48,6 +48,7 @@ interface GateProps {
   subtitle?: string;
   isOverlay?: boolean;
   onClick?: () => void;
+  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2";
 }
 
 export const Gate = ({
@@ -59,6 +60,7 @@ export const Gate = ({
   subtitle,
   isOverlay = false,
   onClick,
+  multiQubitRole,
 }: GateProps) => {
   const draggable = useDraggable({
     id,
@@ -101,13 +103,38 @@ export const Gate = ({
       <Button
         id={id}
         variant="default"
-        className={`${baseClasses} ${shapeClasses} ${colorClasses}`}
+        className={`${baseClasses} ${shapeClasses} ${
+          !onSidebar && label === "SWAP" 
+            ? "bg-transparent border-none shadow-none text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] hover:bg-white/5" 
+            : colorClasses
+        } ${
+          !onSidebar && (multiQubitRole === "control" || (label === "CZ" && multiQubitRole === "target") || label === "SWAP") ? "w-8 h-8 rounded-full !p-0" : ""
+        }`}
         onClick={onClick}
         {...draggableProps}
       >
-        <span className="text-xl">{label}</span>
-        {!onSidebar && subtitle && (
-          <span className="text-xs font-medium opacity-80">{subtitle}</span>
+        {!onSidebar && (multiQubitRole === "control" || (label === "CZ" && multiQubitRole === "target")) ? (
+          <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+        ) : !onSidebar && (label === "CX" && multiQubitRole === "target") ? (
+          <svg className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="2" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+          </svg>
+        ) : !onSidebar && label === "SWAP" && (multiQubitRole === "qubit1" || multiQubitRole === "qubit2") ? (
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="4" x2="20" y2="20" />
+            <line x1="20" y1="4" x2="4" y2="20" />
+          </svg>
+        ) : (
+          <>
+            <span className="text-xl">
+              {!onSidebar && label === "CY" ? "Y" : !onSidebar && label === "CH" ? "H" : !onSidebar && label === "CP" ? "P" : label}
+            </span>
+            {!onSidebar && subtitle && (
+              <span className="text-xs font-medium opacity-80">{subtitle}</span>
+            )}
+          </>
         )}
       </Button>
     </div>
@@ -123,6 +150,10 @@ export interface GateData {
   classicalBit?: number;
   isOverlay?: boolean;
   onClick?: () => void;
+  multiQubitId?: string;
+  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2";
+  controlRow?: number;
+  targetRow?: number;
 }
 
 interface GateConfig {
@@ -145,8 +176,9 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
     classicalBit = 0,
     isOverlay = false,
     onClick,
+    multiQubitRole,
   }) => {
-    const finalId = onSidebar ? config.label : (id ?? uuidv4());
+    const finalId = onSidebar ? (config.id || config.label) : (id ?? uuidv4());
 
     let subtitle = undefined;
     if (config.usesThreeAngles) {
@@ -166,6 +198,7 @@ const createGate = (config: GateConfig): React.FC<GateData> => {
         subtitle={subtitle}
         isOverlay={isOverlay}
         onClick={onClick}
+        multiQubitRole={multiQubitRole}
       />
     );
   };
@@ -251,6 +284,44 @@ export const MeasureGate = createGate({
   usesClassicalBit: true,
 });
 
+export const CXGate = createGate({
+  id: "CX",
+  label: "CX",
+  color: GateColor.Blue,
+  shape: GateShape.Circle,
+});
+
+export const CYGate = createGate({
+  id: "CY",
+  label: "CY",
+  color: GateColor.Green,
+});
+
+export const CZGate = createGate({
+  id: "CZ",
+  label: "CZ",
+  color: GateColor.Blue,
+});
+
+export const CHGate = createGate({
+  id: "CH",
+  label: "CH",
+  color: GateColor.Pink,
+});
+
+export const CPGate = createGate({
+  id: "CP",
+  label: "CP",
+  color: GateColor.Orange,
+  usesAngle: true,
+});
+
+export const SWAPGate = createGate({
+  id: "SWAP",
+  label: "SWAP",
+  color: GateColor.Blue,
+});
+
 export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   I: IdGate,
   H: HGate,
@@ -268,5 +339,11 @@ export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   T: TGate,
   Tdg: TdgGate,
   U: UGate,
+  CX: CXGate,
+  CY: CYGate,
+  CZ: CZGate,
+  CH: CHGate,
+  CP: CPGate,
+  SWAP: SWAPGate,
   M: MeasureGate,
 };

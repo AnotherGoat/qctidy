@@ -11,6 +11,7 @@ Esta es la interfaz gráfica oficial para **QSimplify**, un simplificador de cir
 - **Compuertas Soportadas**:
   - _Básicas_: I, H, X, Y, Z, S, S† (Sdg).
   - _Rotaciones & Fase_: P, Rx, Ry, Rz, √X (Sx), √Y (Sy), T, T† (Tdg), U (Unitaria de 3 ángulos).
+  - _2 Qubits_: SWAP, CX, CY, CZ, CH, CP (Incluyen visualización dinámica de líneas de conexión verticales y soporte estricto de los esquemas del backend para `control/target` o `qubit1/qubit2`).
   - _Operaciones_: M (Medición).
 - **Responsive & Adaptable**: Permite ampliar el número de qubits (filas) de manera dinámica.
 
