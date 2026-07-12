@@ -7,7 +7,7 @@ import type { Grid } from "./circuit";
 interface GateEditorProps {
   gate: GateState;
   grid?: Grid;
-  onSave: (props: any, moveInstructions?: { controlRow?: number; targetRow?: number }) => void;
+  onSave: (props: any, moveInstructions?: Record<string, number>) => void;
   onClose: () => void;
 }
 
@@ -18,7 +18,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
   onClose,
 }) => {
   const gateName = gate.type.displayName || gate.id;
-  const isAngleGate = ["P", "Rx", "Ry", "Rz"].includes(gateName);
+  const isAngleGate = ["P", "Rx", "Ry", "Rz", "CP"].includes(gateName);
   const isUGate = gateName === "U";
   const isMeasureGate = gateName === "M";
 
@@ -30,20 +30,20 @@ export const GateEditor: React.FC<GateEditorProps> = ({
   );
   
   const isMultiQubit = !!gate.props.multiQubitId;
-  const [controlRowStr, setControlRowStr] = useState<string>("");
-  const [targetRowStr, setTargetRowStr] = useState<string>("");
+  const [rowOverrides, setRowOverrides] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isMultiQubit && grid) {
+      const initial: Record<string, string> = {};
       for (let r = 0; r < grid.length; r++) {
         for (let c = 0; c < grid[r].length; c++) {
           const cell = grid[r][c];
-          if (cell?.props.multiQubitId === gate.props.multiQubitId) {
-            if (cell.props.multiQubitRole === "control" || cell.props.multiQubitRole === "qubit1") setControlRowStr(String(r));
-            if (cell.props.multiQubitRole === "target" || cell.props.multiQubitRole === "qubit2") setTargetRowStr(String(r));
+          if (cell?.props.multiQubitId === gate.props.multiQubitId && cell.props.multiQubitRole) {
+            initial[cell.props.multiQubitRole] = String(r);
           }
         }
       }
+      setRowOverrides(initial);
     }
   }, [gate, grid, isMultiQubit]);
 
@@ -95,20 +95,26 @@ export const GateEditor: React.FC<GateEditorProps> = ({
       newProps.classicalBit = bitVal;
     }
 
-    let moveInstructions;
+    let moveInstructions: Record<string, number> | undefined;
     if (isMultiQubit) {
-      const cRow = Number(controlRowStr);
-      const tRow = Number(targetRowStr);
       const maxRow = grid ? grid.length - 1 : Infinity;
-      if (isNaN(cRow) || isNaN(tRow) || cRow < 0 || tRow < 0 || cRow > maxRow || tRow > maxRow || !Number.isInteger(cRow) || !Number.isInteger(tRow)) {
-        setErrorMsg(`Los Qubits deben ser números enteros entre 0 y ${maxRow}.`);
+      moveInstructions = {};
+      const targetRows: number[] = [];
+      
+      for (const [role, rowStr] of Object.entries(rowOverrides)) {
+        const row = Number(rowStr);
+        if (isNaN(row) || row < 0 || row > maxRow || !Number.isInteger(row)) {
+          setErrorMsg(`Los Qubits deben ser números enteros entre 0 y ${maxRow}.`);
+          return;
+        }
+        moveInstructions[role] = row;
+        targetRows.push(row);
+      }
+      
+      if (new Set(targetRows).size !== targetRows.length) {
+        setErrorMsg("Dos nodos no pueden estar en el mismo Qubit.");
         return;
       }
-      if (cRow === tRow) {
-        setErrorMsg("El Control y el Target no pueden estar en el mismo Qubit.");
-        return;
-      }
-      moveInstructions = { controlRow: cRow, targetRow: tRow };
     }
 
     onSave(newProps, moveInstructions);
@@ -209,32 +215,21 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
         {isMultiQubit && (
           <>
-            <div className="flex flex-col gap-2 mb-6">
-              <label className="text-sm font-semibold text-gray-300">
-                Control Qubit (Row)
-              </label>
-              <input
-                type="number"
-                value={controlRowStr}
-                onChange={(e) => setControlRowStr(e.target.value)}
-                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                min={0}
-                max={grid ? grid.length - 1 : undefined}
-              />
-            </div>
-            <div className="flex flex-col gap-2 mb-6">
-              <label className="text-sm font-semibold text-gray-300">
-                Target Qubit (Row)
-              </label>
-              <input
-                type="number"
-                value={targetRowStr}
-                onChange={(e) => setTargetRowStr(e.target.value)}
-                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                min={0}
-                max={grid ? grid.length - 1 : undefined}
-              />
-            </div>
+            {Object.entries(rowOverrides).map(([role, val]) => (
+              <div key={role} className="flex flex-col gap-2 mb-6">
+                <label className="text-sm font-semibold text-gray-300 capitalize">
+                  {role.replace(/([A-Z0-9])/g, ' $1').trim()} Qubit (Row)
+                </label>
+                <input
+                  type="number"
+                  value={val}
+                  onChange={(e) => setRowOverrides(prev => ({ ...prev, [role]: e.target.value }))}
+                  className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
+                  min={0}
+                  max={grid ? grid.length - 1 : undefined}
+                />
+              </div>
+            ))}
           </>
         )}
 

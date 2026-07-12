@@ -62,6 +62,25 @@ function alignGrid(grid: Grid): Grid {
       }
     }
   }
+
+  const maxCols = Math.max(...newGrid.map(row => row.length), 0);
+  for (let c = maxCols - 1; c >= 0; c--) {
+    let isEmpty = true;
+    for (let r = 0; r < newGrid.length; r++) {
+      if (newGrid[r][c] !== null && newGrid[r][c] !== undefined) {
+        isEmpty = false;
+        break;
+      }
+    }
+    if (isEmpty) {
+      for (let r = 0; r < newGrid.length; r++) {
+        if (newGrid[r].length > c) {
+          newGrid[r].splice(c, 1);
+        }
+      }
+    }
+  }
+
   return newGrid;
 }
 
@@ -238,42 +257,109 @@ export default function Home() {
 
       let insertIndex = 0;
 
-      if (rowElement) {
-        const cells = Array.from(rowElement.querySelectorAll("[data-cell]"));
+      const allRows = document.querySelectorAll("[data-row]");
+      let referenceCells: Element[] = [];
+      let maxCells = -1;
 
-        if (cells.length === 0) {
-          insertIndex = 0;
-        } else {
-          let closestIndex = 0;
-          let closestDistance = Infinity;
-
-          for (let i = 0; i < cells.length; i++) {
-            const rect = (cells[i] as HTMLElement).getBoundingClientRect();
-            const center = rect.left + rect.width / 2;
-
-            const distance = Math.abs(mouseX - center);
-
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestIndex = i;
-            }
-          }
-
-          const rect = (
-            cells[closestIndex] as HTMLElement
-          ).getBoundingClientRect();
-
-          insertIndex = mouseX < rect.right ? closestIndex : closestIndex + 1;
+      allRows.forEach((r) => {
+        const cells = Array.from(r.querySelectorAll("[data-cell]"));
+        if (cells.length > maxCells) {
+          maxCells = cells.length;
+          referenceCells = cells;
         }
+      });
+
+      if (referenceCells.length === 0) {
+        insertIndex = 0;
+      } else {
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+
+        for (let i = 0; i < referenceCells.length; i++) {
+          const rect = (referenceCells[i] as HTMLElement).getBoundingClientRect();
+          const center = rect.left + rect.width / 2;
+
+          const distance = Math.abs(mouseX - center);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = i;
+          }
+        }
+
+        const rect = (
+          referenceCells[closestIndex] as HTMLElement
+        ).getBoundingClientRect();
+
+        insertIndex = mouseX < rect.right ? closestIndex : closestIndex + 1;
       }
 
       const source = active.data.current?.source;
+
+      const placeNodes = (grid: Grid, targetNodes: {r: number, node: GateState}[], insertIdx: number) => {
+        let collision = false;
+        for (const item of targetNodes) {
+          const existing = grid[item.r]?.[insertIdx];
+          if (existing !== null && existing !== undefined) {
+            collision = true;
+            break;
+          }
+        }
+        
+        if (collision) {
+          for (let r = 0; r < grid.length; r++) {
+            const targetItem = targetNodes.find(t => t.r === r);
+            if (targetItem) {
+              grid[r].splice(insertIdx, 0, targetItem.node);
+            } else {
+              grid[r].splice(insertIdx, 0, null as any);
+            }
+          }
+        } else {
+          for (const item of targetNodes) {
+            while (grid[item.r].length <= insertIdx) {
+              grid[item.r].push(null as any);
+            }
+            grid[item.r][insertIdx] = item.node;
+          }
+        }
+      };
 
       if (source === "sidebar") {
         const gateKey = active.data.current?.gateKey;
         const gateComponent = GATE_REGISTRY[gateKey];
 
         if (!gateComponent) return newGrid;
+
+        if (["CCX", "CCZ", "CSWAP"].includes(gateKey)) {
+          const multiQubitId = crypto.randomUUID();
+          
+          let targetRowIndex1 = rowIndex + 1;
+          let targetRowIndex2 = rowIndex + 2;
+          
+          while (targetRowIndex2 >= newGrid.length) {
+            newGrid.push([]);
+          }
+
+          let role0: "control" | "target" | "qubit1" | "qubit2" | "control1" | "control2" | "target1" | "target2" | "qubit3" | undefined;
+          let role1: typeof role0;
+          let role2: typeof role0;
+          if (gateKey === "CCX") { role0 = "control1"; role1 = "control2"; role2 = "target"; }
+          else if (gateKey === "CCZ") { role0 = "qubit1"; role1 = "qubit2"; role2 = "qubit3"; }
+          else { role0 = "control"; role1 = "target1"; role2 = "target2"; }
+
+          const node0: GateState = { id: crypto.randomUUID(), type: gateComponent, props: { multiQubitId, multiQubitRole: role0 } };
+          const node1: GateState = { id: crypto.randomUUID(), type: gateComponent, props: { multiQubitId, multiQubitRole: role1 } };
+          const node2: GateState = { id: crypto.randomUUID(), type: gateComponent, props: { multiQubitId, multiQubitRole: role2 } };
+
+          const targetNodes = [
+            { r: rowIndex, node: node0 },
+            { r: targetRowIndex1, node: node1 },
+            { r: targetRowIndex2, node: node2 }
+          ];
+          placeNodes(newGrid, targetNodes, insertIndex);
+          return alignGrid(newGrid);
+        }
 
         if (["CX", "CY", "CZ", "CH", "CP", "SWAP"].includes(gateKey)) {
           const isSwap = gateKey === "SWAP";
@@ -300,8 +386,11 @@ export default function Home() {
             props: { multiQubitId, multiQubitRole: isSwap ? "qubit2" : "target" },
           };
 
-          newGrid[rowIndex].splice(insertIndex, 0, controlNode);
-          newGrid[targetRowIndex].splice(insertIndex, 0, targetNode);
+          const targetNodes = [
+            { r: rowIndex, node: controlNode },
+            { r: targetRowIndex, node: targetNode }
+          ];
+          placeNodes(newGrid, targetNodes, insertIndex);
           return alignGrid(newGrid);
         }
 
@@ -314,7 +403,8 @@ export default function Home() {
           },
         };
 
-        newGrid[rowIndex].splice(insertIndex, 0, newGate);
+        const targetNodes = [{ r: rowIndex, node: newGate }];
+        placeNodes(newGrid, targetNodes, insertIndex);
         return alignGrid(newGrid);
       }
 
@@ -337,64 +427,43 @@ export default function Home() {
       }
 
       if (movingGate.props.multiQubitId) {
-        let partnerRow = -1;
-        let partnerCol = -1;
-        let partnerGate: GateState | null = null;
-
+        let group: { r: number, c: number, cell: GateState }[] = [];
+        
         for (let r = 0; r < newGrid.length; r++) {
           for (let c = 0; c < newGrid[r].length; c++) {
-            if (newGrid[r][c]?.props.multiQubitId === movingGate.props.multiQubitId && newGrid[r][c]?.id !== movingGate.id) {
-              partnerRow = r;
-              partnerCol = c;
-              partnerGate = newGrid[r][c];
+            if (newGrid[r][c]?.props.multiQubitId === movingGate.props.multiQubitId) {
+              group.push({ r, c, cell: newGrid[r][c] });
             }
           }
         }
 
-        if (partnerGate) {
-          const rowDiff = partnerRow - fromRow;
-          let targetPartnerRow = rowIndex + rowDiff;
-
-          if (targetPartnerRow < 0) targetPartnerRow = 0;
-          if (targetPartnerRow >= newGrid.length) targetPartnerRow = newGrid.length - 1;
-
-          if (targetPartnerRow === rowIndex) {
-            targetPartnerRow = rowIndex + (rowDiff > 0 ? 1 : -1);
-            if (targetPartnerRow < 0) targetPartnerRow = 1;
-            while (targetPartnerRow >= newGrid.length) {
-              newGrid.push([]);
-            }
+        if (group.length > 1) {
+          const rowDiffs = group.map(g => g.r - fromRow);
+          
+          let targetRows = rowDiffs.map(diff => rowIndex + diff);
+          const minTarget = Math.min(...targetRows);
+          if (minTarget < 0) {
+            targetRows = targetRows.map(tr => tr - minTarget);
+          }
+          const maxTarget = Math.max(...targetRows);
+          while (maxTarget >= newGrid.length) {
+            newGrid.push([]);
           }
 
-          // Remove both (remove higher row first to not affect lower row indexing)
-          if (fromRow > partnerRow) {
-            newGrid[fromRow].splice(fromColumn, 1);
-            newGrid[partnerRow].splice(partnerCol, 1);
-          } else {
-            newGrid[partnerRow].splice(partnerCol, 1);
-            newGrid[fromRow].splice(fromColumn, 1);
+          for (const item of group) {
+            newGrid[item.r][item.c] = null as any;
           }
 
-          let insertIdx1 = insertIndex;
-          let insertIdx2 = insertIndex;
-
-          if (fromRow === rowIndex && fromColumn < insertIdx1) insertIdx1--;
-          if (partnerRow === targetPartnerRow && partnerCol < insertIdx2) insertIdx2--;
-
-          newGrid[rowIndex].splice(insertIdx1, 0, movingGate);
-          newGrid[targetPartnerRow].splice(insertIdx2, 0, partnerGate);
-
+          const targetNodes = targetRows.map((tr, idx) => ({ r: tr, node: group[idx].cell }));
+          placeNodes(newGrid, targetNodes, insertIndex);
+          
           return alignGrid(newGrid);
         }
       }
 
-      newGrid[fromRow].splice(fromColumn, 1);
-
-      if (fromRow === rowIndex && fromColumn < insertIndex) {
-        insertIndex--;
-      }
-
-      newGrid[rowIndex].splice(insertIndex, 0, movingGate);
+      newGrid[fromRow][fromColumn] = null as any;
+      const targetNodes = [{ r: rowIndex, node: movingGate }];
+      placeNodes(newGrid, targetNodes, insertIndex);
       return alignGrid(newGrid);
     });
   };
@@ -433,47 +502,56 @@ export default function Home() {
     setEditingGate({ row, column, gate });
   };
 
-  const handleGateSave = (newProps: any, moveInstructions?: { controlRow?: number; targetRow?: number }) => {
+  const handleGateSave = (newProps: any, moveInstructions?: Record<string, number>) => {
     if (!editingGate) return;
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((r) => [...r]);
       const { row, column, gate } = editingGate;
       
       if (moveInstructions && gate.props.multiQubitId) {
-        let cRow = -1, cCol = -1, tRow = -1, tCol = -1;
-        let cGate: GateState | null = null, tGate: GateState | null = null;
+        let group: { r: number, c: number, cell: GateState }[] = [];
         for (let r=0; r<newGrid.length; r++) {
           for (let c=0; c<newGrid[r].length; c++) {
             if (newGrid[r][c]?.props.multiQubitId === gate.props.multiQubitId) {
-              if (newGrid[r][c].props.multiQubitRole === "control" || newGrid[r][c].props.multiQubitRole === "qubit1") { cRow = r; cCol = c; cGate = newGrid[r][c]; }
-              else if (newGrid[r][c].props.multiQubitRole === "target" || newGrid[r][c].props.multiQubitRole === "qubit2") { tRow = r; tCol = c; tGate = newGrid[r][c]; }
+               group.push({ r, c, cell: newGrid[r][c] });
             }
           }
         }
         
-        if (cRow !== -1 && tRow !== -1 && cGate && tGate) {
-          if (cRow > tRow) {
-            newGrid[cRow].splice(cCol, 1);
-            newGrid[tRow].splice(tCol, 1);
-          } else {
-            newGrid[tRow].splice(tCol, 1);
-            newGrid[cRow].splice(cCol, 1);
-          }
-          
-          let newCRow = moveInstructions.controlRow ?? cRow;
-          let newTRow = moveInstructions.targetRow ?? tRow;
-          
-          while (Math.max(newCRow, newTRow) >= newGrid.length) {
+        if (group.length > 0) {
+          const maxRowNeeded = Math.max(...Object.values(moveInstructions));
+          while (maxRowNeeded >= newGrid.length) {
             newGrid.push([]);
           }
-          
-          if (newCRow > newTRow) {
-             newGrid[newCRow].splice(column, 0, { ...cGate, props: { ...cGate.props, ...newProps } });
-             newGrid[newTRow].splice(column, 0, { ...tGate, props: { ...tGate.props, ...newProps } });
-          } else {
-             newGrid[newTRow].splice(column, 0, { ...tGate, props: { ...tGate.props, ...newProps } });
-             newGrid[newCRow].splice(column, 0, { ...cGate, props: { ...cGate.props, ...newProps } });
+
+          for (const item of group) {
+            newGrid[item.r][item.c] = null as any;
           }
+
+          let collision = false;
+          for (const item of group) {
+            const role = item.cell.props.multiQubitRole;
+            const newR = (role && moveInstructions[role] !== undefined) ? moveInstructions[role] : item.r;
+            if (newGrid[newR][column] != null) collision = true;
+          }
+
+          if (collision) {
+            for (let r = 0; r < newGrid.length; r++) {
+              newGrid[r].splice(column, 0, null as any);
+            }
+          }
+
+          for (const item of group) {
+            const role = item.cell.props.multiQubitRole;
+            const newR = (role && moveInstructions[role] !== undefined) ? moveInstructions[role] : item.r;
+            item.cell.props = { 
+              ...item.cell.props, 
+              ...newProps,
+              multiQubitRole: role 
+            };
+            newGrid[newR][column] = item.cell;
+          }
+
           return alignGrid(newGrid);
         }
       }
@@ -570,27 +648,98 @@ export default function Home() {
                 if (source === "sidebar") {
                   const key = activeDrag.data.current?.gateKey;
                   const GateComponent = GATE_REGISTRY[key];
-                  return GateComponent ? (
-                    <GateComponent id={key} isOverlay={true} />
-                  ) : null;
+                  if (!GateComponent) return null;
+
+                  if (["CCX", "CCZ", "CSWAP"].includes(key)) {
+                    let role0: "control" | "target" | "qubit1" | "qubit2" | "control1" | "control2" | "target1" | "target2" | "qubit3" | undefined;
+                    let role1: typeof role0;
+                    let role2: typeof role0;
+                    if (key === "CCX") { role0 = "control1"; role1 = "control2"; role2 = "target"; }
+                    else if (key === "CCZ") { role0 = "qubit1"; role1 = "qubit2"; role2 = "qubit3"; }
+                    else { role0 = "control"; role1 = "target1"; role2 = "target2"; }
+
+                    return (
+                      <div className="relative flex flex-col" style={{ gap: '0px' }}>
+                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '160px', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                        <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role0} /></div>
+                        <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role1} /></div>
+                        <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role2} /></div>
+                      </div>
+                    );
+                  }
+
+                  if (["CX", "CY", "CZ", "CH", "CP", "SWAP"].includes(key)) {
+                    const isSwap = key === "SWAP";
+                    return (
+                      <div className="relative flex flex-col" style={{ gap: '0px' }}>
+                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '80px', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                        <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={isSwap ? "qubit1" : "control"} /></div>
+                        <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={isSwap ? "qubit2" : "target"} /></div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="h-20 w-20 flex items-center justify-center">
+                      <GateComponent id={key} isOverlay={true} onSidebar={false} />
+                    </div>
+                  );
                 }
 
                 const id = String(activeDrag.id);
+                let movingGate: GateState | null = null;
+                let activeR = 0;
+                let activeC = 0;
 
-                for (const row of grid) {
-                  for (const cell of row) {
-                    if (cell?.id === id) {
-                      const GateComponent = cell.type;
+                for (let r = 0; r < grid.length; r++) {
+                  for (let c = 0; c < grid[r].length; c++) {
+                    if (grid[r][c]?.id === id) {
+                      movingGate = grid[r][c];
+                      activeR = r;
+                      activeC = c;
+                    }
+                  }
+                }
+
+                if (movingGate) {
+                  if (movingGate.props.multiQubitId) {
+                    const group: { r: number; cell: GateState }[] = [];
+                    for (let r = 0; r < grid.length; r++) {
+                      const cell = grid[r][activeC];
+                      if (cell?.props.multiQubitId === movingGate.props.multiQubitId) {
+                        group.push({ r, cell });
+                      }
+                    }
+                    
+                    if (group.length > 0) {
+                      group.sort((a, b) => a.r - b.r);
+                      const minR = group[0].r;
+                      const maxR = group[group.length - 1].r;
+                      
                       return (
-                        <GateComponent
-                          {...cell.props}
-                          id={cell.id}
-                          isOverlay={true}
-                          onSidebar={false}
-                        />
+                        <div className="relative w-20 h-20">
+                          {minR !== maxR && (
+                            <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: `${(maxR - minR) * 80}px`, top: `${(minR - activeR) * 80 + 40}px`, left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                          )}
+                          {group.map((item) => {
+                            const Comp = item.cell.type;
+                            return (
+                              <div key={item.cell.id} className="absolute w-20 h-20 flex items-center justify-center" style={{ top: `${(item.r - activeR) * 80}px`, left: 0 }}>
+                                <Comp {...item.cell.props} id={item.cell.id} isOverlay={true} onSidebar={false} />
+                              </div>
+                            );
+                          })}
+                        </div>
                       );
                     }
                   }
+
+                  const Comp = movingGate.type;
+                  return (
+                    <div className="w-20 h-20 flex items-center justify-center">
+                      <Comp {...movingGate.props} id={movingGate.id} isOverlay={true} onSidebar={false} />
+                    </div>
+                  );
                 }
 
                 return null;

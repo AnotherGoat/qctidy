@@ -12,6 +12,7 @@ export enum GateColor {
   Pink = "pink",
   Orange = "orange",
   Yellow = "yellow",
+  Cyan = "cyan",
 }
 
 const COLOR_CLASSES: Record<GateColor, string> = {
@@ -22,6 +23,7 @@ const COLOR_CLASSES: Record<GateColor, string> = {
   [GateColor.Pink]: "bg-pink-300 hover:bg-pink-500",
   [GateColor.Orange]: "bg-orange-300 hover:bg-orange-500",
   [GateColor.Yellow]: "bg-yellow-300 hover:bg-yellow-500",
+  [GateColor.Cyan]: "bg-cyan-300 hover:bg-cyan-500",
 };
 
 const ACTIVE_COLOR_CLASSES: Record<GateColor, string> = {
@@ -32,11 +34,13 @@ const ACTIVE_COLOR_CLASSES: Record<GateColor, string> = {
   [GateColor.Pink]: "!bg-pink-500",
   [GateColor.Orange]: "!bg-orange-500",
   [GateColor.Yellow]: "!bg-yellow-500",
+  [GateColor.Cyan]: "!bg-cyan-500",
 };
 
 export enum GateShape {
   Circle = "circle",
   RoundedRect = "roundedRect",
+  Square = "square",
 }
 
 interface GateProps {
@@ -48,7 +52,7 @@ interface GateProps {
   subtitle?: string;
   isOverlay?: boolean;
   onClick?: () => void;
-  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2";
+  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2" | "control1" | "control2" | "target1" | "target2" | "qubit3";
 }
 
 export const Gate = ({
@@ -78,7 +82,7 @@ export const Gate = ({
     : onSidebar
       ? undefined
       : {
-          transform: CSS.Translate.toString(transform),
+          opacity: isDragging ? 0.3 : 1,
           zIndex: isDragging ? 1000 : undefined,
           position: isDragging ? "relative" : undefined,
           pointerEvents: isDragging ? "none" : "auto",
@@ -104,24 +108,24 @@ export const Gate = ({
         id={id}
         variant="default"
         className={`${baseClasses} ${shapeClasses} ${
-          !onSidebar && label === "SWAP" 
+          !onSidebar && (label === "SWAP" || label === "CSWAP")
             ? "bg-transparent border-none shadow-none text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] hover:bg-white/5" 
             : colorClasses
         } ${
-          !onSidebar && (multiQubitRole === "control" || (label === "CZ" && multiQubitRole === "target") || label === "SWAP") ? "w-8 h-8 rounded-full !p-0" : ""
+          !onSidebar && (multiQubitRole?.startsWith("control") || multiQubitRole === "qubit1" || multiQubitRole === "qubit2" || multiQubitRole === "qubit3" || (label === "CZ" && multiQubitRole === "target") || label === "SWAP" || label === "CSWAP") ? "w-8 h-8 rounded-full !p-0" : ""
         }`}
         onClick={onClick}
         {...draggableProps}
       >
-        {!onSidebar && (multiQubitRole === "control" || (label === "CZ" && multiQubitRole === "target")) ? (
+        {!onSidebar && (multiQubitRole?.startsWith("control") || (label === "CZ" && multiQubitRole === "target") || (label === "CCZ" && multiQubitRole?.startsWith("qubit"))) ? (
           <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-        ) : !onSidebar && (label === "CX" && multiQubitRole === "target") ? (
+        ) : !onSidebar && ((label === "CX" || label === "CCX") && multiQubitRole === "target") ? (
           <svg className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="2" x2="12" y2="22" />
             <line x1="2" y1="12" x2="22" y2="12" />
           </svg>
-        ) : !onSidebar && label === "SWAP" && (multiQubitRole === "qubit1" || multiQubitRole === "qubit2") ? (
+        ) : !onSidebar && (label === "SWAP" || label === "CSWAP") && (multiQubitRole?.startsWith("qubit") || multiQubitRole?.startsWith("target")) ? (
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="4" y1="4" x2="20" y2="20" />
             <line x1="20" y1="4" x2="4" y2="20" />
@@ -151,7 +155,7 @@ export interface GateData {
   isOverlay?: boolean;
   onClick?: () => void;
   multiQubitId?: string;
-  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2";
+  multiQubitRole?: "control" | "target" | "qubit1" | "qubit2" | "control1" | "control2" | "target1" | "target2" | "qubit3";
   controlRow?: number;
   targetRow?: number;
 }
@@ -316,6 +320,27 @@ export const CPGate = createGate({
   usesAngle: true,
 });
 
+export const CCXGate = createGate({
+  id: "CCX",
+  label: "CCX",
+  color: GateColor.Red,
+  shape: GateShape.Circle,
+});
+
+export const CCZGate = createGate({
+  id: "CCZ",
+  label: "CCZ",
+  color: GateColor.Blue,
+  shape: GateShape.Circle,
+});
+
+export const CSWAPGate = createGate({
+  id: "CSWAP",
+  label: "CSWAP",
+  color: GateColor.Cyan,
+  shape: GateShape.Square,
+});
+
 export const SWAPGate = createGate({
   id: "SWAP",
   label: "SWAP",
@@ -345,5 +370,8 @@ export const GATE_REGISTRY: Record<string, React.ComponentType<GateData>> = {
   CH: CHGate,
   CP: CPGate,
   SWAP: SWAPGate,
+  CCX: CCXGate,
+  CCZ: CCZGate,
+  CSWAP: CSWAPGate,
   M: MeasureGate,
 };

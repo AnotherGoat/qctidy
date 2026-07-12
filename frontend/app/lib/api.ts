@@ -73,27 +73,49 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
       
       operationsList.push({ op, sortCol });
     } else if (group[0].gate.props?.multiQubitId) {
-      // Multi-qubit gate
-      const controlNode = group.find(g => g.gate.props?.multiQubitRole === "control" || g.gate.props?.multiQubitRole === "qubit1");
-      const targetNode = group.find(g => g.gate.props?.multiQubitRole === "target" || g.gate.props?.multiQubitRole === "qubit2");
-      
-      if (controlNode && targetNode) {
-        const gateName = (controlNode.gate.type.displayName || "cx").toLowerCase();
-        let op: Record<string, any> = { gate: gateName };
-        
-        if (["swap", "cz", "cp"].includes(gateName)) {
-           op.qubit1 = controlNode.row;
-           op.qubit2 = targetNode.row;
-           
-           if (gateName === "cp") {
-             op.theta = (controlNode.gate.props?.angle !== undefined ? controlNode.gate.props.angle : 0) * (Math.PI / 180);
+      const gateName = (group[0].gate.type.displayName || "cx").toLowerCase();
+      let op: Record<string, any> = { gate: gateName };
+
+      if (["ccx", "ccz", "cswap"].includes(gateName)) {
+         if (group.length === 3) {
+           if (gateName === "ccz") {
+             const q1 = group.find(g => g.gate.props?.multiQubitRole === "qubit1");
+             const q2 = group.find(g => g.gate.props?.multiQubitRole === "qubit2");
+             const q3 = group.find(g => g.gate.props?.multiQubitRole === "qubit3");
+             if (q1 && q2 && q3) { op.qubit1 = q1.row; op.qubit2 = q2.row; op.qubit3 = q3.row; }
+           } else if (gateName === "ccx") {
+             const c1 = group.find(g => g.gate.props?.multiQubitRole === "control1");
+             const c2 = group.find(g => g.gate.props?.multiQubitRole === "control2");
+             const t = group.find(g => g.gate.props?.multiQubitRole === "target");
+             if (c1 && c2 && t) { op.control1 = c1.row; op.control2 = c2.row; op.target = t.row; }
+           } else if (gateName === "cswap") {
+             const c = group.find(g => g.gate.props?.multiQubitRole === "control");
+             const t1 = group.find(g => g.gate.props?.multiQubitRole === "target1");
+             const t2 = group.find(g => g.gate.props?.multiQubitRole === "target2");
+             if (c && t1 && t2) { op.control = c.row; op.target1 = t1.row; op.target2 = t2.row; }
            }
-        } else {
-           op.control = controlNode.row;
-           op.target = targetNode.row;
-        }
+           if (Object.keys(op).length > 1) {
+             operationsList.push({ op, sortCol });
+           }
+         }
+      } else {
+        const controlNode = group.find(g => g.gate.props?.multiQubitRole === "control" || g.gate.props?.multiQubitRole === "qubit1");
+        const targetNode = group.find(g => g.gate.props?.multiQubitRole === "target" || g.gate.props?.multiQubitRole === "qubit2");
         
-        operationsList.push({ op, sortCol });
+        if (controlNode && targetNode) {
+          if (["swap", "cz", "cp"].includes(gateName)) {
+             op.qubit1 = controlNode.row;
+             op.qubit2 = targetNode.row;
+             
+             if (gateName === "cp") {
+               op.theta = (controlNode.gate.props?.angle !== undefined ? controlNode.gate.props.angle : 0) * (Math.PI / 180);
+             }
+          } else {
+             op.control = controlNode.row;
+             op.target = targetNode.row;
+          }
+          operationsList.push({ op, sortCol });
+        }
       }
     }
   }
@@ -146,9 +168,9 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
     if (["cx", "cy", "cz", "ch", "cp", "swap"].includes(op.gate.toLowerCase())) {
       const multiQubitId = crypto.randomUUID();
       
-      const isSwap = op.gate.toLowerCase() === "swap";
-      const controlRow = isSwap ? op.qubit1 : op.control;
-      const targetRow = isSwap ? op.qubit2 : op.target;
+      const isQubitPairs = ["swap", "cz", "cp"].includes(op.gate.toLowerCase());
+      const controlRow = isQubitPairs ? op.qubit1 : op.control;
+      const targetRow = isQubitPairs ? op.qubit2 : op.target;
       
       if (controlRow !== undefined && targetRow !== undefined) {
         grid[controlRow].push({
@@ -156,7 +178,7 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
           type,
           props: { 
             multiQubitId, 
-            multiQubitRole: isSwap ? "qubit1" : "control",
+            multiQubitRole: isQubitPairs ? "qubit1" : "control",
             ...(op.gate.toLowerCase() === "cp" && op.theta !== undefined ? { angle: op.theta * (180 / Math.PI) } : {})
           },
         });
@@ -166,10 +188,33 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
           type,
           props: { 
             multiQubitId, 
-            multiQubitRole: isSwap ? "qubit2" : "target",
+            multiQubitRole: isQubitPairs ? "qubit2" : "target",
             ...(op.gate.toLowerCase() === "cp" && op.theta !== undefined ? { angle: op.theta * (180 / Math.PI) } : {})
           },
         });
+      }
+    } else if (["ccx", "ccz", "cswap"].includes(op.gate.toLowerCase())) {
+      const multiQubitId = crypto.randomUUID();
+      const gateName = op.gate.toLowerCase();
+      
+      let row0, row1, row2;
+      let role0: any, role1: any, role2: any;
+      
+      if (gateName === "ccz") {
+        row0 = op.qubit1; row1 = op.qubit2; row2 = op.qubit3;
+        role0 = "qubit1"; role1 = "qubit2"; role2 = "qubit3";
+      } else if (gateName === "ccx") {
+        row0 = op.control1; row1 = op.control2; row2 = op.target;
+        role0 = "control1"; role1 = "control2"; role2 = "target";
+      } else if (gateName === "cswap") {
+        row0 = op.control; row1 = op.target1; row2 = op.target2;
+        role0 = "control"; role1 = "target1"; role2 = "target2";
+      }
+      
+      if (row0 !== undefined && row1 !== undefined && row2 !== undefined) {
+         grid[row0].push({ id: crypto.randomUUID(), type, props: { multiQubitId, multiQubitRole: role0 } });
+         grid[row1].push({ id: crypto.randomUUID(), type, props: { multiQubitId, multiQubitRole: role1 } });
+         grid[row2].push({ id: crypto.randomUUID(), type, props: { multiQubitId, multiQubitRole: role2 } });
       }
     } else {
       const primaryRow = op.qubit ?? op.control ?? op.control1 ?? 0;

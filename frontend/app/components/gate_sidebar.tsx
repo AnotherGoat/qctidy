@@ -22,6 +22,9 @@ import {
   CHGate,
   CPGate,
   SWAPGate,
+  CCXGate,
+  CCZGate,
+  CSWAPGate,
   MeasureGate,
 } from "./gate";
 
@@ -75,6 +78,9 @@ export const GateSidebar: React.FC<{}> = () => {
           <CHGate />
           <CPGate />
           <SWAPGate />
+          <CCXGate />
+          <CCZGate />
+          <CSWAPGate />
         </div>
       </div>
 

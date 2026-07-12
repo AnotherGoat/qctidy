@@ -101,14 +101,14 @@ export const Circuit: React.FC<CircuitProps> = ({
                                     {(() => {
                                       if (!cell) return null;
                                       
-                                      let partnerRow = -1;
+                                      let minRow = rowIndex;
+                                      let maxRow = rowIndex;
                                       if (cell.props.multiQubitId) {
                                         for (let r = 0; r < grid.length; r++) {
-                                          if (r === rowIndex) continue;
                                           const p = grid[r][i];
                                           if (p?.props.multiQubitId === cell.props.multiQubitId) {
-                                            partnerRow = r;
-                                            break;
+                                            if (r < minRow) minRow = r;
+                                            if (r > maxRow) maxRow = r;
                                           }
                                         }
                                       }
@@ -116,11 +116,11 @@ export const Circuit: React.FC<CircuitProps> = ({
                                       const GateComponent = cell.type;
                                       return (
                                         <>
-                                          {partnerRow !== -1 && partnerRow > rowIndex && (
+                                          {minRow === rowIndex && maxRow > minRow && (
                                             <div
                                               className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none"
                                               style={{
-                                                height: `${(partnerRow - rowIndex) * 80}px`,
+                                                height: `${(maxRow - minRow) * 80}px`,
                                                 top: '50%',
                                                 left: '50%',
                                                 transform: 'translateX(-50%)',
@@ -189,25 +189,25 @@ export const Circuit: React.FC<CircuitProps> = ({
                                           if (!cell) return null;
                                           const GateComponent = cell.type;
 
-                                          let partnerRow = -1;
+                                          let minRow = rowIndex;
+                                          let maxRow = rowIndex;
                                           if (cell.props.multiQubitId) {
                                             for (let r = 0; r < grid.length; r++) {
-                                              if (r === rowIndex) continue;
                                               const p = grid[r][i];
                                               if (p?.props.multiQubitId === cell.props.multiQubitId) {
-                                                partnerRow = r;
-                                                break;
+                                                if (r < minRow) minRow = r;
+                                                if (r > maxRow) maxRow = r;
                                               }
                                             }
                                           }
 
                                           return (
                                             <>
-                                              {partnerRow !== -1 && partnerRow > rowIndex && (
+                                              {minRow === rowIndex && maxRow > minRow && (
                                                 <div
                                                   className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none"
                                                   style={{
-                                                    height: `${(partnerRow - rowIndex) * 80}px`,
+                                                    height: `${(maxRow - minRow) * 80}px`,
                                                     top: '50%',
                                                     left: '50%',
                                                     transform: 'translateX(-50%)',

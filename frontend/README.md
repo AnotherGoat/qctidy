@@ -5,13 +5,14 @@ Esta es la interfaz gráfica oficial para **QSimplify**, un simplificador de cir
 ## Características (Features)
 
 - **Diseño Interfaz Gráfica**: Interfaz moderna basada en "Glassmorphism" con un tema oscuro elegante y animaciones fluidas, utilizando TailwindCSS.
-- **Drag & Drop (Arrastrar y Soltar)**: Sistema robusto construido sobre `@dnd-kit/core`. Permite mover compuertas libremente, insertarlas en medio del circuito, y eliminarlas arrastrándolas fuera de la cuadrícula.
+- **Drag & Drop (Arrastrar y Soltar)**: Sistema robusto construido sobre `@dnd-kit/core`. Permite mover compuertas libremente, insertarlas en medio del circuito, y eliminarlas arrastrándolas fuera de la cuadrícula. Ahora incluye **soporte completo para arrastrar compuertas multi-qubit enteras (de 2 y 3 qubits)** sin que pierdan su estructura o separación original.
 - **Edición Interactiva**: Al hacer clic en las compuertas, se abre un menú flotante para configurar sus parámetros matemáticos en tiempo real (por ejemplo, definir los grados para las compuertas de rotación como `Rx` o asignar el cable clásico para la medición `M`). Los inputs cuentan con validación estricta de rangos y los ángulos se formatean visualmente con el símbolo de grado (`°`).
-- **Integración con API Backend**: Comunicación automática y sin problemas de CORS con el servidor de Rust (DuckDNS) a través del proxy de Vite.
+- **Integración con API Backend**: Comunicación automática y sin problemas de CORS con el servidor de Rust (DuckDNS) a través del proxy de Vite. Incluye un mapeo bidireccional estricto para garantizar que la síntesis de compuertas (Backend -> Frontend) se reconstruya gráficamente con total fidelidad.
 - **Compuertas Soportadas**:
   - _Básicas_: I, H, X, Y, Z, S, S† (Sdg).
   - _Rotaciones & Fase_: P, Rx, Ry, Rz, √X (Sx), √Y (Sy), T, T† (Tdg), U (Unitaria de 3 ángulos).
   - _2 Qubits_: SWAP, CX, CY, CZ, CH, CP (Incluyen visualización dinámica de líneas de conexión verticales y soporte estricto de los esquemas del backend para `control/target` o `qubit1/qubit2`).
+  - _3 Qubits_: CCX (Toffoli), CCZ, CSWAP (Fredkin) (Representación visual completa cruzando múltiples filas con controles y objetivos distintos).
   - _Operaciones_: M (Medición).
 - **Responsive & Adaptable**: Permite ampliar el número de qubits (filas) de manera dinámica.
 
