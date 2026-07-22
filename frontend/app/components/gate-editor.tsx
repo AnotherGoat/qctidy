@@ -28,7 +28,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
   const [classicalBitStr, setClassicalBitStr] = useState(
     String(gate.props.classicalBit ?? 0),
   );
-  
+
   const isMultiQubit = !!gate.props.multiQubitId;
   const [rowOverrides, setRowOverrides] = useState<Record<string, string>>({});
 
@@ -64,7 +64,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
     if (isAngleGate || isUGate) {
       const angleVal = Number(angleStr);
       if (isNaN(angleVal) || angleVal < 0 || angleVal > 720) {
-        setErrorMsg("El ángulo (Theta) debe estar entre 0 y 720 grados.");
+        setErrorMsg("The angle (Theta) must be between 0 and 720 degrees.");
         return;
       }
       newProps.angle = angleVal;
@@ -73,14 +73,14 @@ export const GateEditor: React.FC<GateEditorProps> = ({
     if (isUGate) {
       const phiVal = Number(phiStr);
       if (isNaN(phiVal) || phiVal < 0 || phiVal > 720) {
-        setErrorMsg("El ángulo (Phi) debe estar entre 0 y 720 grados.");
+        setErrorMsg("The angle (Phi) must be between 0 and 720 degrees.");
         return;
       }
       newProps.phi = phiVal;
 
       const lambdaVal = Number(lambdaStr);
       if (isNaN(lambdaVal) || lambdaVal < 0 || lambdaVal > 720) {
-        setErrorMsg("El ángulo (Lambda) debe estar entre 0 y 720 grados.");
+        setErrorMsg("The angle (Lambda) must be between 0 and 720 degrees.");
         return;
       }
       newProps.lambda = lambdaVal;
@@ -89,7 +89,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
     if (isMeasureGate) {
       const bitVal = Number(classicalBitStr);
       if (isNaN(bitVal) || !Number.isInteger(bitVal) || bitVal < 0) {
-        setErrorMsg("El bit clásico debe ser un número entero mayor o igual a 0.");
+        setErrorMsg("The classical bit must be an integer greater than or equal to 0.");
         return;
       }
       newProps.classicalBit = bitVal;
@@ -100,19 +100,19 @@ export const GateEditor: React.FC<GateEditorProps> = ({
       const maxRow = grid ? grid.length - 1 : Infinity;
       moveInstructions = {};
       const targetRows: number[] = [];
-      
+
       for (const [role, rowStr] of Object.entries(rowOverrides)) {
         const row = Number(rowStr);
         if (isNaN(row) || row < 0 || row > maxRow || !Number.isInteger(row)) {
-          setErrorMsg(`Los Qubits deben ser números enteros entre 0 y ${maxRow}.`);
+          setErrorMsg(`Qubits must be integers between 0 and ${maxRow}.`);
           return;
         }
         moveInstructions[role] = row;
         targetRows.push(row);
       }
-      
+
       if (new Set(targetRows).size !== targetRows.length) {
-        setErrorMsg("Dos nodos no pueden estar en el mismo Qubit.");
+        setErrorMsg("Two nodes cannot be on the same qubit.");
         return;
       }
     }

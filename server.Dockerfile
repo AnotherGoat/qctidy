@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1-labs
 # Steps to run the image:
-# docker build -t qsimplify-server .
+# docker build -f server.Dockerfile -t qsimplify-server .
 # docker run --rm -p 3000:3000 qsimplify-server
 
 FROM rust:1.90-alpine3.22 AS builder

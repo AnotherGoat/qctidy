@@ -66,6 +66,8 @@ export const Gate = ({
   onClick,
   multiQubitRole,
 }: GateProps) => {
+  const isCzDot = label === "CZ" && ["target", "qubit1", "qubit2"].includes(multiQubitRole ?? "");
+
   const draggable = useDraggable({
     id,
     data: {
@@ -103,36 +105,31 @@ export const Gate = ({
     <div
       ref={isOverlay ? undefined : setNodeRef}
       style={style as React.CSSProperties}
+      className={isOverlay ? "w-20 h-20 flex items-center justify-center" : undefined}
     >
       <Button
         id={id}
         variant="default"
         className={`${baseClasses} ${shapeClasses} ${
-          !onSidebar && (label === "SWAP" || label === "CSWAP")
-            ? "bg-transparent border-none shadow-none text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] hover:bg-white/5" 
-            : colorClasses
+          colorClasses
         } ${
-          !onSidebar && (multiQubitRole?.startsWith("control") || multiQubitRole === "qubit1" || multiQubitRole === "qubit2" || multiQubitRole === "qubit3" || (label === "CZ" && multiQubitRole === "target") || label === "SWAP" || label === "CSWAP") ? "w-8 h-8 rounded-full !p-0" : ""
+          !onSidebar && (multiQubitRole?.startsWith("control") || multiQubitRole === "qubit1" || multiQubitRole === "qubit2" || multiQubitRole === "qubit3" || isCzDot || label === "SWAP" || label === "CSWAP") ? "!w-8 !h-8 rounded-full !p-0" : ""
         }`}
         onClick={onClick}
         {...draggableProps}
       >
-        {!onSidebar && (multiQubitRole?.startsWith("control") || (label === "CZ" && multiQubitRole === "target") || (label === "CCZ" && multiQubitRole?.startsWith("qubit"))) ? (
-          <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+        {!onSidebar && (multiQubitRole?.startsWith("control") || isCzDot || (label === "CCZ" && multiQubitRole?.startsWith("qubit"))) ? (
+          null
         ) : !onSidebar && ((label === "CX" || label === "CCX") && multiQubitRole === "target") ? (
-          <svg className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="2" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-          </svg>
+          <span className="text-xl">X</span>
         ) : !onSidebar && (label === "SWAP" || label === "CSWAP") && (multiQubitRole?.startsWith("qubit") || multiQubitRole?.startsWith("target")) ? (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-6 h-6 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <line x1="4" y1="4" x2="20" y2="20" />
             <line x1="20" y1="4" x2="4" y2="20" />
           </svg>
         ) : (
           <>
-            <span className="text-xl">
+            <span className={onSidebar && label === "CSWAP" ? "text-sm" : onSidebar && label === "SWAP" ? "text-lg" : "text-xl"}>
               {!onSidebar && label === "CY" ? "Y" : !onSidebar && label === "CH" ? "H" : !onSidebar && label === "CP" ? "P" : label}
             </span>
             {!onSidebar && subtitle && (
@@ -291,7 +288,7 @@ export const MeasureGate = createGate({
 export const CXGate = createGate({
   id: "CX",
   label: "CX",
-  color: GateColor.Blue,
+  color: GateColor.Red,
   shape: GateShape.Circle,
 });
 

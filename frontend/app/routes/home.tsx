@@ -25,7 +25,7 @@ import { GateEditor } from "~/components/gate-editor";
 function alignGrid(grid: Grid): Grid {
   const newGrid = grid.map(row => [...row]);
   const multiQubits = new Map<string, {row: number, col: number}[]>();
-  
+
   for (let r = 0; r < newGrid.length; r++) {
     for (let c = 0; c < newGrid[r].length; c++) {
       const cell = newGrid[r][c];
@@ -37,7 +37,7 @@ function alignGrid(grid: Grid): Grid {
       }
     }
   }
-  
+
   let changed = true;
   let iters = 0;
   while (changed && iters < 100) {
@@ -48,9 +48,9 @@ function alignGrid(grid: Grid): Grid {
         const c = newGrid[n.row].findIndex(g => g?.props.multiQubitId === id);
         return { row: n.row, col: c };
       });
-      
+
       const maxCol = Math.max(...currentNodes.map(n => n.col));
-      
+
       for (const node of currentNodes) {
         if (node.col < maxCol && node.col !== -1) {
           const diff = maxCol - node.col;
@@ -102,7 +102,7 @@ export default function Home() {
   const [activeDrag, setActiveDrag] = useState<any>(null);
   const [mouseX, setMouseX] = useState(0);
   const [preview, setPreview] = useState<{
-    row: number;
+    rows: number[];
     column: number;
   } | null>(null);
 
@@ -124,7 +124,7 @@ export default function Home() {
       setSimplifiedGrid(newGrid);
     } catch (e) {
       console.error(e);
-      alert("Error al simplificar el circuito.");
+      alert("Error simplifying the circuit.");
     } finally {
       setIsSimplifying(false);
     }
@@ -200,7 +200,39 @@ export default function Home() {
       insertIndex = mouseX < rect.right ? closestIndex : closestIndex + 1;
     }
 
-    setPreview({ row: rowIndex, column: insertIndex });
+    const source = event.active.data.current?.source;
+    const gateKey = event.active.data.current?.gateKey;
+    let previewRows = [rowIndex];
+
+    if (source === "circuit") {
+      let movingGate: GateState | null = null;
+      let activeRowIndex = 0;
+
+      for (let row = 0; row < grid.length; row++) {
+        const column = grid[row].findIndex((cell) => cell?.id === event.active.id);
+        if (column !== -1) {
+          movingGate = grid[row][column];
+          activeRowIndex = row;
+          break;
+        }
+      }
+
+      if (movingGate?.props.multiQubitId) {
+        previewRows = grid
+          .map((row, index) => row.some((cell) => cell?.props.multiQubitId === movingGate.props.multiQubitId) ? rowIndex + index - activeRowIndex : -1)
+          .filter((row) => row !== -1);
+      }
+    } else if (["CCX", "CCZ", "CSWAP"].includes(gateKey)) {
+      previewRows = [rowIndex, rowIndex + 1, rowIndex + 2];
+    } else if (["CX", "CY", "CZ", "CH", "CP", "SWAP"].includes(gateKey)) {
+      let targetRowIndex = rowIndex + 1;
+      if (targetRowIndex >= grid.length) {
+        targetRowIndex = Math.max(0, rowIndex - 1);
+      }
+      previewRows = [rowIndex, targetRowIndex];
+    }
+
+    setPreview({ rows: previewRows.filter((row) => row >= 0 && row < grid.length), column: insertIndex });
   };
 
   const handleDragCancel = () => {
@@ -257,26 +289,16 @@ export default function Home() {
 
       let insertIndex = 0;
 
-      const allRows = document.querySelectorAll("[data-row]");
-      let referenceCells: Element[] = [];
-      let maxCells = -1;
+      const cells = rowElement ? Array.from(rowElement.querySelectorAll("[data-cell]")) : [];
 
-      allRows.forEach((r) => {
-        const cells = Array.from(r.querySelectorAll("[data-cell]"));
-        if (cells.length > maxCells) {
-          maxCells = cells.length;
-          referenceCells = cells;
-        }
-      });
-
-      if (referenceCells.length === 0) {
+      if (cells.length === 0) {
         insertIndex = 0;
       } else {
         let closestIndex = 0;
         let closestDistance = Infinity;
 
-        for (let i = 0; i < referenceCells.length; i++) {
-          const rect = (referenceCells[i] as HTMLElement).getBoundingClientRect();
+        for (let i = 0; i < cells.length; i++) {
+          const rect = (cells[i] as HTMLElement).getBoundingClientRect();
           const center = rect.left + rect.width / 2;
 
           const distance = Math.abs(mouseX - center);
@@ -288,7 +310,7 @@ export default function Home() {
         }
 
         const rect = (
-          referenceCells[closestIndex] as HTMLElement
+          cells[closestIndex] as HTMLElement
         ).getBoundingClientRect();
 
         insertIndex = mouseX < rect.right ? closestIndex : closestIndex + 1;
@@ -305,8 +327,14 @@ export default function Home() {
             break;
           }
         }
-        
+
         if (collision) {
+          if (targetNodes.length === 1) {
+            const { r, node } = targetNodes[0];
+            grid[r].splice(insertIdx, 0, node);
+            return;
+          }
+
           for (let r = 0; r < grid.length; r++) {
             const targetItem = targetNodes.find(t => t.r === r);
             if (targetItem) {
@@ -333,10 +361,10 @@ export default function Home() {
 
         if (["CCX", "CCZ", "CSWAP"].includes(gateKey)) {
           const multiQubitId = crypto.randomUUID();
-          
+
           let targetRowIndex1 = rowIndex + 1;
           let targetRowIndex2 = rowIndex + 2;
-          
+
           while (targetRowIndex2 >= newGrid.length) {
             newGrid.push([]);
           }
@@ -364,7 +392,7 @@ export default function Home() {
         if (["CX", "CY", "CZ", "CH", "CP", "SWAP"].includes(gateKey)) {
           const isSwap = gateKey === "SWAP";
           const multiQubitId = crypto.randomUUID();
-          
+
           let targetRowIndex = rowIndex + 1;
           if (targetRowIndex >= newGrid.length) {
             targetRowIndex = Math.max(0, rowIndex - 1);
@@ -428,7 +456,7 @@ export default function Home() {
 
       if (movingGate.props.multiQubitId) {
         let group: { r: number, c: number, cell: GateState }[] = [];
-        
+
         for (let r = 0; r < newGrid.length; r++) {
           for (let c = 0; c < newGrid[r].length; c++) {
             if (newGrid[r][c]?.props.multiQubitId === movingGate.props.multiQubitId) {
@@ -439,7 +467,7 @@ export default function Home() {
 
         if (group.length > 1) {
           const rowDiffs = group.map(g => g.r - fromRow);
-          
+
           let targetRows = rowDiffs.map(diff => rowIndex + diff);
           const minTarget = Math.min(...targetRows);
           if (minTarget < 0) {
@@ -456,7 +484,7 @@ export default function Home() {
 
           const targetNodes = targetRows.map((tr, idx) => ({ r: tr, node: group[idx].cell }));
           placeNodes(newGrid, targetNodes, insertIndex);
-          
+
           return alignGrid(newGrid);
         }
       }
@@ -480,14 +508,14 @@ export default function Home() {
     setGrid((previous) => {
       const rowToDelete = previous[rowIndex];
       if (!rowToDelete) return previous;
-      
+
       const multiQubitIdsToRemove = new Set(
         rowToDelete.map(cell => cell?.props.multiQubitId).filter(Boolean)
       );
 
       return previous
         .filter((_, index) => index !== rowIndex)
-        .map(row => 
+        .map(row =>
           row.filter(cell => !cell?.props.multiQubitId || !multiQubitIdsToRemove.has(cell.props.multiQubitId))
         );
     });
@@ -507,7 +535,7 @@ export default function Home() {
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((r) => [...r]);
       const { row, column, gate } = editingGate;
-      
+
       if (moveInstructions && gate.props.multiQubitId) {
         let group: { r: number, c: number, cell: GateState }[] = [];
         for (let r=0; r<newGrid.length; r++) {
@@ -517,7 +545,7 @@ export default function Home() {
             }
           }
         }
-        
+
         if (group.length > 0) {
           const maxRowNeeded = Math.max(...Object.values(moveInstructions));
           while (maxRowNeeded >= newGrid.length) {
@@ -544,10 +572,10 @@ export default function Home() {
           for (const item of group) {
             const role = item.cell.props.multiQubitRole;
             const newR = (role && moveInstructions[role] !== undefined) ? moveInstructions[role] : item.r;
-            item.cell.props = { 
-              ...item.cell.props, 
+            item.cell.props = {
+              ...item.cell.props,
               ...newProps,
-              multiQubitRole: role 
+              multiQubitRole: role
             };
             newGrid[newR][column] = item.cell;
           }
@@ -660,7 +688,7 @@ export default function Home() {
 
                     return (
                       <div className="relative flex flex-col" style={{ gap: '0px' }}>
-                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '160px', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '160px', top: '40px', left: '38px', zIndex: -1 }} />
                         <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role0} /></div>
                         <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role1} /></div>
                         <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={role2} /></div>
@@ -672,7 +700,7 @@ export default function Home() {
                     const isSwap = key === "SWAP";
                     return (
                       <div className="relative flex flex-col" style={{ gap: '0px' }}>
-                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '80px', top: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                        <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: '80px', top: '40px', left: '38px', zIndex: -1 }} />
                         <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={isSwap ? "qubit1" : "control"} /></div>
                         <div className="h-20 w-20 flex items-center justify-center"><GateComponent id={key} isOverlay={true} onSidebar={false} multiQubitRole={isSwap ? "qubit2" : "target"} /></div>
                       </div>
@@ -710,16 +738,16 @@ export default function Home() {
                         group.push({ r, cell });
                       }
                     }
-                    
+
                     if (group.length > 0) {
                       group.sort((a, b) => a.r - b.r);
                       const minR = group[0].r;
                       const maxR = group[group.length - 1].r;
-                      
+
                       return (
                         <div className="relative w-20 h-20">
                           {minR !== maxR && (
-                            <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: `${(maxR - minR) * 80}px`, top: `${(minR - activeR) * 80 + 40}px`, left: '50%', transform: 'translateX(-50%)', zIndex: -1 }} />
+                            <div className="absolute w-1 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none" style={{ height: `${(maxR - minR) * 80}px`, top: `${(minR - activeR) * 80 + 40}px`, left: '38px', zIndex: -1 }} />
                           )}
                           {group.map((item) => {
                             const Comp = item.cell.type;

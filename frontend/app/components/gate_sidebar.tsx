@@ -67,11 +67,11 @@ export const GateSidebar: React.FC<{}> = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white/50">
+      <div className="flex flex-col gap-3">
+        <h3 className="font-bold text-sm uppercase tracking-wider text-cyan-300">
           Multi-Qubit
         </h3>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <CXGate />
           <CYGate />
           <CZGate />
@@ -84,8 +84,8 @@ export const GateSidebar: React.FC<{}> = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white/50">
+      <div className="flex flex-col gap-3">
+        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-300">
           Operations
         </h3>
         <div className="grid grid-cols-3 gap-3">

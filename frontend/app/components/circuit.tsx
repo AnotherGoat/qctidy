@@ -7,7 +7,7 @@ export type Grid = GateState[][];
 
 export interface CircuitProps {
   grid: Grid;
-  preview?: { row: number; column: number } | null;
+  preview?: { rows: number[]; column: number } | null;
   onAddRowTop: () => void;
   onAddRowBottom: () => void;
   onRemoveRow: (rowIndex: number) => void;
@@ -39,19 +39,20 @@ export const Circuit: React.FC<CircuitProps> = ({
 }) => {
   return (
     <div className="glass-panel flex w-full flex-shrink-0 flex-col overflow-hidden rounded-xl border border-white/20">
-      <div className="overflow-x-auto overflow-y-clip overscroll-x-contain p-4 pb-12">
+      <div className="overflow-x-auto overflow-y-clip overscroll-x-contain p-4">
         <div className="min-h-max">
-          <div className="grid grid-cols-[auto_1fr] gap-x-2 auto-rows-max">
-            <div className="flex items-center justify-center">
+          <div className="grid grid-cols-[auto_auto_1fr] gap-x-2 auto-rows-max">
+            <div className="flex min-h-[80px] items-center justify-center">
               {!readOnly && (
                 <Button
                   onClick={onAddRowTop}
-                  className="px-2 py-1 bg-green-500/80 hover:bg-green-500 text-white rounded"
+                  className="h-8 w-8 rounded-full border-2 border-white/20 bg-green-300 p-0 text-xl font-black text-black shadow-lg hover:bg-green-500"
                 >
                   +
                 </Button>
               )}
             </div>
+            <div />
             <div /> {}
             {grid.map((row, rowIndex) => {
               const trimmed = trimRow(row);
@@ -63,15 +64,18 @@ export const Circuit: React.FC<CircuitProps> = ({
                       <Button
                         onClick={() => onRemoveRow(rowIndex)}
                         disabled={grid.length <= 1}
-                        className={`px-2 py-1 rounded ${
+                        className={`h-8 w-8 rounded-full border-2 border-white/20 p-0 text-xl font-black text-black shadow-lg ${
                           grid.length <= 1
-                            ? "bg-gray-400/50"
-                            : "bg-red-500/80 hover:bg-red-500 text-white"
+                            ? "bg-gray-300/50"
+                            : "bg-red-300 hover:bg-red-500"
                         }`}
                       >
                         -
                       </Button>
                     )}
+                  </div>
+                  <div className="flex min-h-[80px] items-center justify-end pr-1 text-sm font-bold text-white/70">
+                    q[{rowIndex}]
                   </div>
 
                   {readOnly ? (
@@ -100,7 +104,7 @@ export const Circuit: React.FC<CircuitProps> = ({
                                   >
                                     {(() => {
                                       if (!cell) return null;
-                                      
+
                                       let minRow = rowIndex;
                                       let maxRow = rowIndex;
                                       if (cell.props.multiQubitId) {
@@ -167,13 +171,16 @@ export const Circuit: React.FC<CircuitProps> = ({
                           for (let i = 0; i <= trimmed.length; i++) {
                             const isPreviewHere =
                               preview &&
-                              preview.row === rowIndex &&
+                              preview.rows.includes(rowIndex) &&
                               preview.column === i;
 
                             elements.push(
                               <React.Fragment key={i}>
                                 {isPreviewHere && (
-                                  <div className="relative w-0 h-20 flex-shrink-0 flex items-center justify-center z-20">
+                                  <div
+                                    className="relative w-0 h-20 flex-shrink-0 flex items-center justify-center z-20"
+                                    style={{ transform: i > 0 ? "translateX(-8px)" : undefined }}
+                                  >
                                     <div className="absolute w-1.5 h-16 bg-blue-500 rounded-full shadow-[0_0_12px_rgba(59,130,246,1)] animate-pulse" />
                                   </div>
                                 )}
@@ -244,14 +251,15 @@ export const Circuit: React.FC<CircuitProps> = ({
             })}
             <div className="flex items-center justify-center min-h-[80px]">
               {!readOnly && (
-                <button
+                <Button
                   onClick={onAddRowBottom}
-                  className="px-2 py-1 bg-green-500/80 hover:bg-green-500 text-white rounded"
+                  className="h-8 w-8 rounded-full border-2 border-white/20 bg-green-300 p-0 text-xl font-black text-black shadow-lg hover:bg-green-500"
                 >
                   +
-                </button>
+                </Button>
               )}
             </div>
+            <div />
             <div />
           </div>
         </div>
