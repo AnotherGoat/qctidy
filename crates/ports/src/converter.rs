@@ -1,4 +1,4 @@
-use qsimplify::Circuit;
+use qctidy::Circuit;
 use thiserror::Error;
 
 pub trait ConverterPort {

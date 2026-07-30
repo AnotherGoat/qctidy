@@ -76,7 +76,7 @@ const fn example_frac_pi_4() -> f64 {
 }
 
 #[derive(Deserialize, Serialize, ToSchema)]
-#[schema(description = "QSimplify JSON circuit representation.", example = example_circuit)]
+#[schema(description = "QCTidy JSON circuit representation.", example = example_circuit)]
 pub(crate) struct Circuit {
     #[schema(example = 1)]
     version: Option<u16>,
@@ -86,7 +86,7 @@ pub(crate) struct Circuit {
 }
 
 #[derive(Deserialize, Serialize, ToSchema)]
-#[schema(description = "One gate operation in a QSimplify JSON circuit.")]
+#[schema(description = "One gate operation in a QCTidy JSON circuit.")]
 pub(crate) struct GateOperation {
     #[schema(value_type = String, example = "h")]
     gate: GateName,

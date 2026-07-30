@@ -1,4 +1,4 @@
-# QSimplify
+# QCTidy
 
 A toolset for quantum circuit simplification written in Rust, with an emphasis on code quality and understandability.
 
@@ -69,7 +69,7 @@ The project is composed of various Rust crates, which focus on making it modular
 │   ├── converter       # Circuit parser and serializer for various formats (library)
 │   ├── estimator       # Circuit execution time and cost estimation (library)
 │   ├── facade          # Facade for client implementation (library)
-│   ├── library         # The core of QSimplify (library)
+│   ├── library         # The core of QCTidy (library)
 │   ├── ports           # Ports for optional services (library)
 │   ├── presenter       # Circuit and graph visualization (library)
 │   ├── qiskit          # Python + Qiskit bindings via PyO3 (library)
@@ -124,27 +124,27 @@ docker compose up --build
 Build and run the backend (standalone):
 
 ```bash
-docker build -f server.Dockerfile -t qsimplify-server .
-docker run --rm -p 3000:3000 qsimplify-server
+docker build -f server.Dockerfile -t qctidy-server .
+docker run --rm -p 3000:3000 qctidy-server
 ```
 
 Use another host port if needed:
 
 ```bash
-docker run --rm -p 8080:3000 qsimplify-server
+docker run --rm -p 8080:3000 qctidy-server
 ```
 
 Build and run the frontend (standalone):
 
 ```bash
-docker build -f frontend.Dockerfile -t qsimplify-frontend .
-docker run --rm -p 5173:80 -e API_URL=http://host.docker.internal:3000 qsimplify-frontend
+docker build -f frontend.Dockerfile -t qctidy-frontend .
+docker run --rm -p 5173:80 -e API_URL=http://host.docker.internal:3000 qctidy-frontend
 ```
 
 Use another host port if needed:
 
 ```bash
-docker run --rm -p 8081:80 -e API_URL=http://host.docker.internal:3000 qsimplify-frontend
+docker run --rm -p 8081:80 -e API_URL=http://host.docker.internal:3000 qctidy-frontend
 ```
 
 The frontend is available at `http://localhost:5173`. The backend is available at `http://localhost:3000`.

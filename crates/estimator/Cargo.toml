@@ -1,5 +1,5 @@
 [package]
-name = "qsimplify-estimator"
+name = "qctidy-estimator"
 description = "Circuit execution time and cost estimation"
 version.workspace = true
 edition.workspace = true
@@ -15,8 +15,8 @@ categories = ["science"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-ports = { path = "../ports" }
 serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["full"] }

@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use qsimplify_facade::SimplificationRequest;
+use qctidy_facade::SimplificationRequest;
 
 use crate::circuit;
 use crate::error::ApiError;
@@ -41,8 +41,8 @@ pub(crate) async fn handler(
     let circ = circuit::from_json(&body.circuit)?;
 
     let request = SimplificationRequest::new(circ, body.iterations);
-    let response = qsimplify_facade::simplify(&request)
-        .map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response =
+        qctidy_facade::simplify(&request).map_err(|error| ApiError::Internal(error.to_string()))?;
 
     let circuit_json = circuit::to_json(response.circuit())?;
     Ok(Json(SimplifyCircuitResponse {

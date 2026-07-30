@@ -1,8 +1,8 @@
 use axum::extract::Json;
-use qsimplify_analyzer::AnalyzerAdapter;
-use qsimplify_facade::AnalysisRequest;
-use qsimplify_ports::DetailedAnalysisMetrics;
-use qsimplify_ports::{AnalysisMode, AnalysisResult};
+use qctidy_analyzer::AnalyzerAdapter;
+use qctidy_facade::AnalysisRequest;
+use qctidy_ports::DetailedAnalysisMetrics;
+use qctidy_ports::{AnalysisMode, AnalysisResult};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -47,7 +47,7 @@ pub(crate) async fn handler(
         circuit::from_json(&body.circuit)?,
         parse_mode(body.mode.as_deref())?,
     );
-    let response = qsimplify_facade::analyze(&request, &AnalyzerAdapter)
+    let response = qctidy_facade::analyze(&request, &AnalyzerAdapter)
         .map_err(|error| ApiError::Internal(error.to_string()))?;
     let metrics = match response.result() {
         Simple(metrics) => metrics_to_json(metrics),
@@ -67,7 +67,7 @@ pub(crate) fn parse_mode(mode: Option<&str>) -> Result<AnalysisMode, ApiError> {
     }
 }
 
-pub(crate) fn metrics_to_json(metrics: qsimplify_ports::AnalysisMetrics) -> Value {
+pub(crate) fn metrics_to_json(metrics: qctidy_ports::AnalysisMetrics) -> Value {
     json!({
         "qubit_count": metrics.qubit_count,
         "depth": metrics.depth,

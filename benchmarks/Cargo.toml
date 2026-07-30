@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-qsimplify = { path = "../crates/library" }
+qctidy = { path = "../crates/library" }
 criterion = { workspace = true }
 
 [[bench]]

@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-analyzer"
-description = "Circuit analysis and metrics for QSimplify"
+name = "qctidy-analyzer"
+description = "Circuit analysis and metrics for QCTidy"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -15,8 +15,8 @@ categories = ["science"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-ports = { path = "../ports" }
 serde = { workspace = true, features = ["derive"] }
 
 [features]

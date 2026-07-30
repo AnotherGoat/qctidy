@@ -1,7 +1,7 @@
 use std::str;
 
-use qsimplify::{Circuit, GateType};
-use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
+use qctidy::{Circuit, GateType};
+use qctidy_ports::{ConversionFormat, ParseError, SerializeError};
 
 use quick_xml::events::attributes::Attributes;
 use quick_xml::events::{BytesDecl, BytesEnd, BytesStart, Event};

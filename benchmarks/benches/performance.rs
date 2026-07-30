@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
-use qsimplify::{GraphBuilder, simplifier::simplify};
+use qctidy::{GraphBuilder, simplifier::simplify};
 
 fn cancellation_chain(c: &mut Criterion) {
     let mut group = c.benchmark_group("Cancellation Chain");

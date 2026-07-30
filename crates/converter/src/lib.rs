@@ -1,5 +1,5 @@
-use qsimplify::Circuit;
-use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
+use qctidy::Circuit;
+use qctidy_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
 #[cfg(feature = "converter-cbor")]
 use formats::cbor;

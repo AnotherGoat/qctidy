@@ -1,5 +1,5 @@
 [package]
-name = "qsimplify-converter"
+name = "qctidy-converter"
 description = "Quantum circuit parser and serializer for various formats"
 version.workspace = true
 edition.workspace = true
@@ -15,8 +15,8 @@ categories = ["science", "encoding", "parser-implementations"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-ports = { path = "../ports" }
 ciborium = { workspace = true, optional = true }
 o2o = { workspace = true, optional = true }
 quick-xml = { workspace = true, optional = true }

@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::Circuit;
-use qsimplify_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
+use qctidy::Circuit;
+use qctidy_ports::{ConversionFormat, ConverterPort, ParseError, SerializeError};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]

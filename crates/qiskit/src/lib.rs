@@ -23,8 +23,8 @@ mod codegen;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use qsimplify::{DiracFormat, PiFormat};
-use qsimplify_facade::{DisplayFormat, DisplayRequest, SimplificationRequest};
+use qctidy::{DiracFormat, PiFormat};
+use qctidy_facade::{DisplayFormat, DisplayRequest, SimplificationRequest};
 
 #[pyclass(name = "DisplayFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -137,7 +137,7 @@ fn display(
         dirac_format.map(DiracFormat::from),
     );
 
-    let response = qsimplify_facade::display(&request)
+    let response = qctidy_facade::display(&request)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     Ok(response.text().to_owned())
@@ -152,14 +152,14 @@ fn simplify(
     let extracted = extractor::extract_circuit(circuit)?;
     let request = SimplificationRequest::new(extracted.into(), iterations);
 
-    let response = qsimplify_facade::simplify(&request)
+    let response = qctidy_facade::simplify(&request)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     circuit::circuit_to_qiskit(python, response.circuit().as_ref())
 }
 
 #[pyo3::pymodule]
-#[pyo3(name = "qsimplify_qiskit")]
+#[pyo3(name = "qctidy_qiskit")]
 fn bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PythonDisplayFormat>()?;
     module.add_class::<PythonPiFormat>()?;

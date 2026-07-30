@@ -1,9 +1,9 @@
-use qsimplify_ports::DisplayError;
+use qctidy_ports::DisplayError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
 use inew::New;
-use qsimplify::{Circuit, DiracFormat, Graph, PiFormat};
+use qctidy::{Circuit, DiracFormat, Graph, PiFormat};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]

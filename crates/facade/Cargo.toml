@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-facade"
-description = "Facade for QSimplify client implementations"
+name = "qctidy-facade"
+description = "Facade for QCTidy client implementations"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -15,8 +15,8 @@ categories = ["science"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-ports = { path = "../ports" }
 getset = { workspace = true }
 inew = { workspace = true }
 

@@ -5,9 +5,9 @@ use axum::response::IntoResponse;
 use serde::Deserialize;
 use utoipa::ToSchema;
 
-use qsimplify_facade::PresentationRequest;
-use qsimplify_ports::PresentationFormat;
-use qsimplify_presenter::GraphvizPresenter;
+use qctidy_facade::PresentationRequest;
+use qctidy_ports::PresentationFormat;
+use qctidy_presenter::GraphvizPresenter;
 
 use crate::circuit;
 use crate::error::ApiError;
@@ -52,7 +52,7 @@ pub(crate) async fn handler(
     };
 
     let request = PresentationRequest::new(circ, format, body.dpi);
-    let response = qsimplify_facade::present(&request, &GraphvizPresenter)
+    let response = qctidy_facade::present(&request, &GraphvizPresenter)
         .map_err(|error| ApiError::Internal(error.to_string()))?;
 
     Ok((

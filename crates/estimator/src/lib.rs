@@ -3,8 +3,8 @@ pub mod models;
 pub mod scraper;
 pub mod time_estimator;
 
-use qsimplify::Graph;
-use qsimplify_ports::{
+use qctidy::Graph;
+use qctidy_ports::{
     EstimatedCost as PortEstimatedCost, Estimation, EstimationError, EstimatorPort,
     ProviderCostEstimates as PortProviderCostEstimates,
 };

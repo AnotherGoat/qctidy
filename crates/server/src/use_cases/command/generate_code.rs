@@ -3,9 +3,9 @@ use serde::Deserialize;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-use qsimplify_codegen::CodegenAdapter;
-use qsimplify_facade::CodeGenerationRequest;
-use qsimplify_ports::CodeGenerationTarget;
+use qctidy_codegen::CodegenAdapter;
+use qctidy_facade::CodeGenerationRequest;
+use qctidy_ports::CodeGenerationTarget;
 
 use crate::circuit;
 use crate::error::ApiError;
@@ -50,7 +50,7 @@ pub(crate) async fn handler(
     };
 
     let request = CodeGenerationRequest::new(circ, target, body.circuit_name);
-    let response = qsimplify_facade::generate_code(&request, &CodegenAdapter)
+    let response = qctidy_facade::generate_code(&request, &CodegenAdapter)
         .map_err(|error| ApiError::Internal(error.to_string()))?;
 
     Ok(Json(GenerateCodeResponse {

@@ -1,9 +1,9 @@
-use qsimplify_ports::SimplificationError;
+use qctidy_ports::SimplificationError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::{Circuit, Graph, simplifier};
+use qctidy::{Circuit, Graph, simplifier};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]

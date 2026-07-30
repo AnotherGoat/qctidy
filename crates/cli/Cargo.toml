@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-cli"
-description = "Command-line interface for QSimplify"
+name = "qctidy-cli"
+description = "Command-line interface for QCTidy"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -12,7 +12,7 @@ keywords.workspace = true
 categories = ["science", "command-line-utilities"]
 
 [dependencies]
-qsimplify-facade = { path = "../facade" }
+qctidy-facade = { path = "../facade" }
 
 [lints]
 workspace = true

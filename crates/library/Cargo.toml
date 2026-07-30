@@ -1,5 +1,5 @@
 [package]
-name = "qsimplify"
+name = "qctidy"
 description = "Core library for quantum circuit simplification"
 version.workspace = true
 edition.workspace = true

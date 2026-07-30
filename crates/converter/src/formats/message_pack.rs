@@ -1,6 +1,6 @@
 use o2o::o2o;
-use qsimplify::Circuit;
-use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
+use qctidy::Circuit;
+use qctidy_ports::{ConversionFormat, ParseError, SerializeError};
 use rmp_serde::decode::{Error as DecodeError, from_slice};
 use rmp_serde::encode::to_vec_named;
 use serde::{Deserialize, Serialize};

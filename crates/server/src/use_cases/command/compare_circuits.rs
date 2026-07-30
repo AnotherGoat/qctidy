@@ -1,9 +1,9 @@
 use axum::extract::Json;
-use qsimplify_analyzer::AnalyzerAdapter;
-use qsimplify_facade::ComparisonRequest;
-use qsimplify_ports::DeltaAnalysisMetrics;
-use qsimplify_ports::DeltaAnalysisResult;
-use qsimplify_ports::DeltaDetailedAnalysisMetrics;
+use qctidy_analyzer::AnalyzerAdapter;
+use qctidy_facade::ComparisonRequest;
+use qctidy_ports::DeltaAnalysisMetrics;
+use qctidy_ports::DeltaAnalysisResult;
+use qctidy_ports::DeltaDetailedAnalysisMetrics;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Map;
@@ -60,7 +60,7 @@ pub(crate) async fn handler(
         circuit::from_json(&body.new_circuit)?,
         super::analyze_circuit::parse_mode(body.mode.as_deref())?,
     );
-    let response = qsimplify_facade::compare(&request, &AnalyzerAdapter)
+    let response = qctidy_facade::compare(&request, &AnalyzerAdapter)
         .map_err(|error| ApiError::Internal(error.to_string()))?;
     let metrics = match response.result() {
         Simple(metrics) => delta_to_json(&metrics),

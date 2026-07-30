@@ -24,7 +24,7 @@ You are an expert writing code for this project.
   - `converter`: Circuit parser and serializer for various formats (library).
   - `estimator`: Circuit execution time and cost estimation (library).
   - `facade`: Facade for client implementation (library).
-  - `library`: The core of QSimplify (library).
+  - `library`: The core of QCTidy (library).
   - `ports`: Ports for optional services (library).
   - `presenter`: Circuit and graph visualization (library).
   - `qiskit`: Python + Qiskit bindings via PyO3 (library).

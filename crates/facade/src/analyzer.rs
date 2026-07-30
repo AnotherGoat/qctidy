@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::{Circuit, Graph};
-use qsimplify_ports::{
+use qctidy::{Circuit, Graph};
+use qctidy_ports::{
     AnalysisError, AnalysisMode, AnalysisResult, AnalyzerPort, DeltaAnalysisResult,
 };
 

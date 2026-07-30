@@ -1,5 +1,5 @@
 use crate::models::BackendProfile;
-use qsimplify::{GateType, Graph, Position};
+use qctidy::{GateType, Graph, Position};
 use std::collections::HashSet;
 
 pub(crate) fn get_gate_cost(gate: GateType, profile: &BackendProfile) -> f64 {

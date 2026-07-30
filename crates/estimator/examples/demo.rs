@@ -1,5 +1,5 @@
-use qsimplify::GraphBuilder;
-use qsimplify_estimator::{
+use qctidy::GraphBuilder;
+use qctidy_estimator::{
     BackendProfile, calculate_costs, estimate_execution_time, get_pricing_data,
 };
 

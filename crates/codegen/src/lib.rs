@@ -10,8 +10,8 @@ mod openqasm3_tests;
 #[cfg(feature = "codegen-qiskit")]
 mod qiskit_tests;
 
-use qsimplify::Graph;
-use qsimplify_ports::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
+use qctidy::Graph;
+use qctidy_ports::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
 
 #[derive(Debug, Copy, Clone)]
 pub struct CodegenAdapter;

@@ -1,8 +1,8 @@
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use qsimplify_facade::PresentationRequest;
-use qsimplify_ports::PresentationFormat;
-use qsimplify_presenter::GraphvizPresenter;
+use qctidy_facade::PresentationRequest;
+use qctidy_ports::PresentationFormat;
+use qctidy_presenter::GraphvizPresenter;
 
 use crate::extractor;
 
@@ -45,7 +45,7 @@ fn present(
     let extracted = extractor::extract_circuit(circuit)?;
     let request = PresentationRequest::new(extracted.into(), PresentationFormat::from(format), dpi);
 
-    let response = qsimplify_facade::present(&request, &GraphvizPresenter)
+    let response = qctidy_facade::present(&request, &GraphvizPresenter)
         .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
 
     Ok(response.bytes().to_vec())

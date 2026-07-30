@@ -1,4 +1,4 @@
-use qsimplify::GraphBuilder;
+use qctidy::GraphBuilder;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI};
 
 use crate::qiskit;

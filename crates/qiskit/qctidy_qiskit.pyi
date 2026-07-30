@@ -98,7 +98,7 @@ class CodeGenerationTarget(Enum):
     """
 
 def get_features() -> list[str]:
-    """Get a list of all optional features that are available for this compilation of QSimplify."""
+    """Get a list of all optional features that are available for this compilation of QCTidy."""
 
 def display(
     circuit: QuantumCircuit,

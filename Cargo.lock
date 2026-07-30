@@ -150,7 +150,7 @@ name = "benchmarks"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "qsimplify",
+ "qctidy",
 ]
 
 [[package]]
@@ -2379,19 +2379,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "qd"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15f1304a5aecdcfe9ee72fbba90aa37b3aa067a69d14cb7f3d9deada0be7c07c"
-dependencies = [
- "bytemuck",
- "libm",
- "num-traits",
- "pulp",
-]
-
-[[package]]
-name = "qsimplify"
+name = "qctidy"
 version = "0.1.0"
 dependencies = [
  "bit-vec",
@@ -2407,37 +2395,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "qsimplify-analyzer"
+name = "qctidy-analyzer"
 version = "0.1.0"
 dependencies = [
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
  "serde",
 ]
 
 [[package]]
-name = "qsimplify-cli"
+name = "qctidy-cli"
 version = "0.1.0"
 dependencies = [
- "qsimplify-facade",
+ "qctidy-facade",
 ]
 
 [[package]]
-name = "qsimplify-codegen"
+name = "qctidy-codegen"
 version = "0.1.0"
 dependencies = [
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
 ]
 
 [[package]]
-name = "qsimplify-converter"
+name = "qctidy-converter"
 version = "0.1.0"
 dependencies = [
  "ciborium",
  "o2o",
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
  "quick-xml",
  "rmp-serde",
  "serde",
@@ -2446,11 +2434,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "qsimplify-estimator"
+name = "qctidy-estimator"
 version = "0.1.0"
 dependencies = [
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
  "regex",
  "reqwest",
  "scraper",
@@ -2460,64 +2448,64 @@ dependencies = [
 ]
 
 [[package]]
-name = "qsimplify-facade"
+name = "qctidy-facade"
 version = "0.1.0"
 dependencies = [
  "getset",
  "inew",
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
 ]
 
 [[package]]
-name = "qsimplify-ports"
+name = "qctidy-ports"
 version = "0.1.0"
 dependencies = [
- "qsimplify",
+ "qctidy",
  "strum",
  "strum_macros",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "qsimplify-presenter"
+name = "qctidy-presenter"
 version = "0.1.0"
 dependencies = [
  "graphviz-rust",
- "qsimplify",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-ports",
 ]
 
 [[package]]
-name = "qsimplify-qiskit"
+name = "qctidy-qiskit"
 version = "0.1.0"
 dependencies = [
  "faer",
  "pyo3",
- "qsimplify",
- "qsimplify-analyzer",
- "qsimplify-codegen",
- "qsimplify-converter",
- "qsimplify-estimator",
- "qsimplify-facade",
- "qsimplify-ports",
- "qsimplify-presenter",
+ "qctidy",
+ "qctidy-analyzer",
+ "qctidy-codegen",
+ "qctidy-converter",
+ "qctidy-estimator",
+ "qctidy-facade",
+ "qctidy-ports",
+ "qctidy-presenter",
 ]
 
 [[package]]
-name = "qsimplify-server"
+name = "qctidy-server"
 version = "0.1.0"
 dependencies = [
  "axum",
  "base64",
- "qsimplify",
- "qsimplify-analyzer",
- "qsimplify-codegen",
- "qsimplify-converter",
- "qsimplify-estimator",
- "qsimplify-facade",
- "qsimplify-ports",
- "qsimplify-presenter",
+ "qctidy",
+ "qctidy-analyzer",
+ "qctidy-codegen",
+ "qctidy-converter",
+ "qctidy-estimator",
+ "qctidy-facade",
+ "qctidy-ports",
+ "qctidy-presenter",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -2528,15 +2516,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "qsimplify-tui"
+name = "qctidy-tui"
 version = "0.1.0"
 dependencies = [
  "crossterm",
  "fuzzy-matcher",
- "qsimplify",
- "qsimplify-converter",
- "qsimplify-ports",
+ "qctidy",
+ "qctidy-converter",
+ "qctidy-ports",
  "ratatui",
+]
+
+[[package]]
+name = "qd"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15f1304a5aecdcfe9ee72fbba90aa37b3aa067a69d14cb7f3d9deada0be7c07c"
+dependencies = [
+ "bytemuck",
+ "libm",
+ "num-traits",
+ "pulp",
 ]
 
 [[package]]

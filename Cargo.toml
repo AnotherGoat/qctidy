@@ -28,7 +28,7 @@ edition = "2024"
 rust-version = "1.90.0"
 authors = ["Víctor Mardones <vmardones.dev@gmail.com>"]
 readme = "README.md"
-repository = "https://github.com/AnotherGoat/qsimplify-rs"
+repository = "https://github.com/AnotherGoat/qctidy"
 license = "MIT OR Apache-2.0"
 keywords = ["quantum", "quantum-computing", "quantum-circuit"]
 

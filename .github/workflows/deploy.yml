@@ -22,9 +22,9 @@ on:
       - "crates/server/**"
 
 env:
-  IMAGE_NAME: qsimplify-server
+  IMAGE_NAME: qctidy-server
   IMAGE_TAG: latest
-  CONTAINER_NAME: qsimplify-server
+  CONTAINER_NAME: qctidy-server
   HOST_PORT: 3000
   CONTAINER_PORT: 3000
 

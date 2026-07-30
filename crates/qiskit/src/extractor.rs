@@ -6,10 +6,10 @@ use faer::complex::Complex64;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use qsimplify::Circuit;
-use qsimplify::GateOperation;
-use qsimplify::GateOperationError;
-use qsimplify::GateType;
+use qctidy::Circuit;
+use qctidy::GateOperation;
+use qctidy::GateOperationError;
+use qctidy::GateType;
 
 #[expect(clippy::unnested_or_patterns)]
 static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
@@ -169,8 +169,8 @@ fn is_unitary_sy(operation: &Bound<'_, PyAny>) -> PyResult<bool> {
                 im: expected_imaginary,
             } = EXPECTED_SY[(row, column)];
 
-            if (real - expected_real).abs() > qsimplify::EPSILON
-                || (imaginary - expected_imaginary).abs() > qsimplify::EPSILON
+            if (real - expected_real).abs() > qctidy::EPSILON
+                || (imaginary - expected_imaginary).abs() > qctidy::EPSILON
             {
                 return Ok(false);
             }

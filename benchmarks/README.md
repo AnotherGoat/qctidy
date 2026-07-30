@@ -1,6 +1,6 @@
-# QSimplify Benchmarks
+# QCTidy Benchmarks
 
-This directory contains the full performance benchmark ecosystem designed to stress the Rust quantum circuit optimizer core (`qsimplify-rs`) and compare it with the original Python implementation.
+This directory contains the full performance benchmark ecosystem designed to stress the Rust quantum circuit optimizer core (`qctidy`) and compare it with the original Python implementation (`qsimpify`).
 
 ## Directory Structure
 

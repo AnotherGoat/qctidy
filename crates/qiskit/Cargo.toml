@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-qiskit"
-description = "Python + Qiskit bindings for QSimplify"
+name = "qctidy-qiskit"
+description = "Python + Qiskit bindings for QCTidy"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -12,19 +12,19 @@ keywords.workspace = true
 categories = ["science", "api-bindings"]
 
 [lib]
-name = "qsimplify_qiskit"
+name = "qctidy_qiskit"
 crate-type = ["cdylib"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-analyzer = { path = "../analyzer", optional = true }
-qsimplify-codegen = { path = "../codegen", optional = true }
-qsimplify-converter = { path = "../converter", optional = true }
-qsimplify-estimator = { path = "../estimator", optional = true }
-qsimplify-facade = { path = "../facade" }
-qsimplify-presenter = { path = "../presenter", optional = true }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-analyzer = { path = "../analyzer", optional = true }
+qctidy-codegen = { path = "../codegen", optional = true }
+qctidy-converter = { path = "../converter", optional = true }
+qctidy-estimator = { path = "../estimator", optional = true }
+qctidy-facade = { path = "../facade" }
+qctidy-presenter = { path = "../presenter", optional = true }
+qctidy-ports = { path = "../ports" }
 faer = { workspace = true }
 pyo3 = { workspace = true, features = ["extension-module"] }
 
@@ -41,58 +41,58 @@ default = [
     "presenter-graphviz",
 ]
 analyzer = [
-    "dep:qsimplify-analyzer",
-    "qsimplify-analyzer/analyzer",
-    "qsimplify-facade/analyzer",
-    "qsimplify-ports/analyzer",
+    "dep:qctidy-analyzer",
+    "qctidy-analyzer/analyzer",
+    "qctidy-facade/analyzer",
+    "qctidy-ports/analyzer",
 ]
 codegen-qiskit = [
-    "dep:qsimplify-codegen",
-    "qsimplify-codegen/codegen-qiskit",
-    "qsimplify-facade/codegen-qiskit",
-    "qsimplify-ports/codegen-qiskit",
+    "dep:qctidy-codegen",
+    "qctidy-codegen/codegen-qiskit",
+    "qctidy-facade/codegen-qiskit",
+    "qctidy-ports/codegen-qiskit",
 ]
 codegen-openqasm3 = [
-    "dep:qsimplify-codegen",
-    "qsimplify-codegen/codegen-openqasm3",
-    "qsimplify-facade/codegen-openqasm3",
-    "qsimplify-ports/codegen-openqasm3",
+    "dep:qctidy-codegen",
+    "qctidy-codegen/codegen-openqasm3",
+    "qctidy-facade/codegen-openqasm3",
+    "qctidy-ports/codegen-openqasm3",
 ]
 converter-cbor = [
-    "dep:qsimplify-converter",
-    "qsimplify-converter/converter-cbor",
-    "qsimplify-facade/converter-cbor",
-    "qsimplify-ports/converter-cbor",
+    "dep:qctidy-converter",
+    "qctidy-converter/converter-cbor",
+    "qctidy-facade/converter-cbor",
+    "qctidy-ports/converter-cbor",
 ]
 converter-json = [
-    "dep:qsimplify-converter",
-    "qsimplify-converter/converter-json",
-    "qsimplify-facade/converter-json",
-    "qsimplify-ports/converter-json",
+    "dep:qctidy-converter",
+    "qctidy-converter/converter-json",
+    "qctidy-facade/converter-json",
+    "qctidy-ports/converter-json",
 ]
 converter-msgpack = [
-    "dep:qsimplify-converter",
-    "qsimplify-converter/converter-msgpack",
-    "qsimplify-facade/converter-msgpack",
-    "qsimplify-ports/converter-msgpack",
+    "dep:qctidy-converter",
+    "qctidy-converter/converter-msgpack",
+    "qctidy-facade/converter-msgpack",
+    "qctidy-ports/converter-msgpack",
 ]
 converter-xml = [
-    "dep:qsimplify-converter",
-    "qsimplify-converter/converter-xml",
-    "qsimplify-facade/converter-xml",
-    "qsimplify-ports/converter-xml",
+    "dep:qctidy-converter",
+    "qctidy-converter/converter-xml",
+    "qctidy-facade/converter-xml",
+    "qctidy-ports/converter-xml",
 ]
 estimator = [
-    "dep:qsimplify-estimator",
-    "qsimplify-estimator/estimator",
-    "qsimplify-facade/estimator",
-    "qsimplify-ports/estimator",
+    "dep:qctidy-estimator",
+    "qctidy-estimator/estimator",
+    "qctidy-facade/estimator",
+    "qctidy-ports/estimator",
 ]
 presenter-graphviz = [
-    "dep:qsimplify-presenter",
-    "qsimplify-facade/presenter-graphviz",
-    "qsimplify-presenter/presenter-graphviz",
-    "qsimplify-ports/presenter-graphviz",
+    "dep:qctidy-presenter",
+    "qctidy-facade/presenter-graphviz",
+    "qctidy-presenter/presenter-graphviz",
+    "qctidy-ports/presenter-graphviz",
 ]
 
 [lints]

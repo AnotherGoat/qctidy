@@ -1,9 +1,9 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use qsimplify_codegen::CodegenAdapter;
-use qsimplify_facade::CodeGenerationRequest;
-use qsimplify_ports::CodeGenerationTarget;
+use qctidy_codegen::CodegenAdapter;
+use qctidy_facade::CodeGenerationRequest;
+use qctidy_ports::CodeGenerationTarget;
 
 use crate::extractor;
 
@@ -44,7 +44,7 @@ fn generate_code(
         circuit_name,
     );
 
-    let response = qsimplify_facade::generate_code(&request, &CodegenAdapter)
+    let response = qctidy_facade::generate_code(&request, &CodegenAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     Ok(PyString::new(python, response.code()).into())

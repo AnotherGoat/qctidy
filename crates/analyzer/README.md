@@ -1,6 +1,6 @@
-# QSimplify Analyzer (`qsimplify-analyzer`)
+# QCTidy Analyzer (`qctidy-analyzer`)
 
-Este *crate* está diseñado para abstraer y realizar todo el análisis métrico de los circuitos cuánticos generados por `qsimplify`. Su objetivo principal es extraer estadísticas vitales del `Graph` que luego pueden ser consumidas por:
+Este *crate* está diseñado para abstraer y realizar todo el análisis métrico de los circuitos cuánticos generados por `qctidy`. Su objetivo principal es extraer estadísticas vitales del `Graph` que luego pueden ser consumidas por:
 - **Interfaces Gráficas (Web/TUI):** Para generar reportes de "Antes vs. Después" de las simplificaciones.
 - **Motores de Costos (Estimator):** Para calcular el precio de ejecución en hardware cuántico (AWS Braket, IBM Quantum) basándose en las compuertas utilizadas y la profundidad.
 

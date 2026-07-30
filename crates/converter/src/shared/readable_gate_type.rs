@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use qsimplify::{GateType, GateTypeError};
+use qctidy::{GateType, GateTypeError};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 #[derive(Debug, Clone)]

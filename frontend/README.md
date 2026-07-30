@@ -1,6 +1,6 @@
-# QSimplify Frontend
+# QCTidy Frontend
 
-This is the official graphical interface for **QSimplify**, a quantum circuit simplifier written in Rust. The interface lets users design circuits by dragging and dropping quantum gates, then communicate with the Rust API to get the mathematically simplified version of the circuit.
+This is the official graphical interface for **QCTidy**, a quantum circuit simplifier written in Rust. The interface lets users design circuits by dragging and dropping quantum gates, then communicate with the Rust API to get the mathematically simplified version of the circuit.
 
 ## Features
 

@@ -4,10 +4,10 @@ use serde::Serialize;
 use serde_json::json;
 use utoipa::ToSchema;
 
-use qsimplify_converter::ConverterAdapter;
-use qsimplify_facade::ParseRequest;
-use qsimplify_facade::SerializeRequest;
-use qsimplify_ports::ConversionFormat;
+use qctidy_converter::ConverterAdapter;
+use qctidy_facade::ParseRequest;
+use qctidy_facade::SerializeRequest;
+use qctidy_ports::ConversionFormat;
 
 use crate::circuit;
 use crate::error::ApiError;
@@ -70,13 +70,13 @@ pub(crate) async fn handler(
 
     let input_bytes = decode_circuit(&body.circuit, source_format)?;
 
-    let parsed = qsimplify_facade::parse(
+    let parsed = qctidy_facade::parse(
         &ParseRequest::new(input_bytes.into(), source_format),
         &ConverterAdapter,
     )
     .map_err(|error| ApiError::BadRequest(format!("Parse error: {error}")))?;
 
-    let serialized = qsimplify_facade::serialize(
+    let serialized = qctidy_facade::serialize(
         &SerializeRequest::new(parsed.circuit(), target_format, Some(false), None),
         &ConverterAdapter,
     )

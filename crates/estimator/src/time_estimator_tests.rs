@@ -1,4 +1,4 @@
-use qsimplify::{GateType, GraphBuilder};
+use qctidy::{GateType, GraphBuilder};
 
 use crate::models::BackendProfile;
 use crate::time_estimator::{estimate_execution_time, get_gate_cost};

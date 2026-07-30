@@ -1,8 +1,8 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use qsimplify_converter::ConverterAdapter;
-use qsimplify_facade::{ParseRequest, SerializeRequest};
-use qsimplify_ports::ConversionFormat;
+use qctidy_converter::ConverterAdapter;
+use qctidy_facade::{ParseRequest, SerializeRequest};
+use qctidy_ports::ConversionFormat;
 
 use crate::{circuit, extractor};
 
@@ -43,7 +43,7 @@ impl From<PythonConversionFormat> for ConversionFormat {
 fn parse(python: Python<'_>, input: &[u8], format: PythonConversionFormat) -> PyResult<Py<PyAny>> {
     let request = ParseRequest::new(input.into(), format.into());
 
-    let response = qsimplify_facade::parse(&request, &ConverterAdapter)
+    let response = qctidy_facade::parse(&request, &ConverterAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     circuit::circuit_to_qiskit(python, response.circuit().as_ref())
@@ -59,7 +59,7 @@ fn serialize(
     let extracted = extractor::extract_circuit(circuit)?;
     let request = SerializeRequest::new(extracted.into(), format.into(), prettify, indentation);
 
-    let response = qsimplify_facade::serialize(&request, &ConverterAdapter)
+    let response = qctidy_facade::serialize(&request, &ConverterAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     Ok(response.bytes().to_vec())

@@ -1,8 +1,8 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
-use qsimplify_estimator::EstimatorAdapter;
-use qsimplify_facade::EstimationRequest;
+use qctidy_estimator::EstimatorAdapter;
+use qctidy_facade::EstimationRequest;
 
 use crate::extractor;
 
@@ -16,7 +16,7 @@ fn estimate(python: Python<'_>, circuit: &Bound<'_, PyAny>, shots: usize) -> PyR
     let extracted = extractor::extract_circuit(circuit)?;
     let request = EstimationRequest::new(extracted.into(), shots);
     let response = python
-        .detach(|| qsimplify_facade::estimate(&request, &EstimatorAdapter))
+        .detach(|| qctidy_facade::estimate(&request, &EstimatorAdapter))
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     estimation_to_dict(python, response.estimation())
@@ -24,7 +24,7 @@ fn estimate(python: Python<'_>, circuit: &Bound<'_, PyAny>, shots: usize) -> PyR
 
 fn estimation_to_dict(
     python: Python<'_>,
-    estimation: qsimplify_ports::Estimation,
+    estimation: qctidy_ports::Estimation,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("execution_time", estimation.execution_time)?;
@@ -34,7 +34,7 @@ fn estimation_to_dict(
 
 fn provider_costs_to_list(
     python: Python<'_>,
-    costs: Vec<qsimplify_ports::ProviderCostEstimates>,
+    costs: Vec<qctidy_ports::ProviderCostEstimates>,
 ) -> PyResult<Py<PyList>> {
     let list = PyList::empty(python);
     for provider_costs in costs {
@@ -52,7 +52,7 @@ fn provider_costs_to_list(
 
 fn costs_to_list(
     python: Python<'_>,
-    costs: Vec<qsimplify_ports::EstimatedCost>,
+    costs: Vec<qctidy_ports::EstimatedCost>,
 ) -> PyResult<Py<PyList>> {
     let list = PyList::empty(python);
     for cost in costs {

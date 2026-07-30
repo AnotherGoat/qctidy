@@ -59,8 +59,8 @@ use crate::use_cases::command::present_circuit;
 #[derive(OpenApiMacro)]
 #[openapi(
     info(
-        title = "QSimplify API",
-        description = "REST API for QSimplify — quantum circuit simplification, analysis, and visualization",
+        title = "QCTidy API",
+        description = "REST API for QCTidy — quantum circuit simplification, analysis, and visualization",
     ),
     paths(health::handler, features::handler),
     components(schemas(features::FeaturesResponse)),

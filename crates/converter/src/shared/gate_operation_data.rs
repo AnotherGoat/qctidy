@@ -1,5 +1,5 @@
-use qsimplify::{GateOperation, GateType};
-use qsimplify_ports::ParseError;
+use qctidy::{GateOperation, GateType};
+use qctidy_ports::ParseError;
 
 pub(crate) struct GateOperationData {
     pub gate: GateType,

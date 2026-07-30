@@ -2,9 +2,9 @@
 
 use std::f64::consts::PI;
 
-use qsimplify::{Circuit, GateOperation, math};
+use qctidy::{Circuit, GateOperation, math};
 
-use qsimplify_ports::{ConversionFormat, ParseError};
+use qctidy_ports::{ConversionFormat, ParseError};
 
 use crate::xml;
 

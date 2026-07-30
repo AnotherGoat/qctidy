@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::metrics::{DeltaMetrics, DetailedMetrics, Metrics};
-use qsimplify::{EdgeType, GateType, Graph};
+use qctidy::{EdgeType, GateType, Graph};
 
 /// Calculate metrics for the provided graph.
 pub fn calculate_metrics(graph: &Graph) -> Metrics {
@@ -348,7 +348,7 @@ fn count_max_toffoli(graph: &Graph) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use qsimplify::GraphBuilder;
+    use qctidy::GraphBuilder;
 
     #[test]
     fn test_calculate_metrics() {

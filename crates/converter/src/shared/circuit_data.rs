@@ -1,5 +1,5 @@
-use qsimplify::{Circuit, GateOperation};
-use qsimplify_ports::ParseError;
+use qctidy::{Circuit, GateOperation};
+use qctidy_ports::ParseError;
 
 use crate::{CURRENT_FORMAT_VERSION, shared::gate_operation_data::GateOperationData};
 

@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-tui"
-description = "Terminal user interface for QSimplify"
+name = "qctidy-tui"
+description = "Terminal user interface for QCTidy"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -12,9 +12,9 @@ keywords.workspace = true
 categories = ["science", "command-line-utilities"]
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-converter = { path = "../converter" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-converter = { path = "../converter" }
+qctidy-ports = { path = "../ports" }
 crossterm = { workspace = true }
 fuzzy-matcher = { workspace = true }
 ratatui = { workspace = true }

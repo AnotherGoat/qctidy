@@ -12,9 +12,9 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-echo -e "\033[36m==========================================\033[0m"
-echo -e "\033[36m   Iniciando Benchmarks de QSimplify-RS\033[0m"
-echo -e "\033[36m==========================================\033[0m"
+echo -e "\033[36m=======================================\033[0m"
+echo -e "\033[36m   Iniciando Benchmarks de QCTidy\033[0m"
+echo -e "\033[36m=======================================\033[0m"
 
 echo -e "\n\033[33m[1/3] Ejecutando cargo bench...\033[0m"
 cargo bench

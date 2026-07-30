@@ -6,8 +6,8 @@ use graphviz_rust::{
     },
     printer::PrinterContext,
 };
-use qsimplify::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
-use qsimplify_ports::{PresentationError, PresentationFormat, PresenterPort};
+use qctidy::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
+use qctidy_ports::{PresentationError, PresentationFormat, PresenterPort};
 use std::{fs, io};
 
 const WHITE: &str = "#FFFFFF";

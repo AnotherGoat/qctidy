@@ -1,9 +1,9 @@
 use std::fmt::Write;
 
-use qsimplify::{
+use qctidy::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
-use qsimplify_ports::CodeGenerationError;
+use qctidy_ports::CodeGenerationError;
 
 const PI_FORMAT: PiFormat = PiFormat::Custom { pi: "numpy.pi" };
 

@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use inew::New;
-use qsimplify::{Circuit, Graph};
-use qsimplify_ports::{Estimation, EstimationError, EstimatorPort};
+use qctidy::{Circuit, Graph};
+use qctidy_ports::{Estimation, EstimationError, EstimatorPort};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]

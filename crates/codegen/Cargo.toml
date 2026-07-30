@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-codegen"
-description = "Code generator for QSimplify"
+name = "qctidy-codegen"
+description = "Code generator for QCTidy"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -15,8 +15,8 @@ categories = ["science", "encoding"]
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
-qsimplify-ports = { path = "../ports" }
+qctidy = { path = "../library" }
+qctidy-ports = { path = "../ports" }
 
 [features]
 default = [

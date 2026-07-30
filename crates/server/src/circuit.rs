@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
-use qsimplify::Circuit;
-use qsimplify_converter::ConverterAdapter;
-use qsimplify_facade::ParseRequest;
-use qsimplify_facade::SerializeRequest;
-use qsimplify_ports::ConversionFormat;
+use qctidy::Circuit;
+use qctidy_converter::ConverterAdapter;
+use qctidy_facade::ParseRequest;
+use qctidy_facade::SerializeRequest;
+use qctidy_ports::ConversionFormat;
 
 use crate::error::ApiError;
 
@@ -14,14 +14,14 @@ pub(crate) fn from_json(json: &serde_json::Value) -> Result<Arc<Circuit>, ApiErr
     let bytes = serde_json::to_vec(json)
         .map_err(|error| ApiError::BadRequest(format!("Invalid circuit JSON: {error}")))?;
     let request = ParseRequest::new(bytes.into(), ConversionFormat::Json);
-    let response = qsimplify_facade::parse(&request, &ConverterAdapter)
+    let response = qctidy_facade::parse(&request, &ConverterAdapter)
         .map_err(|error| ApiError::BadRequest(format!("Failed to parse circuit: {error}")))?;
     Ok(response.circuit())
 }
 
 pub(crate) fn to_json(circuit: Arc<Circuit>) -> Result<serde_json::Value, ApiError> {
     let request = SerializeRequest::new(circuit, ConversionFormat::Json, Some(true), Some(2));
-    let response = qsimplify_facade::serialize(&request, &ConverterAdapter)
+    let response = qctidy_facade::serialize(&request, &ConverterAdapter)
         .map_err(|error| ApiError::Internal(format!("Failed to serialize circuit: {error}")))?;
     serde_json::from_slice(&response.bytes())
         .map_err(|error| ApiError::Internal(format!("Failed to parse serialized circuit: {error}")))

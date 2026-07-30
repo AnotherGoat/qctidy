@@ -1,9 +1,9 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use qsimplify_analyzer::AnalyzerAdapter;
-use qsimplify_facade::{AnalysisRequest, ComparisonRequest};
-use qsimplify_ports::{AnalysisMode, AnalysisResult, DeltaAnalysisResult};
+use qctidy_analyzer::AnalyzerAdapter;
+use qctidy_facade::{AnalysisRequest, ComparisonRequest};
+use qctidy_ports::{AnalysisMode, AnalysisResult, DeltaAnalysisResult};
 
 use crate::extractor;
 
@@ -42,7 +42,7 @@ fn analyze(
 ) -> PyResult<Py<PyAny>> {
     let extracted = extractor::extract_circuit(circuit)?;
     let request = AnalysisRequest::new(extracted.into(), mode.into());
-    let response = qsimplify_facade::analyze(&request, &AnalyzerAdapter)
+    let response = qctidy_facade::analyze(&request, &AnalyzerAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     match response.result() {
@@ -63,7 +63,7 @@ fn compare(
         extractor::extract_circuit(new_circuit)?.into(),
         mode.into(),
     );
-    let response = qsimplify_facade::compare(&request, &AnalyzerAdapter)
+    let response = qctidy_facade::compare(&request, &AnalyzerAdapter)
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
 
     match response.result() {
@@ -74,7 +74,7 @@ fn compare(
 
 fn metrics_to_dict(
     python: Python<'_>,
-    metrics: qsimplify_ports::AnalysisMetrics,
+    metrics: qctidy_ports::AnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("qubit_count", metrics.qubit_count)?;
@@ -99,7 +99,7 @@ fn metrics_to_dict(
 
 fn detailed_metrics_to_dict(
     python: Python<'_>,
-    metrics: qsimplify_ports::DetailedAnalysisMetrics,
+    metrics: qctidy_ports::DetailedAnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("width", metrics.width)?;
@@ -141,7 +141,7 @@ fn detailed_metrics_to_dict(
 
 fn delta_to_dict(
     python: Python<'_>,
-    metrics: &qsimplify_ports::DeltaAnalysisMetrics,
+    metrics: &qctidy_ports::DeltaAnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("qubit_count", metrics.qubit_count)?;
@@ -166,7 +166,7 @@ fn delta_to_dict(
 
 fn detailed_delta_to_dict(
     python: Python<'_>,
-    metrics: &qsimplify_ports::DeltaDetailedAnalysisMetrics,
+    metrics: &qctidy_ports::DeltaDetailedAnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("width", metrics.width)?;

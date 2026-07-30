@@ -98,7 +98,7 @@ function alignGrid(grid: Grid): Grid {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "QSimplify" },
+    { title: "QCTidy" },
     { name: "description", content: "Build and simplify quantum circuits" },
   ];
 }
@@ -576,7 +576,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "qsimplify-circuit.json";
+    link.download = "qctidy-circuit.json";
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -681,7 +681,7 @@ export default function Home() {
     <div className="flex h-screen min-w-0 flex-col overflow-hidden bg-transparent">
       <header className="m-2 flex flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-950/80 p-6 text-4xl font-extrabold tracking-tight text-white shadow-2xl backdrop-blur-md">
         <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-md">
-          QSimplify
+          QCTidy
         </span>
       </header>
 

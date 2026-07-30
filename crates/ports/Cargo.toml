@@ -1,6 +1,6 @@
 [package]
-name = "qsimplify-ports"
-description = "Ports for optional QSimplify services"
+name = "qctidy-ports"
+description = "Ports for optional QCTidy services"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,7 +16,7 @@ test = false
 doctest = false
 
 [dependencies]
-qsimplify = { path = "../library" }
+qctidy = { path = "../library" }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 thiserror = { workspace = true }

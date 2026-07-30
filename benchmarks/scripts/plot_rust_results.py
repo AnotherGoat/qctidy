@@ -15,14 +15,14 @@ if os.path.exists(criterion_dir):
         algo_path = os.path.join(criterion_dir, algo_name)
         if not os.path.isdir(algo_path) or algo_name == 'report':
             continue
-        
+
         rust_results[algo_name] = {}
-        
+
         for q_dir in os.listdir(algo_path):
             q_path = os.path.join(algo_path, q_dir)
             if not os.path.isdir(q_path):
                 continue
-                
+
             estimates_file = os.path.join(q_path, 'new', 'estimates.json')
             if os.path.exists(estimates_file):
                 with open(estimates_file, 'r') as f:
@@ -30,7 +30,7 @@ if os.path.exists(criterion_dir):
                     # Convertir a segundos
                     time_ns = est_data['mean']['point_estimate']
                     time_seconds = time_ns / 1e9
-                    
+
                     try:
                         qubits = int(q_dir)
                         rust_results[algo_name][qubits] = time_seconds
@@ -63,7 +63,7 @@ for i, algo in enumerate(algos):
 
 # Añadir etiquetas y títulos
 ax.set_ylabel('Tiempo en Segundos (s)', fontsize=12)
-ax.set_title('Rendimiento de QSimplify en Rust', fontsize=16, pad=20)
+ax.set_title('Rendimiento de QCTidy en Rust', fontsize=16, pad=20)
 ax.set_xticks(x)
 ax.set_xticklabels(labels, fontsize=12)
 

@@ -1,6 +1,6 @@
 use o2o::o2o;
-use qsimplify::Circuit;
-use qsimplify_ports::{ConversionFormat, ParseError, SerializeError};
+use qctidy::Circuit;
+use qctidy_ports::{ConversionFormat, ParseError, SerializeError};
 use serde::{Deserialize, Serialize};
 use serde_json::{
     Error,

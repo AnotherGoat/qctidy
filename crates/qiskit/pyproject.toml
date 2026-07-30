@@ -3,9 +3,9 @@ requires = ["maturin>=1.13,<2"]
 build-backend = "maturin"
 
 [project]
-name = "qsimplify_qiskit"
+name = "qctidy_qiskit"
 version = "0.1.0"
-description = "Qiskit bindings for QSimplify quantum circuit simplification."
+description = "Qiskit bindings for QCTidy quantum circuit simplification."
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Rust",
@@ -14,4 +14,4 @@ classifiers = [
 ]
 
 [tool.maturin]
-include = ["qsimplify_qiskit.pyi"]
+include = ["qctidy_qiskit.pyi"]

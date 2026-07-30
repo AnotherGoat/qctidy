@@ -2,8 +2,8 @@
 
 use std::f64::consts::PI;
 
-use qsimplify::{Circuit, GateOperation};
-use qsimplify_ports::{ConversionFormat, ParseError};
+use qctidy::{Circuit, GateOperation};
+use qctidy_ports::{ConversionFormat, ParseError};
 
 use crate::message_pack;
 

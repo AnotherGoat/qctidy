@@ -1,6 +1,6 @@
 use axum::extract::Json;
-use qsimplify_estimator::EstimatorAdapter;
-use qsimplify_facade::EstimationRequest;
+use qctidy_estimator::EstimatorAdapter;
+use qctidy_facade::EstimationRequest;
 use serde::Deserialize;
 use serde::Serialize;
 use utoipa::ToSchema;
@@ -62,12 +62,11 @@ pub(crate) async fn handler(
     let shots = body.shots.unwrap_or(1024);
     let request = EstimationRequest::new(circuit, shots);
 
-    let response = tokio::task::spawn_blocking(move || {
-        qsimplify_facade::estimate(&request, &EstimatorAdapter)
-    })
-    .await
-    .map_err(|error| ApiError::Internal(error.to_string()))?
-    .map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response =
+        tokio::task::spawn_blocking(move || qctidy_facade::estimate(&request, &EstimatorAdapter))
+            .await
+            .map_err(|error| ApiError::Internal(error.to_string()))?
+            .map_err(|error| ApiError::Internal(error.to_string()))?;
 
     let api_estimates = response
         .estimation()

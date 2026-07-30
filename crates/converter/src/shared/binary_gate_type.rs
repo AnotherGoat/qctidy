@@ -1,4 +1,4 @@
-use qsimplify::GateType;
+use qctidy::GateType;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 #[derive(Debug, Clone)]

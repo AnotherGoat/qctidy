@@ -1,8 +1,8 @@
 pub mod calculator;
 pub mod metrics;
 
-use qsimplify::Graph;
-use qsimplify_ports::{
+use qctidy::Graph;
+use qctidy_ports::{
     AnalysisMetrics, AnalysisMode, AnalysisResult, AnalyzerPort, DeltaAnalysisMetrics,
     DeltaAnalysisResult, DeltaDetailedAnalysisMetrics, DetailedAnalysisMetrics,
 };

@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use qsimplify::{Circuit, GateOperation};
+use qctidy::{Circuit, GateOperation};
 
 pub(crate) fn circuit_to_qiskit(python: Python<'_>, circuit: &Circuit) -> PyResult<Py<PyAny>> {
     use GateOperation::*;

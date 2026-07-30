@@ -1,9 +1,9 @@
 use std::fmt::Write;
 
-use qsimplify::{
+use qctidy::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
-use qsimplify_ports::CodeGenerationError;
+use qctidy_ports::CodeGenerationError;
 
 pub(crate) fn generate(graph: &Graph) -> Result<String, CodeGenerationError> {
     let circuit = Circuit::from(graph);

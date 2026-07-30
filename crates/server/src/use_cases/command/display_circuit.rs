@@ -5,10 +5,10 @@ use axum::response::IntoResponse;
 use serde::Deserialize;
 use utoipa::ToSchema;
 
-use qsimplify::DiracFormat;
-use qsimplify::PiFormat;
-use qsimplify_facade::DisplayFormat;
-use qsimplify_facade::DisplayRequest;
+use qctidy::DiracFormat;
+use qctidy::PiFormat;
+use qctidy_facade::DisplayFormat;
+use qctidy_facade::DisplayRequest;
 
 use crate::circuit;
 use crate::error::ApiError;
@@ -80,8 +80,8 @@ pub(crate) async fn handler(
         .transpose()?;
 
     let request = DisplayRequest::new(circ, format, pi_format, dirac_format);
-    let response = qsimplify_facade::display(&request)
-        .map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response =
+        qctidy_facade::display(&request).map_err(|error| ApiError::Internal(error.to_string()))?;
 
     Ok((
         StatusCode::OK,

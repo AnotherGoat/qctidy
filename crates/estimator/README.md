@@ -1,6 +1,6 @@
-# `qsimplify-estimator`
+# `qctidy-estimator`
 
-El módulo `qsimplify-estimator` es una biblioteca nativa en Rust que proporciona herramientas avanzadas para predecir el **tiempo de ejecución físico** y el **costo financiero en dólares (USD)** de los circuitos cuánticos (`Graph`) en proveedores reales de hardware cuántico, específicamente **AWS Braket** e **IBM Quantum**.
+El módulo `qctidy-estimator` es una biblioteca nativa en Rust que proporciona herramientas avanzadas para predecir el **tiempo de ejecución físico** y el **costo financiero en dólares (USD)** de los circuitos cuánticos (`Graph`) en proveedores reales de hardware cuántico, específicamente **AWS Braket** e **IBM Quantum**.
 
 Este módulo fue diseñado como un reemplazo directo y optimizado (port) de scripts de Python, llevando toda la recolección de datos y la simulación heurística al ecosistema seguro y concurrente de Rust.
 
@@ -20,7 +20,7 @@ Este módulo fue diseñado como un reemplazo directo y optimizado (port) de scri
 A diferencia de un simple conteo de compuertas, el `time_estimator` simula el reloj físico de cada qubit de manera independiente respetando la sincronización:
 
 1. **Pesos Heurísticos (`BackendProfile`)**: A cada compuerta se le asigna un "peso" abstracto de tiempo. Por ejemplo, compuertas de 1 qubit cuestan `1.0`, y compuertas de 2 qubits (ej. CNOT) cuestan `15.0` debido a su complejidad en hardware de microondas o iones atrapados.
-2. **Reloj por Qubit**: Mantenemos un reloj para cada qubit. 
+2. **Reloj por Qubit**: Mantenemos un reloj para cada qubit.
 3. **Sincronización (Ruta Crítica)**: Iteramos el `Graph` topológicamente (por columnas). Cuando una compuerta involucra múltiples qubits, esta *no puede ejecutarse hasta que todos los qubits involucrados estén libres*. El tiempo de inicio será el `máximo` de los relojes de esos qubits.
 4. **Camino Crítico**: El tiempo total de una sola ejecución (un "shot") es el valor máximo alcanzado por cualquier reloj al finalizar el circuito.
 5. **Tiempo Total**: Multiplicamos este camino crítico por la cantidad de `shots`, sumándole el retraso físico de reseteo de la QPU.
@@ -48,8 +48,8 @@ El módulo abstrae las diferencias en cómo los proveedores cobran por el acceso
 ## Ejemplo de Uso (API)
 
 ```rust
-use qsimplify_estimator::{BackendProfile, estimate_execution_time, get_pricing_data, calculate_costs};
-use qsimplify::Graph;
+use qctidy_estimator::{BackendProfile, estimate_execution_time, get_pricing_data, calculate_costs};
+use qctidy::Graph;
 
 // 1. Obtener el Grafo (circuito)
 // let graph = ...

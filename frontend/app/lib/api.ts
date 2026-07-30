@@ -1,6 +1,6 @@
 import type { GateState } from "~/routes/home";
 
-export interface QSimplifyRequest {
+export interface QCTidyRequest {
   circuit: {
     qubit_count: number;
     operations: Record<string, any>[];
@@ -8,7 +8,7 @@ export interface QSimplifyRequest {
   iterations: number;
 }
 
-export interface QSimplifyResponse {
+export interface QCTidyResponse {
   circuit: {
     version: number;
     qubit_count: number;
@@ -33,7 +33,7 @@ export interface AnalyzeCircuitResponse {
   metrics: Record<string, number>;
 }
 
-export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
+export function buildJsonFromGrid(grid: GateState[][]): QCTidyRequest {
   const qubit_count = grid.length;
 
   // 1. Extract all gates with their row and column coordinates
@@ -152,8 +152,8 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
 }
 
 export async function simplifyCircuit(
-  request: QSimplifyRequest,
-): Promise<QSimplifyResponse> {
+  request: QCTidyRequest,
+): Promise<QCTidyResponse> {
   const response = await fetch("/api/simplify", {
     method: "POST",
     headers: {
@@ -170,7 +170,7 @@ export async function simplifyCircuit(
 }
 
 export async function estimateCircuit(
-  circuit: QSimplifyRequest["circuit"],
+  circuit: QCTidyRequest["circuit"],
 ): Promise<EstimateCircuitResponse> {
   const response = await fetch("/api/estimate", {
     method: "POST",
@@ -188,7 +188,7 @@ export async function estimateCircuit(
 }
 
 export async function analyzeCircuit(
-  circuit: QSimplifyRequest["circuit"],
+  circuit: QCTidyRequest["circuit"],
 ): Promise<AnalyzeCircuitResponse> {
   const response = await fetch("/api/analyze", {
     method: "POST",
@@ -207,7 +207,7 @@ export async function analyzeCircuit(
 
 import { GATE_REGISTRY } from "~/components/gate";
 
-export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
+export function buildGridFromJson(response: QCTidyResponse): GateState[][] {
   const { qubit_count, operations } = response.circuit;
   const grid: GateState[][] = Array.from({ length: qubit_count }, () => []);
 

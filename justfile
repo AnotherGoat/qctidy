@@ -1,4 +1,4 @@
-# Justfile for QSimplify
+# Justfile for QCTidy
 #
 # Run `just` or `just --list` to see all available recipes
 
@@ -46,7 +46,7 @@ build:
 # Build a specific crate (optionally with selected features)
 # Example: just build-crate converter "presenter,codegen"
 build-crate crate +features="":
-    cargo build -p qsimplify-{{crate}} {{ if features != "" { "--features " + features } else { "" } }}
+    cargo build -p qctidy-{{crate}} {{ if features != "" { "--features " + features } else { "" } }}
 
 # Build all crates for production (optimized release mode)
 build-release:
@@ -55,7 +55,7 @@ build-release:
 # Build a specific crate in release mode (optionally with selected features)
 # Example: just build-crate-release converter "presenter,codegen"
 build-crate-release crate +features="":
-    cargo build --release -p qsimplify-{{crate}} {{ if features != "" { "--features " + features } else { "" } }}
+    cargo build --release -p qctidy-{{crate}} {{ if features != "" { "--features " + features } else { "" } }}
 
 # Run all tests in all crates
 test:
@@ -68,7 +68,7 @@ test-backtrace:
 # Run tests for a specific crate
 # Example: just test-crate converter
 test-crate crate:
-    cargo test -p qsimplify-{{crate}}
+    cargo test -p qctidy-{{crate}}
 
 # Set up Cargo for coverage reporting
 setup-coverage:
@@ -112,12 +112,12 @@ qiskit-release-features features:
 # Run the REST API server in debug mode (optionally with selected features)
 # Example: just serve "converter-json,presenter-graphviz"
 serve +features="":
-    cargo run -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
+    cargo run -p qctidy-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
 
 # Run the REST API server in release mode (optionally with selected features)
 # Example: just serve-release "converter-json,presenter-graphviz"
 serve-release +features="":
-    cargo run --release -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
+    cargo run --release -p qctidy-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}
 
 # Install cargo-watch for hot reload
 setup-watch:
@@ -126,8 +126,8 @@ setup-watch:
 # Run the REST API server with hot reload (optionally with selected features)
 # Example: just watch "converter-json,presenter-graphviz"
 watch +features="":
-    cargo watch -x "run -p qsimplify-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}"
+    cargo watch -x "run -p qctidy-server {{ if features != "" { "--no-default-features --features " + features } else { "" } }}"
 
 # Run the TUI application with all features
 tui:
-    cargo run -p qsimplify-tui
+    cargo run -p qctidy-tui
