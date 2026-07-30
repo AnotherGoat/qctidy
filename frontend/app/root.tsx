@@ -49,6 +49,19 @@ export default function App() {
   );
 }
 
+export function HydrateFallback() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
+      <div className="rounded-xl border border-white/10 bg-white/5 px-8 py-6 text-center shadow-2xl backdrop-blur-md">
+        <div className="mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-3xl font-extrabold text-transparent">
+          QSimplify
+        </div>
+        <p className="text-sm text-slate-300">Loading circuit editor...</p>
+      </div>
+    </div>
+  );
+}
+
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";

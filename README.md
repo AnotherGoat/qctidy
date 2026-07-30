@@ -16,6 +16,8 @@ It started as an enhanced port of a previousprototype that was written in Python
 - [Installation](#installation)
 - [Project Structure](#project-structure)
 - [Useful Commands](#useful-commands)
+- [Usage](#usage)
+  - [Docker](#docker)
   - [Rust Library](#rust-library)
   - [Python Bindings for Qiskit](#python-bindings-for-qiskit)
   - [Supported Gates](#supported-gates)
@@ -110,6 +112,48 @@ Some commonly used commands:
 If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.
 
 ## Usage
+
+### Docker
+
+Run the backend and frontend together:
+
+```bash
+docker compose up --build
+```
+
+Build and run the backend (standalone):
+
+```bash
+docker build -f server.Dockerfile -t qsimplify-server .
+docker run --rm -p 3000:3000 qsimplify-server
+```
+
+Use another host port if needed:
+
+```bash
+docker run --rm -p 8080:3000 qsimplify-server
+```
+
+Build and run the frontend (standalone):
+
+```bash
+docker build -f frontend.Dockerfile -t qsimplify-frontend .
+docker run --rm -p 5173:80 -e API_URL=http://host.docker.internal:3000 qsimplify-frontend
+```
+
+Use another host port if needed:
+
+```bash
+docker run --rm -p 8081:80 -e API_URL=http://host.docker.internal:3000 qsimplify-frontend
+```
+
+The frontend is available at `http://localhost:5173`. The backend is available at `http://localhost:3000`.
+
+With Compose, customize published ports with environment variables:
+
+```bash
+FRONTEND_PORT=8081 SERVER_PORT=8080 docker compose up --build
+```
 
 ### Rust Library
 

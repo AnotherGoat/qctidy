@@ -16,9 +16,26 @@ export interface QSimplifyResponse {
   };
 }
 
+export interface EstimateCircuitResponse {
+  estimates: {
+    provider: string;
+    status: string;
+    estimates: {
+      provider: string;
+      plan_name: string;
+      price_label: string;
+      cost_usd: number | null;
+    }[];
+  }[];
+}
+
+export interface AnalyzeCircuitResponse {
+  metrics: Record<string, number>;
+}
+
 export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
   const qubit_count = grid.length;
-  
+
   // 1. Extract all gates with their row and column coordinates
   const allGates: Array<{ row: number, col: number, gate: GateState }> = [];
   for (let r = 0; r < grid.length; r++) {
@@ -45,14 +62,14 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
   for (const [key, group] of groupedGates.entries()) {
     // The chronological order is dictated by the maximum column index of the group's nodes
     const sortCol = Math.max(...group.map(g => g.col));
-    
+
     if (group.length === 1 && !group[0].gate.props?.multiQubitId) {
       // Single qubit gate
       const { row, gate } = group[0];
       const gateName = (gate.type.displayName || "id").toLowerCase();
-      
+
       let op: Record<string, any> = {};
-      
+
       if (gateName === "measure" || gateName === "m") {
         op = {
           gate: "m",
@@ -70,7 +87,7 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
            op.theta = (gate.props?.angle !== undefined ? gate.props.angle : 0) * (Math.PI / 180);
         }
       }
-      
+
       operationsList.push({ op, sortCol });
     } else if (group[0].gate.props?.multiQubitId) {
       const gateName = (group[0].gate.type.displayName || "cx").toLowerCase();
@@ -101,12 +118,12 @@ export function buildJsonFromGrid(grid: GateState[][]): QSimplifyRequest {
       } else {
         const controlNode = group.find(g => g.gate.props?.multiQubitRole === "control" || g.gate.props?.multiQubitRole === "qubit1");
         const targetNode = group.find(g => g.gate.props?.multiQubitRole === "target" || g.gate.props?.multiQubitRole === "qubit2");
-        
+
         if (controlNode && targetNode) {
           if (["swap", "cz", "cp"].includes(gateName)) {
              op.qubit1 = controlNode.row;
              op.qubit2 = targetNode.row;
-             
+
              if (gateName === "cp") {
                op.theta = (controlNode.gate.props?.angle !== undefined ? controlNode.gate.props.angle : 0) * (Math.PI / 180);
              }
@@ -152,6 +169,42 @@ export async function simplifyCircuit(
   return await response.json();
 }
 
+export async function estimateCircuit(
+  circuit: QSimplifyRequest["circuit"],
+): Promise<EstimateCircuitResponse> {
+  const response = await fetch("/api/estimate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ circuit }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function analyzeCircuit(
+  circuit: QSimplifyRequest["circuit"],
+): Promise<AnalyzeCircuitResponse> {
+  const response = await fetch("/api/analyze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ circuit }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
 import { GATE_REGISTRY } from "~/components/gate";
 
 export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
@@ -167,27 +220,27 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
 
     if (["cx", "cy", "cz", "ch", "cp", "swap"].includes(op.gate.toLowerCase())) {
       const multiQubitId = crypto.randomUUID();
-      
+
       const isQubitPairs = ["swap", "cz", "cp"].includes(op.gate.toLowerCase());
       const controlRow = isQubitPairs ? op.qubit1 : op.control;
       const targetRow = isQubitPairs ? op.qubit2 : op.target;
-      
+
       if (controlRow !== undefined && targetRow !== undefined) {
         grid[controlRow].push({
           id: crypto.randomUUID(),
           type,
-          props: { 
-            multiQubitId, 
+          props: {
+            multiQubitId,
             multiQubitRole: isQubitPairs ? "qubit1" : "control",
             ...(op.gate.toLowerCase() === "cp" && op.theta !== undefined ? { angle: op.theta * (180 / Math.PI) } : {})
           },
         });
-        
+
         grid[targetRow].push({
           id: crypto.randomUUID(),
           type,
-          props: { 
-            multiQubitId, 
+          props: {
+            multiQubitId,
             multiQubitRole: isQubitPairs ? "qubit2" : "target",
             ...(op.gate.toLowerCase() === "cp" && op.theta !== undefined ? { angle: op.theta * (180 / Math.PI) } : {})
           },
@@ -196,10 +249,10 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
     } else if (["ccx", "ccz", "cswap"].includes(op.gate.toLowerCase())) {
       const multiQubitId = crypto.randomUUID();
       const gateName = op.gate.toLowerCase();
-      
+
       let row0, row1, row2;
       let role0: any, role1: any, role2: any;
-      
+
       if (gateName === "ccz") {
         row0 = op.qubit1; row1 = op.qubit2; row2 = op.qubit3;
         role0 = "qubit1"; role1 = "qubit2"; role2 = "qubit3";
@@ -210,7 +263,7 @@ export function buildGridFromJson(response: QSimplifyResponse): GateState[][] {
         row0 = op.control; row1 = op.target1; row2 = op.target2;
         role0 = "control"; role1 = "target1"; role2 = "target2";
       }
-      
+
       if (row0 !== undefined && row1 !== undefined && row2 !== undefined) {
          grid[row0].push({ id: crypto.randomUUID(), type, props: { multiQubitId, multiQubitRole: role0 } });
          grid[row1].push({ id: crypto.randomUUID(), type, props: { multiQubitId, multiQubitRole: role1 } });

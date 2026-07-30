@@ -97,14 +97,13 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
     let moveInstructions: Record<string, number> | undefined;
     if (isMultiQubit) {
-      const maxRow = grid ? grid.length - 1 : Infinity;
       moveInstructions = {};
       const targetRows: number[] = [];
 
       for (const [role, rowStr] of Object.entries(rowOverrides)) {
         const row = Number(rowStr);
-        if (isNaN(row) || row < 0 || row > maxRow || !Number.isInteger(row)) {
-          setErrorMsg(`Qubits must be integers between 0 and ${maxRow}.`);
+        if (isNaN(row) || row < 0 || !Number.isInteger(row)) {
+          setErrorMsg("Qubits must be integers greater than or equal to 0.");
           return;
         }
         moveInstructions[role] = row;
@@ -226,7 +225,6 @@ export const GateEditor: React.FC<GateEditorProps> = ({
                   onChange={(e) => setRowOverrides(prev => ({ ...prev, [role]: e.target.value }))}
                   className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
                   min={0}
-                  max={grid ? grid.length - 1 : undefined}
                 />
               </div>
             ))}

@@ -42,18 +42,20 @@ export const Circuit: React.FC<CircuitProps> = ({
       <div className="overflow-x-auto overflow-y-clip overscroll-x-contain p-4">
         <div className="min-h-max">
           <div className="grid grid-cols-[auto_auto_1fr] gap-x-2 auto-rows-max">
-            <div className="flex min-h-[80px] items-center justify-center">
-              {!readOnly && (
+            {!readOnly && (
+              <>
+                <div className="flex min-h-[80px] items-center justify-center">
                 <Button
                   onClick={onAddRowTop}
                   className="h-8 w-8 rounded-full border-2 border-white/20 bg-green-300 p-0 text-xl font-black text-black shadow-lg hover:bg-green-500"
                 >
                   +
                 </Button>
-              )}
-            </div>
-            <div />
-            <div /> {}
+                </div>
+                <div />
+                <div /> {}
+              </>
+            )}
             {grid.map((row, rowIndex) => {
               const trimmed = trimRow(row);
 
@@ -249,18 +251,20 @@ export const Circuit: React.FC<CircuitProps> = ({
                 </React.Fragment>
               );
             })}
-            <div className="flex items-center justify-center min-h-[80px]">
-              {!readOnly && (
+            {!readOnly && (
+              <>
+                <div className="flex items-center justify-center min-h-[80px]">
                 <Button
                   onClick={onAddRowBottom}
                   className="h-8 w-8 rounded-full border-2 border-white/20 bg-green-300 p-0 text-xl font-black text-black shadow-lg hover:bg-green-500"
                 >
                   +
                 </Button>
-              )}
-            </div>
-            <div />
-            <div />
+                </div>
+                <div />
+                <div />
+              </>
+            )}
           </div>
         </div>
       </div>

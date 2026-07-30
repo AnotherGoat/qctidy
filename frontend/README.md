@@ -1,75 +1,75 @@
 # QSimplify Frontend
 
-Esta es la interfaz gráfica oficial para **QSimplify**, un simplificador de circuitos cuánticos en Rust. La interfaz permite a los usuarios diseñar circuitos arrastrando y soltando compuertas cuánticas, y comunicarse con la API en Rust para obtener la versión matemáticamente simplificada del circuito.
+This is the official graphical interface for **QSimplify**, a quantum circuit simplifier written in Rust. The interface lets users design circuits by dragging and dropping quantum gates, then communicate with the Rust API to get the mathematically simplified version of the circuit.
 
-## Características (Features)
+## Features
 
-- **Diseño Interfaz Gráfica**: Interfaz moderna basada en "Glassmorphism" con un tema oscuro elegante y animaciones fluidas, utilizando TailwindCSS.
-- **Drag & Drop (Arrastrar y Soltar)**: Sistema robusto construido sobre `@dnd-kit/core`. Permite mover compuertas libremente, insertarlas en medio del circuito, y eliminarlas arrastrándolas fuera de la cuadrícula. Ahora incluye **soporte completo para arrastrar compuertas multi-qubit enteras (de 2 y 3 qubits)** sin que pierdan su estructura o separación original.
-- **Edición Interactiva**: Al hacer clic en las compuertas, se abre un menú flotante para configurar sus parámetros matemáticos en tiempo real (por ejemplo, definir los grados para las compuertas de rotación como `Rx` o asignar el cable clásico para la medición `M`). Los inputs cuentan con validación estricta de rangos y los ángulos se formatean visualmente con el símbolo de grado (`°`).
-- **Integración con API Backend**: Comunicación automática y sin problemas de CORS con el servidor de Rust (DuckDNS) a través del proxy de Vite. Incluye un mapeo bidireccional estricto para garantizar que la síntesis de compuertas (Backend -> Frontend) se reconstruya gráficamente con total fidelidad.
-- **Compuertas Soportadas**:
-  - _Básicas_: I, H, X, Y, Z, S, S† (Sdg).
-  - _Rotaciones & Fase_: P, Rx, Ry, Rz, √X (Sx), √Y (Sy), T, T† (Tdg), U (Unitaria de 3 ángulos).
-  - _2 Qubits_: SWAP, CX, CY, CZ, CH, CP (Incluyen visualización dinámica de líneas de conexión verticales y soporte estricto de los esquemas del backend para `control/target` o `qubit1/qubit2`).
-  - _3 Qubits_: CCX (Toffoli), CCZ, CSWAP (Fredkin) (Representación visual completa cruzando múltiples filas con controles y objetivos distintos).
-  - _Operaciones_: M (Medición).
-- **Responsive & Adaptable**: Permite ampliar el número de qubits (filas) de manera dinámica.
+- **Graphical Interface Design**: Modern glassmorphism-based interface with an elegant dark theme and smooth animations, built with Tailwind CSS.
+- **Drag & Drop**: Robust system built on `@dnd-kit/core`. It lets users move gates freely, insert them in the middle of the circuit, and remove them by dragging them outside the grid. It now includes **full support for dragging complete multi-qubit gates (2 and 3 qubits)** without losing their original structure or spacing.
+- **Interactive Editing**: Clicking a gate opens a floating menu to configure its mathematical parameters in real time, such as setting degrees for rotation gates like `Rx` or assigning the classical wire for measurement `M`. Inputs include strict range validation, and angles are visually formatted with the degree symbol (`°`).
+- **Backend API Integration**: Automatic CORS-free communication with the Rust server (DuckDNS) through the Vite proxy. It includes strict bidirectional mapping to ensure gate synthesis (Backend -> Frontend) is graphically reconstructed with full fidelity.
+- **Supported Gates**:
+  - _Basic_: I, H, X, Y, Z, S, S† (Sdg).
+  - _Rotations & Phase_: P, Rx, Ry, Rz, √X (Sx), √Y (Sy), T, T† (Tdg), U (3-angle unitary).
+  - _2 Qubits_: SWAP, CX, CY, CZ, CH, CP (including dynamic vertical connection line rendering and strict support for backend schemas using `control/target` or `qubit1/qubit2`).
+  - _3 Qubits_: CCX (Toffoli), CCZ, CSWAP (Fredkin) (full visual representation across multiple rows with distinct controls and targets).
+  - _Operations_: M (Measurement).
+- **Responsive & Adaptable**: Allows the number of qubits (rows) to be expanded dynamically.
 
-## Tecnologías Utilizadas
+## Technologies Used
 
 - **Framework**: [React Router](https://reactrouter.com/) (v7)
 - **Build Tool**: [Vite](https://vitejs.dev/)
-- **Estilos**: [Tailwind CSS](https://tailwindcss.com/)
+- **Styles**: [Tailwind CSS](https://tailwindcss.com/)
 - **Drag & Drop**: [@dnd-kit](https://dndkit.com/)
-- **Iconos**: [Lucide React](https://lucide.dev/)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
 
-## Guía de Inicio (Getting Started)
+## Getting Started
 
-### 1. Instalación de Dependencias
+### 1. Install Dependencies
 
-Asegúrate de tener [Node.js](https://nodejs.org/) instalado. Luego, ejecuta:
+Make sure [Node.js](https://nodejs.org/) is installed. Then run:
 
 ```bash
 npm install
 ```
 
-### 2. Entorno de Desarrollo Local
+### 2. Local Development Environment
 
-Para iniciar el servidor de desarrollo con Hot Module Replacement (HMR):
+To start the development server with Hot Module Replacement (HMR):
 
 ```bash
 npm run dev
 ```
 
-Tu aplicación estará disponible en `http://localhost:5173`.
+Your application will be available at `http://localhost:5173`.
 
-> **Nota sobre la API**: El proyecto está configurado para utilizar un Proxy en Vite (`vite.config.ts`) que redirige todas las llamadas de `/api` hacia `https://qsimplify.duckdns.org` de manera invisible para evitar problemas de CORS en el navegador.
+> **API Note**: The project is configured to use a Vite proxy (`vite.config.ts`) that transparently redirects all `/api` calls to `VITE_API_URL` to avoid browser CORS issues. Configure it in `.env`.
 
 ---
 
-## Estructura del Proyecto
+## Project Structure
 
 - `app/components/`
-  - `circuit.tsx`: Componente principal que dibuja las filas de los qubits y maneja la renderización de las celdas.
-  - `gate.tsx`: Definición visual y lógica de las compuertas cuánticas (colores, tamaños, IDs).
-  - `gate-sidebar.tsx`: Panel lateral con el catálogo completo de compuertas disponibles.
-  - `gate-editor.tsx`: Menú flotante interactivo para configurar los ángulos y bits de las compuertas.
+  - `circuit.tsx`: Main component that draws qubit rows and handles cell rendering.
+  - `gate.tsx`: Visual and logical definition of quantum gates (colors, sizes, IDs).
+  - `gate-sidebar.tsx`: Sidebar with the full catalog of available gates.
+  - `gate-editor.tsx`: Interactive floating menu for configuring gate angles and bits.
 - `app/lib/`
-  - `api.ts`: Lógica de conexión (Fetch) para enviar los circuitos a la API de Rust y recibir la respuesta.
+  - `api.ts`: Connection logic (Fetch) for sending circuits to the Rust API and receiving the response.
 - `app/routes/`
-  - `home.tsx`: La vista principal. Controla los estados de React, gestiona los eventos globales de Drag & Drop y la llamada al simplificador.
+  - `home.tsx`: The main view. It controls React state, handles global drag-and-drop events, and calls the simplifier.
 
 ---
 
-## Construcción para Producción
+## Production Build
 
-Para compilar la aplicación para su despliegue a producción:
+To compile the application for production deployment:
 
 ```bash
 npm run build
 ```
 
-Esto generará la carpeta `build/` con el código optimizado, listo para ser alojado en servicios como Vercel, Netlify, o servido directamente desde el backend en Rust.
+This generates the `build/` folder with optimized code, ready to be hosted on services like Vercel or Netlify, or served directly from the Rust backend.

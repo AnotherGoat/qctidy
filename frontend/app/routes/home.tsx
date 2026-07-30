@@ -1,7 +1,7 @@
 import { Circuit, type Grid } from "~/components/circuit";
 import type { Route } from "./+types/home";
 import { GateSidebar } from "~/components/gate_sidebar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -18,8 +18,20 @@ import {
   buildJsonFromGrid,
   simplifyCircuit,
   buildGridFromJson,
+  estimateCircuit,
+  type EstimateCircuitResponse,
+  analyzeCircuit,
+  type AnalyzeCircuitResponse,
 } from "~/lib/api";
 import { Button } from "~/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { GateEditor } from "~/components/gate-editor";
 
 function alignGrid(grid: Grid): Grid {
@@ -114,6 +126,11 @@ export default function Home() {
 
   const [simplifiedGrid, setSimplifiedGrid] = useState<Grid | null>(null);
   const [isSimplifying, setIsSimplifying] = useState(false);
+  const [costEstimates, setCostEstimates] = useState<EstimateCircuitResponse | null>(null);
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [analysisMetrics, setAnalysisMetrics] = useState<AnalyzeCircuitResponse | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleSimplify = async () => {
     try {
@@ -127,6 +144,30 @@ export default function Home() {
       alert("Error simplifying the circuit.");
     } finally {
       setIsSimplifying(false);
+    }
+  };
+
+  const handleEstimateCosts = async () => {
+    try {
+      setIsEstimating(true);
+      setCostEstimates(await estimateCircuit(buildJsonFromGrid(grid).circuit));
+    } catch (error) {
+      console.error(error);
+      alert("Error estimating circuit costs.");
+    } finally {
+      setIsEstimating(false);
+    }
+  };
+
+  const handleAnalyzeMetrics = async () => {
+    try {
+      setIsAnalyzing(true);
+      setAnalysisMetrics(await analyzeCircuit(buildJsonFromGrid(grid).circuit));
+    } catch (error) {
+      console.error(error);
+      alert("Error analyzing circuit metrics.");
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -524,6 +565,41 @@ export default function Home() {
   const clearCircuit = () => {
     setGrid([[], []]);
     setSimplifiedGrid(null);
+    setCostEstimates(null);
+    setAnalysisMetrics(null);
+  };
+
+  const handleExportJson = () => {
+    const blob = new Blob([JSON.stringify(buildJsonFromGrid(grid).circuit, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "qsimplify-circuit.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportJson = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!parsed?.operations || typeof parsed.qubit_count !== "number") {
+        throw new Error("Invalid circuit JSON");
+      }
+
+      setGrid(alignGrid(buildGridFromJson({ circuit: parsed })));
+      setSimplifiedGrid(null);
+      setCostEstimates(null);
+      setAnalysisMetrics(null);
+    } catch (error) {
+      console.error(error);
+      alert("Error importing the JSON circuit.");
+    }
   };
 
   const handleGateClick = (row: number, column: number, gate: GateState) => {
@@ -593,6 +669,14 @@ export default function Home() {
     setEditingGate(null);
   };
 
+  const metricEntries = analysisMetrics
+    ? Object.entries(analysisMetrics.metrics)
+    : [];
+  const metricColumns = [
+    metricEntries.slice(0, Math.ceil(metricEntries.length / 2)),
+    metricEntries.slice(Math.ceil(metricEntries.length / 2)),
+  ];
+
   return (
     <div className="flex h-screen min-w-0 flex-col overflow-hidden bg-transparent">
       <header className="m-2 flex flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-950/80 p-6 text-4xl font-extrabold tracking-tight text-white shadow-2xl backdrop-blur-md">
@@ -623,6 +707,27 @@ export default function Home() {
               </h2>
               <div className="flex gap-3">
                 <Button
+                  onClick={handleExportJson}
+                  variant="outline"
+                  className="bg-emerald-500/10 hover:bg-emerald-500 hover:text-white border-emerald-500/50 text-emerald-200 font-bold py-2 px-6 rounded-full transition-all"
+                >
+                  Export JSON
+                </Button>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  onChange={handleImportJson}
+                />
+                <Button
+                  onClick={() => importInputRef.current?.click()}
+                  variant="outline"
+                  className="bg-purple-500/10 hover:bg-purple-500 hover:text-white border-purple-500/50 text-purple-200 font-bold py-2 px-6 rounded-full transition-all"
+                >
+                  Import JSON
+                </Button>
+                <Button
                   onClick={clearCircuit}
                   variant="outline"
                   className="bg-red-500/10 hover:bg-red-500 hover:text-white border-red-500/50 text-red-200 font-bold py-2 px-6 rounded-full transition-all"
@@ -632,9 +737,23 @@ export default function Home() {
                 <Button
                   onClick={handleSimplify}
                   disabled={isSimplifying}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-8 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)] transition-all animate-pulse hover:animate-none disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-8 rounded-full shadow-[0_0_12px_rgba(37,99,235,0.4)] transition-all disabled:opacity-50"
                 >
                   {isSimplifying ? "Simplifying..." : "Simplify Circuit ✨"}
+                </Button>
+                <Button
+                  onClick={handleEstimateCosts}
+                  disabled={isEstimating}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-8 rounded-full shadow-[0_0_12px_rgba(8,145,178,0.4)] transition-all disabled:opacity-50"
+                >
+                  {isEstimating ? "Estimating..." : "Estimate Costs"}
+                </Button>
+                <Button
+                  onClick={handleAnalyzeMetrics}
+                  disabled={isAnalyzing}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-8 rounded-full shadow-[0_0_12px_rgba(79,70,229,0.4)] transition-all disabled:opacity-50"
+                >
+                  {isAnalyzing ? "Analyzing..." : "Metrics"}
                 </Button>
               </div>
             </div>
@@ -662,6 +781,80 @@ export default function Home() {
                     onRemoveRow={() => {}}
                     readOnly={true}
                   />
+                </div>
+              </div>
+            )}
+
+            {costEstimates && (
+              <div className="mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h2 className="text-3xl font-bold mb-6 text-cyan-300 drop-shadow-md">
+                  Cost Estimates
+                </h2>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Provider</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead className="text-right">Cost USD</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {costEstimates.estimates.flatMap((providerEstimate) =>
+                      providerEstimate.estimates.length > 0
+                        ? providerEstimate.estimates.map((estimate) => (
+                            <TableRow key={`${providerEstimate.provider}-${estimate.plan_name}-${estimate.price_label}`}>
+                              <TableCell>{providerEstimate.provider}</TableCell>
+                              <TableCell>{providerEstimate.status}</TableCell>
+                              <TableCell>{estimate.plan_name}</TableCell>
+                              <TableCell>{estimate.price_label}</TableCell>
+                              <TableCell className="text-right">
+                                {estimate.cost_usd == null
+                                  ? "-"
+                                  : `$${estimate.cost_usd.toFixed(4)}`}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        : [
+                            <TableRow key={providerEstimate.provider}>
+                              <TableCell>{providerEstimate.provider}</TableCell>
+                              <TableCell>{providerEstimate.status}</TableCell>
+                              <TableCell colSpan={3}>No estimates returned</TableCell>
+                            </TableRow>,
+                          ],
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {analysisMetrics && (
+              <div className="mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h2 className="text-3xl font-bold mb-6 text-indigo-300 drop-shadow-md">
+                  Metrics
+                </h2>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {metricColumns.map((metrics, columnIndex) => (
+                    <Table key={columnIndex}>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Metric</TableHead>
+                          <TableHead className="text-right">Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {metrics.map(([metric, value]) => (
+                          <TableRow key={metric}>
+                            <TableCell>{metric.replaceAll("_", " ")}</TableCell>
+                            <TableCell className="text-right">
+                              {Number.isInteger(value) ? value : value.toFixed(4)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ))}
                 </div>
               </div>
             )}

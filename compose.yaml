@@ -1,0 +1,19 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server.Dockerfile
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    environment:
+      API_URL: http://server:3000
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
