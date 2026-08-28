@@ -162,7 +162,7 @@ Write a `test.py` file with the code you want to test:
 ```python
 from numpy import pi
 from qiskit import QuantumCircuit
-import qsimplify_qiskit
+import qctidy_qiskit
 
 circuit = QuantumCircuit(3, 1)
 circuit.h(0)
@@ -173,10 +173,10 @@ circuit.measure(2, 0)
 circuit.swap(1, 2)
 
 print("Graph:")
-print(qsimplify_qiskit.display_graph(circuit))
+print(qctidy_qiskit.display_graph(circuit))
 
 print("Grid:")
-print(qsimplify_qiskit.display_grid(circuit))
+print(qctidy_qiskit.display_grid(circuit))
 ```
 
 And run it:

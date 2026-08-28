@@ -1,4 +1,4 @@
-# QSimplify Specification
+# QCTidy Specification
 
 ## Table of Contents
 
