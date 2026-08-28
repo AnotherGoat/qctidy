@@ -1,4 +1,4 @@
-use inew::New;
+use newgen::New;
 
 use crate::{ContextualNodeView, GateType, Graph, NodeView, Position, domain::math};
 

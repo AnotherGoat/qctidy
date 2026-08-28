@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
-use inew::New;
+use newgen::New;
 use qctidy::{Circuit, Graph};
 use qctidy_ports::{Estimation, EstimationError, EstimatorPort};
 

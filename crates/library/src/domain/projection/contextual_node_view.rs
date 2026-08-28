@@ -1,5 +1,5 @@
 use getset::Getters;
-use inew::New;
+use newgen::New;
 
 use crate::NodeView;
 

@@ -1,5 +1,5 @@
 use getset::{CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 
 /// Metadata associated with a graph simplification rule.
 #[derive(Debug, Clone, Copy, Getters, CopyGetters, New)]

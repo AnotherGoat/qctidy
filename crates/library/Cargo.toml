@@ -19,7 +19,7 @@ bit-vec = { workspace = true }
 faer = { workspace = true }
 function_name = { workspace = true }
 getset = { workspace = true }
-inew = { workspace = true }
+newgen = { workspace = true }
 itertools = { workspace = true }
 num-rational = { workspace = true }
 strum = { workspace = true }

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use inew::New;
+use newgen::New;
 
 use crate::Position;
 

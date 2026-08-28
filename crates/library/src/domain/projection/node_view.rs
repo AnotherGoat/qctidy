@@ -1,5 +1,5 @@
 use getset::CopyGetters;
-use inew::New;
+use newgen::New;
 
 use crate::{GateType, Position};
 

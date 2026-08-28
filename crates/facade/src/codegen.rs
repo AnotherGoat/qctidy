@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 use qctidy::{Circuit, Graph};
 use qctidy_ports::{CodeGenerationError, CodeGenerationTarget, CodegenPort};
 

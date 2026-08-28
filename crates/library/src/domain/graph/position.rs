@@ -1,7 +1,7 @@
 use std::fmt;
 
 use getset::CopyGetters;
-use inew::New;
+use newgen::New;
 
 /// Represents a (row, column) position in a `Graph`.
 ///

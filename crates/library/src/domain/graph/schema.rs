@@ -1,7 +1,7 @@
 use crate::{EdgeType, GATE_METADATAS, GateType};
 use EdgeType::*;
 use getset::{CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 
 /// A schema for a gate, which defines the number of graph nodes and edges required for it to be valid.
 ///

@@ -1,5 +1,5 @@
 use getset::{CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 
 use crate::{EdgeType, NodeView};
 

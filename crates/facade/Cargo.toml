@@ -18,7 +18,7 @@ doctest = false
 qctidy = { path = "../library" }
 qctidy-ports = { path = "../ports" }
 getset = { workspace = true }
-inew = { workspace = true }
+newgen = { workspace = true }
 
 [features]
 default = [

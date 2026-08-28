@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use getset::{CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 
 use crate::RuleId;
 

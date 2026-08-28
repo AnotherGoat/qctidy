@@ -2,7 +2,7 @@ use qctidy_ports::DisplayError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
-use inew::New;
+use newgen::New;
 use qctidy::{Circuit, DiracFormat, Graph, PiFormat};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]

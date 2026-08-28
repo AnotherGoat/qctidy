@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Write;
 
-use inew::New;
+use newgen::New;
 
 use crate::AngleFormat;
 use crate::GATE_METADATAS;

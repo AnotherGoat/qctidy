@@ -2,7 +2,7 @@ use qctidy_ports::SimplificationError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
-use inew::New;
+use newgen::New;
 use qctidy::{Circuit, Graph, simplifier};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
