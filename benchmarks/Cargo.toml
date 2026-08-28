@@ -6,7 +6,9 @@ edition.workspace = true
 [dependencies]
 qctidy = { path = "../crates/library" }
 criterion = { workspace = true }
+rand = { workspace = true }
 
 [[bench]]
 name = "performance"
+path = "benches/mod.rs"
 harness = false

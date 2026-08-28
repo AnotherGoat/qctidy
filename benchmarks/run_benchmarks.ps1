@@ -3,37 +3,37 @@ param (
 )
 
 Write-Host "=======================================" -ForegroundColor Cyan
-Write-Host "   Iniciando Benchmarks de QCTidy" -ForegroundColor Cyan
+Write-Host "   Starting QCTidy Benchmarks" -ForegroundColor Cyan
 Write-Host "=======================================" -ForegroundColor Cyan
 
-# 1. Ejecutar las pruebas de rendimiento en Rust (desde adentro de la carpeta)
-Write-Host "`n[1/3] Ejecutando cargo bench..." -ForegroundColor Yellow
+# 1. Run Rust performance benchmarks
+Write-Host "`n[1/3] Running cargo bench..." -ForegroundColor Yellow
 cargo bench
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Error: Las pruebas fallaron." -ForegroundColor Red
+    Write-Host "Error: Benchmarks failed." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
-# 2. Exportar a JSON
-Write-Host "`n[2/3] Generando JSON unificado (rust_benchmark_results.json)..." -ForegroundColor Yellow
+# 2. Export to JSON
+Write-Host "`n[2/3] Generating unified JSON (rust_benchmark_results.json)..." -ForegroundColor Yellow
 python scripts/export_rust_json.py
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Error: Falló la generación del JSON consolidado." -ForegroundColor Red
+    Write-Host "Error: Failed to generate consolidated JSON." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
-# 3. Opcional: Actualizar gráficos y tabla de Speedup
+# 3. Optional: Update charts and speedup table
 if ($UpdateCharts) {
-    Write-Host "`n[3/3] Actualizando gráficos y tabla de mejoras cruzadas..." -ForegroundColor Yellow
+    Write-Host "`n[3/3] Updating charts and cross-language speedup table..." -ForegroundColor Yellow
     python scripts/plot_rust_results.py
     python scripts/generate_speedup_table.py
 }
 else {
-    Write-Host "`n[3/3] Gráficos saltados (Usa -UpdateCharts si deseas regenerarlos)." -ForegroundColor DarkGray
+    Write-Host "`n[3/3] Charts skipped (use -UpdateCharts to regenerate)." -ForegroundColor DarkGray
 }
 
 Write-Host "`n==========================================" -ForegroundColor Green
-Write-Host "   ¡Todo listo y actualizado con éxito!" -ForegroundColor Green
+Write-Host "   All done and updated successfully!" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green

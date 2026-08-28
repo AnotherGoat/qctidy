@@ -1,11 +1,12 @@
 import json
 import os
-import pandas as pd
 
-# Obtener la ruta del directorio de este script
+import pandas
+
+# Get the path of this script's directory
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 1. Leer resultados de Python
+# 1. Read Python results
 python_results = {}
 python_results_path = os.path.join(SCRIPT_DIR, '..', '..', '..', 'qctidy', 'benchmarks', 'benchmark_results.json')
 
@@ -26,7 +27,7 @@ if os.path.exists(python_results_path):
             python_results[name] = {}
         python_results[name][qubits] = time_seconds
 
-# 2. Leer resultados de Rust (Criterion)
+# 2. Read Rust results (Criterion)
 rust_results = {}
 criterion_dir = os.path.join(SCRIPT_DIR, '..', '..', 'target', 'criterion')
 
@@ -57,7 +58,7 @@ if os.path.exists(criterion_dir):
                     except ValueError:
                         pass
 
-# 3. Calcular Factor de Mejora (Speedup) y crear tabla
+# 3. Calculate speedup factor and build table
 data = []
 algos = list(set(list(python_results.keys()) + list(rust_results.keys())))
 algos.sort()
@@ -74,26 +75,26 @@ for algo in algos:
             speedup_str = f"{speedup:,.1f}x"
 
             data.append({
-                "Algoritmo": algo.title().replace('Cnot', 'CNOT'),
+                "Algorithm": algo.title().replace('Cnot', 'CNOT'),
                 "Qubits": q,
                 "Python": py_str,
                 "Rust": rs_str,
-                "Mejora (Speedup)": speedup_str
+                "Speedup": speedup_str
             })
 
-df = pd.DataFrame(data)
+df = pandas.DataFrame(data)
 
-# Guardar a CSV
+# Save to CSV
 os.makedirs(os.path.join(SCRIPT_DIR, '..', 'results'), exist_ok=True)
 csv_path = os.path.join(SCRIPT_DIR, '..', 'results', 'speedup_table.csv')
 df.to_csv(csv_path, index=False)
 
-# Guardar a Markdown manualmente
+# Save to Markdown manually
 md_path = os.path.join(SCRIPT_DIR, '..', 'results', 'speedup_table.md')
 with open(md_path, 'w', encoding='utf-8') as f:
-    f.write("| Algoritmo | Qubits | Python | Rust | Mejora (Speedup) |\n")
-    f.write("|-----------|--------|--------|------|------------------|\n")
+    f.write("| Algorithm | Qubits | Python | Rust | Speedup |\n")
+    f.write("|-----------|--------|--------|------|---------|\n")
     for row in data:
-        f.write(f"| {row['Algoritmo']} | {row['Qubits']} | {row['Python']} | {row['Rust']} | {row['Mejora (Speedup)']} |\n")
+        f.write(f"| {row['Algorithm']} | {row['Qubits']} | {row['Python']} | {row['Rust']} | {row['Speedup']} |\n")
 
-print(f"Tabla de mejoras generada en {md_path} y {csv_path}")
+print(f"Speedup table generated at {md_path} and {csv_path}")

@@ -110,7 +110,7 @@ impl GraphBuilder {
 
     /// Push a ID gate at the end of the graph.
     ///
-    /// Note that this is not a no-op, which means a node will be added.
+    /// Note that this is not a no-op, which means a node will always be added.
     pub fn push_id(&mut self, qubit: usize) -> &mut Self {
         self.put_id(qubit, self.find_push_column(&[qubit]))
     }
