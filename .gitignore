@@ -1,0 +1,4 @@
+*
+!.gitignore
+!prek.toml
+!criterion/
