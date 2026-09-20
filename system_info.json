@@ -1,0 +1,16 @@
+{
+  "architecture": "x86_64",
+  "cpu_brand": "12th Gen Intel(R) Core(TM) i5-1235U",
+  "cpu_frequency_mhz": 2200,
+  "cpu_vendor": "GenuineIntel",
+  "hostname": "opensuse",
+  "kernel": "7.2.5-1-default",
+  "logical_cores": 12,
+  "os": "Linux (openSUSE Tumbleweed-Slowroll 20260901)",
+  "os_name": "openSUSE Tumbleweed-Slowroll",
+  "os_version": "20260901",
+  "physical_cores": 10,
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "total_memory_gib": 15.341140747070312,
+  "total_swap_gib": 15.341136932373047
+}

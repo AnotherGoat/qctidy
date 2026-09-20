@@ -1,4 +1,8 @@
 *
 !.gitignore
 !prek.toml
+
 !criterion/
+!criterion/**
+!README.md
+!system_info.json
