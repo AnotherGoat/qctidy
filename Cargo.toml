@@ -65,6 +65,14 @@ tower = "0.5" # MIT
 utoipa = "5" # MIT OR Apache-2.0
 utoipa-swagger-ui = { version = "9", default-features = false } # MIT OR Apache-2.0
 
+# Faster development builds: keep line tables for workspace code, skip debug
+# info for dependencies.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
 # Enabled lints may be changed in the future
 # https://doc.rust-lang.org/rustc/lints/listing/index.html
 [workspace.lints.rust]
