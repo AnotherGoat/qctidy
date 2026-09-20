@@ -14,7 +14,6 @@ categories = ["science", "command-line-utilities"]
 [dependencies]
 qctidy = { path = "../library" }
 qctidy-converter = { path = "../converter" }
-qctidy-ports = { path = "../ports" }
 crossterm = { workspace = true }
 fuzzy-matcher = { workspace = true }
 ratatui = { workspace = true }

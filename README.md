@@ -2,13 +2,15 @@
 
 A toolset for quantum circuit simplification written in Rust, with an emphasis on code quality and understandability.
 
-It started as an enhanced port of a previous prototype that was written in Python. The new version uses Rust to provide these benefits:
+It started as an enhanced port of a previous prototype (QSimplify), which was written purely in Python. The new version uses Rust to provide these benefits:
 
 - Better performance and memory usage, because it's compiled to native code and uses zero-cost abstractions.
 - More reliability due to Rust's stronger type system and ownership model.
 - More robust error handling and null-safety due to Rust's `Result` and `Option` types.
 - Occasional code simplification thanks to Rust's macro system.
 - The same interface as before can be kept for Python users by providing PyO3 bindings.
+
+Detailed benchmark results are published in the [`benchmarks` branch](https://github.com/AnotherGoat/qctidy/tree/benchmarks).
 
 ## Table of Contents
 
@@ -102,14 +104,14 @@ The project includes a `justfile` with common commands, for ease of use. Run `ju
 
 Some commonly used commands:
 
-| Just Recipe          | Cargo Equivalent                    | Purpose                                  |
-| -------------------- | ----------------------------------- | ---------------------------------------- |
-| `just format`        | `cargo fmt`                         | Auto-format all source files.            |
-| `just lint`          | `cargo clippy --workspace`          | Lint code in all the crates.             |
-| `just check`         | `cargo check --workspace`           | Check that all the crates compile.       |
-| `just build`         | `cargo build --workspace`           | Compile a debug build of all the crates. |
-| `just build-release` | `cargo build --release --workspace` | Compile an optimized release build.      |
-| `just test`          | `cargo test --workspace`            | Run all unit and integration tests.      |
+| Just Recipe          | Cargo Equivalent                        | Purpose                                            |
+| -------------------- | --------------------------------------- | -------------------------------------------------- |
+| `just format`        | `cargo fmt`                             | Auto-format all source files.                      |
+| `just lint`          | `cargo clippy --workspace`              | Lint code in all the crates.                       |
+| `just check`         | `cargo check --workspace`               | Check that all the crates compile.                 |
+| `just build`         | `cargo build --workspace`               | Compile a debug build of all the crates.           |
+| `just build-release` | `cargo build --release --workspace`     | Compile an optimized release build.                |
+| `just test`          | `cargo test --workspace`                | Run all unit and integration tests.                |
 | `just bench-sysinfo` | `cargo run -p benchmarks --bin sysinfo` | Save the hardware/OS specs to JSON for benchmarks. |
 
 If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.

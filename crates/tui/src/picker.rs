@@ -3,20 +3,20 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use qctidy::{Circuit, GateOperation, GateOperationError, GateType};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ArgKind {
+pub(crate) enum ArgKind {
     Qubit,
     Angle,
     Bit,
 }
 
 #[derive(Debug, Clone)]
-pub struct ArgPrompt {
+pub(crate) struct ArgPrompt {
     pub kind: ArgKind,
     pub prompt: &'static str,
 }
 
 #[derive(Debug, Clone)]
-pub struct GateEntry {
+pub(crate) struct GateEntry {
     pub gate_type: GateType,
     pub names: &'static [&'static str],
     pub qubits: &'static str,
@@ -150,7 +150,7 @@ pub(crate) const ALL_ENTRIES: &[GateEntry] = &[
     },
 ];
 
-pub fn filter_entries(query: &str) -> Vec<usize> {
+pub(crate) fn filter_entries(query: &str) -> Vec<usize> {
     if query.is_empty() {
         return (0..ALL_ENTRIES.len()).collect();
     }
@@ -173,7 +173,7 @@ pub fn filter_entries(query: &str) -> Vec<usize> {
     scored.into_iter().map(|(_, idx)| idx).collect()
 }
 
-pub fn gate_signature(gate_type: GateType) -> Vec<ArgPrompt> {
+pub(crate) fn gate_signature(gate_type: GateType) -> Vec<ArgPrompt> {
     match gate_type {
         GateType::ID
         | GateType::H
@@ -339,7 +339,7 @@ pub fn gate_signature(gate_type: GateType) -> Vec<ArgPrompt> {
 }
 
 #[derive(Debug, Clone)]
-pub enum AddState {
+pub(crate) enum AddState {
     Selecting {
         query: String,
         indices: Vec<usize>,
@@ -354,8 +354,8 @@ pub enum AddState {
 }
 
 impl AddState {
-    pub fn new() -> Self {
-        AddState::Selecting {
+    pub(crate) fn new() -> Self {
+        Self::Selecting {
             query: String::new(),
             indices: (0..ALL_ENTRIES.len()).collect(),
             selected: 0,
@@ -363,7 +363,7 @@ impl AddState {
     }
 
     fn reselect(&mut self) {
-        if let AddState::Selecting {
+        if let Self::Selecting {
             query,
             indices,
             selected,
@@ -385,13 +385,13 @@ impl AddState {
         }
     }
 
-    pub fn handle_char(&mut self, c: char) {
+    pub(crate) fn handle_char(&mut self, c: char) {
         match self {
-            AddState::Selecting { query, .. } => {
+            Self::Selecting { query, .. } => {
                 query.push(c);
                 self.reselect();
             }
-            AddState::EnteringArgs {
+            Self::EnteringArgs {
                 values,
                 current_arg,
                 ..
@@ -403,13 +403,13 @@ impl AddState {
         }
     }
 
-    pub fn handle_backspace(&mut self) {
+    pub(crate) fn handle_backspace(&mut self) {
         match self {
-            AddState::Selecting { query, .. } => {
+            Self::Selecting { query, .. } => {
                 query.pop();
                 self.reselect();
             }
-            AddState::EnteringArgs {
+            Self::EnteringArgs {
                 values,
                 current_arg,
                 ..
@@ -421,16 +421,16 @@ impl AddState {
         }
     }
 
-    pub fn handle_tab(&mut self) {
+    pub(crate) const fn handle_tab(&mut self) {
         match self {
-            AddState::Selecting {
+            Self::Selecting {
                 indices, selected, ..
             } => {
                 if !indices.is_empty() {
                     *selected = (*selected + 1) % indices.len();
                 }
             }
-            AddState::EnteringArgs {
+            Self::EnteringArgs {
                 args, current_arg, ..
             } => {
                 if !args.is_empty() {
@@ -440,31 +440,31 @@ impl AddState {
         }
     }
 
-    pub fn handle_up(&mut self) {
+    pub(crate) const fn handle_up(&mut self) {
         match self {
-            AddState::Selecting {
+            Self::Selecting {
                 indices, selected, ..
             } => {
                 if !indices.is_empty() && *selected > 0 {
                     *selected -= 1;
                 }
             }
-            AddState::EnteringArgs { current_arg, .. } => {
+            Self::EnteringArgs { current_arg, .. } => {
                 *current_arg = current_arg.saturating_sub(1);
             }
         }
     }
 
-    pub fn handle_down(&mut self) {
+    pub(crate) const fn handle_down(&mut self) {
         match self {
-            AddState::Selecting {
+            Self::Selecting {
                 indices, selected, ..
             } => {
                 if !indices.is_empty() && *selected + 1 < indices.len() {
                     *selected += 1;
                 }
             }
-            AddState::EnteringArgs {
+            Self::EnteringArgs {
                 args, current_arg, ..
             } => {
                 if *current_arg + 1 < args.len() {
@@ -474,9 +474,9 @@ impl AddState {
         }
     }
 
-    pub fn handle_enter(&mut self) -> Result<Option<GateOperation>, String> {
+    pub(crate) fn handle_enter(&mut self) -> Result<Option<GateOperation>, String> {
         match self {
-            AddState::Selecting {
+            Self::Selecting {
                 indices, selected, ..
             } => {
                 let &idx = indices
@@ -485,7 +485,7 @@ impl AddState {
                 let entry = &ALL_ENTRIES[idx];
                 let gate_type = entry.gate_type;
                 let args = gate_signature(gate_type);
-                *self = AddState::EnteringArgs {
+                *self = Self::EnteringArgs {
                     gate_type,
                     values: vec![String::new(); args.len()],
                     current_arg: 0,
@@ -493,7 +493,7 @@ impl AddState {
                 };
                 Ok(None)
             }
-            AddState::EnteringArgs {
+            Self::EnteringArgs {
                 gate_type,
                 args,
                 current_arg,
@@ -507,17 +507,17 @@ impl AddState {
 
                 let parsed_values = parse_arg_values(args, values, current_arg)?;
                 let operation = try_build_operation(*gate_type, &parsed_values)?;
-                *self = AddState::new();
+                *self = Self::new();
                 Ok(Some(operation))
             }
         }
     }
 
-    pub fn handle_escape(&mut self) {
-        if matches!(self, AddState::EnteringArgs { .. }) {
-            *self = AddState::new();
+    pub(crate) fn handle_escape(&mut self) {
+        if matches!(self, Self::EnteringArgs { .. }) {
+            *self = Self::new();
         } else {
-            *self = AddState::new();
+            *self = Self::new();
         }
     }
 }
@@ -574,7 +574,7 @@ fn parse_arg_value(kind: ArgKind, input: &str) -> Result<f64, String> {
     }
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn try_build_operation(gate_type: GateType, values: &[f64]) -> Result<GateOperation, String> {
     match gate_type {
         GateType::ID => Ok(GateOperation::id(values[0] as usize)),
@@ -629,21 +629,21 @@ fn try_build_operation(gate_type: GateType, values: &[f64]) -> Result<GateOperat
     }
 }
 
-pub const FORMATS: &[(&str, &str, &str)] = &[
+pub(crate) const FORMATS: &[(&str, &str, &str)] = &[
     ("JSON", ".json", "Human-readable text"),
     ("XML", ".xml", "Human-readable text"),
     ("CBOR", ".cbor", "Compact binary"),
     ("MessagePack", ".msgpack", "Compact binary"),
 ];
 
-pub fn format_extension(format_name: &str) -> &'static str {
+pub(crate) fn format_extension(format_name: &str) -> &'static str {
     FORMATS
         .iter()
         .find(|(name, _, _)| name.eq_ignore_ascii_case(format_name))
         .map_or(".dat", |(_, ext, _)| ext)
 }
 
-pub fn detect_format(path: &str) -> Option<&'static str> {
+pub(crate) fn detect_format(path: &str) -> Option<&'static str> {
     let lower = path.to_lowercase();
     if lower.ends_with(".json") {
         Some("json")
@@ -658,7 +658,7 @@ pub fn detect_format(path: &str) -> Option<&'static str> {
     }
 }
 
-pub fn export_circuit(circuit: &Circuit, format_name: &str) -> Result<Vec<u8>, String> {
+pub(crate) fn export_circuit(circuit: &Circuit, format_name: &str) -> Result<Vec<u8>, String> {
     match format_name {
         "json" => qctidy_converter::serialize_json(circuit, true, 2).map_err(|e| e.to_string()),
         "xml" => qctidy_converter::serialize_xml(circuit, true, 2).map_err(|e| e.to_string()),
@@ -668,7 +668,7 @@ pub fn export_circuit(circuit: &Circuit, format_name: &str) -> Result<Vec<u8>, S
     }
 }
 
-pub fn import_circuit(data: &[u8], format_name: &str) -> Result<Circuit, String> {
+pub(crate) fn import_circuit(data: &[u8], format_name: &str) -> Result<Circuit, String> {
     match format_name {
         "json" => qctidy_converter::parse_json(data).map_err(|e| e.to_string()),
         "xml" => qctidy_converter::parse_xml(data).map_err(|e| e.to_string()),
@@ -678,7 +678,7 @@ pub fn import_circuit(data: &[u8], format_name: &str) -> Result<Circuit, String>
     }
 }
 
-pub fn format_gate(gate: &GateOperation) -> String {
+pub(crate) fn format_gate(gate: &GateOperation) -> String {
     match *gate {
         GateOperation::ID { qubit } => format!("Id(q{qubit})"),
         GateOperation::H { qubit } => format!("H(q{qubit})"),

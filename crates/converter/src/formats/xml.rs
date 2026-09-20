@@ -29,11 +29,11 @@ pub fn parse(input: &[u8]) -> Result<Circuit, ParseError> {
 
     loop {
         match reader.read_event_into(&mut buffer) {
-            Ok(Event::Start(event)) if event.name().as_ref() == b"circuit" => {
+            Ok(Event::Start(event)) if event.name().as_ref() == "circuit" => {
                 parse_circuit_attributes(event.attributes(), &mut version, &mut qubit_count)?;
             }
 
-            Ok(Event::Empty(event)) if event.name().as_ref() == b"gate" => {
+            Ok(Event::Empty(event)) if event.name().as_ref() == "gate" => {
                 let operation = parse_gate_attributes(event.attributes())?;
 
                 operations.push(operation);
@@ -77,11 +77,10 @@ fn parse_circuit_attributes(
             message: error.to_string(),
         })?;
 
-        let key = String::from_utf8_lossy(attribute.key.as_ref());
+        let key = attribute.key.as_ref();
+        let value = attribute.value.as_ref();
 
-        let value = String::from_utf8_lossy(attribute.value.as_ref());
-
-        match key.as_ref() {
+        match key {
             "version" => {
                 *version = value.parse().ok();
             }
@@ -92,7 +91,7 @@ fn parse_circuit_attributes(
 
             _ => {
                 return Err(ParseError::UnknownField {
-                    field: key.to_string(),
+                    field: key.to_owned(),
                     gate: "circuit".to_owned(),
                 });
             }
@@ -112,15 +111,14 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
             message: error.to_string(),
         })?;
 
-        let key = String::from_utf8_lossy(attribute.key.as_ref());
+        let key = attribute.key.as_ref();
+        let value = attribute.value.as_ref();
 
-        let value = String::from_utf8_lossy(attribute.value.as_ref());
-
-        match key.as_ref() {
+        match key {
             "type" => {
                 gate_type_seen = true;
                 data.gate = value.parse().map_err(|_| ParseError::UnknownGateType {
-                    gate: value.to_string(),
+                    gate: value.to_owned(),
                 })?;
             }
 
@@ -176,7 +174,7 @@ pub fn serialize(
         Writer::new(&mut buffer)
     };
 
-    let write_error = |error: quick_xml::Error| SerializeError::SerializationFailure {
+    let write_error = |error: std::io::Error| SerializeError::SerializationFailure {
         format: ConversionFormat::Xml,
         message: error.to_string(),
     };
@@ -213,7 +211,7 @@ pub fn serialize(
 fn write_gate(
     writer: &mut Writer<&mut Vec<u8>>,
     operation: &GateOperationData,
-) -> Result<(), quick_xml::Error> {
+) -> std::io::Result<()> {
     let mut element = BytesStart::new("gate");
 
     element.push_attribute(("type", operation.gate.to_string().as_str()));

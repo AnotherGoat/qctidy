@@ -24,7 +24,7 @@ just setup
 
 - Add any additional crates inside the `crates/` directory.
 - Always create a `mod.rs` file inside each submodule directory. Avoid creating a `.rs` file beside the submodule directory with the same name.
-- Inside any module that is not `lib.rs`, never create `pub` modules. Keep their visiblity as `pub(crate)` at most.
+- Inside any module that is not `lib.rs`, never create `pub` modules. Keep their visibility as `pub(crate)` at most.
 - Only create public modules if they are meant to be part of the public API, and declare them in the root `lib.rs` module using `pub mod` and `pub use` as needed.
 - Keep the public APIs plain, without requiring the user to use highly nested paths. Use `pub use` to convert nested submodules into plain ones.
 
@@ -45,9 +45,14 @@ Follow standard Rust conventions:
 
 In addition, use the following naming conventions:
 
-- Try to use concise and descriptive variable names. If both aren't posible at the same time, prefer descriptive names over concise.
+- Try to use concise and descriptive variable names. If both aren't possible at the same time, prefer descriptive names over concise.
 - Avoid using abbreviations for variable names. For example: `col -> column`, `pos -> position`.
 - The same is true for parameters inside lambdas. Avoid using single letter variable names in them.
+
+## Linting
+
+- The project enables many pedantic Clippy warnings on purpose.
+- It's not required for contributions to have 0 warnings (the current code doesn't, and will probably never reach them).
 
 ## Error handling
 
@@ -60,14 +65,14 @@ In addition, use the following naming conventions:
 
 ## Type Conversions
 
-- Avoid using `as` convertions with numeric types.
-- Use `T::from()` if the convertion is lossless or `T::try_from()` if the convertion is lossy.
-- If truncation or saturation is required to convert the values, create your own wrapper function where `#[expect]` is used to make the Clippy lints pass. This is done to make the convertion explicit and make it clear that the truncation or saturation is intentional.
+- Avoid using `as` conversions with numeric types.
+- Use `T::from()` if the conversion is lossless or `T::try_from()` if the conversion is lossy.
+- If truncation or saturation is required to convert the values, create your own wrapper function where `#[expect]` is used to make the Clippy lints pass. This is done to make the conversion explicit and make it clear that the truncation or saturation is intentional.
 
 ## Documentation
 
 - Use `///` to create documentation for non-private items. Any item that is preceded by the `pub` keyword should have documentation.
-- When documenting functions, always start with a one-line summary, and only add more information if there are important edge cases or invariantes that the caller may need to be aware of.
+- When documenting functions, always start with a one-line summary, and only add more information if there are important edge cases or invariants that the caller may need to be aware of.
 - Don't document function parameters if their role is obvious.
 - Avoid adding `//` comments for details that can be represented with better variable names.
 - Use `// Note:` to document invariants and implementation details that aren't part of the public API and cannot be documented just by function or variable names.
@@ -76,7 +81,7 @@ In addition, use the following naming conventions:
 
 - Unit tests live in `#[cfg(test)]` local modules in the same directory as the original source file, with the `_tests` suffix added to the original module name.
 - Integration tests live in a `tests/` directory inside the relevant crate.
-- Name tests descriptively, but don't add the `test` prefix to its functions. Take the name of the original function as a reference when naming them.
+- Name tests descriptively, but don't add the `test` prefix to their functions. Take the name of the original function as a reference when naming them.
 - No minimum coverage threshold is enforced yet, but all public functions should have at least one test covering the "happy" execution path.
 - It's fine to use `unwrap()` and `panic!()` in tests.
 
@@ -108,7 +113,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) format for any 
   - Improves code quality or maintainability without changing behavior.
 - `style`:
   - Changes only the formatting of files, rarely needed due to the pre-commit hooks.
-- `test`
+- `test`:
   - Adds missing unit or integration tests.
   - Improves existing tests.
 
@@ -148,7 +153,7 @@ uv run maturin develop -m crates/qiskit/Cargo.toml
 Or build with only specific features enabled:
 
 ```shell
-uv run maturin develop -m crates/qiskit/Cargo.toml --no-default-features --features presenter,codegen
+uv run maturin develop -m crates/qiskit/Cargo.toml --no-default-features --features presenter-graphviz,codegen-qiskit
 ```
 
 Confirm that the bindings are installed:

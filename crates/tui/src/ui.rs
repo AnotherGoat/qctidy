@@ -20,7 +20,7 @@ const fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     }
 }
 
-pub fn render(frame: &mut Frame, app: &mut App) {
+pub(crate) fn render(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
 
     let main_chunks = Layout::default()
@@ -398,7 +398,7 @@ fn render_export_popup(
 
     frame.render_widget(format_list, chunks[0]);
 
-    if let ExportStep::EnteringFilename = step {
+    if matches!(step, ExportStep::EnteringFilename) {
         let input_para = Paragraph::new(format!(" Filename: {buffer}"))
             .block(
                 Block::default()

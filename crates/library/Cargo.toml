@@ -20,7 +20,6 @@ faer = { workspace = true }
 function_name = { workspace = true }
 getset = { workspace = true }
 newgen = { workspace = true }
-itertools = { workspace = true }
 num-rational = { workspace = true }
 thiserror = { workspace = true }
 

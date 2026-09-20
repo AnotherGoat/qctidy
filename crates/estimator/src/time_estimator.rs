@@ -26,40 +26,40 @@ pub fn estimate_execution_time(graph: &Graph, shots: usize, profile: &BackendPro
     let mut processed_nodes: HashSet<Position> = HashSet::new();
 
     for node in graph.iter_nodes_ordered_by_column() {
-        let pos = node.position();
-        if processed_nodes.contains(&pos) {
+        let position = node.position();
+        if processed_nodes.contains(&position) {
             continue;
         }
 
         let gate_type = node.r#type();
         let mut involved_qubits = Vec::new();
-        let mut queue = vec![pos];
+        let mut queue = vec![position];
 
-        while let Some(current_pos) = queue.pop() {
-            if processed_nodes.insert(current_pos) {
-                involved_qubits.push(current_pos.row());
-
-                for neighbor_pos in graph.iter_semantic_neighbors_from(current_pos) {
-                    if !processed_nodes.contains(&neighbor_pos) {
-                        queue.push(neighbor_pos);
-                    }
-                }
+        while let Some(current_position) = queue.pop() {
+            if !processed_nodes.insert(current_position) {
+                continue;
             }
+
+            involved_qubits.push(current_position.row());
+
+            queue.extend(
+                graph
+                    .iter_semantic_neighbors_from(current_position)
+                    .filter(|neighbor| !processed_nodes.contains(neighbor)),
+            );
         }
 
         let gate_cost = get_gate_cost(gate_type, profile);
 
-        let mut start_time = 0.0;
-        for &q in &involved_qubits {
-            if qubit_times[q] > start_time {
-                start_time = qubit_times[q];
-            }
-        }
+        let start_time = involved_qubits
+            .iter()
+            .map(|&qubit| qubit_times[qubit])
+            .fold(0.0, f64::max);
 
         let end_time = start_time + gate_cost;
 
-        for &q in &involved_qubits {
-            qubit_times[q] = end_time;
+        for &qubit in &involved_qubits {
+            qubit_times[qubit] = end_time;
         }
     }
 

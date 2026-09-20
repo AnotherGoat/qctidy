@@ -1,3 +1,5 @@
+use std::fmt;
+
 use qctidy::Circuit;
 use thiserror::Error;
 
@@ -13,12 +15,27 @@ pub trait ConverterPort {
     ) -> Result<Vec<u8>, SerializeError>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConversionFormat {
     Json,
     Xml,
     MessagePack,
     Cbor,
+}
+
+impl fmt::Display for ConversionFormat {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use ConversionFormat::*;
+
+        let name = match self {
+            Json => "Json",
+            Xml => "Xml",
+            MessagePack => "MessagePack",
+            Cbor => "Cbor",
+        };
+
+        write!(formatter, "{name}")
+    }
 }
 
 impl ConversionFormat {

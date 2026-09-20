@@ -1,3 +1,5 @@
+use std::fmt;
+
 use qctidy::Graph;
 use thiserror::Error;
 
@@ -10,10 +12,23 @@ pub trait CodegenPort {
     ) -> Result<String, CodeGenerationError>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CodeGenerationTarget {
     Qiskit,
     OpenQasm3,
+}
+
+impl fmt::Display for CodeGenerationTarget {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use CodeGenerationTarget::*;
+
+        let name = match *self {
+            Qiskit => "Qiskit",
+            OpenQasm3 => "OpenQasm3",
+        };
+
+        write!(formatter, "{name}")
+    }
 }
 
 impl CodeGenerationTarget {

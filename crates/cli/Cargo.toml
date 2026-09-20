@@ -11,8 +11,5 @@ license.workspace = true
 keywords.workspace = true
 categories = ["science", "command-line-utilities"]
 
-[dependencies]
-qctidy-facade = { path = "../facade" }
-
 [lints]
 workspace = true

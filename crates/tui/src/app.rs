@@ -4,7 +4,7 @@ use ratatui::widgets::ListState;
 
 use crate::picker::{AddState, format_gate};
 
-pub enum AppMode {
+pub(crate) enum AppMode {
     Normal,
     Adding(AddState),
     Importing {
@@ -18,12 +18,12 @@ pub enum AppMode {
     Help,
 }
 
-pub enum ExportStep {
+pub(crate) enum ExportStep {
     SelectingFormat,
     EnteringFilename,
 }
 
-pub struct App {
+pub(crate) struct App {
     pub operations: Vec<GateOperation>,
     pub list_state: ListState,
     pub mode: AppMode,
@@ -34,7 +34,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         Self {
@@ -48,18 +48,18 @@ impl App {
         }
     }
 
-    pub fn add_operation(&mut self, op: GateOperation) {
+    pub(crate) fn add_operation(&mut self, op: GateOperation) {
         self.operations.push(op);
         let last = self.operations.len().saturating_sub(1);
         self.list_state.select(Some(last));
     }
 
-    pub fn set_operations(&mut self, ops: Vec<GateOperation>) {
+    pub(crate) fn set_operations(&mut self, ops: Vec<GateOperation>) {
         self.operations = ops;
         self.list_state.select(Some(0));
     }
 
-    pub fn remove_selected(&mut self) {
+    pub(crate) fn remove_selected(&mut self) {
         if let Some(i) = self.list_state.selected()
             && i < self.operations.len()
         {
@@ -75,12 +75,12 @@ impl App {
         }
     }
 
-    pub fn set_message(&mut self, message: String) {
+    pub(crate) fn set_message(&mut self, message: String) {
         self.message = Some(message);
         self.message_timer = 10;
     }
 
-    pub fn tick(&mut self) {
+    pub(crate) fn tick(&mut self) {
         if self.message_timer > 0 {
             self.message_timer -= 1;
             if self.message_timer == 0 {
@@ -90,7 +90,7 @@ impl App {
     }
 
     #[expect(clippy::wildcard_enum_match_arm)]
-    pub fn handle_key(&mut self, key: KeyCode) {
+    pub(crate) fn handle_key(&mut self, key: KeyCode) {
         match &mut self.mode {
             AppMode::Normal => match key {
                 KeyCode::Char('q') | KeyCode::Esc => self.should_quit = true,
@@ -173,56 +173,55 @@ impl App {
                 }
                 _ => {}
             },
-            AppMode::Importing { buffer } => {
-                match key {
-                    KeyCode::Esc => {
+            AppMode::Importing { buffer } => match key {
+                KeyCode::Esc => {
+                    self.mode = AppMode::Normal;
+                }
+                KeyCode::Enter => {
+                    let path = buffer.trim().to_owned();
+                    if path.is_empty() {
+                        self.set_message("No path entered".to_owned());
                         self.mode = AppMode::Normal;
+                        return;
                     }
-                    KeyCode::Enter => {
-                        let path = buffer.trim().to_owned();
-                        if path.is_empty() {
-                            self.set_message("No path entered".to_owned());
+                    let data = match std::fs::read(&path) {
+                        Ok(d) => d,
+                        Err(e) => {
+                            self.set_message(format!("Cannot read '{path}': {e}"));
                             self.mode = AppMode::Normal;
                             return;
                         }
-                        let data = match std::fs::read(&path) {
-                            Ok(d) => d,
-                            Err(e) => {
-                                self.set_message(format!("Cannot read '{path}': {e}"));
-                                self.mode = AppMode::Normal;
-                                return;
-                            }
-                        };
-                        let fmt = crate::picker::detect_format(&path);
-                        let fmt = match fmt {
-                            Some(f) => f,
-                            None => {
-                                self.set_message(format!("Unknown format for '{path}'. Use .json, .xml, .cbor, or .msgpack"));
-                                self.mode = AppMode::Normal;
-                                return;
-                            }
-                        };
-                        match crate::picker::import_circuit(&data, fmt) {
-                            Ok(circuit) => {
-                                let count = circuit.operations().len();
-                                self.set_operations(circuit.operations().to_vec());
-                                self.set_message(format!("Imported {count} gates from '{path}'"));
-                            }
-                            Err(e) => {
-                                self.set_message(format!("Parse error: {e}"));
-                            }
-                        }
+                    };
+                    let fmt = crate::picker::detect_format(&path);
+                    let fmt = if let Some(f) = fmt {
+                        f
+                    } else {
+                        self.set_message(format!(
+                            "Unknown format for '{path}'. Use .json, .xml, .cbor, or .msgpack"
+                        ));
                         self.mode = AppMode::Normal;
+                        return;
+                    };
+                    match crate::picker::import_circuit(&data, fmt) {
+                        Ok(circuit) => {
+                            let count = circuit.operations().len();
+                            self.set_operations(circuit.operations().clone());
+                            self.set_message(format!("Imported {count} gates from '{path}'"));
+                        }
+                        Err(e) => {
+                            self.set_message(format!("Parse error: {e}"));
+                        }
                     }
-                    KeyCode::Char(c) => {
-                        buffer.push(c);
-                    }
-                    KeyCode::Backspace => {
-                        buffer.pop();
-                    }
-                    _ => {}
+                    self.mode = AppMode::Normal;
                 }
-            }
+                KeyCode::Char(c) => {
+                    buffer.push(c);
+                }
+                KeyCode::Backspace => {
+                    buffer.pop();
+                }
+                _ => {}
+            },
             AppMode::Exporting {
                 format_index,
                 buffer,
@@ -307,7 +306,7 @@ impl App {
     }
 
     /// Return a short contextual status line for the current mode.
-    pub fn status_line(&self) -> String {
+    pub(crate) fn status_line(&self) -> String {
         match self.mode {
             AppMode::Normal => {
                 let mut line = String::from("  [A]dd gate");

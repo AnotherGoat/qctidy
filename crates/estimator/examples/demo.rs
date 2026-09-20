@@ -5,7 +5,7 @@ use qctidy_estimator::{
 
 #[tokio::main]
 async fn main() {
-    println!("=== 1. Construyendo un Circuito Cuántico (DAG) ===");
+    println!("=== 1. Building a Quantum Circuit (DAG) ===");
     let mut builder = GraphBuilder::new(3);
 
     builder.push_h(0);
@@ -16,52 +16,52 @@ async fn main() {
 
     let graph = builder.build();
     println!(
-        "Circuito construido: {} qubits de alto y {} niveles de profundidad.",
+        "Circuit built: {} qubits high and {} levels of depth.",
         graph.height(),
         graph.width()
     );
 
-    println!("\n=== 2. Simulando Tiempos de Ejecución (Ruta Crítica) ===");
+    println!("\n=== 2. Simulating Execution Times (Critical Path) ===");
     let profile = BackendProfile::default();
     let shots = 1000;
 
     let heuristic_time = estimate_execution_time(&graph, shots, &profile);
     println!(
-        "El tiempo heurístico abstracto es: {} (usando el perfil BackendProfile por defecto)",
+        "The abstract heuristic time is: {} (using the default BackendProfile)",
         heuristic_time
     );
-    println!("Cantidad de disparos (Shots): {}", shots);
+    println!("Number of shots: {}", shots);
     println!(
-        "Equivale a: {:.6} segundos reales.",
+        "Equivalent to: {:.6} real seconds.",
         (heuristic_time * profile.base_time_ns) / 1_000_000_000.0
     );
 
-    println!("\n=== 3. Extraiendo Precios de la Nube (AWS/IBM) ===");
-    println!("Obteniendo catálogos desde AWS Price API y el Web Scraper de IBM...");
+    println!("\n=== 3. Fetching Prices from the Cloud (AWS/IBM) ===");
+    println!("Fetching catalogs from the AWS Price API and the IBM web scraper...");
     let pricing_data = get_pricing_data(false).await;
-    println!("¡Precios obtenidos con éxito!");
+    println!("Prices fetched successfully!");
 
-    println!("\n=== 4. Calculando Presupuesto Financiero ===");
+    println!("\n=== 4. Calculating the Financial Budget ===");
     let costs = calculate_costs(&pricing_data, heuristic_time, shots, profile.base_time_ns);
 
     for provider_estimate in costs {
         println!(
-            "\n>> Proveedor: {} (Status: {})",
+            "\n>> Provider: {} (Status: {})",
             provider_estimate.provider, provider_estimate.status
         );
         if provider_estimate.status == "success" {
-            for (i, plan) in provider_estimate.estimates.iter().take(3).enumerate() {
-                println!("  {}) Familia/Plan: {}", i + 1, plan.plan_name);
-                println!("     Etiqueta de Precio: {}", plan.price_label);
+            for (index, plan) in provider_estimate.estimates.iter().take(3).enumerate() {
+                println!("  {}) Family/Plan: {}", index + 1, plan.plan_name);
+                println!("     Price label: {}", plan.price_label);
                 if let Some(cost_usd) = plan.cost_usd {
-                    println!("     Costo Estimado para tu Circuito: ${:.6} USD", cost_usd);
+                    println!("     Estimated cost for your circuit: ${cost_usd:.6} USD");
                 } else {
-                    println!("     Costo Estimado para tu Circuito: N/A (Consultar)");
+                    println!("     Estimated cost for your circuit: N/A (request a quote)");
                 }
             }
             if provider_estimate.estimates.len() > 3 {
                 println!(
-                    "  ... (y {} hardware/planes más)",
+                    "  ... (and {} more hardware/plans)",
                     provider_estimate.estimates.len() - 3
                 );
             }

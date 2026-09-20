@@ -27,4 +27,7 @@ pub struct EstimatedCost {
 }
 
 #[derive(Debug, Clone, Copy, Error)]
-pub enum EstimationError {}
+pub enum EstimationError {
+    #[error("Failed to initialize the async runtime")]
+    RuntimeInit,
+}

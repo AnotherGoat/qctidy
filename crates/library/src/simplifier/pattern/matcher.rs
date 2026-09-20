@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use itertools::Itertools;
-
 use crate::{
     EdgeType, EdgeView, Graph, NodeView, PatternMatch, PatternRule, Position,
     domain::math,
@@ -67,9 +65,8 @@ fn generate_mappings(
     let pattern_rows = collect_non_anchor_pattern_rows(rule);
     let graph_rows = collect_non_anchor_graph_rows(graph, anchor_graph_row);
 
-    graph_rows
+    permutations_of(&graph_rows, pattern_rows.len())
         .into_iter()
-        .permutations(pattern_rows.len())
         .filter_map(move |permutation| {
             build_mapping(
                 graph,
@@ -80,6 +77,47 @@ fn generate_mappings(
                 &permutation,
             )
         })
+}
+
+fn permutations_of(items: &[usize], count: usize) -> Vec<Vec<usize>> {
+    if count > items.len() {
+        return Vec::new();
+    }
+
+    let mut permutations = Vec::new();
+    let mut used = vec![false; items.len()];
+    let mut current = Vec::with_capacity(count);
+
+    collect_permutations(items, count, &mut used, &mut current, &mut permutations);
+
+    permutations
+}
+
+fn collect_permutations(
+    items: &[usize],
+    count: usize,
+    used: &mut [bool],
+    current: &mut Vec<usize>,
+    permutations: &mut Vec<Vec<usize>>,
+) {
+    if current.len() == count {
+        permutations.push(current.clone());
+        return;
+    }
+
+    for (index, &item) in items.iter().enumerate() {
+        if used[index] {
+            continue;
+        }
+
+        used[index] = true;
+        current.push(item);
+
+        collect_permutations(items, count, used, current, permutations);
+
+        current.pop();
+        used[index] = false;
+    }
 }
 
 fn collect_non_anchor_pattern_rows(rule: &PatternRule) -> Vec<usize> {

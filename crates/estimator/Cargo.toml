@@ -19,7 +19,7 @@ qctidy = { path = "../library" }
 qctidy-ports = { path = "../ports" }
 serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true, features = ["json"] }
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 scraper = { workspace = true }
 serde_json = { workspace = true }
 regex = { workspace = true }
