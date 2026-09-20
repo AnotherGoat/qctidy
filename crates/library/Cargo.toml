@@ -22,8 +22,6 @@ getset = { workspace = true }
 newgen = { workspace = true }
 itertools = { workspace = true }
 num-rational = { workspace = true }
-strum = { workspace = true }
-strum_macros = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

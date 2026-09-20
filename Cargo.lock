@@ -2412,8 +2412,6 @@ dependencies = [
  "itertools 0.14.0",
  "newgen",
  "num-rational",
- "strum",
- "strum_macros",
  "thiserror 2.0.18",
 ]
 
@@ -2485,7 +2483,6 @@ name = "qctidy-ports"
 version = "0.1.0"
 dependencies = [
  "qctidy",
- "strum",
  "strum_macros",
  "thiserror 2.0.18",
 ]
@@ -3542,7 +3539,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",

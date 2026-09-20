@@ -1,9 +1,6 @@
-benchmarks/
 docs/
 images/
 out/
-
-frontend/
 
 target/
 **/node_modules/

@@ -2,7 +2,7 @@
 
 A toolset for quantum circuit simplification written in Rust, with an emphasis on code quality and understandability.
 
-It started as an enhanced port of a previousprototype that was written in Python. The new version uses Rust to provide these benefits:
+It started as an enhanced port of a previous prototype that was written in Python. The new version uses Rust to provide these benefits:
 
 - Better performance and memory usage, because it's compiled to native code and uses zero-cost abstractions.
 - More reliability due to Rust's stronger type system and ownership model.
@@ -15,6 +15,7 @@ It started as an enhanced port of a previousprototype that was written in Python
 - [Features](#features)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
+- [Project Architecture](#project-architecture)
 - [Useful Commands](#useful-commands)
 - [Usage](#usage)
   - [Docker](#docker)
@@ -30,11 +31,11 @@ It started as an enhanced port of a previousprototype that was written in Python
 - **Graph-based circuit representation**: quantum circuits are modelled as a hybrid directed graph / 2D matrix (`Graph`), where each qubit is a row and each "time step" is a column.
   - This structure allows easy analysis and manipulation.
   - The directed graph is used to store semantic relationships between nodes (e.g., control or target qubits).
-  - The 2D matrix is used to speed up element access by position
+  - The 2D matrix is used to speed up element access by position.
 
-- **Rich gate support**: The most commonly used gates are availabe, including:
-  - Single-qubit gates (H, X, Y, Z, P, RX, RY, RZ, S, SDG, SX, SY, T, TDG, Measure).
-  - Two-qubit gates (SWAP, CH, CX, CY, CZ, CP).
+- **Rich gate support**: 26 gates are available, including:
+  - Single-qubit gates (ID, H, X, Y, Z, P, RX, RY, RZ, S, SDG, SX, SY, T, TDG, U, Measure).
+  - Two-qubit gates (Swap, CH, CX, CY, CZ, CP).
   - Three-qubit gates (CSwap / Fredkin, CCX / Toffoli, CCZ).
 
 - **Fluent builder API**: `GraphBuilder` provides a safe, chainable interface for constructing circuits without touching the graph internals directly.
@@ -45,7 +46,7 @@ It started as an enhanced port of a previousprototype that was written in Python
 
 - **CLI**: Command-line interface for loading and processing circuits.
 
-- **Serialization**: JSON-based I/O for converting circuits to various formats and saving or loading them from disk.
+- **Multi-format serialization**: circuits can be parsed and serialized as CBOR, JSON, MessagePack or XML, and saved to or loaded from disk.
 
 ## Installation
 
@@ -72,13 +73,14 @@ The project is composed of various Rust crates, which focus on making it modular
 │   ├── library         # The core of QCTidy (library)
 │   ├── ports           # Ports for optional services (library)
 │   ├── presenter       # Circuit and graph visualization (library)
-│   ├── qiskit          # Python + Qiskit bindings via PyO3 (library)
-│   ├── server          # Server implementation as a REST API (binary)
-│   └── storage         # Circuit and simplification rule storage (library)
+│   ├── qiskit          # Python + Qiskit bindings via PyO3 (library)
+│   ├── server          # Server implementation as a REST API (binary)
+│   └── tui             # Terminal user interface (binary)
 ├── docs                # Documentation for the project
-│   ├── CHANGELOG.md    # Release notes
-│   ├── CONVENTIONS.md  # Repository guidelines and code conventions
-│   └── SPEC.md         # Requirements specification
+│   ├── CHANGELOG.md    # Release notes
+│   ├── CHANGES.md      # Changes from the original Python prototype
+│   ├── CONVENTIONS.md  # Repository guidelines and code conventions
+│   └── SPEC.md         # Requirements specification
 └── images              # Images used in the documentation
 ```
 
@@ -107,7 +109,7 @@ Some commonly used commands:
 | `just check`         | `cargo check --workspace`           | Check that all the crates compile.       |
 | `just build`         | `cargo build --workspace`           | Compile a debug build of all the crates. |
 | `just build-release` | `cargo build --release --workspace` | Compile an optimized release build.      |
-| `just test`          | `cargo test`                        | Run all unit and integration tests.      |
+| `just test`          | `cargo test --workspace`            | Run all unit and integration tests.      |
 
 If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.
 
@@ -115,13 +117,19 @@ If for some reason you don't want to use Just, you can read the contents of the 
 
 ### Docker
 
-Run the backend and frontend together:
+Run the backend and frontend together with Compose:
 
 ```bash
 docker compose up --build
 ```
 
-Build and run the backend (standalone):
+The frontend is available at `http://localhost:5173` and the backend at `http://localhost:3000`. Customize the published ports with environment variables:
+
+```bash
+FRONTEND_PORT=8081 SERVER_PORT=8080 docker compose up --build
+```
+
+#### Backend only
 
 ```bash
 docker build -f server.Dockerfile -t qctidy-server .
@@ -134,25 +142,26 @@ Use another host port if needed:
 docker run --rm -p 8080:3000 qctidy-server
 ```
 
-Build and run the frontend (standalone):
+#### Frontend only
+
+The frontend container reaches the backend through a shared Docker network, using the backend container name as the host:
 
 ```bash
+docker network create qctidy-net
+
+docker build -f server.Dockerfile -t qctidy-server .
+docker run --rm -d --name qctidy-server --network qctidy-net -p 3000:3000 qctidy-server
+
 docker build -f frontend.Dockerfile -t qctidy-frontend .
-docker run --rm -p 5173:80 -e API_URL=http://host.docker.internal:3000 qctidy-frontend
+docker run --rm -d --name qctidy-frontend --network qctidy-net -p 5173:80 \
+  -e API_URL=http://qctidy-server:3000 qctidy-frontend
 ```
 
-Use another host port if needed:
+The frontend is available at `http://localhost:5173`. To stop the containers and remove the network:
 
 ```bash
-docker run --rm -p 8081:80 -e API_URL=http://host.docker.internal:3000 qctidy-frontend
-```
-
-The frontend is available at `http://localhost:5173`. The backend is available at `http://localhost:3000`.
-
-With Compose, customize published ports with environment variables:
-
-```bash
-FRONTEND_PORT=8081 SERVER_PORT=8080 docker compose up --build
+docker rm -f qctidy-server qctidy-frontend
+docker network rm qctidy-net
 ```
 
 ### Rust Library
@@ -165,7 +174,36 @@ TODO.
 
 ### Supported Gates
 
-TODO.
+Each gate has a canonical name, and parsers also accept the aliases listed below (case-insensitive).
+
+| Qubits | Gate      | Description                   | Aliases                                  |
+| ------ | --------- | ----------------------------- | ---------------------------------------- |
+| 1      | `ID`      | Identity                      | `i`, `identity`                          |
+| 1      | `H`       | Hadamard                      | `hadamard`                               |
+| 1      | `X`       | Pauli-X (NOT)                 | `not`                                    |
+| 1      | `Y`       | Pauli-Y                       |                                          |
+| 1      | `Z`       | Pauli-Z                       |                                          |
+| 1      | `P`       | Phase                         | `phase`                                  |
+| 1      | `RX`      | Rotation around X axis        |                                          |
+| 1      | `RY`      | Rotation around Y axis        |                                          |
+| 1      | `RZ`      | Rotation around Z axis        |                                          |
+| 1      | `S`       | S (√Z)                        | `sz`, `sqrtz`                            |
+| 1      | `SDG`     | S dagger (S†)                 | `sd`, `szd`, `szdg`, `sqrtzd`, `sqrtzdg` |
+| 1      | `SX`      | √X                            | `sqrtx`                                  |
+| 1      | `SY`      | √Y                            | `sqrty`                                  |
+| 1      | `T`       | T                             |                                          |
+| 1      | `TDG`     | T dagger (T†)                 | `td`                                     |
+| 1      | `U`       | General unitary (θ, φ, λ)     | `u3`                                     |
+| 1      | `Measure` | Measurement                   | `m`                                      |
+| 2      | `Swap`    | SWAP                          |                                          |
+| 2      | `CH`      | Controlled Hadamard           |                                          |
+| 2      | `CX`      | Controlled X (CNOT)           | `cnot`                                   |
+| 2      | `CY`      | Controlled Y                  |                                          |
+| 2      | `CZ`      | Controlled Z                  |                                          |
+| 2      | `CP`      | Controlled phase              | `cphase`                                 |
+| 3      | `CSwap`   | Controlled SWAP (Fredkin)     | `fredkin`                                |
+| 3      | `CCX`     | Doubly-controlled X (Toffoli) | `ccnot`, `toffoli`                       |
+| 3      | `CCZ`     | Doubly-controlled Z           |                                          |
 
 ## Contributing
 
@@ -180,4 +218,11 @@ Check the [CONVENTIONS.md](docs/CONVENTIONS.md) file for a detailed list of repo
 
 ## License
 
-TODO.
+Similar to many popular Rust projects, this is licensed under either of:
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this project by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
