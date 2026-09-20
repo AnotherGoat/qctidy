@@ -110,6 +110,7 @@ Some commonly used commands:
 | `just build`         | `cargo build --workspace`           | Compile a debug build of all the crates. |
 | `just build-release` | `cargo build --release --workspace` | Compile an optimized release build.      |
 | `just test`          | `cargo test --workspace`            | Run all unit and integration tests.      |
+| `just bench-sysinfo` | `cargo run -p benchmarks --bin sysinfo` | Save the hardware/OS specs to JSON for benchmarks. |
 
 If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.
 

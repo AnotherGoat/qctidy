@@ -20,12 +20,12 @@ fn already_simplified(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
-                        for qubit in 0..count {
+                        for qubit in 0..qubit_count {
                             for index in 0..100 {
                                 match (qubit + index) % 3 {
                                     0 => builder.push_h(qubit),
@@ -104,14 +104,14 @@ fn wide_shallow_circuit(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
                         let depth = 10;
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
                         for layer in 0..depth {
-                            for qubit in 0..count {
+                            for qubit in 0..qubit_count {
                                 match (qubit + layer) % 3 {
                                     0 => builder.push_h(qubit),
                                     1 => builder.push_t(qubit),
@@ -145,12 +145,12 @@ fn cancellation_chain(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
-                        for qubit in 0..count {
+                        for qubit in 0..qubit_count {
                             for _ in 0..100 {
                                 builder.push_h(qubit);
                             }
@@ -182,12 +182,12 @@ fn alternating_cancellation(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
-                        for qubit in 0..count {
+                        for qubit in 0..qubit_count {
                             match qubit % 4 {
                                 0 => {
                                     for _ in 0..100 {
@@ -237,12 +237,12 @@ fn nested_cancellation_chain(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
-                        for qubit in 0..count {
+                        for qubit in 0..qubit_count {
                             for gate in [0, 1, 2, 3] {
                                 match gate {
                                     0 => builder.push_h(qubit),
@@ -284,17 +284,17 @@ fn cnot_cascade(criterion: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(qubits),
             qubits,
-            |bencher, &count| {
+            |bencher, &qubit_count| {
                 bencher.iter_batched(
                     || {
-                        let mut builder = GraphBuilder::new(count);
+                        let mut builder = GraphBuilder::new(qubit_count);
 
                         for _ in 0..10 {
-                            for index in 0..(count - 1) {
+                            for index in 0..(qubit_count - 1) {
                                 builder.push_cx(index, index + 1).unwrap();
                             }
 
-                            for index in (0..(count - 1)).rev() {
+                            for index in (0..(qubit_count - 1)).rev() {
                                 builder.push_cx(index, index + 1).unwrap();
                             }
                         }

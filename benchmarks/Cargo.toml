@@ -7,6 +7,8 @@ edition.workspace = true
 qctidy = { path = "../crates/library" }
 criterion = { workspace = true }
 rand = { workspace = true }
+serde_json = { workspace = true }
+sysinfo = { workspace = true }
 
 [[bench]]
 name = "performance"

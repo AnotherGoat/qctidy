@@ -70,6 +70,10 @@ test-backtrace:
 test-crate crate:
     cargo test -p qctidy-{{crate}}
 
+# Save the hardware and OS specifications to benchmarks/results/system_info.json
+bench-sysinfo:
+    cargo run -p benchmarks --bin sysinfo
+
 # Set up Cargo for coverage reporting
 setup-coverage:
     cargo install cargo-llvm-cov
