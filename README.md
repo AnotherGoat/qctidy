@@ -61,3 +61,53 @@ It contains a summary of every benchmark group execution result, with links to e
 | `Random Circuit`            | Width x height | 5x4, 10x8, 25x16, 50x32    | Random (seeded) gates over varying widths and heights.                        |
 
 The HTML reports include the mean/median/std-dev/MAD statistics and the distribution, regression and iteration-time plots.
+
+## Results summary
+
+Mean execution time for every benchmark case, measured with Criterion on the machine described in [`system_info.json`](#system_infojson). Times are in milliseconds, rounded to three significant figures; open [`criterion/`](#criterion) for the full reports.
+
+| Benchmark                 | Parameter      | Value | Mean execution time (ms) |
+| ------------------------- | -------------- | ----- | ------------------------ |
+| Already Simplified        | Qubits         | 1     | 0.250                    |
+|                           |                | 2     | 0.512                    |
+|                           |                | 4     | 1.22                     |
+|                           |                | 8     | 3.90                     |
+|                           |                | 16    | 12.7                     |
+|                           |                | 32    | 46.6                     |
+| Alternating Cancellation  | Qubits         | 1     | 0.229                    |
+|                           |                | 2     | 0.536                    |
+|                           |                | 4     | 1.31                     |
+|                           |                | 8     | 4.27                     |
+|                           |                | 16    | 14.7                     |
+|                           |                | 32    | 53.2                     |
+| Cancellation Chain        | Qubits         | 1     | 0.234                    |
+|                           |                | 2     | 0.524                    |
+|                           |                | 4     | 1.27                     |
+|                           |                | 8     | 3.76                     |
+|                           |                | 16    | 11.6                     |
+|                           |                | 32    | 38.8                     |
+| Nested Cancellation Chain | Qubits         | 1     | 0.0546                   |
+|                           |                | 2     | 0.0969                   |
+|                           |                | 4     | 0.188                    |
+|                           |                | 8     | 0.375                    |
+|                           |                | 16    | 0.805                    |
+|                           |                | 32    | 1.88                     |
+| CNOT Cascade              | Qubits         | 2     | 0.103                    |
+|                           |                | 4     | 1.41                     |
+|                           |                | 8     | 43.3                     |
+|                           |                | 16    | 1721                     |
+| Deep Narrow Circuit       | Depth          | 100   | 1.23                     |
+|                           |                | 500   | 19.5                     |
+|                           |                | 1000  | 68.8                     |
+|                           |                | 2500  | 490                      |
+| Wide Shallow Circuit      | Qubits         | 4     | 0.0856                   |
+|                           |                | 8     | 0.186                    |
+|                           |                | 16    | 0.406                    |
+|                           |                | 32    | 1.08                     |
+|                           |                | 64    | 3.25                     |
+|                           |                | 128   | 10.4                     |
+|                           |                | 256   | 35.7                     |
+| Random Circuit            | Width x height | 5x4   | 0.115                    |
+|                           |                | 10x8  | 1.59                     |
+|                           |                | 25x16 | 71.1                     |
+|                           |                | 50x32 | 5152                     |
