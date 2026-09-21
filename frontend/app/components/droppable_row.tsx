@@ -14,7 +14,9 @@ export const DroppableRow: React.FC<DroppableRowProps> = ({ id, children }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`w-full ${isOver ? "bg-blue-100/30" : ""}`}
+      className={`w-full rounded-lg transition-colors ${
+        isOver ? "bg-primary/10" : ""
+      }`}
     >
       {children}
     </div>

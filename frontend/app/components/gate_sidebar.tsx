@@ -26,72 +26,81 @@ import {
   CCZGate,
   CSWAPGate,
   MeasureGate,
-} from "./gate";
+} from "./gates";
 
-export const GateSidebar: React.FC<{}> = () => {
+interface GateGroup {
+  title: string;
+  accent: string;
+  gates: React.ComponentType[];
+}
+
+const GATE_GROUPS: GateGroup[] = [
+  {
+    title: "Basic & Clifford",
+    accent: "text-violet-300",
+    gates: [IdGate, HGate, XGate, YGate, ZGate, SGate, SdgGate],
+  },
+  {
+    title: "Rotations & Phase",
+    accent: "text-blue-300",
+    gates: [
+      PGate,
+      RxGate,
+      RyGate,
+      RzGate,
+      SxGate,
+      SyGate,
+      TGate,
+      TdgGate,
+      UGate,
+    ],
+  },
+  {
+    title: "Multi-Qubit",
+    accent: "text-cyan-300",
+    gates: [
+      CXGate,
+      CYGate,
+      CZGate,
+      CHGate,
+      CPGate,
+      SWAPGate,
+      CCXGate,
+      CCZGate,
+      CSWAPGate,
+    ],
+  },
+  {
+    title: "Operations",
+    accent: "text-muted-foreground",
+    gates: [MeasureGate],
+  },
+];
+
+export const GateSidebar: React.FC = () => {
   return (
-    <div className="flex flex-col gap-6 text-white p-2">
-      <h2 className="text-2xl font-bold text-center border-b border-white/20 pb-2 drop-shadow-md">
-        Toolbox
-      </h2>
-
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-blue-300">
-          Basic & Clifford
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <IdGate />
-          <HGate />
-          <XGate />
-          <YGate />
-          <ZGate />
-          <SGate />
-          <SdgGate />
-        </div>
+    <div className="flex flex-col gap-6 p-1">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Toolbox
+        </h2>
+        <span className="chip">Drag to place</span>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-purple-300">
-          Rotations & Phase
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <PGate />
-          <RxGate />
-          <RyGate />
-          <RzGate />
-          <SxGate />
-          <SyGate />
-          <TGate />
-          <TdgGate />
-          <UGate />
+      {GATE_GROUPS.map((group) => (
+        <div key={group.title} className="flex flex-col gap-3">
+          <h3
+            className={`text-xs font-semibold uppercase tracking-wider ${group.accent}`}
+          >
+            {group.title}
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {group.gates.map((GateComponent, index) => (
+              <GateComponent key={index} />
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-cyan-300">
-          Multi-Qubit
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <CXGate />
-          <CYGate />
-          <CZGate />
-          <CHGate />
-          <CPGate />
-          <SWAPGate />
-          <CCXGate />
-          <CCZGate />
-          <CSWAPGate />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <h3 className="font-bold text-sm uppercase tracking-wider text-gray-300">
-          Operations
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <MeasureGate />
-        </div>
-      </div>
+      ))}
     </div>
   );
 };

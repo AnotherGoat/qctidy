@@ -8,20 +8,10 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import "@fontsource-variable/noto-sans";
 import "./app.css";
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
+export const links: Route.LinksFunction = () => [];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,33 +32,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return (
-    <div className="min-h-screen w-full">
-      <Outlet />
-    </div>
-  );
+  return <Outlet />;
 }
 
 export function HydrateFallback() {
   return (
-    <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
-      <div className="rounded-xl border border-white/10 bg-white/5 px-8 py-6 text-center shadow-2xl backdrop-blur-md">
-        <div className="mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-3xl font-extrabold text-transparent">
+    <div className="flex h-screen items-center justify-center">
+      <div className="glass-panel rounded-2xl px-10 py-8 text-center">
+        <div className="mb-1 bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
           QCTidy
         </div>
-        <p className="text-sm text-slate-300">Loading circuit editor...</p>
+        <p className="text-sm text-muted-foreground">Loading circuit editor…</p>
       </div>
     </div>
   );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
+  let message = "Something went wrong";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? "404" : `Error ${error.status}`;
     details =
       error.status === 404
         ? "The requested page could not be found."
@@ -79,11 +65,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-6">
+      <h1 className="text-3xl font-bold tracking-tight">{message}</h1>
+      <p className="text-muted-foreground">{details}</p>
       {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
+        <pre className="overflow-x-auto rounded-xl border border-border bg-black/40 p-4 text-xs text-muted-foreground">
           <code>{stack}</code>
         </pre>
       )}

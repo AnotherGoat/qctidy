@@ -1,15 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import type { GateState } from "~/routes/home";
-
-import type { Grid } from "./circuit";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import type { GateData, GateState, Grid } from "~/types/circuit";
 
 interface GateEditorProps {
   gate: GateState;
   grid?: Grid;
-  onSave: (props: any, moveInstructions?: Record<string, number>) => void;
+  onSave: (props: GateData, moveInstructions?: Record<string, number>) => void;
   onClose: () => void;
 }
+
+interface NumberFieldProps {
+  label: string;
+  value: string;
+  hint?: string;
+  min?: number;
+  max?: number;
+  onChange: (value: string) => void;
+}
+
+const NumberField: React.FC<NumberFieldProps> = ({
+  label,
+  value,
+  hint,
+  min,
+  max,
+  onChange,
+}) => (
+  <div className="mb-5 flex flex-col gap-2">
+    <Label className="text-sm font-medium text-muted-foreground">{label}</Label>
+    <Input
+      type="number"
+      value={value}
+      min={min}
+      max={max}
+      onChange={(event) => onChange(event.target.value)}
+    />
+    {hint && <p className="text-xs text-muted-foreground/70">{hint}</p>}
+  </div>
+);
 
 export const GateEditor: React.FC<GateEditorProps> = ({
   gate,
@@ -31,27 +61,31 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
   const isMultiQubit = !!gate.props.multiQubitId;
   const [rowOverrides, setRowOverrides] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (isMultiQubit && grid) {
-      const initial: Record<string, string> = {};
-      for (let r = 0; r < grid.length; r++) {
-        for (let c = 0; c < grid[r].length; c++) {
-          const cell = grid[r][c];
-          if (cell?.props.multiQubitId === gate.props.multiQubitId && cell.props.multiQubitRole) {
-            initial[cell.props.multiQubitRole] = String(r);
-          }
-        }
-      }
-      setRowOverrides(initial);
-    }
-  }, [gate, grid, isMultiQubit]);
-
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    if (!isMultiQubit || !grid) return;
+
+    const initial: Record<string, string> = {};
+    for (let row = 0; row < grid.length; row++) {
+      for (let column = 0; column < grid[row].length; column++) {
+        const cell = grid[row][column];
+        if (!cell) continue;
+
+        if (
+          cell.props.multiQubitId === gate.props.multiQubitId &&
+          cell.props.multiQubitRole
+        ) {
+          initial[cell.props.multiQubitRole] = String(row);
+        }
+      }
+    }
+    setRowOverrides(initial);
+  }, [gate, grid, isMultiQubit]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -59,40 +93,46 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
   const handleSave = () => {
     setErrorMsg(null);
-    const newProps = { ...gate.props };
+    const newProps: GateData = { ...gate.props };
 
     if (isAngleGate || isUGate) {
-      const angleVal = Number(angleStr);
-      if (isNaN(angleVal) || angleVal < 0 || angleVal > 720) {
+      const angleValue = Number(angleStr);
+      if (Number.isNaN(angleValue) || angleValue < 0 || angleValue > 720) {
         setErrorMsg("The angle (Theta) must be between 0 and 720 degrees.");
         return;
       }
-      newProps.angle = angleVal;
+      newProps.angle = angleValue;
     }
 
     if (isUGate) {
-      const phiVal = Number(phiStr);
-      if (isNaN(phiVal) || phiVal < 0 || phiVal > 720) {
+      const phiValue = Number(phiStr);
+      if (Number.isNaN(phiValue) || phiValue < 0 || phiValue > 720) {
         setErrorMsg("The angle (Phi) must be between 0 and 720 degrees.");
         return;
       }
-      newProps.phi = phiVal;
+      newProps.phi = phiValue;
 
-      const lambdaVal = Number(lambdaStr);
-      if (isNaN(lambdaVal) || lambdaVal < 0 || lambdaVal > 720) {
+      const lambdaValue = Number(lambdaStr);
+      if (Number.isNaN(lambdaValue) || lambdaValue < 0 || lambdaValue > 720) {
         setErrorMsg("The angle (Lambda) must be between 0 and 720 degrees.");
         return;
       }
-      newProps.lambda = lambdaVal;
+      newProps.lambda = lambdaValue;
     }
 
     if (isMeasureGate) {
-      const bitVal = Number(classicalBitStr);
-      if (isNaN(bitVal) || !Number.isInteger(bitVal) || bitVal < 0) {
-        setErrorMsg("The classical bit must be an integer greater than or equal to 0.");
+      const bitValue = Number(classicalBitStr);
+      if (
+        Number.isNaN(bitValue) ||
+        !Number.isInteger(bitValue) ||
+        bitValue < 0
+      ) {
+        setErrorMsg(
+          "The classical bit must be an integer greater than or equal to 0.",
+        );
         return;
       }
-      newProps.classicalBit = bitVal;
+      newProps.classicalBit = bitValue;
     }
 
     let moveInstructions: Record<string, number> | undefined;
@@ -102,7 +142,7 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
       for (const [role, rowStr] of Object.entries(rowOverrides)) {
         const row = Number(rowStr);
-        if (isNaN(row) || row < 0 || !Number.isInteger(row)) {
+        if (Number.isNaN(row) || row < 0 || !Number.isInteger(row)) {
           setErrorMsg("Qubits must be integers greater than or equal to 0.");
           return;
         }
@@ -121,137 +161,95 @@ export const GateEditor: React.FC<GateEditorProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-white/20 p-6 rounded-xl shadow-2xl min-w-[320px] text-white"
+        className="glass-panel w-full max-w-md rounded-2xl p-6 animate-in zoom-in-95 duration-200"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <span className="text-blue-400">Settings:</span> {gateName} Gate
-        </h3>
+        <div className="mb-5 flex items-center gap-2">
+          <span className="grid size-8 place-items-center rounded-lg bg-primary/15 text-sm font-semibold text-primary">
+            {gateName}
+          </span>
+          <h3 className="text-lg font-semibold tracking-tight">
+            Gate settings
+          </h3>
+        </div>
 
         {errorMsg && (
-          <div className="mb-4 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+          <div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/15 px-3 py-2 text-sm text-red-200">
             {errorMsg}
           </div>
         )}
 
         {(isAngleGate || isUGate) && (
-          <div className="flex flex-col gap-2 mb-6">
-            <label className="text-sm font-semibold text-gray-300">
-              {isUGate ? "Theta (Degrees)" : "Angle (Degrees)"}
-            </label>
-            <input
-              type="number"
-              value={angleStr}
-              onChange={(e) => setAngleStr(e.target.value)}
-              className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-              min={0}
-              max={720}
-            />
-            <p className="text-xs text-gray-500">
-              Value between 0 and 720 degrees.
-            </p>
-          </div>
+          <NumberField
+            label={isUGate ? "Theta (degrees)" : "Angle (degrees)"}
+            value={angleStr}
+            hint="Value between 0 and 720 degrees."
+            min={0}
+            max={720}
+            onChange={setAngleStr}
+          />
         )}
 
         {isUGate && (
           <>
-            <div className="flex flex-col gap-2 mb-6">
-              <label className="text-sm font-semibold text-gray-300">
-                Phi (Degrees)
-              </label>
-              <input
-                type="number"
-                value={phiStr}
-                onChange={(e) => setPhiStr(e.target.value)}
-                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                min={0}
-                max={720}
-              />
-              <p className="text-xs text-gray-500">
-                Value between 0 and 720 degrees.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 mb-6">
-              <label className="text-sm font-semibold text-gray-300">
-                Lambda (Degrees)
-              </label>
-              <input
-                type="number"
-                value={lambdaStr}
-                onChange={(e) => setLambdaStr(e.target.value)}
-                className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                min={0}
-                max={720}
-              />
-              <p className="text-xs text-gray-500">
-                Value between 0 and 720 degrees.
-              </p>
-            </div>
+            <NumberField
+              label="Phi (degrees)"
+              value={phiStr}
+              hint="Value between 0 and 720 degrees."
+              min={0}
+              max={720}
+              onChange={setPhiStr}
+            />
+            <NumberField
+              label="Lambda (degrees)"
+              value={lambdaStr}
+              hint="Value between 0 and 720 degrees."
+              min={0}
+              max={720}
+              onChange={setLambdaStr}
+            />
           </>
         )}
 
         {isMeasureGate && (
-          <div className="flex flex-col gap-2 mb-6">
-            <label className="text-sm font-semibold text-gray-300">
-              Classical Bit (Index)
-            </label>
-            <input
-              type="number"
-              value={classicalBitStr}
-              onChange={(e) => setClassicalBitStr(e.target.value)}
-              className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-              min={0}
-            />
-            <p className="text-xs text-gray-500">
-              Target classical register to store the result.
-            </p>
-          </div>
+          <NumberField
+            label="Classical bit (index)"
+            value={classicalBitStr}
+            hint="Target classical register to store the result."
+            min={0}
+            onChange={setClassicalBitStr}
+          />
         )}
 
-        {isMultiQubit && (
-          <>
-            {Object.entries(rowOverrides).map(([role, val]) => (
-              <div key={role} className="flex flex-col gap-2 mb-6">
-                <label className="text-sm font-semibold text-gray-300 capitalize">
-                  {role.replace(/([A-Z0-9])/g, ' $1').trim()} Qubit (Row)
-                </label>
-                <input
-                  type="number"
-                  value={val}
-                  onChange={(e) => setRowOverrides(prev => ({ ...prev, [role]: e.target.value }))}
-                  className="bg-slate-800 border border-slate-600 rounded-md p-2 text-white text-lg focus:outline-none focus:border-blue-500 transition-colors"
-                  min={0}
-                />
-              </div>
-            ))}
-          </>
-        )}
+        {isMultiQubit &&
+          Object.entries(rowOverrides).map(([role, value]) => (
+            <NumberField
+              key={role}
+              label={`${role.replace(/([A-Z0-9])/g, " $1").trim()} qubit (row)`}
+              value={value}
+              min={0}
+              onChange={(next) =>
+                setRowOverrides((previous) => ({ ...previous, [role]: next }))
+              }
+            />
+          ))}
 
         {!isAngleGate && !isUGate && !isMeasureGate && !isMultiQubit && (
-          <div className="mb-6 text-gray-400 italic">
+          <p className="mb-5 text-sm italic text-muted-foreground">
             This gate does not have editable properties.
-          </div>
+          </p>
         )}
 
-        <div className="flex justify-end gap-3 mt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
-          >
+        <div className="mt-2 flex justify-end gap-3">
+          <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
           {(isAngleGate || isUGate || isMeasureGate || isMultiQubit) && (
-            <Button
-              onClick={handleSave}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6"
-            >
-              Save
-            </Button>
+            <Button onClick={handleSave}>Save</Button>
           )}
         </div>
       </div>
