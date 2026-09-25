@@ -1,0 +1,53 @@
+{
+  "name": "qctidy-vscode",
+  "displayName": "QCTidy VS Code",
+  "description": "AST Analyzer for QCTidy",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "qctidy-sidebar",
+          "title": "QCTidy",
+          "icon": "$(circuit-board)"
+        }
+      ]
+    },
+    "views": {
+      "qctidy-sidebar": [
+        {
+          "id": "qctidy-ast-view",
+          "name": "AST Analysis"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "qctidy.jumpToLine",
+        "title": "Jump to Line"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "20.x",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "tree-sitter-python": "^0.25.0",
+    "web-tree-sitter": "^0.27.0"
+  }
+}
