@@ -1,0 +1,8 @@
+[project]
+name = "qctidy-vscode-test"
+version = "0.1.0"
+description = "Sample Qiskit circuits for testing the QCTidy VS Code extension."
+requires-python = ">=3.11"
+dependencies = [
+    "qiskit>=1.0",
+]

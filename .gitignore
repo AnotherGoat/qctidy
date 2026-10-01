@@ -1,14 +1,8 @@
 # Compiled output
 target/
 
-# Editor configuration files
-.vscode/
-
 # Environment variables
 **/*.env
-
-# Python bindings tests
-*.py
 
 # Output formats
 **/*.gv
