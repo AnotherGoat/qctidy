@@ -7,9 +7,14 @@ Esta es la extensión oficial de Visual Studio Code para **QCTidy**. Su propósi
 La extensión se integra directamente en la barra lateral (Activity Bar) de VS Code y proporciona las siguientes funcionalidades:
 
 * **Análisis AST en Tiempo Real**: Utiliza `web-tree-sitter` para generar un Árbol de Sintaxis Abstracta (AST) del archivo Python actualmente abierto en el editor.
-* **Detección de Clases y Métodos**: Identifica automáticamente las declaraciones de clases (`class_definition`) y funciones (`function_definition`) en el código.
-* **Detección de Qiskit**: Identifica instancias y llamadas al constructor de circuitos cuánticos (`QuantumCircuit`).
-* **Navegación Rápida**: Al hacer clic en cualquier elemento detectado en el panel lateral, el editor navega automáticamente a la línea y columna exacta donde se encuentra dicho elemento.
+* **Jerarquía Completa**: Estructura en árbol colapsable y expandible similar al explorador de archivos:
+  $$\text{Función/Método/Clase} \longrightarrow \text{Circuito Cuántico} \longrightarrow \text{Metadatos y Compuertas} \longrightarrow \text{Parámetros}$$
+* **Detección Multivariable y Nombres de Circuitos**: Identifica todas las variables asignadas a `QuantumCircuit` mostrando el nombre exacto de la variable.
+* **Extracción de Metadatos**: Extrae y muestra el número de cúbits y bits clásicos definidos para cada circuito.
+* **Detección Secuencial de Compuertas**: Mapea todas las compuertas aplicadas al circuito (1, 2 y 3 cúbits, rotaciones, mediciones).
+* **Detección Especial para $\sqrt{Y}$**: Reconoce construcciones como `circuit.append(YGate().power(1 / 2), [0])` como compuerta $\sqrt{Y}$ (`SY`), identificando su potencia y cúbit.
+* **Desglose de Parámetros**: Permite desplegar cada compuerta para inspeccionar sus parámetros individuales (ángulos, cúbits de control y objetivo).
+* **Navegación Rápida**: Al hacer clic en cualquier función, circuito o compuerta en el panel lateral, el editor salta automáticamente a su línea y columna precisa.
 
 ## Arquitectura Técnica
 
@@ -18,8 +23,8 @@ Para mantener el proyecto ligero y sin dependencias innecesarias, la extensión 
 Los componentes principales son:
 
 1. **`src/extension.ts`**: Punto de entrada de la extensión. Se encarga de inicializar el entorno, registrar el comando de navegación (`qctidy.jumpToLine`) y suscribir el proveedor de datos de la vista al evento de cambio de editor.
-2. **`src/parser.ts`**: Gestiona la inicialización de `web-tree-sitter` y carga las reglas gramaticales para Python (`tree-sitter-python.wasm`) compiladas en WebAssembly. Para solucionar incompatibilidades de tipos estáticos con la versión más reciente de la librería (v0.23.0), se utiliza un enfoque de importación CommonJS estándar (`require`).
-3. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Recorre el AST generado y mapea los nodos relevantes (Clases, Métodos y Circuitos) a elementos visuales (`AstNodeItem`) configurados con íconos nativos del tema de VS Code.
+2. **`src/parser.ts`**: Gestiona la inicialización de `web-tree-sitter` y carga las reglas gramaticales para Python (`tree-sitter-python.wasm`) compiladas en WebAssembly.
+3. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Analiza recursivamente el AST generado, construyendo la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación.
 
 ## Entorno de Desarrollo (Pruebas Locales)
 
