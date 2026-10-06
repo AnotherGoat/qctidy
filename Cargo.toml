@@ -33,10 +33,13 @@ license = "MIT OR Apache-2.0"
 keywords = ["quantum", "quantum-computing", "quantum-circuit"]
 
 [workspace.dependencies]
+anstream = "1.0.0" # MIT OR Apache-2.0
+anstyle = "1.0.14" # MIT OR Apache-2.0
 axum = "0.8" # MIT
 base64 = "0.23" # MIT OR Apache-2.0
 bit-vec = "0.10" # MIT OR Apache-2.0
 ciborium = "0.2.2" # Apache-2.0
+clap = "4.6.7" # MIT OR Apache-2.0
 criterion = "0.8.2" # Apache-2.0 OR MIT
 crossterm = "0.29" # MIT
 faer = { version = "0.24.4", default-features = false, features = ["std"] } # MIT

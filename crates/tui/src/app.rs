@@ -319,8 +319,8 @@ impl App {
             AppMode::Adding(AddState::Selecting { .. }) => {
                 "  Enter: select gate  Tab/↓: next  ↑: prev  Esc: cancel".to_owned()
             }
-            AppMode::Adding(AddState::EnteringArgs { .. }) => {
-                "  Enter: confirm arg  Esc: back to gate selection".to_owned()
+            AppMode::Adding(AddState::EnteringArguments { .. }) => {
+                "  Enter: confirm argument  Esc: back to gate selection".to_owned()
             }
             AppMode::Importing { .. } => "  Enter: import  Esc: cancel".to_owned(),
             AppMode::Exporting {

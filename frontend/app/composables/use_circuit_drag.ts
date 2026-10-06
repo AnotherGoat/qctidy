@@ -309,11 +309,11 @@ export function useCircuitDrag(grid: Grid, setGrid: GridSetter) {
       const placeNodes = (
         targetGrid: Grid,
         targetNodes: { r: number; node: GateState }[],
-        insertIdx: number,
+        insertIndex: number,
       ) => {
         let collision = false;
         for (const item of targetNodes) {
-          const existing = targetGrid[item.r]?.[insertIdx];
+          const existing = targetGrid[item.r]?.[insertIndex];
           if (existing !== null && existing !== undefined) {
             collision = true;
             break;
@@ -323,24 +323,24 @@ export function useCircuitDrag(grid: Grid, setGrid: GridSetter) {
         if (collision) {
           if (targetNodes.length === 1) {
             const { r, node } = targetNodes[0];
-            padRow(targetGrid, r, insertIdx);
-            targetGrid[r].splice(insertIdx, 0, node);
+            padRow(targetGrid, r, insertIndex);
+            targetGrid[r].splice(insertIndex, 0, node);
             return;
           }
 
           for (let r = 0; r < targetGrid.length; r++) {
-            padRow(targetGrid, r, insertIdx);
+            padRow(targetGrid, r, insertIndex);
             const targetItem = targetNodes.find((target) => target.r === r);
             targetGrid[r].splice(
-              insertIdx,
+              insertIndex,
               0,
               targetItem ? targetItem.node : null,
             );
           }
         } else {
           for (const item of targetNodes) {
-            padRow(targetGrid, item.r, insertIdx + 1);
-            targetGrid[item.r][insertIdx] = item.node;
+            padRow(targetGrid, item.r, insertIndex + 1);
+            targetGrid[item.r][insertIndex] = item.node;
           }
         }
       };

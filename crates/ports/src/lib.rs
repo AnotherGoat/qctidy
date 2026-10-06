@@ -22,12 +22,17 @@ use thiserror::Error;
 pub enum DisplayError {}
 
 #[derive(Debug, Clone, Copy, Error)]
+pub enum CheckError {}
+
+#[derive(Debug, Clone, Copy, Error)]
 pub enum SimplificationError {}
 
 #[derive(thiserror::Error, Debug)]
 pub enum UseCaseError {
     #[error(transparent)]
     Display(#[from] DisplayError),
+    #[error(transparent)]
+    Check(#[from] CheckError),
     #[error(transparent)]
     Simplification(#[from] SimplificationError),
     #[error(transparent)]

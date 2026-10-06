@@ -1,4 +1,39 @@
-use crate::{GateOperation, GateType, GraphBuilder, simplifier::simplifier_mother};
+use crate::{
+    GateOperation, GateType, GraphBuilder, Position, RuleConfiguration, RuleLevel, simplifier,
+    simplifier::simplifier_mother,
+};
+
+#[test]
+fn default_rules_are_ordered_by_id() {
+    let rules = simplifier::default_rules();
+
+    assert!(rules.len() > 1);
+    assert!(rules.windows(2).all(|pair| *pair[0].id() <= *pair[1].id()));
+    assert!(
+        rules
+            .iter()
+            .any(|metadata| *metadata.id() == "double_hadamard")
+    );
+}
+
+#[test]
+fn detect_reports_issues_without_modifying_the_graph() {
+    let graph = GraphBuilder::new(1).push_h(0).push_h(0).build();
+
+    let detections = simplifier::detect(&graph, &RuleConfiguration::new(RuleLevel::Detect));
+
+    let hadamard = detections
+        .iter()
+        .find(|detection| *detection.metadata().id() == "double_hadamard")
+        .expect("double_hadamard should be detected");
+
+    assert_eq!(
+        hadamard.positions().as_slice(),
+        &[Position::new(0, 0), Position::new(0, 1)]
+    );
+
+    assert_eq!(graph.iter_nodes().count(), 2);
+}
 
 #[test]
 fn angles_very_close_to_zero_are_removed() {

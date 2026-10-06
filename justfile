@@ -57,6 +57,10 @@ build-release:
 build-crate-release crate +features="":
     cargo build --release -p qctidy-{{crate}} {{ if features != "" { "--features " + features } else { "" } }}
 
+# Install the CLI binary (qctidy) from the workspace
+install-cli:
+    cargo install --path crates/cli
+
 # Run all tests in all crates
 test:
     cargo test --workspace --no-fail-fast

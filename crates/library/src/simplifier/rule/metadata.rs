@@ -1,3 +1,5 @@
+use std::fmt;
+
 use getset::{CopyGetters, Getters};
 use newgen::New;
 
@@ -64,4 +66,26 @@ pub enum RuleGroup {
     ///
     /// Avoided whenever possible for built-in rules.
     Miscellaneous,
+}
+
+impl fmt::Display for RuleGroup {
+    /// Obtain the name of this rule group as a lowercase, hyphenated string.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use RuleGroup::*;
+
+        let name = match *self {
+            Canonicalization => "canonicalization",
+            Redundancy => "redundancy",
+            PhaseCompaction => "phase-compaction",
+            BasisChange => "basis-change",
+            ControlReversal => "control-reversal",
+            PauliPropagation => "pauli-propagation",
+            GateSynthesis => "gate-synthesis",
+            CxReduction => "cx-reduction",
+            AngleMerging => "angle-merging",
+            Miscellaneous => "miscellaneous",
+        };
+
+        write!(f, "{name}")
+    }
 }

@@ -8,6 +8,12 @@
 - `library`: Display a quantum graph as a list of nodes and edges or as a less detailed 2D matrix.
 - `library`: Calculate the unitary matrix of a quantum graph.
 - `library`: Display a quantum graph as a unitary matrix with Dirac bra-ket notation.
+- `library`: Detect simplification opportunities in a quantum graph without modifying it.
+- `library`: List the built-in simplification rules.
+- `facade`: Expose a use case for checking a provided circuit.
+- `cli`: Add a `check` command that reports simplification opportunities as text or JSON.
+- `cli`: Add the `convert`, `display`, `present` and `rules` commands.
+- `cli`: Add `--quiet`, `--verbose` and `--no-fail` options to `check`.
 - `presenter`: Allow saving a quantum graph as a graphviz graph in GV, PNG and SVG formats.
 - `converter`: Parse and serialize quantum graphs in JSON, XML, MessagePack and CBOR formats.
 - `codegen`: Generate code to build a circuit using Qiskit's `QuantumCircuit`.

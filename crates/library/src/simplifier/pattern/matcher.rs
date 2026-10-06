@@ -11,13 +11,16 @@ use crate::{
 pub(crate) fn find_matches(graph: &Graph, rule: &PatternRule) -> Vec<PatternMatch> {
     let mut matches = Vec::new();
     let mut occupancy = OccupancyMap::new(graph.height(), graph.width());
+    let graph_cache = GraphCache::from_graph(graph);
 
     for node in graph.iter_nodes_ordered_by_column() {
         if !is_anchor_candidate(rule, node) {
             continue;
         }
 
-        let Some(r#match) = find_match_at_anchor(graph, rule, node.position(), &occupancy) else {
+        let Some(r#match) =
+            find_match_at_anchor(graph, rule, node.position(), &occupancy, &graph_cache)
+        else {
             continue;
         };
 
@@ -37,8 +40,9 @@ fn find_match_at_anchor(
     rule: &PatternRule,
     anchor_position: Position,
     occupancy: &OccupancyMap,
+    graph_cache: &GraphCache,
 ) -> Option<PatternMatch> {
-    for mapping in generate_mappings(graph, rule, anchor_position) {
+    for mapping in generate_mappings(graph, rule, anchor_position, graph_cache) {
         let Some(pattern_match) = build_pattern_match(graph, rule, &mapping, anchor_position)
         else {
             continue;
@@ -58,6 +62,7 @@ fn generate_mappings(
     graph: &Graph,
     rule: &PatternRule,
     anchor_position: Position,
+    graph_cache: &GraphCache,
 ) -> impl Iterator<Item = QubitMapping> {
     let anchor_pattern_row = rule.anchor().position().row();
     let anchor_graph_row = anchor_position.row();
@@ -69,12 +74,12 @@ fn generate_mappings(
         .into_iter()
         .filter_map(move |permutation| {
             build_mapping(
-                graph,
                 rule,
                 anchor_pattern_row,
                 anchor_graph_row,
                 &pattern_rows,
                 &permutation,
+                graph_cache,
             )
         })
 }
@@ -135,14 +140,14 @@ fn collect_non_anchor_graph_rows(graph: &Graph, anchor_graph_row: usize) -> Vec<
 }
 
 fn build_mapping(
-    graph: &Graph,
     rule: &PatternRule,
     anchor_pattern_row: usize,
     anchor_graph_row: usize,
     pattern_rows: &[usize],
     permutation: &[usize],
+    graph_cache: &GraphCache,
 ) -> Option<QubitMapping> {
-    let mut mapping = QubitMapping::new(rule.height(), graph.height());
+    let mut mapping = QubitMapping::new(rule.height(), graph_cache.rows().len());
 
     mapping
         .add_mapping(anchor_pattern_row, anchor_graph_row)
@@ -150,7 +155,7 @@ fn build_mapping(
 
     add_permuted_row_mappings(&mut mapping, pattern_rows, permutation)?;
 
-    mapping_satisfies_cache(graph, rule, &mapping).then_some(mapping)
+    mapping_satisfies_cache(rule, &mapping, graph_cache).then_some(mapping)
 }
 
 fn add_permuted_row_mappings(
@@ -165,9 +170,11 @@ fn add_permuted_row_mappings(
     Some(())
 }
 
-fn mapping_satisfies_cache(graph: &Graph, rule: &PatternRule, mapping: &QubitMapping) -> bool {
-    let graph_cache = GraphCache::from_graph(graph);
-
+fn mapping_satisfies_cache(
+    rule: &PatternRule,
+    mapping: &QubitMapping,
+    graph_cache: &GraphCache,
+) -> bool {
     for pattern_row in 0..rule.height() {
         let Some(graph_row) = mapping.graph_row(pattern_row) else {
             return false;

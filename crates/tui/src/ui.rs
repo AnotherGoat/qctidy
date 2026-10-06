@@ -137,8 +137,8 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
 
             let gate_items: Vec<ListItem> = indices
                 .iter()
-                .map(|&idx| {
-                    let entry = &ALL_ENTRIES[idx];
+                .map(|&index| {
+                    let entry = &ALL_ENTRIES[index];
                     let name = entry.names[0];
                     let qubits = entry.qubits;
                     let info = format!("{name:<10}  ({qubits})");
@@ -175,10 +175,10 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
                 .style(Style::default().fg(Color::Green));
             frame.render_widget(input_para, chunks[1]);
         }
-        AddState::EnteringArgs {
+        AddState::EnteringArguments {
             gate_type,
-            args,
-            current_arg,
+            arguments,
+            current_argument,
             values,
         } => {
             let popup_area = centered_rect(55, 30, area);
@@ -192,9 +192,9 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
             let name = gate_type.to_string();
             let mut lines = vec![Line::from(format!(" Gate: {name}"))];
 
-            for (i, arg) in args.iter().enumerate() {
-                let value = values.get(i).map(String::as_str).unwrap_or_default();
-                let prefix = if i == *current_arg {
+            for (index, argument) in arguments.iter().enumerate() {
+                let value = values.get(index).map(String::as_str).unwrap_or_default();
+                let prefix = if index == *current_argument {
                     "  > "
                 } else if value.trim().is_empty() {
                     "    "
@@ -208,7 +208,10 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
                     format!(" = {value}")
                 };
 
-                lines.push(Line::from(format!("{prefix}{}:{value_str}", arg.prompt)));
+                lines.push(Line::from(format!(
+                    "{prefix}{}:{value_str}",
+                    argument.prompt
+                )));
             }
 
             let remaining = values
@@ -237,9 +240,9 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
                 .style(Style::default().fg(Color::White).bg(Color::Black));
             frame.render_widget(para, chunks[0]);
 
-            let active = &args[*current_arg.min(&args.len().saturating_sub(1))];
+            let active = &arguments[*current_argument.min(&arguments.len().saturating_sub(1))];
             let active_value = values
-                .get(*current_arg)
+                .get(*current_argument)
                 .map(String::as_str)
                 .unwrap_or_default();
             let input_para = Paragraph::new(format!(" {}: {active_value}", active.prompt))

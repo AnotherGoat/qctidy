@@ -46,8 +46,8 @@ fn to_gib(bytes: u64) -> f64 {
     bytes as f64 / 1024.0_f64.powi(3)
 }
 
-fn command_output(program: &str, args: &[&str]) -> Option<String> {
-    let output = Command::new(program).args(args).output().ok()?;
+fn command_output(program: &str, arguments: &[&str]) -> Option<String> {
+    let output = Command::new(program).args(arguments).output().ok()?;
 
     output
         .status

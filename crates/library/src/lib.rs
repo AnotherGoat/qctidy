@@ -20,6 +20,7 @@ pub use domain::graph::{
 };
 pub use domain::math::{ABSOLUTE_TOLERANCE, EPSILON, RELATIVE_TOLERANCE};
 pub use domain::projection::{ContextualNodeView, EdgeView, NodeView};
+pub use simplifier::Detection;
 pub use simplifier::pattern::pattern_match::PatternMatch;
 pub use simplifier::rule::{
     CanonicalizationRule, RuleBuildError, SimplificationRule,

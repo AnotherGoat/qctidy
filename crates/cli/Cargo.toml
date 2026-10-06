@@ -11,5 +11,22 @@ license.workspace = true
 keywords.workspace = true
 categories = ["science", "command-line-utilities"]
 
+[[bin]]
+name = "qctidy"
+path = "src/main.rs"
+
+[dependencies]
+qctidy = { path = "../library" }
+qctidy-converter = { path = "../converter" }
+qctidy-facade = { path = "../facade" }
+qctidy-ports = { path = "../ports" }
+qctidy-presenter = { path = "../presenter" }
+anstream = { workspace = true }
+anstyle = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
 [lints]
 workspace = true

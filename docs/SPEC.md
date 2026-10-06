@@ -32,7 +32,7 @@
 - [ ] Add a logo for the project
 - [ ] Finish all the sections in the project's README
 - [ ] Add badges to the project's README
-- [ ] Add a license to the project
+- [x] Add a license to the project
 - [ ] Make the README prettier and more eye-catching
 - [ ] Add a video demonstrating the project
 
@@ -56,14 +56,14 @@
 #### Containerization
 
 - [ ] Create a Docker image for development
-- [ ] Create a Docker image for production deployment
+- [x] Create a Docker image for production deployment
 
 ### Core Library
 
 - [x] Hybrid directed graph + 2D matrix representation
 - [x] Graph builder for fluent programmatic construction
 - [x] Mapping between graphs and lists of operations
-- [ ] Accept common gate aliases to build operation lists
+- [x] Accept common gate aliases to build operation lists
 - [X] Validate operations on construction
 
 #### Structural Validation
@@ -76,7 +76,7 @@
 
 - [x] Create a schema for each gate type and its graph representation
 - [x] Validate the graph's semantic consistency by using the gate schemas
-- [ ] Validate that all angles in the graph are finite values
+- [x] Validate that all angles in the graph are finite values
 - [ ] Validate symmetrical gates hold the same data in each node
 
 #### Graph Display
@@ -88,8 +88,8 @@
 
 #### Circuit Simplification
 
-- [ ] Data model for pattern-based circuit simplification
-- [ ] Circuit simplification algorithm
+- [x] Data model for pattern-based circuit simplification
+- [x] Circuit simplification algorithm
 - [ ] Per-qubit gate cache to skip rules with gates not found in the pattern
 - [ ] Skip rules bigger than the circuit's qubit count
 - [ ] Use gate commutation to find more patterns
@@ -129,7 +129,7 @@
 
 - [x] JSON and XML parsing and serialization
 - [X] Customizable JSON and XML pretty-printing
-- [X] MessagePack parsing and serialization
+- [X] MessagePack and CBOR  binary parsing and serialization
 - [X] Add format version when serializing
 - [ ] Try all the parsers from newest to oldest until one works when no version is specified
 
@@ -147,14 +147,14 @@
 
 ### Circuit Analysis (analyzer)
 
-- [ ] Define set of metrics to analyze
-- [ ] Analysis implementation
+- [x] Define set of metrics to analyze
+- [x] Analysis implementation
 
 ### Execution Estimation (estimator)
 
-- [ ] Execution time estimation
-- [ ] Cost estimation
-- [ ] Implement cache for web scraping
+- [x] Execution time estimation
+- [x] Cost estimation
+- [x] Implement cache for web scraping
 
 ### Storage (storage)
 
@@ -168,12 +168,13 @@
 - [x] Use case orchestration using ports
 - [x] Display use case
 - [x] Simplify use case
+- [x] Check use case
 - [x] Present use case
 - [x] Parse use case
 - [x] Serialize use case
 - [X] Generate code use case
-- [ ] Analyze use case
-- [ ] Estimate use case
+- [x] Analyze use case
+- [x] Estimate use case
 - [ ] Support for pipeline execution of use cases without unnecessary transformations
 
 ### Python Bindings (qiskit)
@@ -187,41 +188,44 @@
 - [X] Circuit simplification (library)
 - [X] Format conversion (converter)
 - [X] Circuit visualization (presenter)
-- [ ] Code generation (codegen)
-- [ ] Circuit analysis (analyzer)
-- [ ] Execution estimation (estimator)
+- [X] Code generation (codegen)
+- [X] Circuit analysis (analyzer)
+- [X] Execution estimation (estimator)
 
 ### CLI (cli)
 
-- [ ] Load circuit from file (using converter)
-- [ ] Save circuit to file (using converter)
-- [ ] Display circuit as text/grid/matrix
+- [x] Load circuit from file (using converter)
+- [x] Save circuit to file (using converter)
+- [x] Display circuit as text/grid/matrix
 - [ ] Simplify circuit
-- [ ] Generate graph visualization
+- [x] Check circuit for simplification opportunities
+- [x] List available simplification rules
+- [x] Generate graph visualization
 - [ ] Generate code (using codegen)
 - [ ] Analyze circuit
 - [ ] Estimate execution statistics
-- [ ] Support for batch processing of multiple circuits
+- [x] Support for batch processing of multiple circuits
 
 ### REST API Server (server)
 
-- [ ] GET /health - Health check
-- [ ] POST /display - Display circuit
-- [ ] POST /simplify - Simplify circuit
-- [ ] POST /present - Generate visualization
-- [ ] POST /parse - Parse circuit from format
-- [ ] POST /serialize - Serialize circuit to format
-- [ ] POST /generate - Generate code
-- [ ] POST /analyze - Analyze circuit
-- [ ] POST /estimate - Estimate execution statistics
-- [ ] Allow passing different formats for circuits
+- [x] GET /health - Health check
+- [x] GET /features - Supported features
+- [x] POST /display - Display circuit
+- [x] POST /simplify - Simplify circuit
+- [x] POST /convert - Convert a circuit between formats
+- [x] POST /present - Generate visualization
+- [x] POST /analyze - Analyze circuit
+- [x] POST /compare - Compare two circuits
+- [x] POST /codegen - Generate code
+- [x] POST /estimate - Estimate execution statistics
+- [x] Allow passing different formats for circuits
 
 ## Non-Functional Requirements
 
 ### Performance
 
 - [ ] Design scalable load and stress tests
-- [ ] Implement performance tests and result storage
+- [x] Implement performance tests and result storage
 
 ### Reliability
 

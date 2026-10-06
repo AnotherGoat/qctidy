@@ -3,15 +3,15 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use qctidy::{Circuit, GateOperation, GateOperationError, GateType};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ArgKind {
+pub(crate) enum ArgumentKind {
     Qubit,
     Angle,
     Bit,
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ArgPrompt {
-    pub kind: ArgKind,
+pub(crate) struct ArgumentPrompt {
+    pub kind: ArgumentKind,
     pub prompt: &'static str,
 }
 
@@ -159,21 +159,21 @@ pub(crate) fn filter_entries(query: &str) -> Vec<usize> {
     let mut scored: Vec<(i64, usize)> = ALL_ENTRIES
         .iter()
         .enumerate()
-        .filter_map(|(idx, entry)| {
+        .filter_map(|(index, entry)| {
             let best = entry
                 .names
                 .iter()
                 .filter_map(|name| matcher.fuzzy_match(name, query))
                 .max();
-            best.map(|score| (score, idx))
+            best.map(|score| (score, index))
         })
         .collect();
 
     scored.sort_by(|a, b| b.0.cmp(&a.0));
-    scored.into_iter().map(|(_, idx)| idx).collect()
+    scored.into_iter().map(|(_, index)| index).collect()
 }
 
-pub(crate) fn gate_signature(gate_type: GateType) -> Vec<ArgPrompt> {
+pub(crate) fn gate_signature(gate_type: GateType) -> Vec<ArgumentPrompt> {
     match gate_type {
         GateType::ID
         | GateType::H
@@ -186,151 +186,151 @@ pub(crate) fn gate_signature(gate_type: GateType) -> Vec<ArgPrompt> {
         | GateType::SY
         | GateType::T
         | GateType::TDG => {
-            vec![ArgPrompt {
-                kind: ArgKind::Qubit,
+            vec![ArgumentPrompt {
+                kind: ArgumentKind::Qubit,
                 prompt: "qubit",
             }]
         }
         GateType::P | GateType::RX | GateType::RY => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "theta (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "qubit",
                 },
             ]
         }
         GateType::RZ => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "phi (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "qubit",
                 },
             ]
         }
         GateType::U => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "theta (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "phi (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "lambda (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "qubit",
                 },
             ]
         }
         GateType::CH | GateType::CX | GateType::CY => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "control qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "target qubit",
                 },
             ]
         }
         GateType::Swap | GateType::CZ => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "first qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "second qubit",
                 },
             ]
         }
         GateType::CP => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Angle,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Angle,
                     prompt: "theta (e.g., pi/2, 1.5)",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "first qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "second qubit",
                 },
             ]
         }
         GateType::CSwap => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "control qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "first target qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "second target qubit",
                 },
             ]
         }
         GateType::CCX => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "first control qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "second control qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "target qubit",
                 },
             ]
         }
         GateType::CCZ => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "first qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "second qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "third qubit",
                 },
             ]
         }
         GateType::Measure => {
             vec![
-                ArgPrompt {
-                    kind: ArgKind::Qubit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Qubit,
                     prompt: "qubit",
                 },
-                ArgPrompt {
-                    kind: ArgKind::Bit,
+                ArgumentPrompt {
+                    kind: ArgumentKind::Bit,
                     prompt: "classical bit",
                 },
             ]
@@ -345,10 +345,10 @@ pub(crate) enum AddState {
         indices: Vec<usize>,
         selected: usize,
     },
-    EnteringArgs {
+    EnteringArguments {
         gate_type: GateType,
-        args: Vec<ArgPrompt>,
-        current_arg: usize,
+        arguments: Vec<ArgumentPrompt>,
+        current_argument: usize,
         values: Vec<String>,
     },
 }
@@ -391,12 +391,12 @@ impl AddState {
                 query.push(c);
                 self.reselect();
             }
-            Self::EnteringArgs {
+            Self::EnteringArguments {
                 values,
-                current_arg,
+                current_argument,
                 ..
             } => {
-                if let Some(value) = values.get_mut(*current_arg) {
+                if let Some(value) = values.get_mut(*current_argument) {
                     value.push(c);
                 }
             }
@@ -409,12 +409,12 @@ impl AddState {
                 query.pop();
                 self.reselect();
             }
-            Self::EnteringArgs {
+            Self::EnteringArguments {
                 values,
-                current_arg,
+                current_argument,
                 ..
             } => {
-                if let Some(value) = values.get_mut(*current_arg) {
+                if let Some(value) = values.get_mut(*current_argument) {
                     value.pop();
                 }
             }
@@ -430,11 +430,13 @@ impl AddState {
                     *selected = (*selected + 1) % indices.len();
                 }
             }
-            Self::EnteringArgs {
-                args, current_arg, ..
+            Self::EnteringArguments {
+                arguments,
+                current_argument,
+                ..
             } => {
-                if !args.is_empty() {
-                    *current_arg = (*current_arg + 1) % args.len();
+                if !arguments.is_empty() {
+                    *current_argument = (*current_argument + 1) % arguments.len();
                 }
             }
         }
@@ -449,8 +451,10 @@ impl AddState {
                     *selected -= 1;
                 }
             }
-            Self::EnteringArgs { current_arg, .. } => {
-                *current_arg = current_arg.saturating_sub(1);
+            Self::EnteringArguments {
+                current_argument, ..
+            } => {
+                *current_argument = current_argument.saturating_sub(1);
             }
         }
     }
@@ -464,11 +468,13 @@ impl AddState {
                     *selected += 1;
                 }
             }
-            Self::EnteringArgs {
-                args, current_arg, ..
+            Self::EnteringArguments {
+                arguments,
+                current_argument,
+                ..
             } => {
-                if *current_arg + 1 < args.len() {
-                    *current_arg += 1;
+                if *current_argument + 1 < arguments.len() {
+                    *current_argument += 1;
                 }
             }
         }
@@ -479,33 +485,33 @@ impl AddState {
             Self::Selecting {
                 indices, selected, ..
             } => {
-                let &idx = indices
+                let &index = indices
                     .get(*selected)
                     .ok_or_else(|| "No gate selected".to_owned())?;
-                let entry = &ALL_ENTRIES[idx];
+                let entry = &ALL_ENTRIES[index];
                 let gate_type = entry.gate_type;
-                let args = gate_signature(gate_type);
-                *self = Self::EnteringArgs {
+                let arguments = gate_signature(gate_type);
+                *self = Self::EnteringArguments {
                     gate_type,
-                    values: vec![String::new(); args.len()],
-                    current_arg: 0,
-                    args,
+                    values: vec![String::new(); arguments.len()],
+                    current_argument: 0,
+                    arguments,
                 };
                 Ok(None)
             }
-            Self::EnteringArgs {
+            Self::EnteringArguments {
                 gate_type,
-                args,
-                current_arg,
+                arguments,
+                current_argument,
                 values,
             } => {
                 if let Some(missing_index) = values.iter().position(|value| value.trim().is_empty())
                 {
-                    *current_arg = missing_index;
-                    return Err(format!("Enter {}", args[missing_index].prompt));
+                    *current_argument = missing_index;
+                    return Err(format!("Enter {}", arguments[missing_index].prompt));
                 }
 
-                let parsed_values = parse_arg_values(args, values, current_arg)?;
+                let parsed_values = parse_argument_values(arguments, values, current_argument)?;
                 let operation = try_build_operation(*gate_type, &parsed_values)?;
                 *self = Self::new();
                 Ok(Some(operation))
@@ -514,7 +520,7 @@ impl AddState {
     }
 
     pub(crate) fn handle_escape(&mut self) {
-        if matches!(self, Self::EnteringArgs { .. }) {
+        if matches!(self, Self::EnteringArguments { .. }) {
             *self = Self::new();
         } else {
             *self = Self::new();
@@ -522,18 +528,18 @@ impl AddState {
     }
 }
 
-fn parse_arg_values(
-    args: &[ArgPrompt],
+fn parse_argument_values(
+    arguments: &[ArgumentPrompt],
     values: &[String],
-    current_arg: &mut usize,
+    current_argument: &mut usize,
 ) -> Result<Vec<f64>, String> {
-    let mut parsed_values = Vec::with_capacity(args.len());
+    let mut parsed_values = Vec::with_capacity(arguments.len());
 
-    for (index, (arg, value)) in args.iter().zip(values).enumerate() {
-        match parse_arg_value(arg.kind, value) {
+    for (index, (argument, value)) in arguments.iter().zip(values).enumerate() {
+        match parse_argument_value(argument.kind, value) {
             Ok(parsed_value) => parsed_values.push(parsed_value),
             Err(error) => {
-                *current_arg = index;
+                *current_argument = index;
                 return Err(error);
             }
         }
@@ -542,16 +548,16 @@ fn parse_arg_values(
     Ok(parsed_values)
 }
 
-fn parse_arg_value(kind: ArgKind, input: &str) -> Result<f64, String> {
+fn parse_argument_value(kind: ArgumentKind, input: &str) -> Result<f64, String> {
     let trimmed = input.trim();
     match kind {
-        ArgKind::Qubit | ArgKind::Bit => {
+        ArgumentKind::Qubit | ArgumentKind::Bit => {
             let value: usize = trimmed
                 .parse()
                 .map_err(|_| format!("Invalid integer: '{trimmed}'"))?;
             Ok(value as f64)
         }
-        ArgKind::Angle => {
+        ArgumentKind::Angle => {
             if let Some(rest) = trimmed.strip_prefix("pi") {
                 if rest.is_empty() {
                     return Ok(std::f64::consts::PI);

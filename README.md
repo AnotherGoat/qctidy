@@ -20,6 +20,7 @@ Detailed benchmark results are published in the [`benchmarks` branch](https://gi
 - [Project Architecture](#project-architecture)
 - [Useful Commands](#useful-commands)
 - [Usage](#usage)
+  - [CLI](#cli)
   - [Docker](#docker)
   - [Rust Library](#rust-library)
   - [Python Bindings for Qiskit](#python-bindings-for-qiskit)
@@ -52,7 +53,19 @@ Detailed benchmark results are published in the [`benchmarks` branch](https://gi
 
 ## Installation
 
-TODO.
+Install the `qctidy` command-line interface from a local checkout:
+
+```bash
+cargo install --path crates/cli
+```
+
+Or with the Just recipe:
+
+```bash
+just install-cli
+```
+
+The package is not published to crates.io yet.
 
 ## Project Structure
 
@@ -113,10 +126,51 @@ Some commonly used commands:
 | `just build-release` | `cargo build --release --workspace`     | Compile an optimized release build.                |
 | `just test`          | `cargo test --workspace`                | Run all unit and integration tests.                |
 | `just bench-sysinfo` | `cargo run -p benchmarks --bin sysinfo` | Save the hardware/OS specs to JSON for benchmarks. |
+| `just install-cli`   | `cargo install --path crates/cli`       | Install the `qctidy` CLI binary.                   |
 
 If for some reason you don't want to use Just, you can read the contents of the [justfile](justfile) for more common examples.
 
 ## Usage
+
+### CLI
+
+The `qctidy` CLI checks circuits for simplification opportunities, without modifying them:
+
+```bash
+qctidy check -i circuit.json
+```
+
+Inputs are passed with `-i`/`--input` (repeatable) and parsed with the converter. The format is guessed from the file extension, or can be forced with `--input-format` (`json`, `xml`, `msgpack` or `cbor`). When no input is given, the circuit is read from standard input:
+
+```bash
+cat circuit.json | qctidy check
+```
+
+Reports are human-readable and colorized by default. Use `--output-format json` to get a machine-readable report instead:
+
+```bash
+qctidy check -i circuit.json --output-format json
+```
+
+The exit code is `0` when no opportunities are found, `1` when any are found, and `2` when an input cannot be read or parsed. Use `--quiet` to print only the diagnostics, `--verbose` to show a snippet of the circuit around each detection, and `--no-fail` to always exit with code `0`.
+
+Other commands are available:
+
+```bash
+# List the available simplification rules
+qctidy rules
+
+# Convert between formats
+qctidy convert -i circuit.json -o circuit.xml
+
+# Render as text: graph, grid, matrix or circuit
+qctidy display -i circuit.json --format grid
+
+# Render with graphviz: gv, png or svg
+qctidy present -i circuit.json --format svg
+```
+
+`convert` guesses the output format from the `-o` extension (or use `--output-format`), and supports `--prettify`/`--indentation`. `present` writes to standard output unless `-o` is given, and accepts `--dpi`. The `--color` option (`auto`, `always`, `never`) is available on every command.
 
 ### Docker
 
