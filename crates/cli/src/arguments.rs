@@ -44,6 +44,10 @@ pub(crate) struct CheckArguments {
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
     pub(crate) input_format: Option<ConversionFormat>,
 
+    /// Name reported for standard input, instead of `<stdin>`.
+    #[arg(long, value_name = "NAME")]
+    pub(crate) input_name: Option<String>,
+
     /// Format used to report the results.
     #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
     pub(crate) output_format: OutputFormat,

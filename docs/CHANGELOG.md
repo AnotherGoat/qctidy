@@ -12,6 +12,7 @@
 - `library`: List the built-in simplification rules.
 - `facade`: Expose a use case for checking a provided circuit.
 - `cli`: Add a `check` command that reports simplification opportunities as text or JSON.
+- `cli`: Report the operations affected by each detection in the JSON report.
 - `cli`: Add the `convert`, `display`, `present` and `rules` commands.
 - `cli`: Add `--quiet`, `--verbose` and `--no-fail` options to `check`.
 - `presenter`: Allow saving a quantum graph as a graphviz graph in GV, PNG and SVG formats.

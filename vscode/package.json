@@ -32,8 +32,22 @@
       {
         "command": "qctidy.jumpToLine",
         "title": "Jump to Line"
+      },
+      {
+        "command": "qctidy.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "qctidy.refresh",
+          "when": "view == qctidy-ast-view",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

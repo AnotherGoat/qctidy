@@ -4,7 +4,8 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use anstyle::{AnsiColor, Color, Style};
-use qctidy::{Detection, Graph, Position};
+use qctidy::{Graph, Position};
+use qctidy_facade::CheckDiagnostic;
 use qctidy_ports::ConversionFormat;
 use serde::Serialize;
 
@@ -53,7 +54,7 @@ pub(crate) struct CircuitReport {
     pub(crate) qubit_count: usize,
     pub(crate) time_step_count: usize,
     pub(crate) gate_count: usize,
-    pub(crate) diagnostics: Vec<Detection>,
+    pub(crate) diagnostics: Vec<CheckDiagnostic>,
     /// One optional snippet per diagnostic, only filled when snippets are enabled.
     pub(crate) snippets: Vec<Option<String>>,
 }
@@ -300,6 +301,7 @@ pub(crate) struct JsonDiagnostic {
     group: String,
     message: &'static str,
     positions: Vec<JsonPosition>,
+    operations: Vec<usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -309,15 +311,15 @@ struct JsonPosition {
 }
 
 impl JsonDiagnostic {
-    pub(crate) fn new(filename: &str, detection: &Detection) -> Self {
-        let metadata = detection.metadata();
+    pub(crate) fn new(filename: &str, diagnostic: &CheckDiagnostic) -> Self {
+        let metadata = diagnostic.metadata();
 
         Self {
             filename: filename.to_owned(),
             rule: metadata.id(),
             group: metadata.group().to_string(),
             message: metadata.description(),
-            positions: detection
+            positions: diagnostic
                 .positions()
                 .iter()
                 .map(|position| JsonPosition {
@@ -325,6 +327,7 @@ impl JsonDiagnostic {
                     column: position.column(),
                 })
                 .collect(),
+            operations: diagnostic.operations().clone(),
         }
     }
 }

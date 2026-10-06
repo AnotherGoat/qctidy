@@ -16,20 +16,20 @@ export async function initParser(extensionUri: vscode.Uri): Promise<any> {
     });
 
     const p = new wts.Parser();
-    
+
     // Cargamos las reglas de Python
     const lang = await wts.Language.load(
         vscode.Uri.joinPath(extensionUri, 'wasm', 'tree-sitter-python.wasm').fsPath
     );
     p.setLanguage(lang);
-    
+
     parser = p;
     return p;
 }
 
 export function getParser(): any {
     if (!parser) {
-        throw new Error('El parser no ha sido inicializado. Llama a initParser primero.');
+        throw new Error('The parser has not been initialized. Call initParser first.');
     }
     return parser;
 }

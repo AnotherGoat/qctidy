@@ -46,6 +46,16 @@ impl Input {
         }
     }
 
+    /// Override the reported name of standard input sources.
+    #[must_use]
+    pub(crate) fn named(mut self, name: Option<&str>) -> Self {
+        if let (&Source::Stdin, Some(stdin_name)) = (&self.source, name) {
+            self.name = stdin_name.to_owned();
+        }
+
+        self
+    }
+
     fn stdin() -> Self {
         Self {
             source: Source::Stdin,

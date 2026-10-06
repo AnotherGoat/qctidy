@@ -16,7 +16,10 @@ use crate::progress::Progress;
 
 /// Run the `check` command.
 pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
-    let inputs = Input::resolve(&arguments.input);
+    let inputs: Vec<_> = Input::resolve(&arguments.input)
+        .into_iter()
+        .map(|input| input.named(arguments.input_name.as_deref()))
+        .collect();
     let snippets = arguments.verbose && arguments.output_format == OutputFormat::Human;
     let mut reporter = Reporter::new(arguments.output_format, color, arguments.quiet);
     let mut stats = Stats::default();

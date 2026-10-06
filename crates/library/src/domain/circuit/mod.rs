@@ -10,3 +10,5 @@ pub use gate_operation::{GateOperation, GateOperationError};
 mod circuit_display_tests;
 #[cfg(test)]
 mod circuit_mother;
+#[cfg(test)]
+mod circuit_tests;

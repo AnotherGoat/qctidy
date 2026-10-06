@@ -1,4 +1,13 @@
 import * as vscode from 'vscode';
+import {
+    CircuitOperation,
+    GateParameter,
+    ParsedCircuit,
+    ParsedGate,
+    evaluateInteger,
+    evaluateNumber,
+    circuitIssues
+} from './circuit';
 import { getParser } from './parser';
 
 export type AstNodeType =
@@ -7,84 +16,122 @@ export type AstNodeType =
     | 'circuit'
     | 'metadata'
     | 'gate'
-    | 'parameter';
+    | 'parameter'
+    | 'error';
 
 export class AstNodeItem extends vscode.TreeItem {
     public children: AstNodeItem[] = [];
+    public readonly key: string;
 
     constructor(
-        public readonly label: string,
+        public label: string,
         public readonly nodeType: AstNodeType,
         public readonly line: number,
         public readonly column: number,
         collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
-        description?: string
+        description?: string,
+        icon?: string
     ) {
         super(label, collapsibleState);
+        this.key = `${nodeType}:${line}:${column}:${label}`;
         this.description = description;
+        // Los TreeItem no soportan ajuste de línea: el tooltip muestra el texto completo.
+        this.tooltip = description ? `${label}\n\n${description}` : label;
 
-        switch (nodeType) {
-            case 'class':
-                this.iconPath = new vscode.ThemeIcon('symbol-class');
-                break;
-            case 'function':
-                this.iconPath = new vscode.ThemeIcon('symbol-method');
-                break;
-            case 'circuit':
-                this.iconPath = new vscode.ThemeIcon('circuit-board');
-                break;
-            case 'metadata':
-                this.iconPath = new vscode.ThemeIcon('info');
-                break;
-            case 'gate':
-                this.iconPath = new vscode.ThemeIcon('symbol-operator');
-                break;
-            case 'parameter':
-                this.iconPath = new vscode.ThemeIcon('symbol-variable');
-                break;
+        if (icon) {
+            this.iconPath = new vscode.ThemeIcon(icon);
+        } else {
+            switch (nodeType) {
+                case 'class':
+                    this.iconPath = new vscode.ThemeIcon('symbol-class');
+                    break;
+                case 'function':
+                    this.iconPath = new vscode.ThemeIcon('symbol-method');
+                    break;
+                case 'circuit':
+                    this.iconPath = new vscode.ThemeIcon('circuit-board');
+                    break;
+                case 'metadata':
+                    this.iconPath = new vscode.ThemeIcon('info');
+                    break;
+                case 'gate':
+                    this.iconPath = new vscode.ThemeIcon('symbol-operator');
+                    break;
+                case 'parameter':
+                    this.iconPath = new vscode.ThemeIcon('symbol-variable');
+                    break;
+                case 'error':
+                    this.iconPath = new vscode.ThemeIcon('error');
+                    break;
+            }
         }
 
         if (line >= 0 && column >= 0) {
             this.command = {
-                command: 'qctidy.jumpToLine',
-                title: 'Saltar a línea',
-                arguments: [this.line, this.column]
+                command: 'qctidy.openNode',
+                title: 'Open node',
+                // Note: only serializable arguments, so the command can look the node up again.
+                arguments: [this.key, line, column]
             };
         }
     }
 }
 
-interface GateParameter {
-    name: string;
-    value: string;
-}
-
-interface ParsedGate {
-    gateName: string;
-    displayName: string;
-    description: string;
+/** A call argument and the source range it occupies. */
+interface ArgumentNode {
+    text: string;
     line: number;
     column: number;
-    parameters: GateParameter[];
-}
-
-interface ParsedCircuit {
-    variableName: string;
-    qubits: string;
-    clbits: string;
-    line: number;
-    column: number;
-    gates: ParsedGate[];
+    endLine: number;
+    endColumn: number;
 }
 
 export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<AstNodeItem | undefined | void> = new vscode.EventEmitter<AstNodeItem | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<AstNodeItem | undefined | void> = this._onDidChangeTreeData.event;
     private rootItems: AstNodeItem[] = [];
+    private qiskitVersion: string | null = null;
+    private qiskitChecked = false;
+    private foundCircuits = 0;
+    private circuitNameCounts = new Map<string, number>();
 
     refresh(): void {
         this.rootItems = [];
         this._onDidChangeTreeData.fire();
+    }
+
+    /** Store the detected Qiskit version and refresh the sidebar. */
+    setQiskitVersion(version: string | null): void {
+        this.qiskitVersion = version;
+        this.qiskitChecked = true;
+        this.refresh();
+    }
+
+    /** Reset the detected Qiskit version and re-parse the sidebar. */
+    reload(): void {
+        this.qiskitVersion = null;
+        this.qiskitChecked = false;
+        this.refresh();
+    }
+
+    /** Find a rendered node by its key, so commands can reveal it. */
+    findByKey(key: string): AstNodeItem | undefined {
+        const search = (items: AstNodeItem[]): AstNodeItem | undefined => {
+            for (const item of items) {
+                if (item.key === key) {
+                    return item;
+                }
+
+                const found = search(item.children);
+                if (found) {
+                    return found;
+                }
+            }
+
+            return undefined;
+        };
+
+        return search(this.rootItems);
     }
 
     getTreeItem(element: AstNodeItem): vscode.TreeItem {
@@ -96,22 +143,53 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             return Promise.resolve(element.children);
         }
 
+        const items: AstNodeItem[] = [this.createQiskitItem()];
         const editor = vscode.window.activeTextEditor;
+
         if (!editor || editor.document.languageId !== 'python') {
-            return Promise.resolve([]);
+            items.push(this.createMessageItem('Open a Python (.py) file to analyze circuits'));
+            this.rootItems = items;
+            return Promise.resolve(items);
         }
 
         const text = editor.document.getText();
+        this.foundCircuits = 0;
+        this.circuitNameCounts.clear();
 
         try {
             const parser = getParser();
             const tree = parser.parse(text);
-            this.rootItems = this.buildHierarchy(tree.rootNode);
-            return Promise.resolve(this.rootItems);
+            const astItems = this.buildHierarchy(tree.rootNode);
+            this.disambiguateCircuitNames(astItems);
+
+            if (this.foundCircuits === 0) {
+                items.push(this.createMessageItem('No circuits found in this file'));
+            }
+
+            items.push(...astItems);
         } catch (error) {
-            console.error('Error al analizar el AST:', error);
-            return Promise.resolve([]);
+            console.error('Failed to parse the AST:', error);
+            items.push(this.createMessageItem('Failed to parse the Python file'));
         }
+
+        this.rootItems = items;
+        return Promise.resolve(items);
+    }
+
+    private createQiskitItem(): AstNodeItem {
+        if (!this.qiskitChecked) {
+            return new AstNodeItem('Qiskit: detecting...', 'metadata', -1, -1, vscode.TreeItemCollapsibleState.None, undefined, 'sync~spin');
+        }
+
+        if (this.qiskitVersion === null) {
+            return new AstNodeItem('Qiskit: not found', 'metadata', -1, -1, vscode.TreeItemCollapsibleState.None, undefined, 'warning');
+        }
+
+        return new AstNodeItem(`Qiskit: ${this.qiskitVersion}`, 'metadata', -1, -1, vscode.TreeItemCollapsibleState.None, undefined, 'beaker');
+    }
+
+    private createMessageItem(message: string): AstNodeItem {
+        return new AstNodeItem(message, 'metadata', -1, -1, vscode.TreeItemCollapsibleState.None, undefined, 'info');
     }
 
     public buildHierarchy(rootNode: any): AstNodeItem[] {
@@ -120,7 +198,7 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
         // Traverse root level to find functions, classes, and module-level circuits
         const processScope = (scopeNode: any, scopeType: 'function' | 'class'): AstNodeItem => {
             const nameNode = scopeNode.childForFieldName('name');
-            const scopeName = nameNode ? nameNode.text : (scopeType === 'class' ? 'Clase Anónima' : 'Función Anónima');
+            const scopeName = nameNode ? nameNode.text : (scopeType === 'class' ? 'Anonymous class' : 'Anonymous function');
 
             const circuits = this.extractCircuitsInScope(scopeNode);
 
@@ -151,7 +229,7 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                 scopeNode.startPosition.row,
                 scopeNode.startPosition.column,
                 collapsibleState,
-                scopeType === 'class' ? 'Clase' : 'Método'
+                scopeType === 'class' ? 'Class' : 'Method'
             );
 
             scopeItem.children = allChildren;
@@ -272,19 +350,28 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
                         const gateMethod = attributeNode.text;
                         const argumentsNode = node.childForFieldName('arguments');
-                        const rawArguments: string[] = [];
+                        const callArguments: ArgumentNode[] = [];
 
                         if (argumentsNode) {
                             for (let i = 0; i < argumentsNode.namedChildCount; i++) {
-                                rawArguments.push(argumentsNode.namedChild(i).text);
+                                const argumentNode = argumentsNode.namedChild(i);
+                                callArguments.push({
+                                    text: argumentNode.text,
+                                    line: argumentNode.startPosition.row,
+                                    column: argumentNode.startPosition.column,
+                                    endLine: argumentNode.endPosition.row,
+                                    endColumn: argumentNode.endPosition.column
+                                });
                             }
                         }
 
                         const parsedGate = this.parseGateCall(
                             gateMethod,
-                            rawArguments,
+                            callArguments,
                             node.startPosition.row,
-                            node.startPosition.column
+                            node.startPosition.column,
+                            node.endPosition.row,
+                            node.endPosition.column
                         );
 
                         if (parsedGate) {
@@ -393,19 +480,28 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
                         const gateMethod = attributeNode.text;
                         const argumentsNode = node.childForFieldName('arguments');
-                        const rawArguments: string[] = [];
+                        const callArguments: ArgumentNode[] = [];
 
                         if (argumentsNode) {
                             for (let i = 0; i < argumentsNode.namedChildCount; i++) {
-                                rawArguments.push(argumentsNode.namedChild(i).text);
+                                const argumentNode = argumentsNode.namedChild(i);
+                                callArguments.push({
+                                    text: argumentNode.text,
+                                    line: argumentNode.startPosition.row,
+                                    column: argumentNode.startPosition.column,
+                                    endLine: argumentNode.endPosition.row,
+                                    endColumn: argumentNode.endPosition.column
+                                });
                             }
                         }
 
                         const parsedGate = this.parseGateCall(
                             gateMethod,
-                            rawArguments,
+                            callArguments,
                             node.startPosition.row,
-                            node.startPosition.column
+                            node.startPosition.column,
+                            node.endPosition.row,
+                            node.endPosition.column
                         );
 
                         if (parsedGate) {
@@ -427,21 +523,47 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
     private parseGateCall(
         gateMethod: string,
-        rawArguments: string[],
+        callArguments: ArgumentNode[],
         line: number,
-        column: number
+        column: number,
+        endLine: number,
+        endColumn: number
     ): ParsedGate | null {
         let gateName = gateMethod;
         let displayName = gateMethod;
         let description = '';
+        let operation: CircuitOperation | null = null;
+        let reason: string | undefined;
         const parameters: GateParameter[] = [];
+        const rawArguments = callArguments.map(argument => argument.text);
 
-        // Requirement 8: Detección especial para la compuerta sqrt(Y) (YGate().power(1 / 2))
+        const integer = (index: number): number | null => {
+            const text = rawArguments[index];
+            return text === undefined ? null : evaluateInteger(text);
+        };
+        const number = (index: number): number | null => {
+            const text = rawArguments[index];
+            return text === undefined ? null : evaluateNumber(text);
+        };
+        const addParameter = (name: string, index: number, value?: string): void => {
+            const argument = callArguments[index];
+            parameters.push({
+                name,
+                value: value ?? rawArguments[index] ?? '',
+                line: argument?.line ?? line,
+                column: argument?.column ?? column
+            });
+        };
+
+        // Special case for sqrt(Y): circuit.append(YGate().power(1 / 2), [0])
         if (gateMethod === 'append') {
             const firstArgument = rawArguments[0] || '';
-            if (firstArgument.includes('YGate') && firstArgument.includes('power')) {
+            const qubit = rawArguments[1] === undefined ? null : extractFirstInteger(rawArguments[1]);
+
+            if (firstArgument.includes('YGate') && firstArgument.includes('power') && qubit !== null) {
                 gateName = 'sqrt(Y)';
                 displayName = 'sqrt(Y)';
+                operation = { gate: 'sy', qubit };
 
                 let powerValue = '1/2';
                 const powerMatch = firstArgument.match(/power\(([^)]+)\)/);
@@ -449,23 +571,21 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                     powerValue = powerMatch[1].trim();
                 }
 
-                parameters.push({ name: 'power', value: powerValue });
-
-                if (rawArguments.length > 1) {
-                    parameters.push({ name: 'qubits', value: rawArguments[1] });
-                    description = `power: ${powerValue}, q: ${rawArguments[1]}`;
-                } else {
-                    description = `power: ${powerValue}`;
-                }
+                addParameter('power', 0, powerValue);
+                addParameter('qubits', 1);
+                description = `power: ${powerValue}, q: ${rawArguments[1]}`;
             } else {
                 displayName = 'append';
-                if (rawArguments.length > 0) parameters.push({ name: 'gate', value: rawArguments[0] });
-                if (rawArguments.length > 1) parameters.push({ name: 'qubits', value: rawArguments[1] });
-                if (rawArguments.length > 2) parameters.push({ name: 'clbits', value: rawArguments[2] });
+                if (rawArguments.length > 0) addParameter('gate', 0);
+                if (rawArguments.length > 1) addParameter('qubits', 1);
+                if (rawArguments.length > 2) addParameter('clbits', 2);
                 description = rawArguments.join(', ');
+                reason = 'unsupported append call';
             }
         } else {
-            switch (gateMethod.toLowerCase()) {
+            const method = gateMethod.toLowerCase();
+
+            switch (method) {
                 case 'id':
                 case 'h':
                 case 'x':
@@ -475,77 +595,154 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                 case 'sdg':
                 case 'sx':
                 case 't':
-                case 'tdg':
+                case 'tdg': {
                     if (rawArguments[0] !== undefined) {
-                        parameters.push({ name: 'qubit', value: rawArguments[0] });
+                        addParameter('qubit', 0);
                         description = `q: ${rawArguments[0]}`;
                     }
+                    const qubit = integer(0);
+                    if (qubit !== null) {
+                        operation = { gate: method, qubit };
+                    }
                     break;
+                }
 
                 case 'p':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'theta', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'qubit', value: rawArguments[1] });
-                    description = `θ: ${rawArguments[0]}, q: ${rawArguments[1]}`;
-                    break;
-
                 case 'rx':
-                case 'ry':
-                case 'rz':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'theta', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'qubit', value: rawArguments[1] });
+                case 'ry': {
+                    if (rawArguments[0] !== undefined) addParameter('theta', 0);
+                    if (rawArguments[1] !== undefined) addParameter('qubit', 1);
                     description = `θ: ${rawArguments[0]}, q: ${rawArguments[1]}`;
+                    const theta = number(0);
+                    const qubit = integer(1);
+                    if (theta !== null && qubit !== null) {
+                        operation = { gate: method, theta, qubit };
+                    }
                     break;
+                }
 
-                case 'u':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'theta', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'phi', value: rawArguments[1] });
-                    if (rawArguments[2] !== undefined) parameters.push({ name: 'lam', value: rawArguments[2] });
-                    if (rawArguments[3] !== undefined) parameters.push({ name: 'qubit', value: rawArguments[3] });
-                    description = `θ: ${rawArguments[0]}, φ: ${rawArguments[1]}, λ: ${rawArguments[2]}, q: ${rawArguments[3]}`;
+                case 'rz': {
+                    if (rawArguments[0] !== undefined) addParameter('theta', 0);
+                    if (rawArguments[1] !== undefined) addParameter('qubit', 1);
+                    description = `θ: ${rawArguments[0]}, q: ${rawArguments[1]}`;
+                    const phi = number(0);
+                    const qubit = integer(1);
+                    if (phi !== null && qubit !== null) {
+                        operation = { gate: 'rz', phi, qubit };
+                    }
                     break;
+                }
+
+                case 'u': {
+                    if (rawArguments[0] !== undefined) addParameter('theta', 0);
+                    if (rawArguments[1] !== undefined) addParameter('phi', 1);
+                    if (rawArguments[2] !== undefined) addParameter('lam', 2);
+                    if (rawArguments[3] !== undefined) addParameter('qubit', 3);
+                    description = `θ: ${rawArguments[0]}, φ: ${rawArguments[1]}, λ: ${rawArguments[2]}, q: ${rawArguments[3]}`;
+                    const theta = number(0);
+                    const phi = number(1);
+                    const lambda = number(2);
+                    const qubit = integer(3);
+                    if (theta !== null && phi !== null && lambda !== null && qubit !== null) {
+                        operation = { gate: 'u', theta, phi, lambda, qubit };
+                    }
+                    break;
+                }
 
                 case 'swap':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'qubit 1', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'qubit 2', value: rawArguments[1] });
+                case 'cz': {
+                    if (rawArguments[0] !== undefined) addParameter('qubit 1', 0);
+                    if (rawArguments[1] !== undefined) addParameter('qubit 2', 1);
                     description = `q1: ${rawArguments[0]}, q2: ${rawArguments[1]}`;
+                    const qubit1 = integer(0);
+                    const qubit2 = integer(1);
+                    if (qubit1 !== null && qubit2 !== null) {
+                        operation = { gate: method, qubit1, qubit2 };
+                    }
                     break;
+                }
 
                 case 'ch':
                 case 'cx':
-                case 'cy':
-                case 'cz':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'control', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'target', value: rawArguments[1] });
+                case 'cy': {
+                    if (rawArguments[0] !== undefined) addParameter('control', 0);
+                    if (rawArguments[1] !== undefined) addParameter('target', 1);
                     description = `ctrl: ${rawArguments[0]}, tgt: ${rawArguments[1]}`;
+                    const control = integer(0);
+                    const target = integer(1);
+                    if (control !== null && target !== null) {
+                        operation = { gate: method, control, target };
+                    }
                     break;
+                }
 
-                case 'cp':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'theta', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'control', value: rawArguments[1] });
-                    if (rawArguments[2] !== undefined) parameters.push({ name: 'target', value: rawArguments[2] });
+                case 'cp': {
+                    if (rawArguments[0] !== undefined) addParameter('theta', 0);
+                    if (rawArguments[1] !== undefined) addParameter('control', 1);
+                    if (rawArguments[2] !== undefined) addParameter('target', 2);
                     description = `θ: ${rawArguments[0]}, ctrl: ${rawArguments[1]}, tgt: ${rawArguments[2]}`;
+                    const theta = number(0);
+                    const qubit1 = integer(1);
+                    const qubit2 = integer(2);
+                    if (theta !== null && qubit1 !== null && qubit2 !== null) {
+                        operation = { gate: 'cp', theta, qubit1, qubit2 };
+                    }
                     break;
+                }
 
-                case 'cswap':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'control', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'target 1', value: rawArguments[1] });
-                    if (rawArguments[2] !== undefined) parameters.push({ name: 'target 2', value: rawArguments[2] });
+                case 'cswap': {
+                    if (rawArguments[0] !== undefined) addParameter('control', 0);
+                    if (rawArguments[1] !== undefined) addParameter('target 1', 1);
+                    if (rawArguments[2] !== undefined) addParameter('target 2', 2);
                     description = `ctrl: ${rawArguments[0]}, tgt: ${rawArguments[1]}, ${rawArguments[2]}`;
+                    const control = integer(0);
+                    const target1 = integer(1);
+                    const target2 = integer(2);
+                    if (control !== null && target1 !== null && target2 !== null) {
+                        operation = { gate: 'cswap', control, target1, target2 };
+                    }
                     break;
+                }
 
-                case 'ccx':
-                case 'ccz':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'control 1', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'control 2', value: rawArguments[1] });
-                    if (rawArguments[2] !== undefined) parameters.push({ name: 'target', value: rawArguments[2] });
+                case 'ccx': {
+                    if (rawArguments[0] !== undefined) addParameter('control 1', 0);
+                    if (rawArguments[1] !== undefined) addParameter('control 2', 1);
+                    if (rawArguments[2] !== undefined) addParameter('target', 2);
                     description = `ctrl: ${rawArguments[0]}, ${rawArguments[1]}, tgt: ${rawArguments[2]}`;
+                    const control1 = integer(0);
+                    const control2 = integer(1);
+                    const target = integer(2);
+                    if (control1 !== null && control2 !== null && target !== null) {
+                        operation = { gate: 'ccx', control1, control2, target };
+                    }
                     break;
+                }
 
-                case 'measure':
-                    if (rawArguments[0] !== undefined) parameters.push({ name: 'qubit', value: rawArguments[0] });
-                    if (rawArguments[1] !== undefined) parameters.push({ name: 'clbit', value: rawArguments[1] });
-                    description = `q: ${rawArguments[0]} → c: ${rawArguments[1]}`;
+                case 'ccz': {
+                    if (rawArguments[0] !== undefined) addParameter('control 1', 0);
+                    if (rawArguments[1] !== undefined) addParameter('control 2', 1);
+                    if (rawArguments[2] !== undefined) addParameter('target', 2);
+                    description = `ctrl: ${rawArguments[0]}, ${rawArguments[1]}, tgt: ${rawArguments[2]}`;
+                    const qubit1 = integer(0);
+                    const qubit2 = integer(1);
+                    const qubit3 = integer(2);
+                    if (qubit1 !== null && qubit2 !== null && qubit3 !== null) {
+                        operation = { gate: 'ccz', qubit1, qubit2, qubit3 };
+                    }
                     break;
+                }
+
+                case 'measure': {
+                    if (rawArguments[0] !== undefined) addParameter('qubit', 0);
+                    if (rawArguments[1] !== undefined) addParameter('clbit', 1);
+                    description = `q: ${rawArguments[0]} → c: ${rawArguments[1]}`;
+                    const qubit = integer(0);
+                    const bit = integer(1);
+                    if (qubit !== null && bit !== null) {
+                        operation = { gate: 'measure', qubit, bit };
+                    }
+                    break;
+                }
 
                 default:
                     // Ignore non-gate utility methods
@@ -553,11 +750,16 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                         return null;
                     }
                     rawArguments.forEach((argumentValue, argumentIndex) => {
-                        parameters.push({ name: `param_${argumentIndex + 1}`, value: argumentValue });
+                        addParameter(`param_${argumentIndex + 1}`, argumentIndex, argumentValue);
                     });
                     description = rawArguments.join(', ');
+                    reason = `unsupported gate: ${gateMethod}`;
                     break;
             }
+        }
+
+        if (operation === null && reason === undefined) {
+            reason = `unsupported arguments: ${rawArguments.join(', ')}`;
         }
 
         return {
@@ -566,20 +768,44 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             description,
             line,
             column,
-            parameters
+            endLine,
+            endColumn,
+            parameters,
+            operation,
+            reason
         };
     }
 
+    /** Append the definition line to circuits whose variable name is repeated. */
+    private disambiguateCircuitNames(items: AstNodeItem[]): void {
+        for (const item of items) {
+            if (item.nodeType === 'circuit' && (this.circuitNameCounts.get(item.label) ?? 0) > 1) {
+                item.label = `${item.label}:${item.line + 1}`;
+            }
+
+            this.disambiguateCircuitNames(item.children);
+        }
+    }
+
     private createCircuitItem(circuit: ParsedCircuit): AstNodeItem {
+        this.foundCircuits += 1;
+        this.circuitNameCounts.set(circuit.variableName, (this.circuitNameCounts.get(circuit.variableName) ?? 0) + 1);
+
         // Requirement 3: Mostrar nombre de la variable que contiene el circuito
-        // Requirement 4: Detectar número de cúbits y bits clásicos y mostrarlos
+        // Requirement 4: Detectar número de cúbits y classical bits y mostrarlos
+        const issues = circuitIssues(circuit);
+        const hasIssues = issues.length > 0;
+
         const circuitItem = new AstNodeItem(
             circuit.variableName,
             'circuit',
             circuit.line,
             circuit.column,
             vscode.TreeItemCollapsibleState.Collapsed,
-            `(${circuit.qubits} qubits, ${circuit.clbits} bits clásicos)`
+            hasIssues
+                ? `(${circuit.qubits} qubits, ${circuit.clbits} classical bits) — cannot be checked`
+                : `(${circuit.qubits} qubits, ${circuit.clbits} classical bits)`,
+            hasIssues ? 'error' : undefined
         );
 
         // Metadata items under circuit (Requirement 4 & 6)
@@ -591,7 +817,7 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             vscode.TreeItemCollapsibleState.None
         );
         const clbitsMetadata = new AstNodeItem(
-            `Bits clásicos: ${circuit.clbits}`,
+            `Classical bits: ${circuit.clbits}`,
             'metadata',
             circuit.line,
             circuit.column,
@@ -600,6 +826,26 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
         circuitItem.children.push(qubitsMetadata);
         circuitItem.children.push(clbitsMetadata);
+
+        // A circuit with unsupported gates or parameters is not listed as gates,
+        // because a partial circuit could make the CLI detect patterns that don't exist.
+        if (hasIssues) {
+            for (const issue of issues) {
+                circuitItem.children.push(
+                    new AstNodeItem(
+                        issue.message,
+                        'error',
+                        issue.line,
+                        issue.column,
+                        vscode.TreeItemCollapsibleState.None,
+                        undefined,
+                        'error'
+                    )
+                );
+            }
+
+            return circuitItem;
+        }
 
         // Gates under circuit (Requirement 5 & 6)
         for (const gate of circuit.gates) {
@@ -620,8 +866,8 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                 const parameterItem = new AstNodeItem(
                     `${parameter.name}: ${parameter.value}`,
                     'parameter',
-                    gate.line,
-                    gate.column,
+                    parameter.line,
+                    parameter.column,
                     vscode.TreeItemCollapsibleState.None
                 );
                 gateItem.children.push(parameterItem);
@@ -632,4 +878,10 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
         return circuitItem;
     }
+}
+
+/** Extract the first integer of a value such as `[0]` or `[1, 2]`. */
+function extractFirstInteger(text: string): number | null {
+    const match = text.match(/\d+/);
+    return match ? Number.parseInt(match[0], 10) : null;
 }

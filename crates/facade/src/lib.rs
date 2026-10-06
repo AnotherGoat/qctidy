@@ -21,7 +21,7 @@ mod simplifier;
 pub use analyzer::{
     AnalysisRequest, AnalysisResponse, ComparisonRequest, ComparisonResponse, analyze, compare,
 };
-pub use checker::{CheckRequest, CheckResponse, check};
+pub use checker::{CheckDiagnostic, CheckRequest, CheckResponse, check};
 #[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 pub use codegen::{CodeGenerationRequest, CodeGenerationResponse, generate_code};
 #[cfg(any(
