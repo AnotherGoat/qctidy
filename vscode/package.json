@@ -1,8 +1,9 @@
 {
   "name": "qctidy-vscode",
-  "displayName": "QCTidy VS Code",
+  "displayName": "QCTidy Visual Studio Code Extension",
   "description": "AST Analyzer for QCTidy",
   "version": "0.0.1",
+  "license": "MIT OR Apache-2.0",
   "engines": {
     "vscode": "^1.90.0"
   },
