@@ -21,6 +21,7 @@ function_name = { workspace = true }
 getset = { workspace = true }
 newgen = { workspace = true }
 num-rational = { workspace = true }
+rustc-hash = { workspace = true }
 thiserror = { workspace = true }
 
 [lints]

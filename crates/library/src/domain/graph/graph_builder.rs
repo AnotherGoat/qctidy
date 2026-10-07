@@ -809,15 +809,10 @@ impl GraphBuilder {
     }
 
     fn find_push_column(&self, qubits: &[usize]) -> usize {
+        // Complexity: O(qubits · log n).
         qubits
             .iter()
-            .filter_map(|&row| {
-                self.graph
-                    .iter_positions_ordered_by_column()
-                    .filter(|position| position.row() == row)
-                    .max_by_key(Position::column)
-                    .map(|position| position.column() + 1)
-            })
+            .filter_map(|&row| self.graph.last_column_in_row(row).map(|column| column + 1))
             .max()
             .unwrap_or(0)
     }
@@ -827,6 +822,13 @@ impl GraphBuilder {
     /// The output is cloned, so the builder can be reused after this.
     pub fn build(&self) -> Graph {
         self.graph.clone()
+    }
+
+    /// Build the graph, consuming the builder.
+    ///
+    /// Use this instead of [`build`](Self::build) when the builder is not needed anymore.
+    pub fn into_graph(self) -> Graph {
+        self.graph
     }
 }
 
@@ -845,8 +847,9 @@ fn check_unique_qubits(qubits: &[usize]) -> Result<(), GraphBuilderError> {
 /// Convert a list of gate operations into a `Graph`.
 impl From<&Circuit> for Graph {
     fn from(circuit: &Circuit) -> Self {
-        GraphBuilder::new(circuit.qubit_count())
-            .push_operations(circuit.operations())
-            .build()
+        let mut builder = GraphBuilder::new(circuit.qubit_count());
+        builder.push_operations(circuit.operations());
+
+        builder.into_graph()
     }
 }

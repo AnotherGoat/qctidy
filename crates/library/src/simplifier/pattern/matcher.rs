@@ -9,23 +9,33 @@ use crate::{
 };
 
 pub(crate) fn find_matches(graph: &Graph, rule: &PatternRule) -> Vec<PatternMatch> {
-    let mut matches = Vec::new();
-    let mut occupancy = OccupancyMap::new(graph.height(), graph.width());
     let graph_cache = GraphCache::from_graph(graph);
 
+    find_matches_with_cache(graph, rule, &graph_cache)
+}
+
+/// Find all matches reusing a cache of the graph, which is valid while the graph is unchanged.
+pub(crate) fn find_matches_with_cache(
+    graph: &Graph,
+    rule: &PatternRule,
+    graph_cache: &GraphCache,
+) -> Vec<PatternMatch> {
+    let mut matches = Vec::new();
+    let mut occupancy = OccupancyMap::new(graph.height(), graph.width());
+
     for node in graph.iter_nodes_ordered_by_column() {
-        if !is_anchor_candidate(rule, node) {
+        if !is_anchor_candidate(rule, node) || !anchor_fits(rule, graph, node.position()) {
             continue;
         }
 
-        let Some(r#match) =
-            find_match_at_anchor(graph, rule, node.position(), &occupancy, &graph_cache)
+        let Some(found_match) =
+            find_match_at_anchor(graph, rule, graph_cache, node.position(), &occupancy)
         else {
             continue;
         };
 
-        occupancy.occupy_all(r#match.covered_positions());
-        matches.push(r#match);
+        occupancy.occupy_all(found_match.covered_positions());
+        matches.push(found_match);
     }
 
     matches
@@ -35,94 +45,265 @@ fn is_anchor_candidate(rule: &PatternRule, node: NodeView) -> bool {
     node.r#type() == rule.anchor().gate_type()
 }
 
+fn anchor_fits(rule: &PatternRule, graph: &Graph, anchor_position: Position) -> bool {
+    // Whether the pattern can fit in the graph with the anchor at the given position.
+    let anchor_pattern_column = rule.anchor().position().column();
+    let last_pattern_column = rule.width() - 1;
+
+    anchor_position.column() >= anchor_pattern_column
+        && anchor_position.column() + (last_pattern_column - anchor_pattern_column) < graph.width()
+}
+
+/// State shared by the recursive search for a mapping.
+struct SearchContext<'a> {
+    graph: &'a Graph,
+    rule: &'a PatternRule,
+    anchor_position: Position,
+    occupancy: &'a OccupancyMap,
+    /// Pattern rows that still need a graph row, most constrained first.
+    pattern_rows: &'a [usize],
+    /// Candidate graph rows for the pattern row at the same index of `pattern_rows`.
+    candidate_rows: &'a [Vec<usize>],
+}
+
 fn find_match_at_anchor(
     graph: &Graph,
     rule: &PatternRule,
+    graph_cache: &GraphCache,
     anchor_position: Position,
     occupancy: &OccupancyMap,
-    graph_cache: &GraphCache,
 ) -> Option<PatternMatch> {
-    for mapping in generate_mappings(graph, rule, anchor_position, graph_cache) {
-        let Some(pattern_match) = build_pattern_match(graph, rule, &mapping, anchor_position)
-        else {
-            continue;
-        };
+    // Find the first match of the rule with its anchor at the given graph position.
+    // The anchor row is fixed, so its pattern nodes must match before searching.
+    if !anchor_row_matches(graph, rule, anchor_position) {
+        return None;
+    }
 
-        if !occupancy.can_occupy(pattern_match.covered_positions()) {
+    let mut rows_to_assign: Vec<(usize, Vec<usize>)> = collect_non_anchor_pattern_rows(rule)
+        .into_iter()
+        .map(|pattern_row| {
+            let candidates =
+                candidate_graph_rows(graph, rule, graph_cache, anchor_position, pattern_row);
+
+            (pattern_row, candidates)
+        })
+        .collect();
+
+    // Assign the most constrained pattern rows first, so impossible branches fail early.
+    rows_to_assign.sort_by_key(|(_, candidates)| candidates.len());
+
+    let pattern_rows: Vec<usize> = rows_to_assign
+        .iter()
+        .map(|(pattern_row, _)| *pattern_row)
+        .collect();
+    let candidate_rows: Vec<Vec<usize>> = rows_to_assign
+        .into_iter()
+        .map(|(_, candidates)| candidates)
+        .collect();
+
+    let context = SearchContext {
+        graph,
+        rule,
+        anchor_position,
+        occupancy,
+        pattern_rows: &pattern_rows,
+        candidate_rows: &candidate_rows,
+    };
+
+    let mut mapping = QubitMapping::new(rule.height());
+    mapping.add_mapping(rule.anchor().position().row(), anchor_position.row());
+
+    let mut used_graph_rows = vec![false; graph.height()];
+    used_graph_rows[anchor_position.row()] = true;
+
+    search_mapping(&context, 0, &mut mapping, &mut used_graph_rows)
+}
+
+fn search_mapping(
+    context: &SearchContext<'_>,
+    depth: usize,
+    mapping: &mut QubitMapping,
+    used_graph_rows: &mut [bool],
+) -> Option<PatternMatch> {
+    // Assign a distinct graph row to every pattern row, trying the candidates in order.
+    //
+    // Already-assigned pattern edges are checked after each assignment to prune the search.
+    if depth == context.pattern_rows.len() {
+        return finish_match(context, mapping);
+    }
+
+    let pattern_row = context.pattern_rows[depth];
+
+    for &graph_row in &context.candidate_rows[depth] {
+        if used_graph_rows[graph_row] {
             continue;
         }
 
-        return Some(pattern_match);
+        mapping.add_mapping(pattern_row, graph_row);
+        used_graph_rows[graph_row] = true;
+
+        let found_match = if assigned_edges_match(context, mapping) {
+            search_mapping(context, depth + 1, mapping, used_graph_rows)
+        } else {
+            None
+        };
+
+        used_graph_rows[graph_row] = false;
+        mapping.remove_mapping(pattern_row);
+
+        if found_match.is_some() {
+            return found_match;
+        }
     }
 
     None
 }
 
-fn generate_mappings(
+fn finish_match(context: &SearchContext<'_>, mapping: &QubitMapping) -> Option<PatternMatch> {
+    // Validate the complete mapping and build the match, if its positions are still free.
+    let pattern_match = build_pattern_match(
+        context.graph,
+        context.rule,
+        mapping,
+        context.anchor_position,
+    )?;
+
+    context
+        .occupancy
+        .can_occupy(pattern_match.covered_positions())
+        .then_some(pattern_match)
+}
+
+fn anchor_row_matches(graph: &Graph, rule: &PatternRule, anchor_position: Position) -> bool {
+    // Check the pattern nodes that share the anchor's row, whose graph row is fixed.
+    let anchor_pattern_row = rule.anchor().position().row();
+
+    pattern_nodes_in_row(rule, anchor_pattern_row).all(|pattern_node| {
+        pattern_node_matches_at(
+            graph,
+            rule,
+            anchor_position,
+            pattern_node,
+            anchor_position.row(),
+        )
+    })
+}
+
+fn candidate_graph_rows(
+    graph: &Graph,
+    rule: &PatternRule,
+    graph_cache: &GraphCache,
+    anchor_position: Position,
+    pattern_row: usize,
+) -> Vec<usize> {
+    // Graph rows that can host the given pattern row, excluding the anchor row.
+    (0..graph.height())
+        .filter(|&graph_row| graph_row != anchor_position.row())
+        .filter(|&graph_row| {
+            graph_row_matches_pattern_row(
+                graph,
+                rule,
+                graph_cache,
+                anchor_position,
+                pattern_row,
+                graph_row,
+            )
+        })
+        .collect()
+}
+
+fn graph_row_matches_pattern_row(
+    graph: &Graph,
+    rule: &PatternRule,
+    graph_cache: &GraphCache,
+    anchor_position: Position,
+    pattern_row: usize,
+    graph_row: usize,
+) -> bool {
+    // Whether the graph row can host every pattern node of the given pattern row.
+    // Fast filter: the row must contain every gate type of the pattern row.
+    let Some(rule_row_cache) = rule.lhs_cache().row(pattern_row) else {
+        return false;
+    };
+    let Some(graph_row_cache) = graph_cache.row(graph_row) else {
+        return false;
+    };
+    if !graph_row_cache.is_superset_of(*rule_row_cache) {
+        return false;
+    }
+
+    // Exact filter: every pattern node must match at its mapped position.
+    pattern_nodes_in_row(rule, pattern_row).all(|pattern_node| {
+        pattern_node_matches_at(graph, rule, anchor_position, pattern_node, graph_row)
+    })
+}
+
+fn pattern_node_matches_at(
     graph: &Graph,
     rule: &PatternRule,
     anchor_position: Position,
-    graph_cache: &GraphCache,
-) -> impl Iterator<Item = QubitMapping> {
-    let anchor_pattern_row = rule.anchor().position().row();
-    let anchor_graph_row = anchor_position.row();
+    pattern_node: NodeView,
+    graph_row: usize,
+) -> bool {
+    // Whether the pattern node matches the graph node at its mapped position.
+    let Some(graph_column) =
+        map_pattern_column_to_graph(rule, anchor_position, pattern_node.position().column())
+    else {
+        return false;
+    };
 
-    let pattern_rows = collect_non_anchor_pattern_rows(rule);
-    let graph_rows = collect_non_anchor_graph_rows(graph, anchor_graph_row);
-
-    permutations_of(&graph_rows, pattern_rows.len())
-        .into_iter()
-        .filter_map(move |permutation| {
-            build_mapping(
-                rule,
-                anchor_pattern_row,
-                anchor_graph_row,
-                &pattern_rows,
-                &permutation,
-                graph_cache,
-            )
-        })
+    graph
+        .get_node(Position::new(graph_row, graph_column))
+        .is_some_and(|graph_node| nodes_match(pattern_node, graph_node))
 }
 
-fn permutations_of(items: &[usize], count: usize) -> Vec<Vec<usize>> {
-    if count > items.len() {
-        return Vec::new();
-    }
-
-    let mut permutations = Vec::new();
-    let mut used = vec![false; items.len()];
-    let mut current = Vec::with_capacity(count);
-
-    collect_permutations(items, count, &mut used, &mut current, &mut permutations);
-
-    permutations
+fn pattern_nodes_in_row(
+    rule: &PatternRule,
+    pattern_row: usize,
+) -> impl Iterator<Item = NodeView> + '_ {
+    // The pattern nodes that belong to the given pattern row.
+    rule.lhs()
+        .iter_nodes()
+        .filter(move |pattern_node| pattern_node.position().row() == pattern_row)
 }
 
-fn collect_permutations(
-    items: &[usize],
-    count: usize,
-    used: &mut [bool],
-    current: &mut Vec<usize>,
-    permutations: &mut Vec<Vec<usize>>,
-) {
-    if current.len() == count {
-        permutations.push(current.clone());
-        return;
-    }
+fn assigned_edges_match(context: &SearchContext<'_>, mapping: &QubitMapping) -> bool {
+    // Check the pattern edges whose two endpoints are already assigned.
+    context
+        .rule
+        .lhs()
+        .iter_edges_unique()
+        .all(|pattern_edge| assigned_edge_matches(context, mapping, pattern_edge))
+}
 
-    for (index, &item) in items.iter().enumerate() {
-        if used[index] {
-            continue;
-        }
+fn assigned_edge_matches(
+    context: &SearchContext<'_>,
+    mapping: &QubitMapping,
+    pattern_edge: EdgeView,
+) -> bool {
+    // Check a single pattern edge, if both of its endpoints are already assigned.
+    let Some(start) = map_pattern_position_to_graph(
+        context.rule,
+        mapping,
+        context.anchor_position,
+        pattern_edge.start().position(),
+    ) else {
+        // The start is not assigned yet; the edge is checked once it is.
+        return true;
+    };
 
-        used[index] = true;
-        current.push(item);
+    let Some(end) = map_pattern_position_to_graph(
+        context.rule,
+        mapping,
+        context.anchor_position,
+        pattern_edge.end().position(),
+    ) else {
+        return true;
+    };
 
-        collect_permutations(items, count, used, current, permutations);
-
-        current.pop();
-        used[index] = false;
-    }
+    context.graph.iter_edges_from(start).any(|graph_edge| {
+        graph_edge.r#type() == pattern_edge.r#type() && graph_edge.end().position() == end
+    })
 }
 
 fn collect_non_anchor_pattern_rows(rule: &PatternRule) -> Vec<usize> {
@@ -131,69 +312,6 @@ fn collect_non_anchor_pattern_rows(rule: &PatternRule) -> Vec<usize> {
     (0..rule.height())
         .filter(|&row| row != anchor_row)
         .collect()
-}
-
-fn collect_non_anchor_graph_rows(graph: &Graph, anchor_graph_row: usize) -> Vec<usize> {
-    (0..graph.height())
-        .filter(|&row| row != anchor_graph_row)
-        .collect()
-}
-
-fn build_mapping(
-    rule: &PatternRule,
-    anchor_pattern_row: usize,
-    anchor_graph_row: usize,
-    pattern_rows: &[usize],
-    permutation: &[usize],
-    graph_cache: &GraphCache,
-) -> Option<QubitMapping> {
-    let mut mapping = QubitMapping::new(rule.height(), graph_cache.rows().len());
-
-    mapping
-        .add_mapping(anchor_pattern_row, anchor_graph_row)
-        .then_some(())?;
-
-    add_permuted_row_mappings(&mut mapping, pattern_rows, permutation)?;
-
-    mapping_satisfies_cache(rule, &mapping, graph_cache).then_some(mapping)
-}
-
-fn add_permuted_row_mappings(
-    mapping: &mut QubitMapping,
-    pattern_rows: &[usize],
-    permutation: &[usize],
-) -> Option<()> {
-    for (&pattern_row, &graph_row) in pattern_rows.iter().zip(permutation.iter()) {
-        mapping.add_mapping(pattern_row, graph_row).then_some(())?;
-    }
-
-    Some(())
-}
-
-fn mapping_satisfies_cache(
-    rule: &PatternRule,
-    mapping: &QubitMapping,
-    graph_cache: &GraphCache,
-) -> bool {
-    for pattern_row in 0..rule.height() {
-        let Some(graph_row) = mapping.graph_row(pattern_row) else {
-            return false;
-        };
-
-        let Some(rule_row_cache) = rule.lhs_cache().row(pattern_row) else {
-            return false;
-        };
-
-        let Some(graph_row_cache) = graph_cache.row(graph_row) else {
-            return false;
-        };
-
-        if !graph_row_cache.is_superset_of(*rule_row_cache) {
-            return false;
-        }
-    }
-
-    true
 }
 
 fn build_pattern_match(
@@ -257,7 +375,7 @@ fn map_pattern_position_to_graph(
     let graph_row = mapping.graph_row(pattern_position.row())?;
 
     let graph_column =
-        map_pattern_column_to_graph(rule, anchor_graph_position, pattern_position.column());
+        map_pattern_column_to_graph(rule, anchor_graph_position, pattern_position.column())?;
 
     Some(Position::new(graph_row, graph_column))
 }
@@ -266,8 +384,12 @@ fn map_pattern_column_to_graph(
     rule: &PatternRule,
     anchor_graph_position: Position,
     pattern_column: usize,
-) -> usize {
-    anchor_graph_position.column() + pattern_column - rule.anchor().position().column()
+) -> Option<usize> {
+    let base = anchor_graph_position
+        .column()
+        .checked_sub(rule.anchor().position().column())?;
+
+    base.checked_add(pattern_column)
 }
 
 fn nodes_match(pattern_node: NodeView, graph_node: NodeView) -> bool {

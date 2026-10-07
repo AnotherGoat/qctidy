@@ -96,11 +96,12 @@ impl Graph {
         let height = self.height();
         let width = self.width();
 
-        let mut grid = vec![vec![".".to_owned(); width]; height];
+        let mut grid: Vec<Vec<Option<String>>> = vec![vec![None; width]; height];
 
         for position in self.iter_positions_ordered_by_row() {
             if let Some(node) = self.get_node(position) {
-                let mut label = node.r#type().to_string().to_ascii_uppercase();
+                let mut label = node.r#type().to_string();
+                label.make_ascii_uppercase();
 
                 let parameter = node.semantic_angle();
 
@@ -120,17 +121,17 @@ impl Graph {
                     label.push(')');
                 }
 
-                grid[position.row()][position.column()] = label;
+                grid[position.row()][position.column()] = Some(label);
             }
         }
 
-        let mut column_widths = vec![0; width];
+        let mut column_widths = vec![1; width];
 
         for column in 0..width {
             let max_length = (0..height)
-                .map(|row| grid[row][column].len())
+                .map(|row| grid[row][column].as_ref().map_or(1, String::len))
                 .max()
-                .unwrap_or(0);
+                .unwrap_or(1);
 
             column_widths[column] = max_length;
         }
@@ -141,7 +142,10 @@ impl Graph {
             let formatted: Vec<String> = row
                 .iter()
                 .enumerate()
-                .map(|(column, value)| format!("{:<width$}", value, width = column_widths[column]))
+                .map(|(column, value)| {
+                    let text = value.as_deref().unwrap_or(".");
+                    format!("{text:<width$}", width = column_widths[column])
+                })
                 .collect();
 
             let line = formatted.join("   ");

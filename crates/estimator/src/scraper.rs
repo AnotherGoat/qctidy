@@ -24,11 +24,11 @@ fn now_iso() -> String {
         .to_string()
 }
 
-/// Location of the pricing cache file.
-///
-/// Defaults to `./pricing_cache.json`, or `QCTIDY_CACHE_DIR/pricing_cache.json` when that
-/// environment variable is set.
 fn cache_path() -> PathBuf {
+    // Location of the pricing cache file.
+    //
+    // Defaults to `./pricing_cache.json`, or `QCTIDY_CACHE_DIR/pricing_cache.json` when that
+    // environment variable is set.
     if let Some(directory) = std::env::var_os("QCTIDY_CACHE_DIR") {
         return PathBuf::from(directory).join(CACHE_FILE);
     }
@@ -209,10 +209,10 @@ fn next_plan_offset(
         .min()
 }
 
-/// Move `index` down until it sits on a UTF-8 character boundary.
-///
-/// Scraped text can contain multi-byte characters, so a raw byte offset may fall inside one.
 fn clamp_to_char_boundary(text: &str, index: usize) -> usize {
+    // Move `index` down until it sits on a UTF-8 character boundary.
+    //
+    // Scraped text can contain multi-byte characters, so a raw byte offset may fall inside one.
     let mut index = index.min(text.len());
 
     while index > 0 && !text.is_char_boundary(index) {

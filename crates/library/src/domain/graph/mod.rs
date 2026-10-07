@@ -22,7 +22,9 @@ mod graph_tests;
 #[cfg(test)]
 mod iterator_tests;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashSet};
+
+use rustc_hash::{FxBuildHasher, FxHashMap};
 
 use crate::{
     EdgeType, GateType, Position,
@@ -74,12 +76,16 @@ pub struct Graph {
     time_step_count: usize,
     row_node_counts: Vec<usize>,
     column_node_counts: Vec<usize>,
+    // Note: `row_columns[row]` holds the columns that have a node in that row, in order
+    row_columns: Vec<BTreeSet<usize>>,
+    // Note: `column_rows[column]` holds the rows that have a node in that column, in order
+    column_rows: Vec<BTreeSet<usize>>,
     bit_count: usize,
-    pub(self) nodes: HashMap<Position, NodeData>,
+    pub(self) nodes: FxHashMap<Position, NodeData>,
     // Note: `edges_out` is the single source of truth for a graph's edges
-    pub(self) edges_out: HashMap<Position, Vec<EdgeData>>,
+    pub(self) edges_out: FxHashMap<Position, Vec<EdgeData>>,
     // Note: `edges_in` is only used for fast lookups and should always mirror `edges_out`
-    pub(self) edges_in: HashMap<Position, Vec<EdgeData>>,
+    pub(self) edges_in: FxHashMap<Position, Vec<EdgeData>>,
 }
 
 impl PartialEq for Graph {
@@ -136,17 +142,20 @@ impl Eq for Graph {}
 
 impl Graph {
     /// Create an empty `Graph` of the specified initial qubit count.
+    ///
+    /// Complexity: O(n).
     pub fn new(initial_qubit_count: usize) -> Self {
         Self {
             qubit_count: initial_qubit_count,
             row_node_counts: vec![0; initial_qubit_count],
+            row_columns: vec![BTreeSet::new(); initial_qubit_count],
             ..Default::default()
         }
     }
 
     /// The number of columns (time steps) in the graph. Also known as the graph depth.
     ///
-    /// O(1).
+    /// Complexity: O(1).
     #[must_use]
     pub const fn width(&self) -> usize {
         self.time_step_count
@@ -155,12 +164,13 @@ impl Graph {
     fn ensure_column_capacity(&mut self, column: usize) {
         if column >= self.column_node_counts.len() {
             self.column_node_counts.resize(column + 1, 0);
+            self.column_rows.resize(column + 1, BTreeSet::new());
         }
     }
 
     /// The number of rows (qubits) in the graph.
     ///
-    /// O(1).
+    /// Complexity: O(1).
     #[must_use]
     pub const fn height(&self) -> usize {
         self.qubit_count
@@ -169,24 +179,29 @@ impl Graph {
     fn ensure_row_capacity(&mut self, row: usize) {
         if row >= self.row_node_counts.len() {
             self.row_node_counts.resize(row + 1, 0);
+            self.row_columns.resize(row + 1, BTreeSet::new());
         }
     }
 
     /// The number of classical bits in the graph.
     ///
-    /// O(1).
+    /// Complexity: O(1).
     #[must_use]
     pub const fn bits(&self) -> usize {
         self.bit_count
     }
 
     /// Check whether this graph is empty (has no gates) or not.
+    ///
+    /// Complexity: O(1).
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
 
     /// Get the total number of nodes in the graph.
+    ///
+    /// Complexity: O(1).
     #[must_use]
     pub fn size(&self) -> usize {
         self.nodes.len()
@@ -196,6 +211,8 @@ impl Graph {
     ///
     /// Returns an error if a node already exists at the specified position.
     /// Increases the graph height if necessary.
+    ///
+    /// Complexity: O(log n).
     pub fn add_node(
         &mut self,
         gate: GateType,
@@ -221,11 +238,14 @@ impl Graph {
     }
 
     fn insert_new_node(&mut self, position: Position, node: NodeData) {
+        // Complexity: O(log n).
         self.ensure_row_capacity(position.row());
         self.ensure_column_capacity(position.column());
 
         self.row_node_counts[position.row()] += 1;
         self.column_node_counts[position.column()] += 1;
+        self.row_columns[position.row()].insert(position.column());
+        self.column_rows[position.column()].insert(position.row());
 
         self.qubit_count = self.row_node_counts.len();
         self.time_step_count = self.time_step_count.max(position.column() + 1);
@@ -241,6 +261,8 @@ impl Graph {
     ///
     /// The node at the specified position is overwritten if present, or inserted if not.
     /// Increases the graph height if necessary (when the node is inserted).
+    ///
+    /// Complexity: O(log n).
     pub fn replace_node(
         &mut self,
         gate: GateType,
@@ -267,6 +289,7 @@ impl Graph {
     }
 
     fn replace_existing_node(&mut self, position: Position, node: &NodeData) {
+        // Complexity: O(n).
         let previous = self.nodes.insert(position, node.clone());
 
         if let Some(bit) = node.bit {
@@ -308,6 +331,8 @@ impl Graph {
 
         self.row_node_counts[position.row()] -= 1;
         self.column_node_counts[position.column()] -= 1;
+        self.row_columns[position.row()].remove(&position.column());
+        self.column_rows[position.column()].remove(&position.row());
 
         let outgoing = self.edges_out.remove(&position).unwrap_or_default();
         let incoming = self.edges_in.remove(&position).unwrap_or_default();
@@ -362,6 +387,7 @@ impl Graph {
     }
 
     fn update_bit_count(&mut self) {
+        // Complexity: O(n).
         self.bit_count = self
             .nodes
             .values()
@@ -406,12 +432,16 @@ impl Graph {
     }
 
     /// Check whether the graph has a node at the specified row and column.
+    ///
+    /// Complexity: O(1).
     #[must_use]
     pub fn has_node_at(&self, position: Position) -> bool {
         self.nodes.contains_key(&position)
     }
 
     /// Check whether the graph has a node at the specified row and column.
+    ///
+    /// Complexity: O(1).
     #[must_use]
     pub fn is_occupied(&self, position: Position) -> bool {
         self.nodes.contains_key(&position)
@@ -421,6 +451,8 @@ impl Graph {
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node data in a view-friendly format, decoupling the internal representation from consumers.
+    ///
+    /// Complexity: O(1).
     #[must_use]
     pub fn get_node(&self, position: Position) -> Option<NodeView> {
         self.nodes.get(&position).map(|node| {
@@ -459,6 +491,7 @@ impl Graph {
     }
 
     fn add_edge_internal(&mut self, edge_type: EdgeType, start: Position, end: Position) {
+        // Complexity: O(1) amortized.
         debug_assert!(self.has_node_at(start));
         debug_assert!(self.has_node_at(end));
 
@@ -490,6 +523,7 @@ impl Graph {
     }
 
     fn has_edge(&self, edge_type: EdgeType, start: Position, end: Position) -> bool {
+        // Complexity: O(degree).
         self.edges_out.get(&start).is_some_and(|edges| {
             edges
                 .iter()
@@ -500,11 +534,14 @@ impl Graph {
     /// Remove an edge from the graph.
     ///
     /// If the edge does not exist, nothing happens.
+    ///
+    /// Complexity: O(degree).
     pub fn remove_edge(&mut self, edge_type: EdgeType, start: Position, end: Position) {
         self.remove_edge_internal(edge_type, start, end);
     }
 
     fn remove_edge_internal(&mut self, edge_type: EdgeType, start: Position, end: Position) {
+        // Complexity: O(degree).
         self.remove_single_edge(edge_type, start, end);
 
         if edge_type.is_bidirectional() {
@@ -513,6 +550,7 @@ impl Graph {
     }
 
     fn remove_single_edge(&mut self, edge_type: EdgeType, start: Position, end: Position) {
+        // Complexity: O(degree).
         if let Some(outgoing_edges) = self.edges_out.get_mut(&start) {
             outgoing_edges.retain(|edge| !(edge.edge_type == edge_type && edge.other == end));
         }
@@ -525,6 +563,8 @@ impl Graph {
     /// Remove all the nodes and edges from the graph.
     ///
     /// Resets qubit count and bit count back to 0.
+    ///
+    /// Complexity: O(n).
     pub fn clear(&mut self) {
         self.nodes.clear();
         self.edges_out.clear();
@@ -536,44 +576,62 @@ impl Graph {
 
         self.row_node_counts.clear();
         self.column_node_counts.clear();
+        self.row_columns.clear();
+        self.column_rows.clear();
     }
 
     /// Remove all the edges from the graph.
+    ///
+    /// Complexity: O(edges).
     pub fn clear_edges(&mut self) {
         self.edges_out.clear();
         self.edges_in.clear();
     }
 
     /// Get the next node in the same row starting from the specified position, or `None` if there is none.
+    ///
+    /// Complexity: O(log n).
     #[must_use]
     pub fn next_in_row(&self, position: Position) -> Option<Position> {
         let row = position.row();
         let column = position.column();
 
-        self.nodes
-            .keys()
-            .filter(|node_position| node_position.row() == row && node_position.column() > column)
-            .min_by_key(|node_position| node_position.column())
-            .copied()
+        self.row_columns
+            .get(row)?
+            .range(column + 1..)
+            .next()
+            .map(|&column| Position::new(row, column))
     }
 
     /// Get the previous node in the same row starting from the specified position, or `None` if there is none.
+    ///
+    /// Complexity: O(log n).
     #[must_use]
     pub fn previous_in_row(&self, position: Position) -> Option<Position> {
         let row = position.row();
         let column = position.column();
 
-        self.nodes
-            .keys()
-            .filter(|node_position| node_position.row() == row && node_position.column() < column)
-            .max_by_key(|node_position| node_position.column())
-            .copied()
+        self.row_columns
+            .get(row)?
+            .range(..column)
+            .next_back()
+            .map(|&column| Position::new(row, column))
+    }
+
+    /// Get the largest column that has a node in the given row, or `None` if the row is empty.
+    ///
+    /// Complexity: O(log n).
+    #[must_use]
+    pub fn last_column_in_row(&self, row: usize) -> Option<usize> {
+        self.row_columns.get(row)?.last().copied()
     }
 
     /// Connect the positional row neighbors of the node at the specified position.
     ///
     /// Returns an error if the node at the specified position does not exist.
     /// If there's an existing connection between the neighbors, it is removed and split into two.
+    ///
+    /// Complexity: O(degree + log n).
     pub fn connect_row_neighbors(&mut self, position: Position) -> Result<(), GraphError> {
         if !self.has_node_at(position) {
             return Err(GraphError::NodeNotFound { position });
@@ -601,6 +659,8 @@ impl Graph {
     ///
     /// Returns None if no node exists at that position.
     /// Exposes node surrounding data in a view-friendly format, decoupling the internal representation from consumers.
+    ///
+    /// Complexity: O(degree).
     #[must_use]
     pub fn get_contextual_view(&self, position: Position) -> Option<ContextualNodeView> {
         use EdgeType::*;
@@ -675,16 +735,19 @@ impl Graph {
     }
 
     pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {
+        // Complexity: O(n + edges).
         self.qubit_count = 0;
         self.time_step_count = 0;
         self.bit_count = 0;
 
         self.row_node_counts.clear();
         self.column_node_counts.clear();
+        self.row_columns.clear();
+        self.column_rows.clear();
 
-        let mut new_nodes = HashMap::with_capacity(self.nodes.len());
-        let mut new_edges_out = HashMap::new();
-        let mut new_edges_in = HashMap::<Position, Vec<EdgeData>>::new();
+        let mut new_nodes = FxHashMap::with_capacity_and_hasher(self.nodes.len(), FxBuildHasher);
+        let mut new_edges_out = FxHashMap::default();
+        let mut new_edges_in = FxHashMap::<Position, Vec<EdgeData>>::default();
 
         for (position, node) in self.nodes.drain() {
             let new_position = function(position);
@@ -734,6 +797,8 @@ impl Graph {
 
             self.row_node_counts[position.row()] += 1;
             self.column_node_counts[position.column()] += 1;
+            self.row_columns[position.row()].insert(position.column());
+            self.column_rows[position.column()].insert(position.row());
 
             self.time_step_count = self.time_step_count.max(position.column() + 1);
 

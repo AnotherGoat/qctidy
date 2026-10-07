@@ -143,7 +143,7 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
 
             _ => {
                 return Err(ParseError::UnknownField {
-                    field: key.to_string(),
+                    field: key.to_owned(),
                     gate: data.gate.to_string(),
                 });
             }

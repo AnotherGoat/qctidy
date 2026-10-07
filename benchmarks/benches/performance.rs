@@ -7,13 +7,13 @@ use crate::random_circuit_generator;
 
 const MAX_ITERATIONS: u32 = 5;
 
-/// Large circuit without obvious simplification opportunities.
-///
-/// Example:
-/// q0: H T S H T S ...
-/// q1: T S H T S H ...
-/// q2: S H T S H T ...
 fn already_simplified(criterion: &mut Criterion) {
+    // Large circuit without obvious simplification opportunities.
+    //
+    // Example:
+    // q0: H T S H T S ...
+    // q1: T S H T S H ...
+    // q2: S H T S H T ...
     let mut group = criterion.benchmark_group("Already Simplified");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
@@ -48,13 +48,13 @@ fn already_simplified(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Narrow circuits with increasing depth.
-///
-/// Example:
-/// q0: H T S H T S ...
-/// q1: T S H T S H ...
-/// q2: S H T S H T ...
 fn deep_narrow_circuit(criterion: &mut Criterion) {
+    // Narrow circuits with increasing depth.
+    //
+    // Example:
+    // q0: H T S H T S ...
+    // q1: T S H T S H ...
+    // q2: S H T S H T ...
     let mut group = criterion.benchmark_group("Deep Narrow Circuit");
 
     for depth in [100, 500, 1_000, 2_500].iter() {
@@ -90,14 +90,14 @@ fn deep_narrow_circuit(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Wide circuits with increasing numbers of qubits and constant depth.
-///
-/// Example:
-/// q0: H T S ...
-/// q1: T S H ...
-/// q2: S H T ...
-/// ...
 fn wide_shallow_circuit(criterion: &mut Criterion) {
+    // Wide circuits with increasing numbers of qubits and constant depth.
+    //
+    // Example:
+    // q0: H T S ...
+    // q1: T S H ...
+    // q2: S H T ...
+    // ...
     let mut group = criterion.benchmark_group("Wide Shallow Circuit");
 
     for qubits in [4, 8, 16, 32, 64, 128, 256].iter() {
@@ -133,12 +133,12 @@ fn wide_shallow_circuit(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Large rows of H gates are cancelled out.
-///
-/// Example:
-/// q0: H H H H H H ...
-/// q1: H H H H H H ...
 fn cancellation_chain(criterion: &mut Criterion) {
+    // Large rows of H gates are cancelled out.
+    //
+    // Example:
+    // q0: H H H H H H ...
+    // q1: H H H H H H ...
     let mut group = criterion.benchmark_group("Cancellation Chain");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
@@ -168,14 +168,14 @@ fn cancellation_chain(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Large rows of alternating H X, Y and Z gates are cancelled out.
-///
-/// Example:
-/// q0: H H H H H H ...
-/// q1: X X X X X X ...
-/// q2: Y Y Y Y Y Y ...
-/// q3: Z Z Z Z Z Z ...
 fn alternating_cancellation(criterion: &mut Criterion) {
+    // Large rows of alternating H X, Y and Z gates are cancelled out.
+    //
+    // Example:
+    // q0: H H H H H H ...
+    // q1: X X X X X X ...
+    // q2: Y Y Y Y Y Y ...
+    // q3: Z Z Z Z Z Z ...
     let mut group = criterion.benchmark_group("Alternating Cancellation");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
@@ -225,12 +225,12 @@ fn alternating_cancellation(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Nested symmetric chains of single-qubit gates that can be cancelled only one at a time.
-///
-/// Example:
-/// q0: H X Y Z ... Z Y X H
-/// q1: H X Y Z ... Z Y X H
 fn nested_cancellation_chain(criterion: &mut Criterion) {
+    // Nested symmetric chains of single-qubit gates that can be cancelled only one at a time.
+    //
+    // Example:
+    // q0: H X Y Z ... Z Y X H
+    // q1: H X Y Z ... Z Y X H
     let mut group = criterion.benchmark_group("Nested Cancellation Chain");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
@@ -276,8 +276,8 @@ fn nested_cancellation_chain(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Reducible cascades of CNOT gates.
 fn cnot_cascade(criterion: &mut Criterion) {
+    // Reducible cascades of CNOT gates.
     let mut group = criterion.benchmark_group("CNOT Cascade");
 
     for qubits in [2, 4, 8, 16].iter() {
@@ -311,8 +311,8 @@ fn cnot_cascade(criterion: &mut Criterion) {
     group.finish();
 }
 
-/// Random circuits with varying numbers of qubits and time steps.
 fn random_circuit(criterion: &mut Criterion) {
+    // Random circuits with varying numbers of qubits and time steps.
     let mut group = criterion.benchmark_group("Random Circuit");
 
     for (width, height) in [(5, 4), (10, 8), (25, 16), (50, 32)] {

@@ -17,7 +17,11 @@ use newgen::New;
 
 use crate::{
     Graph, PatternRule, Position, RuleConfiguration, RuleLevel, RuleMetadata, RuleRegistry,
-    SimplificationRule, simplifier::rule::registry::DEFAULT_RULE_REGISTRY,
+    SimplificationRule,
+    simplifier::{
+        pattern::cache::{GateTypeBitset, GraphCache},
+        rule::registry::DEFAULT_RULE_REGISTRY,
+    },
 };
 
 /// A simplification opportunity detected in a graph.
@@ -76,9 +80,20 @@ impl Simplifier {
     #[must_use]
     pub fn detect(&self, graph: &Graph) -> Vec<Detection> {
         let mut detections = Vec::new();
+        let graph_cache = GraphCache::from_graph(graph);
+        let gate_types = collect_gate_types(graph);
 
         for rule in &self.rules {
-            for matched_positions in rule.detect(graph) {
+            if !is_applicable(rule.as_ref(), graph, gate_types) {
+                continue;
+            }
+
+            let matches = rule.as_any().downcast_ref::<PatternRule>().map_or_else(
+                || rule.detect(graph),
+                |pattern_rule| pattern_rule.detect_with_cache(graph, &graph_cache),
+            );
+
+            for matched_positions in matches {
                 let mut positions: Vec<Position> = matched_positions.into_iter().collect();
 
                 positions.sort_unstable();
@@ -155,15 +170,21 @@ pub fn simplify_with_rules(
 
 fn simplify_internal(
     graph: &mut Graph,
-    rules: &Vec<Arc<dyn SimplificationRule>>,
+    rules: &[Arc<dyn SimplificationRule>],
     max_iterations: u32,
 ) {
     for _ in 0..max_iterations {
         let mut changed = false;
+        let mut gate_types = collect_gate_types(graph);
 
         for rule in rules {
+            if !is_applicable(rule.as_ref(), graph, gate_types) {
+                continue;
+            }
+
             if rule.apply(graph) {
                 changed = true;
+                gate_types = collect_gate_types(graph);
             }
         }
 
@@ -171,4 +192,27 @@ fn simplify_internal(
             break;
         }
     }
+}
+
+fn collect_gate_types(graph: &Graph) -> GateTypeBitset {
+    // The set of gate types present in the graph.
+    let mut gate_types = GateTypeBitset::new();
+
+    for node in graph.iter_nodes() {
+        gate_types.insert(node.r#type());
+    }
+
+    gate_types
+}
+
+fn is_applicable(rule: &dyn SimplificationRule, graph: &Graph, gate_types: GateTypeBitset) -> bool {
+    // Whether a rule can possibly match the graph, based on its quick checks.
+    //
+    // Skipping impossible rules avoids running their matcher over the whole graph.
+    rule.minimum_height() <= graph.height()
+        && rule.minimum_width() <= graph.width()
+        && rule
+            .required_gate_types()
+            .iter()
+            .all(|gate_type| gate_types.contains(*gate_type))
 }

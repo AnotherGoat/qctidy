@@ -642,13 +642,6 @@ pub(crate) const FORMATS: &[(&str, &str, &str)] = &[
     ("MessagePack", ".msgpack", "Compact binary"),
 ];
 
-pub(crate) fn format_extension(format_name: &str) -> &'static str {
-    FORMATS
-        .iter()
-        .find(|(name, _, _)| name.eq_ignore_ascii_case(format_name))
-        .map_or(".dat", |(_, ext, _)| ext)
-}
-
 pub(crate) fn detect_format(path: &str) -> Option<&'static str> {
     let lower = path.to_lowercase();
     if lower.ends_with(".json") {

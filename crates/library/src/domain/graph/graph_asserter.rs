@@ -118,11 +118,6 @@ impl NodeAsserter<'_> {
         self
     }
 
-    pub(crate) fn works_with_none(self) -> Self {
-        assert!(self.contextual_view().works_with().is_empty());
-        self
-    }
-
     pub(crate) fn swaps_with(self, expected: Position) -> Self {
         let actual = self
             .contextual_view()
@@ -130,11 +125,6 @@ impl NodeAsserter<'_> {
             .as_ref()
             .map(NodeView::position);
         assert_eq!(actual, Some(expected));
-        self
-    }
-
-    pub(crate) fn swaps_with_none(self) -> Self {
-        assert!(self.contextual_view().swaps_with().is_none());
         self
     }
 

@@ -161,6 +161,29 @@ impl PatternRule {
         matcher::find_matches(graph, self)
     }
 
+    /// Find all the matches of this rule's pattern, reusing a graph cache.
+    ///
+    /// The cache must have been built from the same, unchanged graph.
+    pub(crate) fn find_matches_with_cache(
+        &self,
+        graph: &Graph,
+        graph_cache: &GraphCache,
+    ) -> Vec<PatternMatch> {
+        matcher::find_matches_with_cache(graph, self, graph_cache)
+    }
+
+    /// Detect all the matches of this rule's pattern, reusing a graph cache.
+    pub(crate) fn detect_with_cache(
+        &self,
+        graph: &Graph,
+        graph_cache: &GraphCache,
+    ) -> Vec<HashSet<Position>> {
+        self.find_matches_with_cache(graph, graph_cache)
+            .into_iter()
+            .map(|pattern_match| pattern_match.covered_positions().iter().copied().collect())
+            .collect()
+    }
+
     pub fn new(metadata: RuleMetadata, lhs: Graph, rhs: Graph) -> Result<Self, RuleBuildError> {
         lhs.validate()
             .map_err(|error| RuleBuildError::InvalidSide {

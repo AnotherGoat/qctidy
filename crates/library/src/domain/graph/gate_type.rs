@@ -216,11 +216,6 @@ impl GateType {
         GATE_METADATAS[usize::from(self)].qubit_count()
     }
 
-    /// Check whether this gate type uses multiple qubits or not.
-    pub(crate) fn is_multi_qubit(self) -> bool {
-        self.qubit_count() > 1
-    }
-
     /// Get the number of control qubits used by this type of gate.
     ///
     /// If a gate has control qubits, it also has at least one target qubit.
@@ -245,11 +240,6 @@ impl GateType {
     /// Check whether this gate type has a single control and a single target qubit.
     pub fn is_single_controlled(self) -> bool {
         self.control_qubit_count() == 1 && self.target_qubit_count() == 1
-    }
-
-    /// Get the number of classical bits used by this type of gate.
-    pub(crate) fn bit_count(self) -> usize {
-        GATE_METADATAS[usize::from(self)].bit_count()
     }
 
     /// Check whether this gate type is a phase gate or not.

@@ -8,7 +8,7 @@ use graphviz_rust::{
 };
 use qctidy::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiFormat, formatter};
 use qctidy_ports::{PresentationError, PresentationFormat, PresenterPort};
-use std::{fs, io};
+use std::io;
 
 const WHITE: &str = "#FFFFFF";
 const RED: &str = "#EF9A9A";
@@ -65,16 +65,6 @@ impl From<GraphvizFormat> for Format {
             Svg => Self::Svg,
         }
     }
-}
-
-pub(crate) fn save_graph_png(graph: &Graph, file_name: &str) -> Result<(), PresentationError> {
-    let bytes = graph_to_graphviz(graph, GraphvizFormat::Png, Some(150))?;
-    fs::write(format!("{file_name}.png"), bytes).map_err(|error| map_io_error(&error))
-}
-
-pub(crate) fn save_graph_svg(graph: &Graph, file_name: &str) -> Result<(), PresentationError> {
-    let bytes = graph_to_graphviz(graph, GraphvizFormat::Svg, None)?;
-    fs::write(format!("{file_name}.svg"), bytes).map_err(|error| map_io_error(&error))
 }
 
 pub fn graph_to_graphviz(

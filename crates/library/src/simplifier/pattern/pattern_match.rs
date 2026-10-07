@@ -24,43 +24,57 @@ pub struct PatternMatch {
 #[derive(Debug, Clone)]
 pub struct QubitMapping {
     pattern_to_graph: Vec<Option<usize>>,
-    graph_to_pattern: Vec<Option<usize>>,
 }
 
 impl QubitMapping {
-    /// Create a new empty `QubitMapping` with the specified dimensions.
-    pub fn new(pattern_height: usize, graph_height: usize) -> Self {
+    /// Create a new empty `QubitMapping` for a pattern of the given height.
+    ///
+    /// Complexity: O(`pattern_height`).
+    pub fn new(pattern_height: usize) -> Self {
         Self {
             pattern_to_graph: vec![None; pattern_height],
-            graph_to_pattern: vec![None; graph_height],
         }
     }
 
     /// Add a mapping from a pattern qubit to a graph qubit.
     ///
     /// Returns `false` if the mapping already exists.
+    ///
+    /// Complexity: O(`pattern_height`).
     pub fn add_mapping(&mut self, pattern_index: usize, graph_index: usize) -> bool {
-        match (
-            self.pattern_to_graph[pattern_index],
-            self.graph_to_pattern[graph_index],
-        ) {
-            (None, None) => {
+        match self.pattern_to_graph[pattern_index] {
+            None => {
+                if self.pattern_to_graph.contains(&Some(graph_index)) {
+                    return false;
+                }
+
                 self.pattern_to_graph[pattern_index] = Some(graph_index);
-                self.graph_to_pattern[graph_index] = Some(pattern_index);
                 true
             }
-            (Some(existing), _) => existing == graph_index,
-            (_, Some(existing)) => existing == pattern_index,
+            Some(existing) => existing == graph_index,
         }
     }
 
+    /// Remove the mapping of a pattern qubit.
+    ///
+    /// Complexity: O(1).
+    pub(crate) fn remove_mapping(&mut self, pattern_index: usize) {
+        self.pattern_to_graph[pattern_index] = None;
+    }
+
     /// Get the graph row corresponding to a pattern row.
+    ///
+    /// Complexity: O(1).
     pub fn graph_row(&self, pattern_row: usize) -> Option<usize> {
         self.pattern_to_graph[pattern_row]
     }
 
     /// Get the pattern row corresponding to a graph row.
+    ///
+    /// Complexity: O(`pattern_height`).
     pub fn pattern_row(&self, graph_row: usize) -> Option<usize> {
-        self.graph_to_pattern[graph_row]
+        self.pattern_to_graph
+            .iter()
+            .position(|&mapped| mapped == Some(graph_row))
     }
 }
