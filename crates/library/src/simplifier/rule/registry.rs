@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, LazyLock},
 };
 
-use crate::{RuleId, SimplificationRule, simplifier::rule::default};
+use crate::{Rule, RuleId, simplifier::rule::default};
 
 pub(crate) static DEFAULT_RULE_REGISTRY: LazyLock<RuleRegistry> = LazyLock::new(|| {
     let mut registry = RuleRegistry::new();
@@ -14,7 +14,7 @@ pub(crate) static DEFAULT_RULE_REGISTRY: LazyLock<RuleRegistry> = LazyLock::new(
 /// A registry of unique graph simplification rules.
 #[derive(Default, Debug, Clone)]
 pub struct RuleRegistry {
-    rules: HashMap<RuleId, Arc<dyn SimplificationRule>>,
+    rules: HashMap<RuleId, Arc<dyn Rule>>,
 }
 
 impl RuleRegistry {
@@ -27,14 +27,14 @@ impl RuleRegistry {
     /// Add a new rule to the registry.
     ///
     /// Automatically replaces any existing rule with the same ID.
-    pub fn register(&mut self, rule: Arc<dyn SimplificationRule>) {
+    pub fn register(&mut self, rule: Arc<dyn Rule>) {
         self.rules.insert(rule.metadata().id(), rule);
     }
 
     /// Add multiple rules to the registry at once.
     ///
     /// Automatically replaces any existing rules with the same IDs.
-    pub fn register_all(&mut self, rules: Vec<Arc<dyn SimplificationRule>>) {
+    pub fn register_all(&mut self, rules: Vec<Arc<dyn Rule>>) {
         for rule in rules {
             self.register(rule);
         }
@@ -44,12 +44,12 @@ impl RuleRegistry {
     ///
     /// Returns `None` if the rule does not exist.
     #[must_use]
-    pub fn get(&self, id: &str) -> Option<Arc<dyn SimplificationRule>> {
+    pub fn get(&self, id: &str) -> Option<Arc<dyn Rule>> {
         self.rules.get(id).cloned()
     }
 
     /// Iterate over all the rules in the registry, in arbitrary order.
-    pub fn iter(&self) -> impl Iterator<Item = &Arc<dyn SimplificationRule>> {
+    pub fn iter(&self) -> impl Iterator<Item = &Arc<dyn Rule>> {
         self.rules.values()
     }
 }

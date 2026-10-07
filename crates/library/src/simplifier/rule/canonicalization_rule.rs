@@ -1,7 +1,7 @@
 use std::fmt;
 use std::{any::Any, collections::HashSet};
 
-use crate::{GateType, Graph, Position, RuleMetadata, SimplificationRule};
+use crate::{GateType, Graph, Position, Rule, RuleMetadata};
 
 /// A simplification rule that applies a canonicalization transformation to the entire graph.
 ///
@@ -47,7 +47,7 @@ impl CanonicalizationRule {
     }
 }
 
-impl SimplificationRule for CanonicalizationRule {
+impl Rule for CanonicalizationRule {
     fn metadata(&self) -> &RuleMetadata {
         &self.metadata
     }

@@ -80,8 +80,7 @@ pub(crate) async fn handler(
         .transpose()?;
 
     let request = DisplayRequest::new(circ, format, pi_format, dirac_format);
-    let response =
-        qctidy_facade::display(&request).map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response = qctidy_facade::display(&request);
 
     Ok((
         StatusCode::OK,

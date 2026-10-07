@@ -41,8 +41,7 @@ pub(crate) async fn handler(
     let circ = circuit::from_json(&body.circuit)?;
 
     let request = SimplificationRequest::new(circ, body.iterations);
-    let response =
-        qctidy_facade::simplify(&request).map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response = qctidy_facade::simplify(&request);
 
     let circuit_json = circuit::to_json(response.circuit())?;
     Ok(Json(SimplifyCircuitResponse {

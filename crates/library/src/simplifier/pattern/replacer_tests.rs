@@ -1,4 +1,4 @@
-use crate::{PatternRule, SimplificationRule, simplifier::rule::registry::DEFAULT_RULE_REGISTRY};
+use crate::{PatternRule, Rule, simplifier::rule::registry::DEFAULT_RULE_REGISTRY};
 
 #[test]
 fn replace_default_pattern_rules() {

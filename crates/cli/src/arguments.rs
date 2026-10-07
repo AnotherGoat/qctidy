@@ -19,6 +19,8 @@ pub(crate) struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
+    /// Analyze a Python file and dump its circuits as JSON.
+    Ast(AstArguments),
     /// Detect simplification opportunities in circuits without modifying them.
     Check(CheckArguments),
     /// Convert a circuit between formats.
@@ -29,6 +31,18 @@ pub(crate) enum Command {
     Present(PresentArguments),
     /// List all the available simplification rules.
     Rules,
+}
+
+#[derive(Debug, Args)]
+#[expect(clippy::field_scoped_visibility_modifiers)]
+pub(crate) struct AstArguments {
+    /// Python file to analyze (reads from standard input when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    pub(crate) input: Option<PathBuf>,
+
+    /// File to write the analysis to (writes to standard output when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    pub(crate) output: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -47,6 +61,14 @@ pub(crate) struct CheckArguments {
     /// Name reported for standard input, instead of `<stdin>`.
     #[arg(long, value_name = "NAME")]
     pub(crate) input_name: Option<String>,
+
+    /// Select a single circuit from a Python file, by variable name or `name:line`.
+    #[arg(long, value_name = "NAME")]
+    pub(crate) circuit: Option<String>,
+
+    /// File to write the report to (writes to standard output when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    pub(crate) output: Option<PathBuf>,
 
     /// Format used to report the results.
     #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
@@ -95,6 +117,10 @@ pub(crate) struct ConvertArguments {
     /// Number of spaces per indentation level.
     #[arg(long, value_name = "N", requires = "prettify")]
     pub(crate) indentation: Option<usize>,
+
+    /// Select a single circuit from a Python file, by variable name or `name:line`.
+    #[arg(long, value_name = "NAME")]
+    pub(crate) circuit: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -113,6 +139,14 @@ pub(crate) struct DisplayArguments {
     /// How to display the circuit.
     #[arg(long, value_enum, default_value_t = DisplayMode::Grid)]
     pub(crate) format: DisplayMode,
+
+    /// File to write the display to (writes to standard output when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    pub(crate) output: Option<PathBuf>,
+
+    /// Select a single circuit from a Python file, by variable name or `name:line`.
+    #[arg(long, value_name = "NAME")]
+    pub(crate) circuit: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -139,6 +173,10 @@ pub(crate) struct PresentArguments {
     /// Resolution in dots per inch.
     #[arg(long, value_name = "DPI")]
     pub(crate) dpi: Option<u32>,
+
+    /// Select a single circuit from a Python file, by variable name or `name:line`.
+    #[arg(long, value_name = "NAME")]
+    pub(crate) circuit: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

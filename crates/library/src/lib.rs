@@ -23,7 +23,7 @@ pub use domain::projection::{ContextualNodeView, EdgeView, NodeView};
 pub use simplifier::Detection;
 pub use simplifier::pattern::pattern_match::PatternMatch;
 pub use simplifier::rule::{
-    CanonicalizationRule, RuleBuildError, SimplificationRule,
+    CanonicalizationRule, Rule, RuleBuildError,
     configuration::{RuleConfiguration, RuleLevel},
     metadata::{RuleGroup, RuleId, RuleMetadata},
     pattern_rule::{PatternRule, PatternRuleSide},

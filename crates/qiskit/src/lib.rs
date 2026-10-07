@@ -21,7 +21,6 @@ mod converter;
 #[cfg(any(feature = "codegen-qiskit", feature = "codegen-openqasm3"))]
 mod codegen;
 
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use qctidy::{DiracFormat, PiFormat};
 use qctidy_facade::{DisplayFormat, DisplayRequest, SimplificationRequest};
@@ -137,8 +136,7 @@ fn display(
         dirac_format.map(DiracFormat::from),
     );
 
-    let response = qctidy_facade::display(&request)
-        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    let response = qctidy_facade::display(&request);
 
     Ok(response.text().to_owned())
 }
@@ -152,8 +150,7 @@ fn simplify(
     let extracted = extractor::extract_circuit(circuit)?;
     let request = SimplificationRequest::new(extracted.into(), iterations);
 
-    let response = qctidy_facade::simplify(&request)
-        .map_err(|error| PyValueError::new_err(error.to_string()))?;
+    let response = qctidy_facade::simplify(&request);
 
     circuit::circuit_to_qiskit(python, response.circuit().as_ref())
 }

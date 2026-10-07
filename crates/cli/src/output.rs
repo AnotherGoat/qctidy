@@ -1,16 +1,15 @@
 use std::fmt::{self, Write as _};
 use std::fs;
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anstyle::{AnsiColor, Color, Style};
 use qctidy::{Graph, Position};
 use qctidy_facade::CheckDiagnostic;
-use qctidy_ports::ConversionFormat;
+use qctidy_ports::SourceLocation;
 use serde::Serialize;
 
 use crate::error::CliError;
-use crate::input::format_name;
 
 const MAX_POSITIONS: usize = 8;
 
@@ -50,13 +49,15 @@ pub(crate) struct Stats {
 #[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct CircuitReport {
     pub(crate) name: String,
-    pub(crate) format: ConversionFormat,
+    pub(crate) format: &'static str,
     pub(crate) qubit_count: usize,
     pub(crate) time_step_count: usize,
     pub(crate) gate_count: usize,
     pub(crate) diagnostics: Vec<CheckDiagnostic>,
     /// One optional snippet per diagnostic, only filled when snippets are enabled.
     pub(crate) snippets: Vec<Option<String>>,
+    /// Maps operation indices to source ranges, only filled for Python inputs.
+    pub(crate) source_map: Option<Vec<SourceLocation>>,
 }
 
 /// Write a human-readable report for a single circuit.
@@ -73,10 +74,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
                 paint(RULE, &format!("[{}]", metadata.id())),
                 paint(GROUP, &format!("({})", metadata.group())),
                 metadata.description(),
-                paint(
-                    DIM,
-                    &format!("at {}", format_positions(detection.positions()))
-                ),
+                paint(DIM, &format!("at {}", format_location(report, detection))),
             );
         }
 
@@ -88,7 +86,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
         "{} {} {}",
         paint(HEADER, "Checking"),
         report.name,
-        paint(DIM, &format!("({})", format_name(report.format))),
+        paint(DIM, &format!("({})", report.format)),
     );
     let _stats_result = writeln!(
         writer,
@@ -122,7 +120,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
             writer,
             "    {} {}",
             paint(DIM, "at"),
-            paint(POSITION, &format_positions(detection.positions())),
+            paint(POSITION, &format_location(report, detection)),
         );
 
         if let Some(snippet) = report.snippets.get(index).and_then(Option::as_ref) {
@@ -190,6 +188,41 @@ pub(crate) fn write_bytes(target: Option<&Path>, bytes: &[u8]) -> Result<(), Cli
             })
         },
     )
+}
+
+/// The file path for the `index`-th output, inserting `_index` before the file extension.
+#[must_use]
+pub(crate) fn numbered_path(path: &Path, index: usize) -> PathBuf {
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("output");
+
+    let numbered = match file_name.rsplit_once('.') {
+        Some((stem, extension)) if !stem.is_empty() => format!("{stem}_{index}.{extension}"),
+        _ => format!("{file_name}_{index}"),
+    };
+
+    path.with_file_name(numbered)
+}
+
+/// Write one or more outputs: a single output to the target (or standard
+/// output), or numbered files when there are several.
+pub(crate) fn write_outputs(target: Option<&Path>, outputs: &[Vec<u8>]) -> Result<(), CliError> {
+    match outputs.len() {
+        0 => Ok(()),
+        1 => write_bytes(target, &outputs[0]),
+        _ => {
+            let target = target.ok_or(CliError::MultipleOutputs)?;
+
+            for (index, bytes) in outputs.iter().enumerate() {
+                let path = numbered_path(target, index);
+                write_bytes(Some(&path), bytes)?;
+            }
+
+            Ok(())
+        }
+    }
 }
 
 fn write_to_stdout(bytes: &[u8]) -> Result<(), CliError> {
@@ -300,18 +333,32 @@ pub(crate) struct JsonDiagnostic {
     rule: &'static str,
     group: String,
     message: &'static str,
-    positions: Vec<JsonPosition>,
-    operations: Vec<usize>,
+    circuit_positions: Vec<JsonCircuitPosition>,
+    operation_indices: Vec<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_locations: Option<Vec<JsonSourceLocation>>,
 }
 
 #[derive(Debug, Serialize)]
-struct JsonPosition {
+struct JsonCircuitPosition {
     row: usize,
     column: usize,
 }
 
+#[derive(Debug, Serialize)]
+struct JsonSourceLocation {
+    line: usize,
+    column: usize,
+    end_line: usize,
+    end_column: usize,
+}
+
 impl JsonDiagnostic {
-    pub(crate) fn new(filename: &str, diagnostic: &CheckDiagnostic) -> Self {
+    pub(crate) fn new(
+        filename: &str,
+        diagnostic: &CheckDiagnostic,
+        source_map: Option<&[SourceLocation]>,
+    ) -> Self {
         let metadata = diagnostic.metadata();
 
         Self {
@@ -319,15 +366,28 @@ impl JsonDiagnostic {
             rule: metadata.id(),
             group: metadata.group().to_string(),
             message: metadata.description(),
-            positions: diagnostic
+            circuit_positions: diagnostic
                 .positions()
                 .iter()
-                .map(|position| JsonPosition {
+                .map(|position| JsonCircuitPosition {
                     row: position.row(),
                     column: position.column(),
                 })
                 .collect(),
-            operations: diagnostic.operations().clone(),
+            operation_indices: diagnostic.operation_indices().clone(),
+            source_locations: source_map.map(|source_map| {
+                diagnostic
+                    .operation_indices()
+                    .iter()
+                    .filter_map(|index| source_map.get(*index))
+                    .map(|location| JsonSourceLocation {
+                        line: location.line,
+                        column: location.column,
+                        end_line: location.end_line,
+                        end_column: location.end_column,
+                    })
+                    .collect()
+            }),
         }
     }
 }
@@ -357,6 +417,38 @@ fn format_positions(positions: &[Position]) -> String {
 
     if positions.len() > MAX_POSITIONS {
         let _more_result = write!(text, ", and {} more", positions.len() - MAX_POSITIONS);
+    }
+
+    text
+}
+
+/// Format a diagnostic location: source ranges for Python, circuit coordinates otherwise.
+fn format_location(report: &CircuitReport, detection: &CheckDiagnostic) -> String {
+    report.source_map.as_ref().map_or_else(
+        || format_positions(detection.positions()),
+        |source_map| format_source_locations(detection.operation_indices(), source_map),
+    )
+}
+
+fn format_source_locations(operation_indices: &[usize], source_map: &[SourceLocation]) -> String {
+    let mut text = String::new();
+
+    for index in operation_indices.iter().take(MAX_POSITIONS) {
+        if let Some(location) = source_map.get(*index) {
+            if !text.is_empty() {
+                text.push_str(", ");
+            }
+
+            let _position_result = write!(text, "{}:{}", location.line, location.column);
+        }
+    }
+
+    if operation_indices.len() > MAX_POSITIONS {
+        let _more_result = write!(
+            text,
+            ", and {} more",
+            operation_indices.len() - MAX_POSITIONS
+        );
     }
 
     text

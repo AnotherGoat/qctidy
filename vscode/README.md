@@ -6,7 +6,7 @@ Esta es la extensión oficial de Visual Studio Code para **QCTidy**. Su propósi
 
 La extensión se integra directamente en la barra lateral (Activity Bar) de VS Code y proporciona las siguientes funcionalidades:
 
-* **Análisis AST en Tiempo Real**: Utiliza `web-tree-sitter` para generar un Árbol de Sintaxis Abstracta (AST) del archivo Python actualmente abierto en el editor.
+* **Análisis AST en Tiempo Real**: Invoca el comando `qctidy ast` del CLI para generar el Árbol de Sintaxis Abstracta (AST) del archivo Python actualmente abierto en el editor.
 * **Jerarquía Completa**: Estructura en árbol colapsable y expandible similar al explorador de archivos:
   $$\text{Función/Método/Clase} \longrightarrow \text{Circuito Cuántico} \longrightarrow \text{Metadatos y Compuertas} \longrightarrow \text{Parámetros}$$
 * **Detección Multivariable y Nombres de Circuitos**: Identifica todas las variables asignadas a `QuantumCircuit` mostrando el nombre exacto de la variable. Si varios circuitos comparten el mismo nombre de variable, se desambiguan como `nombre:línea`.
@@ -26,17 +26,15 @@ Para mantener el proyecto ligero y sin dependencias innecesarias, la extensión 
 Los componentes principales son:
 
 1. **`src/extension.ts`**: Punto de entrada de la extensión. Inicializa el entorno, crea la vista de árbol y registra los comandos de navegación y recarga (`qctidy.openNode`, `qctidy.refresh`).
-2. **`src/parser.ts`**: Gestiona la inicialización de `web-tree-sitter` y carga las reglas gramaticales para Python (`tree-sitter-python.wasm`) compiladas en WebAssembly.
-3. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Analiza recursivamente el AST generado, construyendo la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación.
-4. **`src/circuit.ts`**: Define el esquema JSON canónico de un circuito (el que consume el CLI de QCTidy), evalúa expresiones numéricas (incluido `pi`) y valida que el circuito se pueda analizar.
-5. **`src/qiskit.ts`**: Detecta la versión de Qiskit usando el intérprete configurado en la extensión de Python (con el `PATH` como respaldo) y se vuelve a detectar cuando cambia el intérprete.
-6. **`src/checker.ts`**: Cliente del CLI (`qctidy check`), preparado para conectar la extensión con la herramienta; todavía no se usa.
+2. **`src/ast.ts`**: Cliente del CLI (`qctidy ast`) y tipos del análisis que devuelve. Invoca el comando sobre el contenido del archivo abierto y entrega el AST en JSON.
+3. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Recorre el análisis devuelto por el CLI y construye la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación.
+4. **`src/qiskit.ts`**: Detecta la versión de Qiskit usando el intérprete configurado en la extensión de Python (con el `PATH` como respaldo) y se vuelve a detectar cuando cambia el intérprete.
 
 ## Entorno de Desarrollo (Pruebas Locales)
 
 Para probar, depurar o extender esta extensión localmente:
 
-1. Asegúrate de tener Node.js instalado.
+1. Asegúrate de tener Node.js instalado y el binario `qctidy` disponible en el `PATH` (por ejemplo, tras `cargo build --release -p qctidy-cli`).
 2. Instala las dependencias de la extensión, dentro de `vscode/`:
    ```bash
    cd vscode

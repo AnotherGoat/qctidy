@@ -3,6 +3,7 @@ mod codegen;
 mod converter;
 mod estimator;
 mod presenter;
+mod python;
 
 pub use analyzer::{
     AnalysisError, AnalysisMetrics, AnalysisMode, AnalysisResult, AnalyzerPort,
@@ -15,36 +16,7 @@ pub use estimator::{
     EstimatedCost, Estimation, EstimationError, EstimatorPort, ProviderCostEstimates,
 };
 pub use presenter::{PresentationError, PresentationFormat, PresenterPort};
-
-use thiserror::Error;
-
-#[derive(Debug, Clone, Copy, Error)]
-pub enum DisplayError {}
-
-#[derive(Debug, Clone, Copy, Error)]
-pub enum CheckError {}
-
-#[derive(Debug, Clone, Copy, Error)]
-pub enum SimplificationError {}
-
-#[derive(thiserror::Error, Debug)]
-pub enum UseCaseError {
-    #[error(transparent)]
-    Display(#[from] DisplayError),
-    #[error(transparent)]
-    Check(#[from] CheckError),
-    #[error(transparent)]
-    Simplification(#[from] SimplificationError),
-    #[error(transparent)]
-    Presentation(#[from] PresentationError),
-    #[error(transparent)]
-    Parse(#[from] ParseError),
-    #[error(transparent)]
-    Serialize(#[from] SerializeError),
-    #[error(transparent)]
-    Codegen(#[from] CodeGenerationError),
-    #[error(transparent)]
-    Analyzer(#[from] AnalysisError),
-    #[error(transparent)]
-    Estimator(#[from] EstimationError),
-}
+pub use python::{
+    CircuitBuild, CircuitIssue, GateParameter, ParsedCircuit, ParsedGate, PythonAnalysis,
+    PythonPort, Scope, ScopeChild, ScopeType, SourceLocation,
+};

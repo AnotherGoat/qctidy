@@ -1,7 +1,9 @@
-use std::io;
+use std::io::{self, Write};
 use std::process::ExitCode;
+use std::sync::Arc;
 
 use anstream::{AutoStream, ColorChoice};
+use qctidy::Circuit;
 use qctidy_converter::ConverterAdapter;
 use qctidy_facade::{ParseRequest, SerializeRequest, parse, serialize};
 use qctidy_ports::ConversionFormat;
@@ -10,30 +12,33 @@ use crate::arguments::ConvertArguments;
 use crate::error::CliError;
 use crate::input::{Input, format_from_extension};
 use crate::output;
+use crate::python;
 
 /// Run the `convert` command.
 pub(crate) fn run(arguments: &ConvertArguments, color: ColorChoice) -> ExitCode {
     let mut stderr = AutoStream::new(io::stderr(), color);
     let input = Input::resolve_one(arguments.input.as_deref());
 
-    let bytes = match convert(&input, arguments) {
-        Ok(bytes) => bytes,
+    let failed = match convert_input(&input, arguments, &mut stderr) {
+        Ok(failed) => failed,
         Err(error) => {
             output::human_error(&mut stderr, &error);
             return ExitCode::from(2);
         }
     };
 
-    match output::write_bytes(arguments.output.as_deref(), &bytes) {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(error) => {
-            output::human_error(&mut stderr, &error);
-            ExitCode::from(2)
-        }
+    if failed {
+        ExitCode::from(2)
+    } else {
+        ExitCode::SUCCESS
     }
 }
 
-fn convert(input: &Input, arguments: &ConvertArguments) -> Result<Vec<u8>, CliError> {
+fn convert_input(
+    input: &Input,
+    arguments: &ConvertArguments,
+    stderr: &mut dyn Write,
+) -> Result<bool, CliError> {
     let output_format = arguments
         .output_format
         .or_else(|| arguments.output.as_deref().and_then(format_from_extension))
@@ -51,6 +56,14 @@ fn convert(input: &Input, arguments: &ConvertArguments) -> Result<Vec<u8>, CliEr
         source_name: input.name().to_owned(),
         error,
     })?;
+
+    if input.is_python() {
+        return convert_python(&bytes, input, arguments, output_format, stderr);
+    }
+
+    if arguments.circuit.is_some() {
+        return Err(CliError::CircuitSelectorNotPython);
+    }
 
     let input_format = input
         .format(arguments.input_format, &bytes)
@@ -70,8 +83,50 @@ fn convert(input: &Input, arguments: &ConvertArguments) -> Result<Vec<u8>, CliEr
         error,
     })?;
 
+    let output_bytes = serialize_circuit(parsed.circuit().as_ref(), output_format, arguments)?;
+    output::write_bytes(arguments.output.as_deref(), &output_bytes)?;
+
+    Ok(false)
+}
+
+fn convert_python(
+    bytes: &[u8],
+    input: &Input,
+    arguments: &ConvertArguments,
+    output_format: ConversionFormat,
+    stderr: &mut dyn Write,
+) -> Result<bool, CliError> {
+    let source = String::from_utf8_lossy(bytes).into_owned();
+    let outcomes = python::extract_circuits(&source, input.name(), arguments.circuit.as_deref())?;
+
+    let mut failed = false;
+    let mut outputs = Vec::new();
+
+    for outcome in outcomes {
+        match outcome {
+            Ok(info) => {
+                let output_bytes = serialize_circuit(&info.circuit, output_format, arguments)?;
+                outputs.push(output_bytes);
+            }
+            Err(error) => {
+                failed = true;
+                output::human_error(stderr, &error);
+            }
+        }
+    }
+
+    output::write_outputs(arguments.output.as_deref(), &outputs)?;
+
+    Ok(failed)
+}
+
+fn serialize_circuit(
+    circuit: &Circuit,
+    output_format: ConversionFormat,
+    arguments: &ConvertArguments,
+) -> Result<Vec<u8>, CliError> {
     let serialize_request = SerializeRequest::new(
-        parsed.circuit(),
+        Arc::new(circuit.clone()),
         output_format,
         Some(arguments.prettify),
         arguments.indentation,

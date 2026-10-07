@@ -1,4 +1,3 @@
-use qctidy_ports::DisplayError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters, Getters};
@@ -35,7 +34,7 @@ pub struct DisplayResponse {
     text: String,
 }
 
-pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError> {
+pub fn display(request: &DisplayRequest) -> DisplayResponse {
     use DisplayFormat::{Grid, Matrix};
 
     let graph: Graph = request.circuit().as_ref().into();
@@ -50,5 +49,5 @@ pub fn display(request: &DisplayRequest) -> Result<DisplayResponse, DisplayError
         DisplayFormat::Circuit => request.circuit().display(pi_format),
     };
 
-    Ok(DisplayResponse::new(text))
+    DisplayResponse::new(text)
 }

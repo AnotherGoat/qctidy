@@ -1,8 +1,6 @@
 use std::io;
 
-use qctidy_ports::{
-    CheckError, ConversionFormat, DisplayError, ParseError, PresentationError, SerializeError,
-};
+use qctidy_ports::{ConversionFormat, ParseError, PresentationError, SerializeError};
 use thiserror::Error;
 
 /// An error that prevents a command from completing.
@@ -29,15 +27,33 @@ pub(crate) enum CliError {
         source_name: String,
         error: ParseError,
     },
+    #[error("'{source_name}' cannot be checked: {message}")]
+    UncheckableCircuit {
+        source_name: String,
+        message: String,
+    },
+    #[error("circuit '{selector}' not found in '{source_name}'")]
+    UnknownCircuit {
+        source_name: String,
+        selector: String,
+    },
+    #[error(
+        "circuit '{selector}' matches multiple circuits in '{source_name}'; add ':line' to disambiguate"
+    )]
+    AmbiguousCircuit {
+        source_name: String,
+        selector: String,
+    },
+    #[error(
+        "multiple circuits require --output to write numbered files, or --circuit to select one"
+    )]
+    MultipleOutputs,
+    #[error("--circuit only applies to Python (.py) inputs")]
+    CircuitSelectorNotPython,
     #[error("failed to serialize the circuit: {error}")]
     Serialize { error: SerializeError },
-    #[error("failed to display the circuit: {error}")]
-    Display { error: DisplayError },
+    #[error("failed to serialize the analysis: {error}")]
+    SerializeJson { error: serde_json::Error },
     #[error("failed to render the circuit: {error}")]
     Render { error: PresentationError },
-    #[error("failed to check '{source_name}': {error}")]
-    Check {
-        source_name: String,
-        error: CheckError,
-    },
 }

@@ -1,4 +1,3 @@
-use qctidy_ports::SimplificationError;
 use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
@@ -23,12 +22,10 @@ pub struct SimplificationResponse {
     circuit: Arc<Circuit>,
 }
 
-pub fn simplify(
-    request: &SimplificationRequest,
-) -> Result<SimplificationResponse, SimplificationError> {
+pub fn simplify(request: &SimplificationRequest) -> SimplificationResponse {
     let graph: Graph = request.circuit().as_ref().into();
     let simplified = simplifier::simplify(graph, request.iterations());
 
     let circuit: Circuit = (&simplified).into();
-    Ok(SimplificationResponse::new(circuit.into()))
+    SimplificationResponse::new(circuit.into())
 }

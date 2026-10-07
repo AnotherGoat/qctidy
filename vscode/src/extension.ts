@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { initParser } from './parser';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
 import { QCTidyTreeDataProvider } from './treeDataProvider';
 
@@ -7,10 +6,7 @@ export async function activate(context: vscode.ExtensionContext) {
     console.log('QCTidy VS Code extension is now active!');
 
     try {
-        // 1. Inicializar Tree-sitter
-        await initParser(context.extensionUri);
-
-        // 2. Registrar el Sidebar (Tree View)
+        // 1. Registrar el Sidebar (Tree View)
         const treeDataProvider = new QCTidyTreeDataProvider();
         const treeView = vscode.window.createTreeView('qctidy-ast-view', { treeDataProvider });
         context.subscriptions.push(treeView);
@@ -31,7 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // Volver a detectar cuando cambie el intérprete configurado de Python
         context.subscriptions.push(...watchInterpreter(refreshQiskitVersion));
 
-        // 3. Refrescar el sidebar cuando el usuario cambia de pestaña o edita el texto
+        // 2. Refrescar el sidebar cuando el usuario cambia de pestaña o edita el texto
         vscode.window.onDidChangeActiveTextEditor(() => {
             treeDataProvider.refresh();
 
@@ -46,13 +42,17 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         });
 
-        // 4. Comandos de navegación
-        const jumpToLine = (line: number, column: number): void => {
+        // 3. Comandos de navegación
+        const jumpToLine = (line: number, column: number, endLine?: number, endColumn?: number): void => {
             const editor = vscode.window.activeTextEditor;
             if (editor) {
-                const position = new vscode.Position(line, column);
-                editor.selection = new vscode.Selection(position, position);
-                editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+                const start = new vscode.Position(line, column);
+                const end = endLine !== undefined && endColumn !== undefined
+                    ? new vscode.Position(endLine, endColumn)
+                    : start;
+
+                editor.selection = new vscode.Selection(start, end);
+                editor.revealRange(new vscode.Range(start, end), vscode.TextEditorRevealType.InCenter);
             }
         };
 
@@ -63,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext) {
             }),
             vscode.commands.registerCommand('qctidy.jumpToLine', jumpToLine),
             // Al hacer click, además se expande el nodo si puede
-            vscode.commands.registerCommand('qctidy.openNode', async (key: string, line: number, column: number) => {
+            vscode.commands.registerCommand('qctidy.openNode', async (key: string, line: number, column: number, endLine?: number, endColumn?: number) => {
                 const node = treeDataProvider.findByKey(key);
 
                 if (node && node.collapsibleState !== vscode.TreeItemCollapsibleState.None) {
@@ -74,7 +74,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     }
                 }
 
-                jumpToLine(line, column);
+                jumpToLine(line, column, endLine, endColumn);
             })
         );
     } catch (error) {

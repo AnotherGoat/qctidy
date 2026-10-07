@@ -31,6 +31,7 @@ default = [
     "converter-xml",
     "presenter-graphviz",
     "estimator",
+    "python-qiskit",
 ]
 analyzer = []
 codegen-qiskit = []
@@ -41,6 +42,7 @@ converter-msgpack = []
 converter-xml = []
 presenter-graphviz = []
 estimator = []
+python-qiskit = []
 
 [lints]
 workspace = true

@@ -7,7 +7,7 @@ use std::{
 use getset::{CopyGetters, Getters};
 
 use crate::{
-    GateType, Graph, PatternMatch, Position, RuleBuildError, RuleMetadata, SimplificationRule,
+    GateType, Graph, PatternMatch, Position, Rule, RuleBuildError, RuleMetadata,
     simplifier::{
         matrix_calculator,
         pattern::{anchor::Anchor, cache::GraphCache, matcher, replacer},
@@ -111,7 +111,7 @@ pub struct PatternRule {
     anchor: Anchor,
 }
 
-impl SimplificationRule for PatternRule {
+impl Rule for PatternRule {
     fn metadata(&self) -> &RuleMetadata {
         &self.metadata
     }

@@ -57,7 +57,7 @@ pub enum RuleBuildError {
 }
 
 /// A rule that can be applied to a `Graph` to reduce its size.
-pub trait SimplificationRule: Debug + Send + Sync {
+pub trait Rule: Debug + Send + Sync {
     /// Metadata associated with the rule.
     fn metadata(&self) -> &RuleMetadata;
 

@@ -16,8 +16,7 @@ use getset::Getters;
 use newgen::New;
 
 use crate::{
-    Graph, PatternRule, Position, RuleConfiguration, RuleLevel, RuleMetadata, RuleRegistry,
-    SimplificationRule,
+    Graph, PatternRule, Position, Rule, RuleConfiguration, RuleLevel, RuleMetadata, RuleRegistry,
     simplifier::{
         pattern::cache::{GateTypeBitset, GraphCache},
         rule::registry::DEFAULT_RULE_REGISTRY,
@@ -40,7 +39,7 @@ pub struct Detection {
 /// A simplifier for quantum graphs.
 #[derive(Debug)]
 pub struct Simplifier {
-    rules: Vec<Arc<dyn SimplificationRule>>,
+    rules: Vec<Arc<dyn Rule>>,
 }
 
 impl Simplifier {
@@ -50,7 +49,7 @@ impl Simplifier {
         custom_rules: Vec<PatternRule>,
         configuration: &RuleConfiguration,
     ) -> Self {
-        let mut rules: Vec<Arc<dyn SimplificationRule>> = vec![];
+        let mut rules: Vec<Arc<dyn Rule>> = vec![];
 
         for rule in registry.iter() {
             let level = configuration.level(rule.metadata().id());
@@ -160,19 +159,11 @@ pub fn default_rules() -> Vec<RuleMetadata> {
     rules
 }
 
-pub fn simplify_with_rules(
-    graph: Graph,
-    _rules: Vec<Arc<dyn SimplificationRule>>,
-    _iterations: u32,
-) -> Graph {
+pub fn simplify_with_rules(graph: Graph, _rules: Vec<Arc<dyn Rule>>, _iterations: u32) -> Graph {
     graph
 }
 
-fn simplify_internal(
-    graph: &mut Graph,
-    rules: &[Arc<dyn SimplificationRule>],
-    max_iterations: u32,
-) {
+fn simplify_internal(graph: &mut Graph, rules: &[Arc<dyn Rule>], max_iterations: u32) {
     for _ in 0..max_iterations {
         let mut changed = false;
         let mut gate_types = collect_gate_types(graph);
@@ -205,7 +196,7 @@ fn collect_gate_types(graph: &Graph) -> GateTypeBitset {
     gate_types
 }
 
-fn is_applicable(rule: &dyn SimplificationRule, graph: &Graph, gate_types: GateTypeBitset) -> bool {
+fn is_applicable(rule: &dyn Rule, graph: &Graph, gate_types: GateTypeBitset) -> bool {
     // Whether a rule can possibly match the graph, based on its quick checks.
     //
     // Skipping impossible rules avoids running their matcher over the whole graph.
