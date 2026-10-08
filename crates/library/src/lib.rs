@@ -1,7 +1,7 @@
 pub(crate) mod display;
 /// Contains domain structures used to represent a `Graph`.
 pub(crate) mod domain;
-pub mod simplifier;
+pub mod fixer;
 
 pub use display::{
     angle_formatter::{AngleFormat, PiFormat},
@@ -20,12 +20,12 @@ pub use domain::graph::{
 };
 pub use domain::math::{ABSOLUTE_TOLERANCE, EPSILON, RELATIVE_TOLERANCE};
 pub use domain::projection::{ContextualNodeView, EdgeView, NodeView};
-pub use simplifier::Detection;
-pub use simplifier::pattern::pattern_match::PatternMatch;
-pub use simplifier::rule::{
+pub use fixer::Diagnostic;
+pub use fixer::pattern::pattern_match::PatternMatch;
+pub use fixer::rule::{
     CanonicalizationRule, Rule, RuleBuildError,
-    configuration::{RuleConfiguration, RuleLevel},
-    metadata::{RuleGroup, RuleId, RuleMetadata},
+    configuration::{RuleConfiguration, RuleSeverity},
+    metadata::{RuleCategory, RuleCode, RuleMetadata},
     pattern_rule::{PatternRule, PatternRuleSide},
     registry::RuleRegistry,
 };

@@ -23,7 +23,7 @@ mod codegen;
 
 use pyo3::prelude::*;
 use qctidy::{DiracFormat, PiFormat};
-use qctidy_facade::{DisplayFormat, DisplayRequest, SimplificationRequest};
+use qctidy_facade::{DisplayFormat, DisplayRequest, FixRequest};
 
 #[pyclass(name = "DisplayFormat", eq, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -142,15 +142,11 @@ fn display(
 }
 
 #[pyfunction]
-fn simplify(
-    python: Python<'_>,
-    circuit: &Bound<'_, PyAny>,
-    iterations: u32,
-) -> PyResult<Py<PyAny>> {
+fn fix(python: Python<'_>, circuit: &Bound<'_, PyAny>, iterations: u32) -> PyResult<Py<PyAny>> {
     let extracted = extractor::extract_circuit(circuit)?;
-    let request = SimplificationRequest::new(extracted.into(), iterations);
+    let request = FixRequest::new(extracted.into(), iterations);
 
-    let response = qctidy_facade::simplify(&request);
+    let response = qctidy_facade::fix(&request);
 
     circuit::circuit_to_qiskit(python, response.circuit().as_ref())
 }
@@ -164,7 +160,7 @@ fn bindings(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
     module.add_function(wrap_pyfunction!(get_features, module)?)?;
     module.add_function(wrap_pyfunction!(display, module)?)?;
-    module.add_function(wrap_pyfunction!(simplify, module)?)?;
+    module.add_function(wrap_pyfunction!(fix, module)?)?;
 
     #[cfg(feature = "analyzer")]
     analyzer::register(module)?;

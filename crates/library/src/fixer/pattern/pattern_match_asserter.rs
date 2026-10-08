@@ -17,9 +17,9 @@ pub(crate) struct PatternMatchAsserter<'a> {
 }
 
 impl PatternMatchAsserter<'_> {
-    /// Assert that the match has the given rule ID.
-    pub(crate) fn rule_id(&self, expected: &str) -> &Self {
-        assert_eq!(*self.pattern_match.rule_id(), expected);
+    /// Assert that the match has the given rule code.
+    pub(crate) fn rule_code(&self, expected: &str) -> &Self {
+        assert_eq!(*self.pattern_match.rule_code(), expected);
         self
     }
 
@@ -42,15 +42,15 @@ impl PatternMatchAsserter<'_> {
     }
 
     /// Assert that this match represents a redundant double-gate pattern on a single qubit such as H H or X X.
-    pub(crate) fn single_qubit_double_gate(&self, expected_rule_id: &str) -> &Self {
-        self.rule_id(expected_rule_id);
+    pub(crate) fn single_qubit_double_gate(&self, expected_rule_code: &str) -> &Self {
+        self.rule_code(expected_rule_code);
         let expected = HashSet::from([Position::new(0, 0), Position::new(0, 1)]);
         self.covered_positions(&expected)
     }
 
     /// Assert that this match represents a redundant double-gate pattern on two qubits, such as CX CX or SWAP SWAP.
-    pub(crate) fn two_qubit_double_gate(&self, expected_rule_id: &str) -> &Self {
-        self.rule_id(expected_rule_id);
+    pub(crate) fn two_qubit_double_gate(&self, expected_rule_code: &str) -> &Self {
+        self.rule_code(expected_rule_code);
 
         let expected = HashSet::from([
             Position::new(0, 0),
@@ -63,8 +63,8 @@ impl PatternMatchAsserter<'_> {
     }
 
     /// Assert that this match represents a redundant double-gate pattern on three qubits, such as CCX CCX or CCZ CCZ.
-    pub(crate) fn three_qubit_double_gate(&self, expected_rule_id: &str) -> &Self {
-        self.rule_id(expected_rule_id);
+    pub(crate) fn three_qubit_double_gate(&self, expected_rule_code: &str) -> &Self {
+        self.rule_code(expected_rule_code);
 
         let expected = HashSet::from([
             Position::new(0, 0),

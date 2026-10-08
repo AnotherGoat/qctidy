@@ -4,50 +4,58 @@ use std::process::ExitCode;
 
 use anstream::{AutoStream, ColorChoice};
 use anstyle::{AnsiColor, Color, Style};
-use qctidy::{RuleMetadata, simplifier};
+use qctidy::{RuleCategory, RuleMetadata, fixer};
 
 use crate::output;
 
-const GROUP: Style = Style::new()
+const CATEGORY: Style = Style::new()
     .bold()
     .fg_color(Some(Color::Ansi(AnsiColor::Green)));
-const ID: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan)));
+const CODE: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan)));
 const DESCRIPTION: Style = Style::new().dimmed();
 
 /// Run the `rules` command.
 pub(crate) fn run(color: ColorChoice) -> ExitCode {
-    let mut rules_by_group: BTreeMap<String, Vec<RuleMetadata>> = BTreeMap::new();
+    let mut rules_by_category: BTreeMap<&'static str, (RuleCategory, Vec<RuleMetadata>)> =
+        BTreeMap::new();
 
-    for metadata in simplifier::default_rules() {
-        rules_by_group
-            .entry(metadata.group().to_string())
-            .or_default()
+    for metadata in fixer::default_rules() {
+        let category = metadata.category();
+
+        rules_by_category
+            .entry(category.code())
+            .or_insert_with(|| (category, Vec::new()))
+            .1
             .push(metadata);
     }
 
-    let id_width = rules_by_group
+    let code_width = rules_by_category
         .values()
-        .flatten()
-        .map(|metadata| metadata.id().len())
+        .flat_map(|entry| &entry.1)
+        .map(|metadata| metadata.code().len())
         .max()
         .unwrap_or(0);
 
     let mut stdout = AutoStream::new(io::stdout(), color);
 
-    for (index, (group, rules)) in rules_by_group.iter().enumerate() {
+    for (index, (category_code, (category, rules))) in rules_by_category.into_iter().enumerate() {
         if index > 0 {
             let _blank_result = writeln!(stdout);
         }
 
-        let _group_result = writeln!(stdout, "{}", output::paint(GROUP, group));
+        let _category_result = writeln!(
+            stdout,
+            "{}",
+            output::paint(CATEGORY, &format!("{category_code} ({category})"))
+        );
 
         for metadata in rules {
-            let padded_id = format!("{:<id_width$}", metadata.id());
+            let padded_code = format!("{:<code_width$}", metadata.code());
 
             let _rule_result = writeln!(
                 stdout,
                 "  {}  {}",
-                output::paint(ID, &padded_id),
+                output::paint(CODE, &padded_code),
                 output::paint(DESCRIPTION, metadata.description()),
             );
         }

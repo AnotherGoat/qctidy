@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -34,9 +34,10 @@ pub(crate) fn remove_identity() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R001",
             function_name!(),
             "Removes identity gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -52,9 +53,10 @@ pub(crate) fn double_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R002",
             function_name!(),
             "Removes consecutive Hadamard gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -70,9 +72,10 @@ pub(crate) fn double_x() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R003",
             function_name!(),
             "Removes consecutive X gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -88,9 +91,10 @@ pub(crate) fn double_y() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R004",
             function_name!(),
             "Removes consecutive Y gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -106,9 +110,10 @@ pub(crate) fn double_z() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R005",
             function_name!(),
             "Removes consecutive Z gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -130,9 +135,10 @@ pub(crate) fn double_cx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R006",
             function_name!(),
             "Removes consecutive CX gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -154,9 +160,10 @@ pub(crate) fn double_cy() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R007",
             function_name!(),
             "Removes consecutive CY gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -178,9 +185,10 @@ pub(crate) fn double_cz() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R008",
             function_name!(),
             "Removes consecutive CZ gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -202,9 +210,10 @@ pub(crate) fn double_ch() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R009",
             function_name!(),
             "Removes consecutive CH gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -226,9 +235,10 @@ pub(crate) fn double_swap() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R010",
             function_name!(),
             "Removes consecutive SWAP gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -250,9 +260,10 @@ pub(crate) fn double_cswap() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R011",
             function_name!(),
             "Removes consecutive CSWAP gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -274,9 +285,10 @@ pub(crate) fn double_ccx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R012",
             function_name!(),
             "Removes consecutive CCX gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -298,9 +310,10 @@ pub(crate) fn double_ccz() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R013",
             function_name!(),
             "Removes consecutive CCZ gates.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -319,9 +332,10 @@ pub(crate) fn null_phase() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R014",
             function_name!(),
             "Removes phase gates that have no phase angle.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -340,9 +354,10 @@ pub(crate) fn null_rx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R015",
             function_name!(),
             "Removes RX gates that have no rotation angle.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -361,9 +376,10 @@ pub(crate) fn null_ry() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R016",
             function_name!(),
             "Removes RY gates that have no rotation angle.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -382,9 +398,10 @@ pub(crate) fn null_rz() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R017",
             function_name!(),
             "Removes RZ gates that have no rotation angle.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,
@@ -403,9 +420,10 @@ pub(crate) fn null_cp() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "R018",
             function_name!(),
             "Removes CP gates that have no phase angle.",
-            RuleGroup::Redundancy,
+            RuleCategory::Redundancy,
             100,
         ),
         lhs,

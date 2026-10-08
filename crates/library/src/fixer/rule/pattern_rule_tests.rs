@@ -1,11 +1,18 @@
 use std::f64::consts::{FRAC_PI_2, PI};
 
 use crate::{
-    GateType, Graph, GraphBuilder, PatternRule, Position, RuleBuildError, RuleGroup, RuleMetadata,
+    GateType, Graph, GraphBuilder, PatternRule, Position, RuleBuildError, RuleCategory,
+    RuleMetadata,
 };
 
 fn metadata() -> RuleMetadata {
-    RuleMetadata::new("test_rule", "Test rule.", RuleGroup::PhaseCompaction, 100)
+    RuleMetadata::new(
+        "T001",
+        "test_rule",
+        "Test rule.",
+        RuleCategory::PhaseCompaction,
+        100,
+    )
 }
 
 #[test]

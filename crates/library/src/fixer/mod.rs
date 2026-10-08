@@ -4,45 +4,50 @@ pub(crate) mod pattern;
 pub(crate) mod rule;
 
 #[cfg(test)]
+mod fix_tests;
+#[cfg(test)]
+pub(crate) mod fixer_mother;
+#[cfg(test)]
 mod matrix_calculator_tests;
-#[cfg(test)]
-mod simplification_tests;
-#[cfg(test)]
-pub(crate) mod simplifier_mother;
 
 use std::sync::Arc;
 
-use getset::Getters;
+use getset::{CopyGetters, Getters};
 use newgen::New;
 
 use crate::{
-    Graph, PatternRule, Position, Rule, RuleConfiguration, RuleLevel, RuleMetadata, RuleRegistry,
-    simplifier::{
+    Graph, PatternRule, Position, Rule, RuleConfiguration, RuleMetadata, RuleRegistry,
+    RuleSeverity,
+    fixer::{
         pattern::cache::{GateTypeBitset, GraphCache},
         rule::registry::DEFAULT_RULE_REGISTRY,
     },
 };
 
-/// A simplification opportunity detected in a graph.
-#[derive(Debug, Clone, Getters, New)]
+/// A diagnostic describing a fixable pattern in a graph.
+#[derive(Debug, Clone, Getters, CopyGetters, New)]
 #[new(pub)]
 #[must_use]
-pub struct Detection {
+pub struct Diagnostic {
     /// Metadata of the rule that was detected.
     #[get = "pub"]
     metadata: RuleMetadata,
+    /// Severity reported for the detected match.
+    #[get_copy = "pub"]
+    severity: RuleSeverity,
     /// Positions affected by the detected match, sorted by row and then column.
     #[get = "pub"]
     positions: Vec<Position>,
 }
 
-/// A simplifier for quantum graphs.
+/// A fixer for quantum graphs.
 #[derive(Debug)]
-pub struct Simplifier {
+pub struct Fixer {
     rules: Vec<Arc<dyn Rule>>,
+    configuration: RuleConfiguration,
 }
 
-impl Simplifier {
+impl Fixer {
     #[must_use]
     pub fn new(
         registry: &RuleRegistry,
@@ -52,9 +57,9 @@ impl Simplifier {
         let mut rules: Vec<Arc<dyn Rule>> = vec![];
 
         for rule in registry.iter() {
-            let level = configuration.level(rule.metadata().id());
+            let severity = configuration.severity(rule.metadata());
 
-            if level != RuleLevel::Off {
+            if severity != RuleSeverity::Off {
                 rules.push(Arc::clone(rule));
             }
         }
@@ -63,22 +68,25 @@ impl Simplifier {
             rules.push(Arc::new(custom_rule));
         }
 
-        Self { rules }
+        Self {
+            rules,
+            configuration: configuration.clone(),
+        }
     }
 
-    /// Apply the simplification algorithm to the given graph.
+    /// Apply the fix algorithm to the given graph.
     ///
     /// Stops early if no changes are detected between two iterations.
-    pub fn simplify(&self, graph: &mut Graph, max_iterations: u32) {
-        simplify_internal(graph, &self.rules, max_iterations);
+    pub fn fix(&self, graph: &mut Graph, max_iterations: u32) {
+        fix_internal(graph, &self.rules, max_iterations);
     }
 
     /// Find all matches for every enabled rule, without modifying the graph.
     ///
-    /// Detections are ordered by rule ID, then by the positions they affect.
+    /// Diagnostics are ordered by rule code, then by the positions they affect.
     #[must_use]
-    pub fn detect(&self, graph: &Graph) -> Vec<Detection> {
-        let mut detections = Vec::new();
+    pub fn detect(&self, graph: &Graph) -> Vec<Diagnostic> {
+        let mut diagnostics = Vec::new();
         let graph_cache = GraphCache::from_graph(graph);
         let gate_types = collect_gate_types(graph);
 
@@ -97,21 +105,25 @@ impl Simplifier {
 
                 positions.sort_unstable();
 
-                detections.push(Detection::new(*rule.metadata(), positions));
+                diagnostics.push(Diagnostic::new(
+                    *rule.metadata(),
+                    self.configuration.severity(rule.metadata()),
+                    positions,
+                ));
             }
         }
 
-        detections.sort_by(|left, right| {
+        diagnostics.sort_by(|left, right| {
             left.metadata
-                .id()
-                .cmp(right.metadata.id())
+                .code()
+                .cmp(right.metadata.code())
                 .then_with(|| left.positions.cmp(&right.positions))
         });
 
-        detections
+        diagnostics
     }
 
-    pub fn simplify_with_rules(
+    pub fn fix_with_rules(
         &self,
         graph: &mut Graph,
         extra_rules: Vec<PatternRule>,
@@ -123,30 +135,30 @@ impl Simplifier {
             rules.push(Arc::new(extra_rule));
         }
 
-        simplify_internal(graph, &rules, max_iterations);
+        fix_internal(graph, &rules, max_iterations);
     }
 }
 
-pub fn simplify(mut graph: Graph, iterations: u32) -> Graph {
-    let simplifier = Simplifier::new(
+pub fn fix(mut graph: Graph, iterations: u32) -> Graph {
+    let fixer = Fixer::new(
         &DEFAULT_RULE_REGISTRY,
         vec![],
-        &RuleConfiguration::new(RuleLevel::Apply),
+        &RuleConfiguration::new(RuleSeverity::Warn),
     );
 
-    simplifier.simplify(&mut graph, iterations);
+    fixer.fix(&mut graph, iterations);
     graph
 }
 
-/// Find all simplification opportunities in a graph, without modifying it.
+/// Find all fixable patterns in a graph, without modifying it.
 ///
 /// Only the rules that are not disabled in the given configuration are checked.
 #[must_use]
-pub fn detect(graph: &Graph, configuration: &RuleConfiguration) -> Vec<Detection> {
-    Simplifier::new(&DEFAULT_RULE_REGISTRY, vec![], configuration).detect(graph)
+pub fn detect(graph: &Graph, configuration: &RuleConfiguration) -> Vec<Diagnostic> {
+    Fixer::new(&DEFAULT_RULE_REGISTRY, vec![], configuration).detect(graph)
 }
 
-/// List the metadata of every built-in simplification rule, ordered by ID.
+/// List the metadata of every built-in fix rule, ordered by code.
 #[must_use]
 pub fn default_rules() -> Vec<RuleMetadata> {
     let mut rules: Vec<RuleMetadata> = DEFAULT_RULE_REGISTRY
@@ -154,16 +166,16 @@ pub fn default_rules() -> Vec<RuleMetadata> {
         .map(|rule| *rule.metadata())
         .collect();
 
-    rules.sort_by_key(|metadata| *metadata.id());
+    rules.sort_by_key(|metadata| *metadata.code());
 
     rules
 }
 
-pub fn simplify_with_rules(graph: Graph, _rules: Vec<Arc<dyn Rule>>, _iterations: u32) -> Graph {
+pub fn fix_with_rules(graph: Graph, _rules: Vec<Arc<dyn Rule>>, _iterations: u32) -> Graph {
     graph
 }
 
-fn simplify_internal(graph: &mut Graph, rules: &[Arc<dyn Rule>], max_iterations: u32) {
+fn fix_internal(graph: &mut Graph, rules: &[Arc<dyn Rule>], max_iterations: u32) {
     for _ in 0..max_iterations {
         let mut changed = false;
         let mut gate_types = collect_gate_types(graph);

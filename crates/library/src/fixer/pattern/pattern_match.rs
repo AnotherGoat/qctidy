@@ -1,15 +1,15 @@
 use getset::Getters;
 use newgen::New;
 
-use crate::{Position, RuleId};
+use crate::{Position, RuleCode};
 
 /// An instance of a pattern found inside a graph.
 #[derive(Debug, Clone, Getters, New)]
 #[new(pub, const)]
 pub struct PatternMatch {
-    /// The ID of the rule that was matched.
+    /// The code of the rule that was matched.
     #[get = "pub"]
-    rule_id: RuleId,
+    rule_code: RuleCode,
     /// Mapping from pattern to target graph.
     #[get = "pub"]
     mapping: QubitMapping,

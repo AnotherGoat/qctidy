@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -29,9 +29,10 @@ pub(crate) fn x_on_control_qubit_between_cx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q001",
             function_name!(),
             "Propagate X on control qubit between two CX gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,
@@ -54,9 +55,10 @@ pub(crate) fn x_on_target_qubit_between_cx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q002",
             function_name!(),
             "Propagate X on target qubit between two CX gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,
@@ -79,9 +81,10 @@ pub(crate) fn z_on_control_qubit_between_cx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q003",
             function_name!(),
             "Propagate Z on control qubit between two CX gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,
@@ -104,9 +107,10 @@ pub(crate) fn z_on_target_qubit_between_cx() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q004",
             function_name!(),
             "Propagate Z on target qubit between two CX gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,
@@ -129,9 +133,10 @@ pub(crate) fn x_between_cz() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q005",
             function_name!(),
             "Propagate X between two CZ gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,
@@ -154,9 +159,10 @@ pub(crate) fn z_between_cz() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "Q006",
             function_name!(),
             "Propagate Z between two CZ gates.",
-            RuleGroup::PauliPropagation,
+            RuleCategory::PauliPropagation,
             100,
         ),
         lhs,

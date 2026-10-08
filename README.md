@@ -1,6 +1,6 @@
 # QCTidy
 
-A toolset for quantum circuit simplification written in Rust, with an emphasis on code quality and understandability.
+A toolset for quantum circuit fixing written in Rust, with an emphasis on code quality and understandability.
 
 It started as an enhanced port of a previous prototype (QSimplify), which was written purely in Python. The new version uses Rust to provide these benefits:
 
@@ -134,7 +134,7 @@ If for some reason you don't want to use Just, you can read the contents of the 
 
 ### CLI
 
-The `qctidy` CLI checks circuits for simplification opportunities, without modifying them:
+The `qctidy` CLI checks circuits for fixable patterns, without modifying them:
 
 ```bash
 qctidy check -i circuit.json
@@ -154,10 +154,12 @@ qctidy check -i circuit.json --output-format json
 
 The exit code is `0` when no opportunities are found, `1` when any are found, and `2` when an input cannot be read or parsed. Use `--quiet` to print only the diagnostics, `--verbose` to show a snippet of the circuit around each detection, and `--no-fail` to always exit with code `0`.
 
+Rules can be chosen with `--select` and `--ignore`, which accept comma-separated rule codes (`R001`) or category codes (`R`). `--select` restricts the run to the selected rules; `--ignore` disables the given ones. When both are given, `--ignore` wins.
+
 Other commands are available:
 
 ```bash
-# List the available simplification rules
+# List the available fix rules
 qctidy rules
 
 # Convert between formats

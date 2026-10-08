@@ -31,13 +31,13 @@ import { useCircuitDrag } from "~/composables/use_circuit_drag";
 import {
   useAnalyzeCircuit,
   useEstimateCircuit,
-  useSimplifyCircuit,
+  useFixCircuit,
 } from "~/composables/use_circuit_api";
 
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "QCTidy" },
-    { name: "description", content: "Build and simplify quantum circuits" },
+    { name: "description", content: "Build and fix quantum circuits" },
   ];
 }
 
@@ -51,28 +51,28 @@ export default function Home() {
 
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  const simplify = useSimplifyCircuit();
+  const fix = useFixCircuit();
   const estimate = useEstimateCircuit();
   const analyze = useAnalyzeCircuit();
 
-  const simplifiedGrid = useMemo(
-    () => (simplify.data ? alignGrid(buildGridFromJson(simplify.data)) : null),
-    [simplify.data],
+  const fixedGrid = useMemo(
+    () => (fix.data ? alignGrid(buildGridFromJson(fix.data)) : null),
+    [fix.data],
   );
-  const requestError = simplify.error ?? estimate.error ?? analyze.error;
+  const requestError = fix.error ?? estimate.error ?? analyze.error;
 
-  const handleSimplify = () => {
+  const handleFix = () => {
     estimate.clearError();
     analyze.clearError();
-    simplify.run(buildJsonFromGrid(grid));
+    fix.run(buildJsonFromGrid(grid));
   };
   const handleEstimateCosts = () => {
-    simplify.clearError();
+    fix.clearError();
     analyze.clearError();
     estimate.run(buildJsonFromGrid(grid).circuit);
   };
   const handleAnalyzeMetrics = () => {
-    simplify.clearError();
+    fix.clearError();
     estimate.clearError();
     analyze.run(buildJsonFromGrid(grid).circuit);
   };
@@ -103,7 +103,7 @@ export default function Home() {
 
   const clearCircuit = () => {
     setGrid([[], []]);
-    simplify.reset();
+    fix.reset();
     estimate.reset();
     analyze.reset();
   };
@@ -137,7 +137,7 @@ export default function Home() {
       }
 
       setGrid(alignGrid(buildGridFromJson({ circuit: parsed })));
-      simplify.reset();
+      fix.reset();
       estimate.reset();
       analyze.reset();
     } catch (error) {
@@ -216,11 +216,11 @@ export default function Home() {
 
           <Button
             size="sm"
-            onClick={handleSimplify}
-            disabled={simplify.isLoading}
+            onClick={handleFix}
+            disabled={fix.isLoading}
           >
             <Sparkles />
-            {simplify.isLoading ? "Simplifying…" : "Simplify"}
+            {fix.isLoading ? "Fixing…" : "Fix"}
           </Button>
           <Button
             variant="secondary"
@@ -285,16 +285,16 @@ export default function Home() {
               onGateClick={handleGateClick}
             />
 
-            {simplifiedGrid && (
+            {fixedGrid && (
               <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <CardHeader>
                   <CardTitle className="text-violet-300">
-                    Simplified Circuit
+                    Fixed Circuit
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pointer-events-none opacity-90">
                   <Circuit
-                    grid={simplifiedGrid}
+                    grid={fixedGrid}
                     preview={null}
                     onAddRowTop={() => {}}
                     onAddRowBottom={() => {}}

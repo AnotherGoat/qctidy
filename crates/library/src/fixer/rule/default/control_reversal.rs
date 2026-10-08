@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![Arc::new(cx_reversal())]);
@@ -26,9 +26,10 @@ pub(crate) fn cx_reversal() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "V001",
             function_name!(),
             "Reverses CX",
-            RuleGroup::ControlReversal,
+            RuleCategory::ControlReversal,
             100,
         ),
         lhs,

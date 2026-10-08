@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -35,9 +35,10 @@ pub(crate) fn cx_double_ladder_down() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X001",
             function_name!(),
             "Collapses alternating CX ladder into a single CX.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,
@@ -66,9 +67,10 @@ pub(crate) fn cx_double_ladder_up() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X002",
             function_name!(),
             "Collapses reversed alternating CX ladder into a single CX.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,
@@ -97,9 +99,10 @@ pub(crate) fn cx_commutation_forward() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X003",
             function_name!(),
             "Compacts triangular CX interaction into a linear CX chain.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,
@@ -128,9 +131,10 @@ pub(crate) fn cx_commutation_backward() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X004",
             function_name!(),
             "Compacts reordered triangular CX interaction into a linear CX chain.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,
@@ -159,9 +163,10 @@ pub(crate) fn cx_commutation_alternate_forward() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X005",
             function_name!(),
             "Reorders and compacts triangular CX interaction.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,
@@ -190,9 +195,10 @@ pub(crate) fn cx_commutation_alternate_backward() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "X006",
             function_name!(),
             "Reorders and compacts reversed triangular CX interaction.",
-            RuleGroup::CxReduction,
+            RuleCategory::CxReduction,
             100,
         ),
         lhs,

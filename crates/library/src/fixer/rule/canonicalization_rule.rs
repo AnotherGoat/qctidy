@@ -3,7 +3,7 @@ use std::{any::Any, collections::HashSet};
 
 use crate::{GateType, Graph, Position, Rule, RuleMetadata};
 
-/// A simplification rule that applies a canonicalization transformation to the entire graph.
+/// A fix rule that applies a canonicalization transformation to the entire graph.
 ///
 /// Unlike `PatternRule` which matches and replaces specific subgraph patterns, canonicalization rules perform global transformations on the graph structure.
 pub struct CanonicalizationRule {

@@ -1,6 +1,6 @@
 use crate::{
     Graph, GraphBuilder,
-    simplifier::{
+    fixer::{
         pattern::{matcher, pattern_match_asserter::PatternMatchAsserter},
         rule::default::redundancy,
     },
@@ -24,7 +24,7 @@ fn match_double_hadamard_on_single_qubit() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("double_hadamard");
+    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("R002");
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn match_double_x_on_single_qubit() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("double_x");
+    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("R003");
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn match_double_y_on_single_qubit() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("double_y");
+    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("R004");
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn match_double_z_on_single_qubit() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("double_z");
+    PatternMatchAsserter::new(&matches[0]).single_qubit_double_gate("R005");
 }
 
 #[test]
@@ -73,7 +73,7 @@ fn match_double_cx_on_two_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_cx");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R006");
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn match_double_cy_on_two_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_cy");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R007");
 }
 
 #[test]
@@ -105,7 +105,7 @@ fn match_double_cz_on_two_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_cz");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R008");
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn match_double_ch_on_two_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_ch");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R009");
 }
 
 #[test]
@@ -137,7 +137,7 @@ fn match_double_swap_on_two_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_swap");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R010");
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn match_double_cswap_on_three_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("double_cswap");
+    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("R011");
 }
 
 #[test]
@@ -169,7 +169,7 @@ fn match_double_ccx_on_three_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("double_ccx");
+    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("R012");
 }
 
 #[test]
@@ -185,7 +185,7 @@ fn match_double_ccz_on_three_qubits() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("double_ccz");
+    PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("R013");
 }
 
 #[test]
@@ -205,7 +205,7 @@ fn match_rule_multiple_times() {
 
     for r#match in &matches {
         PatternMatchAsserter::new(r#match)
-            .rule_id("double_hadamard")
+            .rule_code("R002")
             .covered_count(2);
     }
 }
@@ -227,7 +227,7 @@ fn match_rule_on_multiple_qubits() {
 
     for r#match in &matches {
         PatternMatchAsserter::new(r#match)
-            .rule_id("double_hadamard")
+            .rule_code("R002")
             .covered_count(2);
     }
 }
@@ -249,7 +249,7 @@ fn match_rule_without_repeated_gates() {
 
     for r#match in &matches {
         PatternMatchAsserter::new(r#match)
-            .rule_id("double_hadamard")
+            .rule_code("R002")
             .covered_count(2);
     }
 }
@@ -284,5 +284,5 @@ fn match_symmetrical_controlled_gate() {
     let matches = matcher::find_matches(&graph, &rule);
 
     assert_eq!(matches.len(), 1);
-    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("double_cz");
+    PatternMatchAsserter::new(&matches[0]).two_qubit_double_gate("R008");
 }

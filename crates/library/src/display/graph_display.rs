@@ -7,7 +7,7 @@ use crate::{
         angle_formatter::{self, PiFormat},
         number_formatter,
     },
-    simplifier::matrix_calculator,
+    fixer::matrix_calculator,
 };
 
 /// Format used to display Dirac bra-ket notation.

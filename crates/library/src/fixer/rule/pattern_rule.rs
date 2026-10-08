@@ -8,7 +8,7 @@ use getset::{CopyGetters, Getters};
 
 use crate::{
     GateType, Graph, PatternMatch, Position, Rule, RuleBuildError, RuleMetadata,
-    simplifier::{
+    fixer::{
         matrix_calculator,
         pattern::{anchor::Anchor, cache::GraphCache, matcher, replacer},
     },
@@ -65,7 +65,7 @@ impl GraphStatistics {
     }
 }
 
-/// A simplification rule that matches a pattern and replaces it with another pattern.
+/// A fix rule that matches a pattern and replaces it with another pattern.
 ///
 /// The main type of rule used in this library.
 /// Pattern rules have a specific set of requirements:

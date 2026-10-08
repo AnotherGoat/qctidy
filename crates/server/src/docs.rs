@@ -10,7 +10,7 @@ use crate::use_cases::query::{features, health};
     feature = "converter-msgpack",
     feature = "converter-xml",
 ))]
-use crate::use_cases::command::{convert_circuit, display_circuit, simplify_circuit};
+use crate::use_cases::command::{convert_circuit, display_circuit, fix_circuit};
 
 #[cfg(all(
     feature = "estimator",
@@ -60,7 +60,7 @@ use crate::use_cases::command::present_circuit;
 #[openapi(
     info(
         title = "QCTidy API",
-        description = "REST API for QCTidy — quantum circuit simplification, analysis, and visualization",
+        description = "REST API for QCTidy — quantum circuit fix, analysis, and visualization",
     ),
     paths(health::handler, features::handler),
     components(schemas(features::FeaturesResponse)),
@@ -78,11 +78,11 @@ struct CoreApiDoc;
 ))]
 #[derive(OpenApiMacro)]
 #[openapi(
-    paths(display_circuit::handler, simplify_circuit::handler, convert_circuit::handler),
+    paths(display_circuit::handler, fix_circuit::handler, convert_circuit::handler),
     components(schemas(
         display_circuit::DisplayCircuitRequest,
-        simplify_circuit::SimplifyCircuitRequest,
-        simplify_circuit::SimplifyCircuitResponse,
+        fix_circuit::FixCircuitRequest,
+        fix_circuit::FixCircuitResponse,
         convert_circuit::ConvertCircuitRequest,
         convert_circuit::ConvertCircuitResponse,
         schema::Base64Circuit,

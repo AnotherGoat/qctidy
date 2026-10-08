@@ -86,10 +86,10 @@
 - [x] Display a graph's unitary matrix representation
 - [ ] Optional colorized display
 
-#### Circuit Simplification
+#### Circuit Fixing
 
-- [x] Data model for pattern-based circuit simplification
-- [x] Circuit simplification algorithm
+- [x] Data model for pattern-based circuit fixing
+- [x] Circuit fixing algorithm
 - [ ] Per-qubit gate cache to skip rules with gates not found in the pattern
 - [ ] Skip rules bigger than the circuit's qubit count
 - [ ] Use gate commutation to find more patterns
@@ -158,7 +158,7 @@
 
 ### Storage (storage)
 
-- [ ] Rule storage for simplification patterns
+- [ ] Rule storage for fixing patterns
 - [ ] JSON-based rule database
 - [ ] Load and cache rules at startup
 
@@ -167,7 +167,7 @@
 - [x] Request and response DTOs
 - [x] Use case orchestration using ports
 - [x] Display use case
-- [x] Simplify use case
+- [x] Fix use case
 - [x] Check use case
 - [x] Present use case
 - [x] Parse use case
@@ -185,7 +185,7 @@
 #### Expose bindings
 
 - [X] Graph display (library)
-- [X] Circuit simplification (library)
+- [X] Circuit fixing (library)
 - [X] Format conversion (converter)
 - [X] Circuit visualization (presenter)
 - [X] Code generation (codegen)
@@ -197,9 +197,9 @@
 - [x] Load circuit from file (using converter)
 - [x] Save circuit to file (using converter)
 - [x] Display circuit as text/grid/matrix
-- [ ] Simplify circuit
-- [x] Check circuit for simplification opportunities
-- [x] List available simplification rules
+- [ ] Fix circuit
+- [x] Check circuit for fixable patterns
+- [x] List available fix rules
 - [x] Generate graph visualization
 - [ ] Generate code (using codegen)
 - [ ] Analyze circuit
@@ -211,7 +211,7 @@
 - [x] GET /health - Health check
 - [x] GET /features - Supported features
 - [x] POST /display - Display circuit
-- [x] POST /simplify - Simplify circuit
+- [x] POST /fix - Fix circuit
 - [x] POST /convert - Convert a circuit between formats
 - [x] POST /present - Generate visualization
 - [x] POST /analyze - Analyze circuit

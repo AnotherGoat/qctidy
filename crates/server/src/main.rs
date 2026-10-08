@@ -52,10 +52,7 @@ fn build_router() -> Router {
                 "/display",
                 post(use_cases::command::display_circuit::handler),
             )
-            .route(
-                "/simplify",
-                post(use_cases::command::simplify_circuit::handler),
-            )
+            .route("/fix", post(use_cases::command::fix_circuit::handler))
             .route(
                 "/convert",
                 post(use_cases::command::convert_circuit::handler),

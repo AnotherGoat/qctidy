@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -36,9 +36,10 @@ pub(crate) fn double_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P001",
             function_name!(),
             "Compacts consecutive S gates: S S => Z.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -59,9 +60,10 @@ pub(crate) fn triple_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P002",
             function_name!(),
             "Compacts three consecutive S gates: S S S => Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -77,9 +79,10 @@ pub(crate) fn double_t() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P003",
             function_name!(),
             "Compacts consecutive T gates: T T => S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -101,9 +104,10 @@ pub(crate) fn quadruple_t() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P004",
             function_name!(),
             "Compacts four consecutive T gates: T T T T => Z.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -119,9 +123,10 @@ pub(crate) fn double_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P005",
             function_name!(),
             "Compacts consecutive S daggers: Sdg Sdg => Z.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -142,9 +147,10 @@ pub(crate) fn triple_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P006",
             function_name!(),
             "Compacts three consecutive S daggers: Sdg Sdg Sdg => S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -160,9 +166,10 @@ pub(crate) fn double_t_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P007",
             function_name!(),
             "Compacts consecutive T daggers: Tdg Tdg => Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -184,9 +191,10 @@ pub(crate) fn quadruple_t_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P008",
             function_name!(),
             "Compacts four consecutive T daggers: Tdg Tdg Tdg Tdg => Z.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -202,9 +210,10 @@ pub(crate) fn s_followed_by_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P009",
             function_name!(),
             "Removes S gates followed by their dagger.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -220,9 +229,10 @@ pub(crate) fn s_preceded_by_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P010",
             function_name!(),
             "Removes S gates preceded by their dagger.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             90,
         ),
         lhs,
@@ -238,9 +248,10 @@ pub(crate) fn t_followed_by_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P011",
             function_name!(),
             "Removes T gates followed by their dagger.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -256,9 +267,10 @@ pub(crate) fn t_preceded_by_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P012",
             function_name!(),
             "Removes T gates preceded by their dagger.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             90,
         ),
         lhs,
@@ -274,9 +286,10 @@ pub(crate) fn z_followed_by_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P013",
             function_name!(),
             "Compacts Z gates followed by S gates: Z S => Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -292,9 +305,10 @@ pub(crate) fn z_preceded_by_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P014",
             function_name!(),
             "Compacts Z gates preceded by S gates: S Z => Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             90,
         ),
         lhs,
@@ -310,9 +324,10 @@ pub(crate) fn z_followed_by_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P015",
             function_name!(),
             "Compacts Z gates followed by S daggers: Z Sdg => S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -328,9 +343,10 @@ pub(crate) fn z_preceded_by_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P016",
             function_name!(),
             "Compacts Z gates preceded by S daggers: Sdg Z => S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             90,
         ),
         lhs,
@@ -351,9 +367,10 @@ pub(crate) fn y_s_x_to_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P017",
             function_name!(),
             "Compacts Y S X into S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -374,9 +391,10 @@ pub(crate) fn x_s_y_to_s() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P018",
             function_name!(),
             "Compacts X S Y into S.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -397,9 +415,10 @@ pub(crate) fn y_s_dagger_x_to_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P019",
             function_name!(),
             "Compacts Y Sdg X into Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,
@@ -420,9 +439,10 @@ pub(crate) fn x_s_dagger_y_to_s_dagger() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "P020",
             function_name!(),
             "Compacts X Sdg Y into Sdg.",
-            RuleGroup::PhaseCompaction,
+            RuleCategory::PhaseCompaction,
             100,
         ),
         lhs,

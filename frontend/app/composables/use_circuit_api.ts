@@ -25,9 +25,9 @@ async function postJson<TResponse>(
   return (await response.json()) as TResponse;
 }
 
-/** `POST /simplify` — expects `{ circuit, iterations }`, returns `{ circuit }`. */
-function simplifyCircuit(request: QCTidyRequest): Promise<QCTidyResponse> {
-  return postJson<QCTidyResponse>("/api/simplify", request);
+/** `POST /fix` — expects `{ circuit, iterations }`, returns `{ circuit }`. */
+function fixCircuit(request: QCTidyRequest): Promise<QCTidyResponse> {
+  return postJson<QCTidyResponse>("/api/fix", request);
 }
 
 /** `POST /estimate` — expects `{ circuit, shots? }`, returns `{ estimates }`. */
@@ -44,8 +44,8 @@ function analyzeCircuit(
   return postJson<AnalyzeCircuitResponse>("/api/analyze", { circuit });
 }
 
-export function useSimplifyCircuit() {
-  return useApiRequest(simplifyCircuit);
+export function useFixCircuit() {
+  return useApiRequest(fixCircuit);
 }
 
 export function useEstimateCircuit() {

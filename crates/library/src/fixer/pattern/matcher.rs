@@ -3,9 +3,7 @@ use std::collections::HashMap;
 use crate::{
     EdgeType, EdgeView, Graph, NodeView, PatternMatch, PatternRule, Position,
     domain::math,
-    simplifier::pattern::{
-        cache::GraphCache, occupancy::OccupancyMap, pattern_match::QubitMapping,
-    },
+    fixer::pattern::{cache::GraphCache, occupancy::OccupancyMap, pattern_match::QubitMapping},
 };
 
 pub(crate) fn find_matches(graph: &Graph, rule: &PatternRule) -> Vec<PatternMatch> {
@@ -327,7 +325,7 @@ fn build_pattern_match(
     let covered_positions = collect_covered_positions(&matched_nodes);
 
     Some(PatternMatch::new(
-        rule.metadata().id(),
+        rule.metadata().code(),
         mapping.clone(),
         covered_positions,
     ))

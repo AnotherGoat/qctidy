@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -31,9 +31,10 @@ pub(crate) fn swap_synthesis() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "G001",
             function_name!(),
             "Synthesize SWAP using its decomposition of 3 CX gates.",
-            RuleGroup::GateSynthesis,
+            RuleCategory::GateSynthesis,
             100,
         ),
         lhs,
@@ -62,9 +63,10 @@ pub(crate) fn ch_synthesis() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "G002",
             function_name!(),
             "Synthesize CH using its decomposition of S, H, T, CX, Tdg, H and Sdg gates.",
-            RuleGroup::GateSynthesis,
+            RuleCategory::GateSynthesis,
             100,
         ),
         lhs,
@@ -89,9 +91,10 @@ pub(crate) fn cy_synthesis() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "G003",
             function_name!(),
             "Synthesize CY using its decomposition of Sdg, CX and S gates.",
-            RuleGroup::GateSynthesis,
+            RuleCategory::GateSynthesis,
             100,
         ),
         lhs,
@@ -118,9 +121,10 @@ pub(crate) fn cswap_synthesis() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "G004",
             function_name!(),
             "Synthesize CSWAP using its decomposition of CX and CCX gates.",
-            RuleGroup::GateSynthesis,
+            RuleCategory::GateSynthesis,
             100,
         ),
         lhs,

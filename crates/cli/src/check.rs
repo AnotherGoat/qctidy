@@ -1,10 +1,11 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io;
 use std::path::Path;
 use std::process::ExitCode;
 
 use anstream::{AutoStream, ColorChoice};
-use qctidy::Graph;
+use qctidy::{Graph, RuleConfiguration, RuleSeverity, fixer};
 use qctidy_converter::ConverterAdapter;
 use qctidy_facade::{ParseRequest, Session, parse};
 use qctidy_ports::ConversionFormat;
@@ -18,6 +19,14 @@ use crate::python;
 
 /// Run the `check` command.
 pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
+    let configuration = match build_configuration(arguments) {
+        Ok(configuration) => configuration,
+        Err(error) => {
+            let mut stderr = AutoStream::new(io::stderr(), color);
+            output::human_error(&mut stderr, &error);
+            return ExitCode::from(2);
+        }
+    };
     let inputs: Vec<_> = Input::resolve(&arguments.input)
         .into_iter()
         .map(|input| input.named(arguments.input_name.as_deref()))
@@ -37,7 +46,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
         }
     };
     let mut stats = Stats::default();
-    let session = Session::default();
+    let session = Session::new(configuration);
 
     for input in &inputs {
         let progress = Progress::start(format!("Checking {}", input.name()), color);
@@ -67,7 +76,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
                 drop(progress);
 
                 stats.circuits += 1;
-                stats.detections += report.diagnostics.len();
+                stats.diagnostics += report.diagnostics.len();
                 reporter.report(&report);
             }
             Err(error) => {
@@ -121,7 +130,7 @@ fn analyze(
         response
             .diagnostics()
             .iter()
-            .map(|detection| output::detection_snippet(&graph, detection.positions()))
+            .map(|diagnostic| output::diagnostic_snippet(&graph, diagnostic.positions()))
             .collect()
     } else {
         Vec::new()
@@ -179,7 +188,9 @@ fn report_python(
                     check
                         .diagnostics()
                         .iter()
-                        .map(|detection| output::detection_snippet(&graph, detection.positions()))
+                        .map(|diagnostic| {
+                            output::diagnostic_snippet(&graph, diagnostic.positions())
+                        })
                         .collect()
                 } else {
                     Vec::new()
@@ -197,7 +208,7 @@ fn report_python(
                 };
 
                 stats.circuits += 1;
-                stats.detections += report.diagnostics.len();
+                stats.diagnostics += report.diagnostics.len();
                 reporter.report(&report);
             }
             Err(error) => {
@@ -208,10 +219,52 @@ fn report_python(
     }
 }
 
+/// Build the rule configuration from the `--select` and `--ignore` codes.
+///
+/// When `--select` is given, only the selected rules run; otherwise every rule
+/// runs. `--ignore` always disables the given rules.
+fn build_configuration(arguments: &CheckArguments) -> Result<RuleConfiguration, CliError> {
+    validate_selectors(&arguments.select, &arguments.ignore)?;
+
+    let mut configuration = if arguments.select.is_empty() {
+        RuleConfiguration::new(RuleSeverity::Warn)
+    } else {
+        RuleConfiguration::new(RuleSeverity::Off)
+    };
+
+    for selector in &arguments.select {
+        configuration.select(selector);
+    }
+
+    for selector in &arguments.ignore {
+        configuration.ignore(selector);
+    }
+
+    Ok(configuration)
+}
+
+/// Check that every selector matches a known rule or category code.
+fn validate_selectors(select: &[String], ignore: &[String]) -> Result<(), CliError> {
+    let known: HashSet<&str> = fixer::default_rules()
+        .iter()
+        .flat_map(|metadata| [*metadata.code(), metadata.category().code()])
+        .collect();
+
+    for selector in select.iter().chain(ignore) {
+        if !known.contains(selector.as_str()) {
+            return Err(CliError::UnknownRuleSelector {
+                selector: selector.clone(),
+            });
+        }
+    }
+
+    Ok(())
+}
+
 fn exit_code(stats: &Stats, no_fail: bool) -> ExitCode {
     if stats.errors > 0 {
         ExitCode::from(2)
-    } else if stats.detections > 0 && !no_fail {
+    } else if stats.diagnostics > 0 && !no_fail {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS
@@ -259,8 +312,8 @@ impl Reporter {
             OutputFormat::Human => output::human_report(&mut self.stdout, report, self.quiet),
             OutputFormat::Json => {
                 self.diagnostics
-                    .extend(report.diagnostics.iter().map(|detection| {
-                        JsonDiagnostic::new(&report.name, detection, report.source_map.as_deref())
+                    .extend(report.diagnostics.iter().map(|diagnostic| {
+                        JsonDiagnostic::new(&report.name, diagnostic, report.source_map.as_deref())
                     }));
             }
         }

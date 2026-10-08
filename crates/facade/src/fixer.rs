@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, CopyGetters};
 use newgen::New;
-use qctidy::{Circuit, Graph, simplifier};
+use qctidy::{Circuit, Graph, fixer};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
-pub struct SimplificationRequest {
+pub struct FixRequest {
     #[get_clone = "pub"]
     circuit: Arc<Circuit>,
     #[get_copy = "pub"]
@@ -17,15 +17,15 @@ pub struct SimplificationRequest {
 #[derive(Debug, Clone, CloneGetters, New)]
 #[new(pub, const)]
 #[must_use]
-pub struct SimplificationResponse {
+pub struct FixResponse {
     #[get_clone = "pub"]
     circuit: Arc<Circuit>,
 }
 
-pub fn simplify(request: &SimplificationRequest) -> SimplificationResponse {
+pub fn fix(request: &FixRequest) -> FixResponse {
     let graph: Graph = request.circuit().as_ref().into();
-    let simplified = simplifier::simplify(graph, request.iterations());
+    let fixed = fixer::fix(graph, request.iterations());
 
-    let circuit: Circuit = (&simplified).into();
-    SimplificationResponse::new(circuit.into())
+    let circuit: Circuit = (&fixed).into();
+    FixResponse::new(circuit.into())
 }

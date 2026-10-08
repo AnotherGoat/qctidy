@@ -1,20 +1,20 @@
 use std::hint::black_box;
 
 use criterion::{BatchSize, BenchmarkId, Criterion, criterion_group};
-use qctidy::{GraphBuilder, simplifier::simplify};
+use qctidy::{GraphBuilder, fixer::fix};
 
 use crate::random_circuit_generator;
 
 const MAX_ITERATIONS: u32 = 5;
 
-fn already_simplified(criterion: &mut Criterion) {
-    // Large circuit without obvious simplification opportunities.
+fn already_fixed(criterion: &mut Criterion) {
+    // Large circuit without obvious fix opportunities.
     //
     // Example:
     // q0: H T S H T S ...
     // q1: T S H T S H ...
     // q2: S H T S H T ...
-    let mut group = criterion.benchmark_group("Already Simplified");
+    let mut group = criterion.benchmark_group("Already Fixed");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
         group.bench_with_input(
@@ -38,7 +38,7 @@ fn already_simplified(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -80,7 +80,7 @@ fn deep_narrow_circuit(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -123,7 +123,7 @@ fn wide_shallow_circuit(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -158,7 +158,7 @@ fn cancellation_chain(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -215,7 +215,7 @@ fn alternating_cancellation(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -266,7 +266,7 @@ fn nested_cancellation_chain(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -301,7 +301,7 @@ fn cnot_cascade(criterion: &mut Criterion) {
 
                         builder.build()
                     },
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -322,7 +322,7 @@ fn random_circuit(criterion: &mut Criterion) {
             |bencher, &(width, height)| {
                 bencher.iter_batched(
                     || random_circuit_generator::generate(0, width, height),
-                    |graph| simplify(black_box(graph), MAX_ITERATIONS),
+                    |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )
             },
@@ -334,7 +334,7 @@ fn random_circuit(criterion: &mut Criterion) {
 
 criterion_group!(
     benches,
-    already_simplified,
+    already_fixed,
     deep_narrow_circuit,
     wide_shallow_circuit,
     cancellation_chain,

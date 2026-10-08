@@ -4,7 +4,7 @@ use std::sync::Arc;
 use function_name::named;
 
 use crate::{
-    CanonicalizationRule, GateType, Graph, NodeView, Position, RuleGroup, RuleMetadata,
+    CanonicalizationRule, GateType, Graph, NodeView, Position, RuleCategory, RuleMetadata,
     RuleRegistry, domain::math,
 };
 
@@ -21,9 +21,10 @@ pub(crate) fn register(registry: &mut RuleRegistry) {
 pub(crate) fn compact_rows() -> CanonicalizationRule {
     CanonicalizationRule::new(
         RuleMetadata::new(
+            "C001",
             function_name!(),
             "Compacts rows by removing gaps between qubit indices.",
-            RuleGroup::Canonicalization,
+            RuleCategory::Canonicalization,
             0,
         ),
         HashSet::new(),
@@ -95,9 +96,10 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
 pub(crate) fn compact_columns() -> CanonicalizationRule {
     CanonicalizationRule::new(
         RuleMetadata::new(
+            "C002",
             function_name!(),
             "Compacts columns by removing gaps between time steps.",
-            RuleGroup::Canonicalization,
+            RuleCategory::Canonicalization,
             0,
         ),
         HashSet::new(),
@@ -160,9 +162,10 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
 
     CanonicalizationRule::new(
         RuleMetadata::new(
+            "C003",
             function_name!(),
             "Normalizes all gate angles to the [0, 4pi) range.",
-            RuleGroup::Canonicalization,
+            RuleCategory::Canonicalization,
             0,
         ),
         vec![P, RX, RY, RZ, CP].into_iter().collect(),
@@ -230,9 +233,10 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
 pub(crate) fn normalize_bits() -> CanonicalizationRule {
     CanonicalizationRule::new(
         RuleMetadata::new(
+            "C004",
             function_name!(),
             "Normalizes measurement bit indices to a compact range starting from 0.",
-            RuleGroup::Canonicalization,
+            RuleCategory::Canonicalization,
             0,
         ),
         vec![GateType::Measure].into_iter().collect(),

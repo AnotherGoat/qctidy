@@ -21,7 +21,7 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Analyze a Python file and dump its circuits as JSON.
     Ast(AstArguments),
-    /// Detect simplification opportunities in circuits without modifying them.
+    /// Detect fixable patterns in circuits without modifying them.
     Check(CheckArguments),
     /// Convert a circuit between formats.
     Convert(ConvertArguments),
@@ -29,7 +29,7 @@ pub(crate) enum Command {
     Display(DisplayArguments),
     /// Render a circuit as a graphviz graph.
     Present(PresentArguments),
-    /// List all the available simplification rules.
+    /// List all the available fix rules.
     Rules,
 }
 
@@ -66,6 +66,18 @@ pub(crate) struct CheckArguments {
     #[arg(long, value_name = "NAME")]
     pub(crate) circuit: Option<String>,
 
+    /// Only report diagnostics for the given rule or category codes.
+    ///
+    /// Accepts a comma-separated list, such as `R` or `R001,R002`.
+    #[arg(long, value_name = "CODES", value_delimiter = ',')]
+    pub(crate) select: Vec<String>,
+
+    /// Do not report diagnostics for the given rule or category codes.
+    ///
+    /// Accepts a comma-separated list, such as `R` or `R001,R002`.
+    #[arg(long, value_name = "CODES", value_delimiter = ',')]
+    pub(crate) ignore: Vec<String>,
+
     /// File to write the report to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
     pub(crate) output: Option<PathBuf>,
@@ -78,11 +90,11 @@ pub(crate) struct CheckArguments {
     #[arg(short, long)]
     pub(crate) quiet: bool,
 
-    /// Exit with code 0 even when simplifications are detected.
+    /// Exit with code 0 even when fixes are detected.
     #[arg(long)]
     pub(crate) no_fail: bool,
 
-    /// Show a circuit snippet around every detection.
+    /// Show a circuit snippet around every diagnostic.
     #[arg(short, long, conflicts_with = "quiet")]
     pub(crate) verbose: bool,
 }

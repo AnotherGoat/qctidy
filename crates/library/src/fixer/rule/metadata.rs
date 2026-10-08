@@ -3,37 +3,40 @@ use std::fmt;
 use getset::{CopyGetters, Getters};
 use newgen::New;
 
-/// Metadata associated with a graph simplification rule.
+/// Metadata associated with a graph fix rule.
 #[derive(Debug, Clone, Copy, Getters, CopyGetters, New)]
 #[new(pub, const)]
 #[must_use]
 pub struct RuleMetadata {
-    /// The unique identifier for this rule.
+    /// The short, stable code for this rule, such as `R001`.
     #[get = "pub"]
-    id: RuleId,
+    code: RuleCode,
+    /// The descriptive name of this rule.
+    #[get = "pub"]
+    name: &'static str,
     /// A human-readable description of what this rule does.
     #[get = "pub"]
     description: &'static str,
-    /// The group that this rule can be classified into.
+    /// The category that this rule can be classified into.
     #[get_copy = "pub"]
-    group: RuleGroup,
+    category: RuleCategory,
     #[get_copy = "pub"]
     priority: u32,
 }
 
-/// Unique identifier for a simplification rule.
-pub type RuleId = &'static str;
+/// Short, stable identifier for a fix rule.
+pub type RuleCode = &'static str;
 
-/// Fine-grained classification for simplification rules.
+/// Fine-grained classification for fix rules.
 ///
-/// Groups describe the specific family or identity class that a rule belongs to.
+/// Categories describe the specific family or identity class that a rule belongs to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RuleGroup {
+pub enum RuleCategory {
     /// Rules that normalize equivalent circuit representations into a canonical form.
     Canonicalization,
     /// Rules that remove trivial but redundant repeated reversible gate operations.
     ///
-    /// All the patterns in this groups should be obvious at a glance, but harder to find in larger circuits.
+    /// All the patterns in this category should be obvious at a glance, but harder to find in larger circuits.
     /// Examples:
     /// - `H H => ()`
     /// - `CX CX => ()`
@@ -62,16 +65,16 @@ pub enum RuleGroup {
     /// Examples:
     /// - `RX(a) RX(b) => RX(a+b)`
     AngleMerging,
-    /// Rules that don't fit cleanly into any other group.
+    /// Rules that don't fit cleanly into any other category.
     ///
     /// Avoided whenever possible for built-in rules.
     Miscellaneous,
 }
 
-impl fmt::Display for RuleGroup {
-    /// Obtain the name of this rule group as a lowercase, hyphenated string.
+impl fmt::Display for RuleCategory {
+    /// Obtain the name of this rule category as a lowercase, hyphenated string.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use RuleGroup::*;
+        use RuleCategory::*;
 
         let name = match *self {
             Canonicalization => "canonicalization",
@@ -87,5 +90,26 @@ impl fmt::Display for RuleGroup {
         };
 
         write!(f, "{name}")
+    }
+}
+
+impl RuleCategory {
+    /// The single-letter code for this category, used to select all its rules.
+    #[must_use]
+    pub const fn code(self) -> &'static str {
+        use RuleCategory::*;
+
+        match self {
+            Canonicalization => "C",
+            Redundancy => "R",
+            PhaseCompaction => "P",
+            BasisChange => "B",
+            ControlReversal => "V",
+            PauliPropagation => "Q",
+            GateSynthesis => "G",
+            CxReduction => "X",
+            AngleMerging => "A",
+            Miscellaneous => "M",
+        }
     }
 }

@@ -50,6 +50,8 @@ pub(crate) enum CliError {
     MultipleOutputs,
     #[error("--circuit only applies to Python (.py) inputs")]
     CircuitSelectorNotPython,
+    #[error("unknown rule or category code '{selector}'")]
+    UnknownRuleSelector { selector: String },
     #[error("failed to serialize the circuit: {error}")]
     Serialize { error: SerializeError },
     #[error("failed to serialize the analysis: {error}")]

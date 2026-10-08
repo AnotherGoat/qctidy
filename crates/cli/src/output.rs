@@ -4,8 +4,8 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use anstyle::{AnsiColor, Color, Style};
-use qctidy::{Graph, Position};
-use qctidy_facade::CheckDiagnostic;
+use qctidy::{Graph, Position, RuleSeverity};
+use qctidy_facade::Diagnostic;
 use qctidy_ports::SourceLocation;
 use serde::Serialize;
 
@@ -25,9 +25,9 @@ const SUCCESS: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Green))
 const ERROR: Style = Style::new()
     .bold()
     .fg_color(Some(Color::Ansi(AnsiColor::Red)));
-const INFO: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan)));
+const WARN: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Yellow)));
 const RULE: Style = Style::new().bold();
-const GROUP: Style = Style::new().dimmed();
+const CATEGORY: Style = Style::new().dimmed();
 const DIM: Style = Style::new().dimmed();
 const POSITION: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan)));
 const SUMMARY: Style = Style::new().bold();
@@ -40,7 +40,7 @@ const MATCH: Style = Style::new()
 #[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct Stats {
     pub(crate) circuits: usize,
-    pub(crate) detections: usize,
+    pub(crate) diagnostics: usize,
     pub(crate) errors: usize,
 }
 
@@ -53,7 +53,7 @@ pub(crate) struct CircuitReport {
     pub(crate) qubit_count: usize,
     pub(crate) time_step_count: usize,
     pub(crate) gate_count: usize,
-    pub(crate) diagnostics: Vec<CheckDiagnostic>,
+    pub(crate) diagnostics: Vec<Diagnostic>,
     /// One optional snippet per diagnostic, only filled when snippets are enabled.
     pub(crate) snippets: Vec<Option<String>>,
     /// Maps operation indices to source ranges, only filled for Python inputs.
@@ -63,18 +63,18 @@ pub(crate) struct CircuitReport {
 /// Write a human-readable report for a single circuit.
 pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet: bool) {
     if quiet {
-        for detection in &report.diagnostics {
-            let metadata = detection.metadata();
+        for diagnostic in &report.diagnostics {
+            let metadata = diagnostic.metadata();
 
             let _quiet_result = writeln!(
                 writer,
                 "{}: {}{} {}: {} {}",
                 paint(DIM, &report.name),
-                paint(INFO, "info"),
-                paint(RULE, &format!("[{}]", metadata.id())),
-                paint(GROUP, &format!("({})", metadata.group())),
+                paint_severity(diagnostic.severity()),
+                paint(RULE, &format!("[{}]", metadata.code())),
+                paint(CATEGORY, &format!("({})", metadata.category())),
                 metadata.description(),
-                paint(DIM, &format!("at {}", format_location(report, detection))),
+                paint(DIM, &format!("at {}", format_location(report, diagnostic))),
             );
         }
 
@@ -105,22 +105,22 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
         ),
     );
 
-    for (index, detection) in report.diagnostics.iter().enumerate() {
-        let metadata = detection.metadata();
+    for (index, diagnostic) in report.diagnostics.iter().enumerate() {
+        let metadata = diagnostic.metadata();
 
         let _rule_result = writeln!(
             writer,
             "  {}{} {}: {}",
-            paint(INFO, "info"),
-            paint(RULE, &format!("[{}]", metadata.id())),
-            paint(GROUP, &format!("({})", metadata.group())),
+            paint_severity(diagnostic.severity()),
+            paint(RULE, &format!("[{}]", metadata.code())),
+            paint(CATEGORY, &format!("({})", metadata.category())),
             metadata.description(),
         );
         let _positions_result = writeln!(
             writer,
             "    {} {}",
             paint(DIM, "at"),
-            paint(POSITION, &format_location(report, detection)),
+            paint(POSITION, &format_location(report, diagnostic)),
         );
 
         if let Some(snippet) = report.snippets.get(index).and_then(Option::as_ref) {
@@ -151,15 +151,15 @@ pub(crate) fn human_summary(writer: &mut dyn Write, stats: &Stats) {
         );
     }
 
-    if stats.detections > 0 {
-        let _detections_result = write!(
+    if stats.diagnostics > 0 {
+        let _diagnostics_result = write!(
             text,
             ", {} {} found",
-            stats.detections,
-            plural(stats.detections, "detection", "detections")
+            stats.diagnostics,
+            plural(stats.diagnostics, "diagnostic", "diagnostics")
         );
     } else if stats.errors == 0 {
-        text.push_str(": no simplification opportunities found");
+        text.push_str(": no fixable patterns found");
     } else {
         // Failures are already reported on standard error.
     }
@@ -168,7 +168,7 @@ pub(crate) fn human_summary(writer: &mut dyn Write, stats: &Stats) {
         let _failed_result = write!(text, ", {} failed", stats.errors);
     }
 
-    let style = if stats.detections > 0 {
+    let style = if stats.diagnostics > 0 {
         SUMMARY
     } else {
         SUCCESS
@@ -239,7 +239,7 @@ fn write_to_stdout(bytes: &[u8]) -> Result<(), CliError> {
 
 /// Render a small circuit snippet around the given positions, when there are few enough.
 #[must_use]
-pub(crate) fn detection_snippet(graph: &Graph, positions: &[Position]) -> Option<String> {
+pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Option<String> {
     if positions.is_empty() || positions.len() > SNIPPET_MAX_POSITIONS {
         return None;
     }
@@ -330,8 +330,9 @@ pub(crate) fn detection_snippet(graph: &Graph, positions: &[Position]) -> Option
 #[derive(Debug, Serialize)]
 pub(crate) struct JsonDiagnostic {
     filename: String,
-    rule: &'static str,
-    group: String,
+    code: &'static str,
+    category: String,
+    severity: String,
     message: &'static str,
     circuit_positions: Vec<JsonCircuitPosition>,
     operation_indices: Vec<usize>,
@@ -356,15 +357,16 @@ struct JsonSourceLocation {
 impl JsonDiagnostic {
     pub(crate) fn new(
         filename: &str,
-        diagnostic: &CheckDiagnostic,
+        diagnostic: &Diagnostic,
         source_map: Option<&[SourceLocation]>,
     ) -> Self {
         let metadata = diagnostic.metadata();
 
         Self {
             filename: filename.to_owned(),
-            rule: metadata.id(),
-            group: metadata.group().to_string(),
+            code: metadata.code(),
+            category: metadata.category().to_string(),
+            severity: diagnostic.severity().to_string(),
             message: metadata.description(),
             circuit_positions: diagnostic
                 .positions()
@@ -404,6 +406,16 @@ pub(crate) fn paint(style: Style, text: &str) -> String {
     format!("{}{text}{}", style.render(), style.render_reset())
 }
 
+/// Render the severity of a diagnostic as styled text.
+fn paint_severity(severity: RuleSeverity) -> String {
+    let style = match severity {
+        RuleSeverity::Error => ERROR,
+        RuleSeverity::Warn | RuleSeverity::Off => WARN,
+    };
+
+    paint(style, &severity.to_string())
+}
+
 fn format_positions(positions: &[Position]) -> String {
     let mut text = String::new();
 
@@ -423,10 +435,10 @@ fn format_positions(positions: &[Position]) -> String {
 }
 
 /// Format a diagnostic location: source ranges for Python, circuit coordinates otherwise.
-fn format_location(report: &CircuitReport, detection: &CheckDiagnostic) -> String {
+fn format_location(report: &CircuitReport, diagnostic: &Diagnostic) -> String {
     report.source_map.as_ref().map_or_else(
-        || format_positions(detection.positions()),
-        |source_map| format_source_locations(detection.operation_indices(), source_map),
+        || format_positions(diagnostic.positions()),
+        |source_map| format_source_locations(diagnostic.operation_indices(), source_map),
     )
 }
 

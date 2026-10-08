@@ -64,7 +64,7 @@ pub(crate) mod present_circuit;
     feature = "converter-msgpack",
     feature = "converter-xml",
 ))]
-pub(crate) mod simplify_circuit;
+pub(crate) mod fix_circuit;
 
 #[cfg(all(
     feature = "estimator",

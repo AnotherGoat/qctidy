@@ -1,6 +1,6 @@
 [package]
 name = "qctidy"
-description = "Core library for quantum circuit simplification"
+description = "Core library for fixing quantum circuits"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

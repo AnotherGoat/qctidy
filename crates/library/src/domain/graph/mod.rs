@@ -62,7 +62,7 @@ struct EdgeData {
 
 /// Represents a quantum circuit as a hybrid of a directed graph and a 2D matrix.
 ///
-/// This structured graph makes it easier to analyze and simplify circuits.
+/// This structured graph makes it easier to analyze and fix circuits.
 /// Position values of the form (row, column) are used to index the graph's nodes.
 /// Each qubit is represented by a row in the grid.
 /// Single-qubit gates occupy a single node, while multi-qubit gates use multiple related nodes (one for each qubit involved).

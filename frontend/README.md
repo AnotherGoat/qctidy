@@ -1,6 +1,6 @@
 # QCTidy Frontend
 
-This is the official graphical interface for **QCTidy**, a quantum circuit simplifier written in Rust. The interface lets users design circuits by dragging and dropping quantum gates, then communicate with the Rust API to get the mathematically simplified version of the circuit.
+This is the official graphical interface for **QCTidy**, a quantum circuit fixer written in Rust. The interface lets users design circuits by dragging and dropping quantum gates, then communicate with the Rust API to get the mathematically fixed version of the circuit.
 
 ## Features
 
@@ -60,7 +60,7 @@ Your application will be available at `http://localhost:5173`.
 - `app/lib/`
   - `api.ts`: Connection logic (Fetch) for sending circuits to the Rust API and receiving the response.
 - `app/routes/`
-  - `home.tsx`: The main view. It controls React state, handles global drag-and-drop events, and calls the simplifier.
+  - `home.tsx`: The main view. It controls React state, handles global drag-and-drop events, and calls the fixer.
 
 ---
 

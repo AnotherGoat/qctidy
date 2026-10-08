@@ -2,18 +2,19 @@ use std::collections::HashMap;
 
 use getset::{CopyGetters, Getters};
 use newgen::New;
-use qctidy::{
-    Circuit, Detection, Graph, Position, RuleConfiguration, RuleLevel, RuleMetadata, simplifier,
-};
+use qctidy::{Circuit, Graph, Position, RuleConfiguration, RuleMetadata, RuleSeverity, fixer};
 
-/// A simplification opportunity found in a circuit.
+/// A fixable pattern found in a circuit.
 #[derive(Debug, Clone, Getters, CopyGetters, New)]
 #[new(pub)]
 #[must_use]
-pub struct CheckDiagnostic {
+pub struct Diagnostic {
     /// Metadata of the rule that was detected.
     #[get_copy = "pub"]
     metadata: RuleMetadata,
+    /// Severity reported for the detected match.
+    #[get_copy = "pub"]
+    severity: RuleSeverity,
     /// Positions affected by the detected match, sorted by row and then column.
     #[get = "pub"]
     positions: Vec<Position>,
@@ -27,7 +28,7 @@ pub struct CheckDiagnostic {
 #[must_use]
 pub struct CheckResponse {
     #[get = "pub"]
-    diagnostics: Vec<CheckDiagnostic>,
+    diagnostics: Vec<Diagnostic>,
     #[get_copy = "pub"]
     qubit_count: usize,
     #[get_copy = "pub"]
@@ -49,13 +50,13 @@ impl Session {
         Self { configuration }
     }
 
-    /// Find simplification opportunities in a circuit, without modifying it.
+    /// Find fixable patterns in a circuit, without modifying it.
     pub fn check(&self, circuit: &Circuit) -> CheckResponse {
         let graph = Graph::from(circuit);
         let position_operations = index_operations(circuit);
-        let diagnostics = simplifier::detect(&graph, &self.configuration)
+        let diagnostics = fixer::detect(&graph, &self.configuration)
             .iter()
-            .map(|detection| diagnostic(detection, &position_operations))
+            .map(|diagnostic| map_diagnostic(diagnostic, &position_operations))
             .collect();
 
         CheckResponse::new(
@@ -68,9 +69,9 @@ impl Session {
 }
 
 impl Default for Session {
-    /// Create a session that detects every rule, without applying any.
+    /// Create a session that detects every rule, without fixing any.
     fn default() -> Self {
-        Self::new(RuleConfiguration::new(RuleLevel::Detect))
+        Self::new(RuleConfiguration::new(RuleSeverity::Warn))
     }
 }
 
@@ -83,11 +84,11 @@ fn index_operations(circuit: &Circuit) -> HashMap<Position, usize> {
         .collect()
 }
 
-fn diagnostic(
-    detection: &Detection,
+fn map_diagnostic(
+    diagnostic: &qctidy::Diagnostic,
     position_operations: &HashMap<Position, usize>,
-) -> CheckDiagnostic {
-    let mut operation_indices: Vec<usize> = detection
+) -> Diagnostic {
+    let mut operation_indices: Vec<usize> = diagnostic
         .positions()
         .iter()
         .filter_map(|position| position_operations.get(position).copied())
@@ -96,9 +97,10 @@ fn diagnostic(
     operation_indices.sort_unstable();
     operation_indices.dedup();
 
-    CheckDiagnostic::new(
-        *detection.metadata(),
-        detection.positions().clone(),
+    Diagnostic::new(
+        *diagnostic.metadata(),
+        diagnostic.severity(),
+        diagnostic.positions().clone(),
         operation_indices,
     )
 }

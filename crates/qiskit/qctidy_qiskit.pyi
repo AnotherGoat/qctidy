@@ -120,11 +120,11 @@ def present(circuit: QuantumCircuit, format: PresentationFormat, dpi: int | None
     It offers many output formats for different use cases.
     """
 
-def simplify(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
+def fix(circuit: QuantumCircuit, iterations: int) -> QuantumCircuit:
     """
-    Simplify a Qiskit `QuantumCircuit` into an equivalent circuit.
+    Fix a Qiskit `QuantumCircuit` into an equivalent circuit.
 
-    Better results may be found by increasing the number of iterations and making the simplification run longer, but there are no guarantees.
+    Better results may be found by increasing the number of iterations and making the fixing run longer, but there are no guarantees.
     The original circuit is not modified.
     """
 

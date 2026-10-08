@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use function_name::named;
 
-use crate::{GraphBuilder, PatternRule, RuleGroup, RuleMetadata, RuleRegistry};
+use crate::{GraphBuilder, PatternRule, RuleCategory, RuleMetadata, RuleRegistry};
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
@@ -26,9 +26,10 @@ pub(crate) fn hadamard_x_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "B001",
             function_name!(),
             "Transforms H X H into Z.",
-            RuleGroup::BasisChange,
+            RuleCategory::BasisChange,
             90,
         ),
         lhs,
@@ -49,9 +50,10 @@ pub(crate) fn hadamard_z_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "B002",
             function_name!(),
             "Transforms H Z H into X.",
-            RuleGroup::BasisChange,
+            RuleCategory::BasisChange,
             90,
         ),
         lhs,
@@ -76,9 +78,10 @@ pub(crate) fn hadamard_cx_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "B003",
             function_name!(),
             "Transforms H CX H into CZ.",
-            RuleGroup::BasisChange,
+            RuleCategory::BasisChange,
             90,
         ),
         lhs,
@@ -103,9 +106,10 @@ pub(crate) fn hadamard_cz_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "B004",
             function_name!(),
             "Transforms H CZ H into CX.",
-            RuleGroup::BasisChange,
+            RuleCategory::BasisChange,
             90,
         ),
         lhs,
@@ -130,9 +134,10 @@ pub(crate) fn hadamard_ccx_hadamard() -> PatternRule {
 
     PatternRule::new(
         RuleMetadata::new(
+            "B005",
             function_name!(),
             "Transforms H CCX H into CCZ.",
-            RuleGroup::BasisChange,
+            RuleCategory::BasisChange,
             90,
         ),
         lhs,

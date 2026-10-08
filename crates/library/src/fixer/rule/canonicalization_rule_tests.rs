@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{Graph, GraphBuilder, Position, Rule, simplifier::rule::default::canonicalization};
+use crate::{Graph, GraphBuilder, Position, Rule, fixer::rule::default::canonicalization};
 
 #[test]
 fn compact_rows_detects_gap() {
