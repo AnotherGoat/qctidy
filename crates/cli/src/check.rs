@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io;
+use std::mem;
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -13,7 +14,7 @@ use qctidy_ports::ConversionFormat;
 use crate::arguments::{CheckArguments, OutputFormat};
 use crate::error::CliError;
 use crate::input::{Input, format_name};
-use crate::output::{self, CircuitReport, JsonDiagnostic, Stats};
+use crate::output::{self, CircuitReport, JsonDiagnostic, JsonError, Stats};
 use crate::progress::Progress;
 use crate::python;
 
@@ -137,7 +138,8 @@ fn analyze(
     };
 
     Ok(CircuitReport {
-        name: input.name().to_owned(),
+        filename: input.name().to_owned(),
+        circuit_name: None,
         format: format_name(format),
         qubit_count: response.qubit_count(),
         time_step_count: response.time_step_count(),
@@ -197,7 +199,8 @@ fn report_python(
                 };
 
                 let report = CircuitReport {
-                    name: info.name,
+                    filename: input.name().to_owned(),
+                    circuit_name: Some(info.circuit_name),
                     format: "python",
                     qubit_count: check.qubit_count(),
                     time_step_count: check.time_step_count(),
@@ -280,6 +283,7 @@ struct Reporter {
     stdout: Box<dyn io::Write>,
     stderr: AutoStream<io::Stderr>,
     diagnostics: Vec<JsonDiagnostic>,
+    errors: Vec<JsonError>,
 }
 
 impl Reporter {
@@ -307,6 +311,7 @@ impl Reporter {
             stdout,
             stderr: AutoStream::new(io::stderr(), color),
             diagnostics: Vec::new(),
+            errors: Vec::new(),
         })
     }
 
@@ -316,13 +321,22 @@ impl Reporter {
             OutputFormat::Json => {
                 self.diagnostics
                     .extend(report.diagnostics.iter().map(|diagnostic| {
-                        JsonDiagnostic::new(&report.name, diagnostic, report.source_map.as_deref())
+                        JsonDiagnostic::new(
+                            &report.filename,
+                            report.circuit_name.as_deref(),
+                            diagnostic,
+                            report.source_map.as_deref(),
+                        )
                     }));
             }
         }
     }
 
     fn error(&mut self, error: &CliError) {
+        if self.output_format == OutputFormat::Json {
+            self.errors.push(JsonError::new(error));
+        }
+
         output::human_error(&mut self.stderr, error);
     }
 
@@ -333,7 +347,11 @@ impl Reporter {
                     output::human_summary(&mut self.stdout, stats);
                 }
             }
-            OutputFormat::Json => output::json_report(&mut self.stdout, &self.diagnostics),
+            OutputFormat::Json => output::json_report(
+                &mut self.stdout,
+                mem::take(&mut self.diagnostics),
+                mem::take(&mut self.errors),
+            ),
         }
     }
 }

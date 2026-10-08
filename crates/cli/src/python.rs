@@ -10,6 +10,8 @@ use crate::error::CliError;
 pub(crate) struct CircuitInfo {
     /// The input name followed by the circuit's variable name.
     pub(crate) name: String,
+    /// The circuit's variable name in the source.
+    pub(crate) circuit_name: String,
     pub(crate) circuit: Circuit,
     pub(crate) source_map: Vec<SourceLocation>,
 }
@@ -32,27 +34,29 @@ pub(crate) fn extract_circuits(
     Ok(circuits
         .into_iter()
         .map(|circuit| {
-            let name = format!("{source_name}:{}", circuit.name);
+            let circuit_name = circuit.name.clone();
+            let name = format!("{source_name}:{circuit_name}");
 
-            match circuit.build {
-                Some(build) => Ok(CircuitInfo {
+            if let Some(build) = circuit.build {
+                Ok(CircuitInfo {
                     name,
+                    circuit_name,
                     circuit: build.circuit,
                     source_map: build.source_map,
-                }),
-                None => {
-                    let message = circuit
-                        .issues
-                        .iter()
-                        .map(|issue| issue.message.as_str())
-                        .collect::<Vec<_>>()
-                        .join("; ");
+                })
+            } else {
+                let message = circuit
+                    .issues
+                    .iter()
+                    .map(|issue| issue.message.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; ");
 
-                    Err(CliError::UncheckableCircuit {
-                        source_name: name,
-                        message,
-                    })
-                }
+                Err(CliError::UncheckableCircuit {
+                    filename: source_name.to_owned(),
+                    circuit: circuit_name,
+                    message,
+                })
             }
         })
         .collect())

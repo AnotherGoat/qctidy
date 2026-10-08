@@ -27,9 +27,10 @@ pub(crate) enum CliError {
         source_name: String,
         error: ParseError,
     },
-    #[error("'{source_name}' cannot be checked: {message}")]
+    #[error("'{filename}:{circuit}' cannot be checked: {message}")]
     UncheckableCircuit {
-        source_name: String,
+        filename: String,
+        circuit: String,
         message: String,
     },
     #[error("circuit '{selector}' not found in '{source_name}'")]

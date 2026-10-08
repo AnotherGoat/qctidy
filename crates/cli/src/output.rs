@@ -48,7 +48,10 @@ pub(crate) struct Stats {
 #[derive(Debug)]
 #[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct CircuitReport {
-    pub(crate) name: String,
+    /// The source file the circuit came from.
+    pub(crate) filename: String,
+    /// The circuit's variable name, only filled for Python inputs.
+    pub(crate) circuit_name: Option<String>,
     pub(crate) format: &'static str,
     pub(crate) qubit_count: usize,
     pub(crate) time_step_count: usize,
@@ -60,6 +63,16 @@ pub(crate) struct CircuitReport {
     pub(crate) source_map: Option<Vec<SourceLocation>>,
 }
 
+impl CircuitReport {
+    /// The label shown in human output: `file` or `file:circuit`.
+    fn label(&self) -> String {
+        self.circuit_name.as_ref().map_or_else(
+            || self.filename.clone(),
+            |circuit_name| format!("{}:{circuit_name}", self.filename),
+        )
+    }
+}
+
 /// Write a human-readable report for a single circuit.
 pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet: bool) {
     if quiet {
@@ -69,7 +82,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
             let _quiet_result = writeln!(
                 writer,
                 "{}: {}{} {}: {} {}",
-                paint(DIM, &report.name),
+                paint(DIM, &report.label()),
                 paint_severity(diagnostic.severity()),
                 paint(RULE, &format!("[{}]", metadata.code())),
                 paint(CATEGORY, &format!("({})", metadata.category())),
@@ -85,7 +98,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
         writer,
         "{} {} {}",
         paint(HEADER, "Checking"),
-        report.name,
+        report.label(),
         paint(DIM, &format!("({})", report.format)),
     );
     let _stats_result = writeln!(
@@ -330,6 +343,7 @@ pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Optio
 #[derive(Debug, Serialize)]
 pub(crate) struct JsonDiagnostic {
     filename: String,
+    circuit: Option<String>,
     code: &'static str,
     category: String,
     severity: String,
@@ -337,6 +351,44 @@ pub(crate) struct JsonDiagnostic {
     circuit_positions: Vec<JsonCircuitPosition>,
     operation_indices: Vec<usize>,
     source_locations: Vec<JsonSourceLocation>,
+}
+
+/// A circuit that could not be checked, reported in the JSON report.
+#[derive(Debug, Serialize)]
+pub(crate) struct JsonError {
+    filename: String,
+    circuit: Option<String>,
+    message: String,
+}
+
+impl JsonError {
+    /// Build the JSON error for a CLI error, keeping the circuit when known.
+    #[expect(clippy::wildcard_enum_match_arm, clippy::pattern_type_mismatch)]
+    pub(crate) fn new(error: &CliError) -> Self {
+        match error {
+            CliError::UncheckableCircuit {
+                filename,
+                circuit,
+                message,
+            } => Self {
+                filename: filename.clone(),
+                circuit: Some(circuit.clone()),
+                message: message.clone(),
+            },
+            _ => Self {
+                filename: String::new(),
+                circuit: None,
+                message: error.to_string(),
+            },
+        }
+    }
+}
+
+/// The JSON report for a `check` run.
+#[derive(Debug, Serialize)]
+pub(crate) struct JsonReport {
+    diagnostics: Vec<JsonDiagnostic>,
+    errors: Vec<JsonError>,
 }
 
 #[derive(Debug, Serialize)]
@@ -356,6 +408,7 @@ struct JsonSourceLocation {
 impl JsonDiagnostic {
     pub(crate) fn new(
         filename: &str,
+        circuit: Option<&str>,
         diagnostic: &Diagnostic,
         source_map: Option<&[SourceLocation]>,
     ) -> Self {
@@ -363,6 +416,7 @@ impl JsonDiagnostic {
 
         Self {
             filename: filename.to_owned(),
+            circuit: circuit.map(str::to_owned),
             code: metadata.code(),
             category: metadata.category().to_string(),
             severity: diagnostic.severity().to_string(),
@@ -394,8 +448,17 @@ impl JsonDiagnostic {
 }
 
 /// Write the JSON report to a stream.
-pub(crate) fn json_report(writer: &mut dyn Write, diagnostics: &[JsonDiagnostic]) {
-    if let Ok(json) = serde_json::to_string_pretty(diagnostics) {
+pub(crate) fn json_report(
+    writer: &mut dyn Write,
+    diagnostics: Vec<JsonDiagnostic>,
+    errors: Vec<JsonError>,
+) {
+    let report = JsonReport {
+        diagnostics,
+        errors,
+    };
+
+    if let Ok(json) = serde_json::to_string_pretty(&report) {
         let _json_result = writeln!(writer, "{json}");
     }
 }
