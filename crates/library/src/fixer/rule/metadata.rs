@@ -65,10 +65,6 @@ pub enum RuleCategory {
     /// Examples:
     /// - `RX(a) RX(b) => RX(a+b)`
     AngleMerging,
-    /// Rules that don't fit cleanly into any other category.
-    ///
-    /// Avoided whenever possible for built-in rules.
-    Miscellaneous,
 }
 
 impl fmt::Display for RuleCategory {
@@ -86,7 +82,6 @@ impl fmt::Display for RuleCategory {
             GateSynthesis => "gate-synthesis",
             CxReduction => "cx-reduction",
             AngleMerging => "angle-merging",
-            Miscellaneous => "miscellaneous",
         };
 
         write!(f, "{name}")
@@ -109,7 +104,6 @@ impl RuleCategory {
             GateSynthesis => "G",
             CxReduction => "X",
             AngleMerging => "A",
-            Miscellaneous => "M",
         }
     }
 }

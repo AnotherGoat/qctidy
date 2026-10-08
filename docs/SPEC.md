@@ -90,6 +90,7 @@
 
 - [x] Data model for pattern-based circuit fixing
 - [x] Circuit fixing algorithm
+- [ ] Support custom user-defined rules
 - [ ] Per-qubit gate cache to skip rules with gates not found in the pattern
 - [ ] Skip rules bigger than the circuit's qubit count
 - [ ] Use gate commutation to find more patterns

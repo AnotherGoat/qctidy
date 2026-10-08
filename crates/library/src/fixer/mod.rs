@@ -122,21 +122,6 @@ impl Fixer {
 
         diagnostics
     }
-
-    pub fn fix_with_rules(
-        &self,
-        graph: &mut Graph,
-        extra_rules: Vec<PatternRule>,
-        max_iterations: u32,
-    ) {
-        let mut rules = self.rules.clone();
-
-        for extra_rule in extra_rules {
-            rules.push(Arc::new(extra_rule));
-        }
-
-        fix_internal(graph, &rules, max_iterations);
-    }
 }
 
 pub fn fix(mut graph: Graph, iterations: u32) -> Graph {
@@ -169,10 +154,6 @@ pub fn default_rules() -> Vec<RuleMetadata> {
     rules.sort_by_key(|metadata| *metadata.code());
 
     rules
-}
-
-pub fn fix_with_rules(graph: Graph, _rules: Vec<Arc<dyn Rule>>, _iterations: u32) -> Graph {
-    graph
 }
 
 fn fix_internal(graph: &mut Graph, rules: &[Arc<dyn Rule>], max_iterations: u32) {

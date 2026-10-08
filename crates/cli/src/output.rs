@@ -336,8 +336,7 @@ pub(crate) struct JsonDiagnostic {
     message: &'static str,
     circuit_positions: Vec<JsonCircuitPosition>,
     operation_indices: Vec<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    source_locations: Option<Vec<JsonSourceLocation>>,
+    source_locations: Vec<JsonSourceLocation>,
 }
 
 #[derive(Debug, Serialize)]
@@ -377,7 +376,7 @@ impl JsonDiagnostic {
                 })
                 .collect(),
             operation_indices: diagnostic.operation_indices().clone(),
-            source_locations: source_map.map(|source_map| {
+            source_locations: source_map.map_or_else(Vec::new, |source_map| {
                 diagnostic
                     .operation_indices()
                     .iter()
