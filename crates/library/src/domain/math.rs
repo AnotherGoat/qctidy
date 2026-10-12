@@ -95,7 +95,7 @@ pub(crate) fn normalize_angle(angle: f64, full_cycle: f64) -> Result<f64, &'stat
 
     let mut result = angle % full_cycle;
 
-    if result < 0.0_f64 {
+    if result < 0.0 {
         result += full_cycle;
     }
 

@@ -20,7 +20,7 @@ use crate::python;
 
 /// Run the `check` command.
 pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
-    let configuration = match build_configuration(&arguments.select, &arguments.ignore) {
+    let configuration = match build_configuration(arguments.select(), arguments.ignore()) {
         Ok(configuration) => configuration,
         Err(error) => {
             let mut stderr = AutoStream::new(io::stderr(), color);
@@ -28,16 +28,16 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let inputs: Vec<_> = Input::resolve(&arguments.input)
+    let inputs: Vec<_> = Input::resolve(arguments.input())
         .into_iter()
-        .map(|input| input.named(arguments.input_name.as_deref()))
+        .map(|input| input.named(arguments.input_name().as_deref()))
         .collect();
-    let snippets = arguments.verbose && arguments.output_format == OutputFormat::Human;
+    let snippets = arguments.verbose() && arguments.output_format() == OutputFormat::Human;
     let mut reporter = match Reporter::new(
-        arguments.output_format,
+        arguments.output_format(),
         color,
-        arguments.quiet,
-        arguments.output.as_deref(),
+        arguments.quiet(),
+        arguments.output().as_deref(),
     ) {
         Ok(reporter) => reporter,
         Err(error) => {
@@ -58,32 +58,32 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
                 input,
                 snippets,
                 &session,
-                arguments.circuit.as_deref(),
+                arguments.circuit().as_deref(),
                 &mut reporter,
                 &mut stats,
             );
             continue;
         }
 
-        if arguments.circuit.is_some() {
+        if arguments.circuit().is_some() {
             drop(progress);
-            stats.errors += 1;
+            *stats.errors_mut() += 1;
             reporter.error(&CliError::CircuitSelectorNotPython);
             continue;
         }
 
-        match analyze(input, arguments.input_format, snippets, &session) {
+        match analyze(input, arguments.input_format(), snippets, &session) {
             Ok(report) => {
                 drop(progress);
 
-                stats.circuits += 1;
-                stats.diagnostics += report.diagnostics.len();
+                *stats.circuits_mut() += 1;
+                *stats.diagnostics_mut() += report.diagnostics().len();
                 reporter.report(&report);
             }
             Err(error) => {
                 drop(progress);
 
-                stats.errors += 1;
+                *stats.errors_mut() += 1;
                 reporter.error(&error);
             }
         }
@@ -91,7 +91,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
 
     reporter.finish(&stats);
 
-    exit_code(&stats, arguments.no_fail)
+    exit_code(&stats, arguments.no_fail())
 }
 
 fn analyze(
@@ -137,17 +137,17 @@ fn analyze(
         Vec::new()
     };
 
-    Ok(CircuitReport {
-        filename: input.name().to_owned(),
-        circuit_name: None,
-        format: format_name(format),
-        qubit_count: response.qubit_count(),
-        time_step_count: response.time_step_count(),
-        gate_count: response.gate_count(),
-        diagnostics: response.diagnostics().clone(),
+    Ok(CircuitReport::new(
+        input.name().to_owned(),
+        None,
+        format_name(format),
+        response.qubit_count(),
+        response.time_step_count(),
+        response.gate_count(),
+        response.diagnostics().clone(),
         snippets,
-        source_map: None,
-    })
+        None,
+    ))
 }
 
 fn report_python(
@@ -161,7 +161,7 @@ fn report_python(
     let bytes = match input.read() {
         Ok(bytes) => bytes,
         Err(error) => {
-            stats.errors += 1;
+            *stats.errors_mut() += 1;
             reporter.error(&CliError::Read {
                 source_name: input.name().to_owned(),
                 error,
@@ -174,7 +174,7 @@ fn report_python(
     let outcomes = match python::extract_circuits(&source, input.name(), selector) {
         Ok(outcomes) => outcomes,
         Err(error) => {
-            stats.errors += 1;
+            *stats.errors_mut() += 1;
             reporter.error(&error);
             return;
         }
@@ -183,9 +183,9 @@ fn report_python(
     for outcome in outcomes {
         match outcome {
             Ok(info) => {
-                let check = session.check(&info.circuit);
+                let check = session.check(info.circuit());
                 let circuit_snippets = if snippets {
-                    let graph = Graph::from(&info.circuit);
+                    let graph = Graph::from(info.circuit());
 
                     check
                         .diagnostics()
@@ -198,24 +198,24 @@ fn report_python(
                     Vec::new()
                 };
 
-                let report = CircuitReport {
-                    filename: input.name().to_owned(),
-                    circuit_name: Some(info.circuit_name),
-                    format: "python",
-                    qubit_count: check.qubit_count(),
-                    time_step_count: check.time_step_count(),
-                    gate_count: check.gate_count(),
-                    diagnostics: check.diagnostics().clone(),
-                    snippets: circuit_snippets,
-                    source_map: Some(info.source_map),
-                };
+                let report = CircuitReport::new(
+                    input.name().to_owned(),
+                    Some(info.circuit_name().clone()),
+                    "python",
+                    check.qubit_count(),
+                    check.time_step_count(),
+                    check.gate_count(),
+                    check.diagnostics().clone(),
+                    circuit_snippets,
+                    Some(info.source_map().clone()),
+                );
 
-                stats.circuits += 1;
-                stats.diagnostics += report.diagnostics.len();
+                *stats.circuits_mut() += 1;
+                *stats.diagnostics_mut() += report.diagnostics().len();
                 reporter.report(&report);
             }
             Err(error) => {
-                stats.errors += 1;
+                *stats.errors_mut() += 1;
                 reporter.error(&error);
             }
         }
@@ -226,7 +226,7 @@ fn report_python(
 ///
 /// When `--select` is given, only the selected rules run; otherwise every rule
 /// runs. `--ignore` always disables the given rules.
-fn build_configuration(
+pub(crate) fn build_configuration(
     select: &[String],
     ignore: &[String],
 ) -> Result<RuleConfiguration, CliError> {
@@ -268,9 +268,9 @@ fn validate_selectors(select: &[String], ignore: &[String]) -> Result<(), CliErr
 }
 
 fn exit_code(stats: &Stats, no_fail: bool) -> ExitCode {
-    if stats.errors > 0 {
+    if stats.errors() > 0 {
         ExitCode::from(2)
-    } else if stats.diagnostics > 0 && !no_fail {
+    } else if stats.diagnostics() > 0 && !no_fail {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS
@@ -320,12 +320,12 @@ impl Reporter {
             OutputFormat::Human => output::human_report(&mut self.stdout, report, self.quiet),
             OutputFormat::Json => {
                 self.diagnostics
-                    .extend(report.diagnostics.iter().map(|diagnostic| {
+                    .extend(report.diagnostics().iter().map(|diagnostic| {
                         JsonDiagnostic::new(
-                            &report.filename,
-                            report.circuit_name.as_deref(),
+                            report.filename(),
+                            report.circuit_name().as_deref(),
                             diagnostic,
-                            report.source_map.as_deref(),
+                            report.source_map().as_deref(),
                         )
                     }));
             }
@@ -353,104 +353,5 @@ impl Reporter {
                 mem::take(&mut self.errors),
             ),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use qctidy::{RuleCategory, RuleMetadata};
-
-    fn codes(values: &[&str]) -> Vec<String> {
-        values.iter().map(|value| (*value).to_owned()).collect()
-    }
-
-    fn rule_in(category: RuleCategory) -> RuleMetadata {
-        *fixer::default_rules()
-            .iter()
-            .find(|metadata| metadata.category() == category)
-            .expect("the category should have at least one rule")
-    }
-
-    fn rule_outside(category: RuleCategory) -> RuleMetadata {
-        *fixer::default_rules()
-            .iter()
-            .find(|metadata| metadata.category() != category)
-            .expect("there should be rules outside the category")
-    }
-
-    #[test]
-    fn no_selectors_enables_every_rule() {
-        let configuration = build_configuration(&[], &[]).unwrap();
-        let redundancy = rule_in(RuleCategory::Redundancy);
-
-        assert_eq!(configuration.severity(&redundancy), RuleSeverity::Warn);
-    }
-
-    #[test]
-    fn select_restricts_the_enabled_rules() {
-        let configuration = build_configuration(&codes(&["R"]), &[]).unwrap();
-
-        assert_eq!(
-            configuration.severity(&rule_in(RuleCategory::Redundancy)),
-            RuleSeverity::Warn
-        );
-        assert_eq!(
-            configuration.severity(&rule_outside(RuleCategory::Redundancy)),
-            RuleSeverity::Off
-        );
-    }
-
-    #[test]
-    fn ignore_disables_the_given_rules() {
-        let configuration = build_configuration(&[], &codes(&["R"])).unwrap();
-
-        assert_eq!(
-            configuration.severity(&rule_in(RuleCategory::Redundancy)),
-            RuleSeverity::Off
-        );
-        assert_eq!(
-            configuration.severity(&rule_outside(RuleCategory::Redundancy)),
-            RuleSeverity::Warn
-        );
-    }
-
-    #[test]
-    fn ignore_wins_over_select_for_the_same_selector() {
-        let configuration = build_configuration(&codes(&["R"]), &codes(&["R"])).unwrap();
-
-        assert_eq!(
-            configuration.severity(&rule_in(RuleCategory::Redundancy)),
-            RuleSeverity::Off
-        );
-    }
-
-    #[test]
-    fn a_rule_selector_wins_over_a_category_selector() {
-        let redundancy = rule_in(RuleCategory::Redundancy);
-        let configuration =
-            build_configuration(&codes(&["R"]), &codes(&[*redundancy.code()])).unwrap();
-
-        assert_eq!(configuration.severity(&redundancy), RuleSeverity::Off);
-    }
-
-    #[test]
-    fn repeated_selectors_are_ignored() {
-        let configuration = build_configuration(&codes(&["R", "R", "R"]), &[]).unwrap();
-
-        assert_eq!(
-            configuration.severity(&rule_in(RuleCategory::Redundancy)),
-            RuleSeverity::Warn
-        );
-    }
-
-    #[test]
-    fn unknown_selectors_are_rejected() {
-        let error = build_configuration(&codes(&["NOPE"]), &[]).unwrap_err();
-
-        assert!(matches!(
-            error,
-            CliError::UnknownRuleSelector { selector } if selector == "NOPE"
-        ));
     }
 }

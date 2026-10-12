@@ -14,9 +14,9 @@ use qctidy::GateType;
 #[expect(clippy::unnested_or_patterns)]
 static EXPECTED_SY: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
-        (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5_f64, 0.5_f64),
-        (0, 1) => Complex64::new(-0.5_f64, -0.5_f64),
-        _ => Complex64::new(0.0_f64, 0.0_f64),
+        (0, 0) | (1, 0) | (1, 1) => Complex64::new(0.5, 0.5),
+        (0, 1) => Complex64::new(-0.5, -0.5),
+        _ => Complex64::new(0.0, 0.0),
     })
 });
 
@@ -196,7 +196,7 @@ fn extract_qubit_indices(
         for entry in registers.try_iter()? {
             let entry = entry?;
 
-            let qubit_index: usize = entry.get_item(1_i32)?.extract()?;
+            let qubit_index: usize = entry.get_item(1)?.extract()?;
             qubits.push(qubit_index);
         }
     }
@@ -220,7 +220,7 @@ fn extract_bit_indices(
         for entry in registers.try_iter()? {
             let entry = entry?;
 
-            let bit_index: usize = entry.get_item(1_i32)?.extract()?;
+            let bit_index: usize = entry.get_item(1)?.extract()?;
             bits.push(bit_index);
         }
     }

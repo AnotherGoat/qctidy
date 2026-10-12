@@ -25,6 +25,7 @@ qctidy-python = { path = "../python" }
 anstream = { workspace = true }
 anstyle = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
+getset = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

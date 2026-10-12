@@ -151,7 +151,7 @@ async fn convert_returns_json_circuit_inline_when_target_is_json() {
     let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
     assert_eq!(body["source_format"], "xml");
     assert_eq!(body["target_format"], "json");
-    assert_eq!(body["circuit"]["qubit_count"], 1_i32);
+    assert_eq!(body["circuit"]["qubit_count"], 1);
     assert!(body["circuit"]["operations"].is_array());
 }
 
@@ -168,8 +168,8 @@ async fn convert_rejects_matching_source_and_target_formats() {
         "source_format": "json",
         "target_format": "json",
         "circuit": {
-            "version": 1_i32,
-            "qubit_count": 1_i32,
+            "version": 1,
+            "qubit_count": 1,
             "operations": []
         }
     });
@@ -197,10 +197,10 @@ async fn convert_returns_base64_circuit_envelope_when_target_is_binary() {
         "source_format": "json",
         "target_format": "cbor",
         "circuit": {
-            "version": 1_i32,
-            "qubit_count": 1_i32,
+            "version": 1,
+            "qubit_count": 1,
             "operations": [
-                { "gate": "h", "qubit": 0_i32 }
+                { "gate": "h", "qubit": 0 }
             ]
         }
     });

@@ -29,7 +29,7 @@ impl CodegenPort for CodegenAdapter {
             Qiskit => {
                 #[cfg(feature = "codegen-qiskit")]
                 {
-                    qiskit::generate(graph, circuit_name.unwrap_or("circuit"))
+                    Ok(qiskit::generate(graph, circuit_name.unwrap_or("circuit")))
                 }
                 #[cfg(not(feature = "codegen-qiskit"))]
                 {
@@ -42,7 +42,7 @@ impl CodegenPort for CodegenAdapter {
             OpenQasm3 => {
                 #[cfg(feature = "codegen-openqasm3")]
                 {
-                    openqasm3::generate(graph)
+                    Ok(openqasm3::generate(graph))
                 }
                 #[cfg(not(feature = "codegen-openqasm3"))]
                 {

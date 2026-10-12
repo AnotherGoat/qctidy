@@ -61,29 +61,29 @@ fn build_hierarchy(root: Node, source: &str) -> PythonAnalysis {
 
 #[must_use]
 fn process_scope(scope_node: Node, scope_type: ScopeType, source: &str) -> Scope {
-    let name = scope_node
-        .child_by_field_name("name")
-        .map(|name| node_text(name, source))
-        .unwrap_or_else(|| {
+    let name = scope_node.child_by_field_name("name").map_or_else(
+        || {
             if scope_type == ScopeType::Class {
-                "Anonymous class".to_string()
+                "Anonymous class".to_owned()
             } else {
-                "Anonymous function".to_string()
+                "Anonymous function".to_owned()
             }
-        });
+        },
+        |name| node_text(name, source),
+    );
 
     let mut children = Vec::new();
 
-    if scope_type == ScopeType::Class {
-        if let Some(body) = scope_node.child_by_field_name("body") {
-            for child in named_children(body) {
-                if child.kind() == "function_definition" {
-                    children.push(ScopeChild::Scope(process_scope(
-                        child,
-                        ScopeType::Function,
-                        source,
-                    )));
-                }
+    if scope_type == ScopeType::Class
+        && let Some(body) = scope_node.child_by_field_name("body")
+    {
+        for child in named_children(body) {
+            if child.kind() == "function_definition" {
+                children.push(ScopeChild::Scope(process_scope(
+                    child,
+                    ScopeType::Function,
+                    source,
+                )));
             }
         }
     }
@@ -136,35 +136,32 @@ fn find_assignments(
         let left = node.child_by_field_name("left");
         let right = node.child_by_field_name("right");
 
-        if let (Some(left), Some(right)) = (left, right) {
-            if right.kind() == "call" {
-                if let Some(function) = right.child_by_field_name("function") {
-                    let function_text = node_text(function, source);
+        if let (Some(left), Some(right)) = (left, right)
+            && right.kind() == "call"
+            && let Some(function) = right.child_by_field_name("function")
+        {
+            let function_text = node_text(function, source);
 
-                    if function_text == "QuantumCircuit"
-                        || function_text.ends_with(".QuantumCircuit")
-                    {
-                        let variable_name = node_text(left, source);
-                        let arguments = right.child_by_field_name("arguments");
-                        let (qubits, clbits) = circuit_counts(arguments, source);
-                        let start = node.start_position();
+            if function_text == "QuantumCircuit" || function_text.ends_with(".QuantumCircuit") {
+                let variable_name = node_text(left, source);
+                let arguments = right.child_by_field_name("arguments");
+                let (qubits, clbits) = circuit_counts(arguments, source);
+                let start = node.start_position();
 
-                        let circuit = ParsedCircuit {
-                            name: variable_name.clone(),
-                            qubits,
-                            clbits,
-                            line: start.row,
-                            column: start.column,
-                            gates: Vec::new(),
-                            issues: Vec::new(),
-                            build: None,
-                        };
+                let circuit = ParsedCircuit {
+                    name: variable_name.clone(),
+                    qubits,
+                    clbits,
+                    line: start.row,
+                    column: start.column,
+                    gates: Vec::new(),
+                    issues: Vec::new(),
+                    build: None,
+                };
 
-                        let index = circuits.len();
-                        circuits.push(circuit);
-                        variable_map.entry(variable_name).or_default().push(index);
-                    }
-                }
+                let index = circuits.len();
+                circuits.push(circuit);
+                variable_map.entry(variable_name).or_default().push(index);
             }
         }
     }
@@ -185,42 +182,41 @@ fn find_gate_calls(
         return;
     }
 
-    if node.kind() == "call" {
-        if let Some(function) = node.child_by_field_name("function") {
-            if function.kind() == "attribute" {
-                let object = function.child_by_field_name("object");
-                let attribute = function.child_by_field_name("attribute");
+    if node.kind() == "call"
+        && let Some(function) = node.child_by_field_name("function")
+        && function.kind() == "attribute"
+    {
+        let object = function.child_by_field_name("object");
+        let attribute = function.child_by_field_name("attribute");
 
-                if let (Some(object), Some(attribute)) = (object, attribute) {
-                    let object_text = node_text(object, source);
+        if let (Some(object), Some(attribute)) = (object, attribute) {
+            let object_text = node_text(object, source);
 
-                    if let Some(candidates) = variable_map.get(&object_text) {
-                        let call_line = node.start_position().row;
-                        let mut target = candidates[0];
+            if let Some(candidates) = variable_map.get(&object_text) {
+                let call_line = node.start_position().row;
+                let mut target = candidates[0];
 
-                        for &candidate in candidates {
-                            if circuits[candidate].line <= call_line {
-                                target = candidate;
-                            }
-                        }
-
-                        let gate_method = node_text(attribute, source);
-                        let arguments = node.child_by_field_name("arguments");
-                        let call_arguments = collect_arguments(arguments, source);
-                        let start = node.start_position();
-                        let end = node.end_position();
-
-                        if let Some(gate) = parse_gate_call(
-                            &gate_method,
-                            &call_arguments,
-                            start.row,
-                            start.column,
-                            end.row,
-                            end.column,
-                        ) {
-                            circuits[target].gates.push(gate);
-                        }
+                for &candidate in candidates {
+                    if circuits[candidate].line <= call_line {
+                        target = candidate;
                     }
+                }
+
+                let gate_method = node_text(attribute, source);
+                let arguments = node.child_by_field_name("arguments");
+                let call_arguments = collect_arguments(arguments, source);
+                let start = node.start_position();
+                let end = node.end_position();
+
+                if let Some(gate) = parse_gate_call(
+                    &gate_method,
+                    &call_arguments,
+                    start.row,
+                    start.column,
+                    end.row,
+                    end.column,
+                ) {
+                    circuits[target].gates.push(gate);
                 }
             }
         }
@@ -249,8 +245,8 @@ fn collect_arguments(arguments: Option<Node>, source: &str) -> Vec<Argument> {
 
 #[must_use]
 fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
-    let mut qubits = "0".to_string();
-    let mut clbits = "0".to_string();
+    let mut qubits = "0".to_owned();
+    let mut clbits = "0".to_owned();
 
     let Some(arguments) = arguments else {
         return (qubits, clbits);
@@ -269,10 +265,10 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
 
             match key_name.as_deref() {
                 Some("qubits" | "num_qubits") => {
-                    qubits = value.unwrap_or_else(|| "0".to_string());
+                    qubits = value.unwrap_or_else(|| "0".to_owned());
                 }
                 Some("clbits" | "num_clbits") => {
-                    clbits = value.unwrap_or_else(|| "0".to_string());
+                    clbits = value.unwrap_or_else(|| "0".to_owned());
                 }
                 _ => {}
             }
@@ -366,7 +362,7 @@ fn build_circuit(circuit: &ParsedCircuit) -> Option<CircuitBuild> {
 
 #[must_use]
 fn node_text(node: Node, source: &str) -> String {
-    node.utf8_text(source.as_bytes()).unwrap_or("").to_string()
+    node.utf8_text(source.as_bytes()).unwrap_or("").to_owned()
 }
 
 #[must_use]
@@ -382,3 +378,6 @@ fn named_children(node: Node) -> Vec<Node> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod expressions_tests;

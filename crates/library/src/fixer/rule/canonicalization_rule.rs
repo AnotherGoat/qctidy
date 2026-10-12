@@ -3,6 +3,9 @@ use std::{any::Any, collections::HashSet};
 
 use crate::{GateType, Graph, Position, Rule, RuleMetadata};
 
+/// A function that detects the positions a canonicalization rule applies to.
+type DetectFunction = Box<dyn Fn(&Graph) -> Vec<HashSet<Position>> + Send + Sync>;
+
 /// A fix rule that applies a canonicalization transformation to the entire graph.
 ///
 /// Unlike `PatternRule` which matches and replaces specific subgraph patterns, canonicalization rules perform global transformations on the graph structure.
@@ -11,7 +14,7 @@ pub struct CanonicalizationRule {
     gate_types: HashSet<GateType>,
     width: usize,
     height: usize,
-    detect_function: Box<dyn Fn(&Graph) -> Vec<HashSet<Position>> + Send + Sync>,
+    detect_function: DetectFunction,
     apply_function: Box<dyn Fn(&mut Graph) -> bool + Send + Sync>,
 }
 
@@ -33,7 +36,7 @@ impl CanonicalizationRule {
         gate_types: HashSet<GateType>,
         width: usize,
         height: usize,
-        detect_function: Box<dyn Fn(&Graph) -> Vec<HashSet<Position>> + Send + Sync>,
+        detect_function: DetectFunction,
         apply_function: Box<dyn Fn(&mut Graph) -> bool + Send + Sync>,
     ) -> Self {
         Self {

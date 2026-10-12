@@ -2,6 +2,7 @@ use qctidy::GateType;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 #[derive(Debug, Clone)]
+#[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct BinaryGateType(pub(crate) GateType);
 
 impl Serialize for BinaryGateType {
@@ -9,7 +10,7 @@ impl Serialize for BinaryGateType {
     where
         S: Serializer,
     {
-        serializer.serialize_u8(self.0.into())
+        serializer.serialize_u8(self.0 as u8)
     }
 }
 

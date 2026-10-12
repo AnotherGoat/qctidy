@@ -12,7 +12,7 @@ pub(crate) struct Argument {
 
 impl Argument {
     #[must_use]
-    pub(crate) fn new(text: String, line: usize, column: usize) -> Self {
+    pub(crate) const fn new(text: String, line: usize, column: usize) -> Self {
         Self { text, line, column }
     }
 }
@@ -29,8 +29,8 @@ pub(crate) fn parse_gate_call(
     end_column: usize,
 ) -> Option<ParsedGate> {
     let raw: Vec<&str> = args.iter().map(|argument| argument.text.as_str()).collect();
-    let mut gate_name = gate_method.to_string();
-    let mut display_name = gate_method.to_string();
+    let mut gate_name = gate_method.to_owned();
+    let mut display_name = gate_method.to_owned();
     let mut description = String::new();
     let mut operation = None;
     let mut reason = None;
@@ -44,35 +44,30 @@ pub(crate) fn parse_gate_call(
         let qubit = raw.get(1).and_then(|text| extract_first_integer(text));
         let is_sqrt_y = first_argument.contains("YGate") && first_argument.contains("power");
 
-        match (is_sqrt_y, qubit) {
-            (true, Some(qubit)) => {
-                gate_name = "sqrt(Y)".to_string();
-                display_name = "sqrt(Y)".to_string();
-                operation = Some(GateOperation::sy(qubit));
+        if let (true, Some(qubit)) = (is_sqrt_y, qubit) {
+            gate_name = "sqrt(Y)".to_owned();
+            display_name = "sqrt(Y)".to_owned();
+            operation = Some(GateOperation::sy(qubit));
 
-                let mut power_value = "1/2".to_string();
-                if let Some(inner) = extract_power(first_argument) {
-                    power_value = inner.trim().to_string();
-                }
+            let power_value = extract_power(first_argument)
+                .map_or_else(|| "1/2".to_owned(), |inner| inner.trim().to_owned());
 
-                add_parameter(
-                    &mut parameters,
-                    args,
-                    "power",
-                    0,
-                    Some(&power_value),
-                    line,
-                    column,
-                );
-                add_parameter(&mut parameters, args, "qubits", 1, None, line, column);
-                description = format!("power: {power_value}, q: {}", raw_arg(&raw, 1));
-            }
-            _ => {
-                display_name = "append".to_string();
-                append_parameters(&mut parameters, args, line, column);
-                description = raw.join(", ");
-                reason = Some("unsupported append call".to_string());
-            }
+            add_parameter(
+                &mut parameters,
+                args,
+                "power",
+                0,
+                Some(&power_value),
+                line,
+                column,
+            );
+            add_parameter(&mut parameters, args, "qubits", 1, None, line, column);
+            description = format!("power: {power_value}, q: {}", raw_arg(&raw, 1));
+        } else {
+            display_name = "append".to_owned();
+            append_parameters(&mut parameters, args, line, column);
+            description = raw.join(", ");
+            reason = Some("unsupported append call".to_owned());
         }
     } else {
         let method = gate_method.to_lowercase();
@@ -89,12 +84,8 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "p" | "rx" | "ry" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "theta", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "qubit", 1, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "theta", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "qubit", 1, line, column);
 
                 description = format!("θ: {}, q: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
@@ -107,12 +98,8 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "rz" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "theta", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "qubit", 1, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "theta", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "qubit", 1, line, column);
 
                 description = format!("θ: {}, q: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
@@ -121,18 +108,10 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "u" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "theta", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "phi", 1, None, line, column);
-                }
-                if raw.get(2).is_some() {
-                    add_parameter(&mut parameters, args, "lam", 2, None, line, column);
-                }
-                if raw.get(3).is_some() {
-                    add_parameter(&mut parameters, args, "qubit", 3, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "theta", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "phi", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "lam", 2, line, column);
+                add_optional_parameter(&mut parameters, args, "qubit", 3, line, column);
 
                 description = format!(
                     "θ: {}, φ: {}, λ: {}, q: {}",
@@ -154,29 +133,22 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "swap" | "cz" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "qubit 1", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "qubit 2", 1, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "qubit 1", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "qubit 2", 1, line, column);
 
                 description = format!("q1: {}, q2: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
                 if let (Some(qubit1), Some(qubit2)) = (integer(0), integer(1)) {
-                    operation = Some(match method.as_str() {
-                        "swap" => GateOperation::Swap { qubit1, qubit2 },
-                        _ => GateOperation::CZ { qubit1, qubit2 },
+                    operation = Some(if method == "swap" {
+                        GateOperation::Swap { qubit1, qubit2 }
+                    } else {
+                        GateOperation::CZ { qubit1, qubit2 }
                     });
                 }
             }
             "ch" | "cx" | "cy" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "control", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "target", 1, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "control", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "target", 1, line, column);
 
                 description = format!("ctrl: {}, tgt: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
@@ -189,15 +161,9 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "cp" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "theta", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "control", 1, None, line, column);
-                }
-                if raw.get(2).is_some() {
-                    add_parameter(&mut parameters, args, "target", 2, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "theta", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "control", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "target", 2, line, column);
 
                 description = format!(
                     "θ: {}, ctrl: {}, tgt: {}",
@@ -217,15 +183,9 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "cswap" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "control", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "target 1", 1, None, line, column);
-                }
-                if raw.get(2).is_some() {
-                    add_parameter(&mut parameters, args, "target 2", 2, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "control", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "target 1", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "target 2", 2, line, column);
 
                 description = format!(
                     "ctrl: {}, tgt: {}, {}",
@@ -245,15 +205,9 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "ccx" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "control 1", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "control 2", 1, None, line, column);
-                }
-                if raw.get(2).is_some() {
-                    add_parameter(&mut parameters, args, "target", 2, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "control 1", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "control 2", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "target", 2, line, column);
 
                 description = format!(
                     "ctrl: {}, {}, tgt: {}",
@@ -273,15 +227,9 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "ccz" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "control 1", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "control 2", 1, None, line, column);
-                }
-                if raw.get(2).is_some() {
-                    add_parameter(&mut parameters, args, "target", 2, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "control 1", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "control 2", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "target", 2, line, column);
 
                 description = format!(
                     "ctrl: {}, {}, tgt: {}",
@@ -301,12 +249,8 @@ pub(crate) fn parse_gate_call(
                 }
             }
             "measure" => {
-                if !raw.is_empty() {
-                    add_parameter(&mut parameters, args, "qubit", 0, None, line, column);
-                }
-                if raw.get(1).is_some() {
-                    add_parameter(&mut parameters, args, "clbit", 1, None, line, column);
-                }
+                add_optional_parameter(&mut parameters, args, "qubit", 0, line, column);
+                add_optional_parameter(&mut parameters, args, "clbit", 1, line, column);
 
                 description = format!("q: {} → c: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
@@ -392,11 +336,24 @@ fn add_parameter(
         .unwrap_or("");
 
     parameters.push(GateParameter {
-        name: name.to_string(),
-        value: value.to_string(),
+        name: name.to_owned(),
+        value: value.to_owned(),
         line: argument.map_or(line, |argument| argument.line),
         column: argument.map_or(column, |argument| argument.column),
     });
+}
+
+fn add_optional_parameter(
+    parameters: &mut Vec<GateParameter>,
+    args: &[Argument],
+    name: &str,
+    index: usize,
+    line: usize,
+    column: usize,
+) {
+    if args.get(index).is_some() {
+        add_parameter(parameters, args, name, index, None, line, column);
+    }
 }
 
 fn append_parameters(
@@ -422,7 +379,7 @@ fn extract_first_integer(text: &str) -> Option<usize> {
     let digits: String = text
         .chars()
         .skip_while(|character| !character.is_ascii_digit())
-        .take_while(|character| character.is_ascii_digit())
+        .take_while(char::is_ascii_digit)
         .collect();
 
     digits.parse().ok()

@@ -86,7 +86,6 @@ impl GraphStatistics {
 #[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct PatternRule {
     /// Metadata associated with the rule.
-    #[get = "pub"]
     metadata: RuleMetadata,
     /// The left-hand side of the rule, which is the pattern to match.
     #[get = "pub"]

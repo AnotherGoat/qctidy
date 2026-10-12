@@ -111,11 +111,9 @@ pub(crate) fn compact_columns() -> CanonicalizationRule {
                 .map(|node| node.position().column())
                 .collect();
 
-            if columns.is_empty() {
+            let Some(&max_column) = columns.iter().max() else {
                 return Vec::new();
-            }
-
-            let max_column = *columns.iter().max().unwrap();
+            };
             let has_gap = (0..=max_column).any(|column| !columns.contains(&column));
 
             if !has_gap {
@@ -176,7 +174,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                 .iter_nodes_ordered_by_row()
                 .filter(|node| {
                     node.semantic_angle()
-                        .is_some_and(|angle| !(0.0_f64..math::FULL_CYCLE).contains(&angle))
+                        .is_some_and(|angle| !(0.0..math::FULL_CYCLE).contains(&angle))
                 })
                 .map(|node| HashSet::from([node.position()]))
                 .collect()
@@ -214,9 +212,10 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
                 if let Ok(normalized) = normalized
                     && !math::are_floats_equal(angle, normalized)
                 {
-                    let (theta, phi, lambda) = match gate {
-                        RZ => (node.theta(), Some(normalized), node.lambda()),
-                        _ => (Some(normalized), node.phi(), node.lambda()),
+                    let (theta, phi, lambda) = if gate == RZ {
+                        (node.theta(), Some(normalized), node.lambda())
+                    } else {
+                        (Some(normalized), node.phi(), node.lambda())
                     };
 
                     graph.replace_node(gate, position, theta, phi, lambda, node.bit());

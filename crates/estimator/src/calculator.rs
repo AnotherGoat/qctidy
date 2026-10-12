@@ -1,7 +1,9 @@
 use crate::models::{EstimatedCost, ProviderCostEstimates};
+use qctidy::number::truncate_usize_to_f64;
 use serde_json::Value;
 
 /// Combine pricing data with simulated heuristic time to calculate costs in USD.
+#[must_use]
 pub fn calculate_costs(
     pricing_data: &Value,
     heuristic_time: f64,
@@ -22,8 +24,8 @@ pub fn calculate_costs(
         };
 
         provider_estimates.push(ProviderCostEstimates {
-            provider: "AWS Braket".to_string(),
-            status: status.to_string(),
+            provider: "AWS Braket".to_owned(),
+            status: status.to_owned(),
             estimates,
         });
     }
@@ -37,8 +39,8 @@ pub fn calculate_costs(
         };
 
         provider_estimates.push(ProviderCostEstimates {
-            provider: "IBM Quantum".to_string(),
-            status: status.to_string(),
+            provider: "IBM Quantum".to_owned(),
+            status: status.to_owned(),
             estimates,
         });
     }
@@ -58,7 +60,7 @@ fn string_field(value: &Value, key: &str) -> String {
         .get(key)
         .and_then(Value::as_str)
         .unwrap_or("-")
-        .to_string()
+        .to_owned()
 }
 
 fn aws_estimates(aws_data: &Value, shots: usize) -> Vec<EstimatedCost> {
@@ -79,10 +81,10 @@ fn aws_estimates(aws_data: &Value, shots: usize) -> Vec<EstimatedCost> {
             EstimatedCost {
                 provider: string_field(item, "hardware_provider"),
                 plan_name: string_field(item, "qpu_family"),
-                price_label: "Per task + per shot".to_string(),
+                price_label: "Per task + per shot".to_owned(),
                 cost_usd: per_task
                     .zip(per_shot)
-                    .map(|(task, shot)| task + shots as f64 * shot),
+                    .map(|(task, shot)| truncate_usize_to_f64(shots).mul_add(shot, task)),
             }
         })
         .collect()
@@ -105,7 +107,7 @@ fn ibm_estimates(ibm_data: &Value, heuristic_time: f64, base_time_ns: f64) -> Ve
             let price_per_second = plan.get("price_usd_per_second").and_then(Value::as_f64);
 
             EstimatedCost {
-                provider: "IBM".to_string(),
+                provider: "IBM".to_owned(),
                 plan_name: string_field(plan, "plan"),
                 price_label: string_field(plan, "price_label"),
                 cost_usd: price_per_second.map(|price| real_time_seconds * price),

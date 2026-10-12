@@ -4,6 +4,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use anstyle::{AnsiColor, Color, Style};
+use getset::{CopyGetters, Getters, MutGetters};
 use qctidy::{Graph, Position, RuleSeverity};
 use qctidy_facade::Diagnostic;
 use qctidy_ports::SourceLocation;
@@ -36,31 +37,72 @@ const MATCH: Style = Style::new()
     .fg_color(Some(Color::Ansi(AnsiColor::Yellow)));
 
 /// Aggregated results for every checked circuit.
-#[derive(Debug, Default)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Default, CopyGetters, MutGetters)]
 pub(crate) struct Stats {
-    pub(crate) circuits: usize,
-    pub(crate) diagnostics: usize,
-    pub(crate) errors: usize,
+    #[get_copy = "pub(crate)"]
+    #[get_mut = "pub(crate)"]
+    circuits: usize,
+    #[get_copy = "pub(crate)"]
+    #[get_mut = "pub(crate)"]
+    diagnostics: usize,
+    #[get_copy = "pub(crate)"]
+    #[get_mut = "pub(crate)"]
+    errors: usize,
 }
 
 /// The check results for a single circuit.
-#[derive(Debug)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Getters, CopyGetters)]
 pub(crate) struct CircuitReport {
     /// The source file the circuit came from.
-    pub(crate) filename: String,
+    #[get = "pub(crate)"]
+    filename: String,
     /// The circuit's variable name, only filled for Python inputs.
-    pub(crate) circuit_name: Option<String>,
-    pub(crate) format: &'static str,
-    pub(crate) qubit_count: usize,
-    pub(crate) time_step_count: usize,
-    pub(crate) gate_count: usize,
-    pub(crate) diagnostics: Vec<Diagnostic>,
+    #[get = "pub(crate)"]
+    circuit_name: Option<String>,
+    #[get_copy = "pub(crate)"]
+    format: &'static str,
+    #[get_copy = "pub(crate)"]
+    qubit_count: usize,
+    #[get_copy = "pub(crate)"]
+    time_step_count: usize,
+    #[get_copy = "pub(crate)"]
+    gate_count: usize,
+    #[get = "pub(crate)"]
+    diagnostics: Vec<Diagnostic>,
     /// One optional snippet per diagnostic, only filled when snippets are enabled.
-    pub(crate) snippets: Vec<Option<String>>,
+    #[get = "pub(crate)"]
+    snippets: Vec<Option<String>>,
     /// Maps operation indices to source ranges, only filled for Python inputs.
-    pub(crate) source_map: Option<Vec<SourceLocation>>,
+    #[get = "pub(crate)"]
+    source_map: Option<Vec<SourceLocation>>,
+}
+
+impl CircuitReport {
+    /// Build a report for a single checked circuit.
+    #[expect(clippy::too_many_arguments)]
+    pub(crate) const fn new(
+        filename: String,
+        circuit_name: Option<String>,
+        format: &'static str,
+        qubit_count: usize,
+        time_step_count: usize,
+        gate_count: usize,
+        diagnostics: Vec<Diagnostic>,
+        snippets: Vec<Option<String>>,
+        source_map: Option<Vec<SourceLocation>>,
+    ) -> Self {
+        Self {
+            filename,
+            circuit_name,
+            format,
+            qubit_count,
+            time_step_count,
+            gate_count,
+            diagnostics,
+            snippets,
+            source_map,
+        }
+    }
 }
 
 impl CircuitReport {
@@ -99,7 +141,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
         "{} {} {}",
         paint(HEADER, "Checking"),
         report.label(),
-        paint(DIM, &format!("({})", report.format)),
+        paint(DIM, &format!("({})", report.format())),
     );
     let _stats_result = writeln!(
         writer,
@@ -108,17 +150,17 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
             DIM,
             &format!(
                 "{} {}, {} {}, {} {}",
-                report.qubit_count,
-                plural(report.qubit_count, "qubit", "qubits"),
-                report.time_step_count,
-                plural(report.time_step_count, "time step", "time steps"),
-                report.gate_count,
-                plural(report.gate_count, "gate", "gates"),
+                report.qubit_count(),
+                plural(report.qubit_count(), "qubit", "qubits"),
+                report.time_step_count(),
+                plural(report.time_step_count(), "time step", "time steps"),
+                report.gate_count(),
+                plural(report.gate_count(), "gate", "gates"),
             ),
         ),
     );
 
-    for (index, diagnostic) in report.diagnostics.iter().enumerate() {
+    for (index, diagnostic) in report.diagnostics().iter().enumerate() {
         let metadata = diagnostic.metadata();
 
         let _rule_result = writeln!(
@@ -136,7 +178,7 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
             paint(POSITION, &format_location(report, diagnostic)),
         );
 
-        if let Some(snippet) = report.snippets.get(index).and_then(Option::as_ref) {
+        if let Some(snippet) = report.snippets().get(index).and_then(Option::as_ref) {
             let _snippet_result = writeln!(writer, "{snippet}");
         }
     }
@@ -153,35 +195,35 @@ pub(crate) fn human_error(writer: &mut dyn Write, error: &dyn fmt::Display) {
 pub(crate) fn human_summary(writer: &mut dyn Write, stats: &Stats) {
     let mut text = String::new();
 
-    if stats.circuits == 0 {
+    if stats.circuits() == 0 {
         text.push_str("No circuits checked");
     } else {
         let _circuits_result = write!(
             text,
             "Checked {} {}",
-            stats.circuits,
-            plural(stats.circuits, "circuit", "circuits")
+            stats.circuits(),
+            plural(stats.circuits(), "circuit", "circuits")
         );
     }
 
-    if stats.diagnostics > 0 {
+    if stats.diagnostics() > 0 {
         let _diagnostics_result = write!(
             text,
             ", {} {} found",
-            stats.diagnostics,
-            plural(stats.diagnostics, "diagnostic", "diagnostics")
+            stats.diagnostics(),
+            plural(stats.diagnostics(), "diagnostic", "diagnostics")
         );
-    } else if stats.errors == 0 {
+    } else if stats.errors() == 0 {
         text.push_str(": no fixable patterns found");
     } else {
         // Failures are already reported on standard error.
     }
 
-    if stats.errors > 0 {
-        let _failed_result = write!(text, ", {} failed", stats.errors);
+    if stats.errors() > 0 {
+        let _failed_result = write!(text, ", {} failed", stats.errors());
     }
 
-    let style = if stats.diagnostics > 0 {
+    let style = if stats.diagnostics() > 0 {
         SUMMARY
     } else {
         SUCCESS
@@ -211,9 +253,12 @@ pub(crate) fn numbered_path(path: &Path, index: usize) -> PathBuf {
         .and_then(|name| name.to_str())
         .unwrap_or("output");
 
-    let numbered = match file_name.rsplit_once('.') {
-        Some((stem, extension)) if !stem.is_empty() => format!("{stem}_{index}.{extension}"),
-        _ => format!("{file_name}_{index}"),
+    let numbered = if let Some((stem, extension)) = file_name.rsplit_once('.')
+        && !stem.is_empty()
+    {
+        format!("{stem}_{index}.{extension}")
+    } else {
+        format!("{file_name}_{index}")
     };
 
     path.with_file_name(numbered)
@@ -363,23 +408,24 @@ pub(crate) struct JsonError {
 
 impl JsonError {
     /// Build the JSON error for a CLI error, keeping the circuit when known.
-    #[expect(clippy::wildcard_enum_match_arm, clippy::pattern_type_mismatch)]
     pub(crate) fn new(error: &CliError) -> Self {
-        match error {
-            CliError::UncheckableCircuit {
-                filename,
-                circuit,
-                message,
-            } => Self {
+        if let CliError::UncheckableCircuit {
+            filename,
+            circuit,
+            message,
+        } = error
+        {
+            Self {
                 filename: filename.clone(),
                 circuit: Some(circuit.clone()),
                 message: message.clone(),
-            },
-            _ => Self {
+            }
+        } else {
+            Self {
                 filename: String::new(),
                 circuit: None,
                 message: error.to_string(),
-            },
+            }
         }
     }
 }
@@ -498,7 +544,7 @@ fn format_positions(positions: &[Position]) -> String {
 
 /// Format a diagnostic location: source ranges for Python, circuit coordinates otherwise.
 fn format_location(report: &CircuitReport, diagnostic: &Diagnostic) -> String {
-    report.source_map.as_ref().map_or_else(
+    report.source_map().as_ref().map_or_else(
         || format_positions(diagnostic.positions()),
         |source_map| format_source_locations(diagnostic.operation_indices(), source_map),
     )

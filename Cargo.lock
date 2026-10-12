@@ -2680,6 +2680,7 @@ dependencies = [
  "anstream",
  "anstyle",
  "clap",
+ "getset",
  "qctidy",
  "qctidy-converter",
  "qctidy-facade",

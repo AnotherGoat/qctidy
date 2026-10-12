@@ -18,7 +18,7 @@ use crate::output;
 /// Run the `ast` command.
 pub(crate) fn run(arguments: &AstArguments, color: ColorChoice) -> ExitCode {
     let mut stderr = AutoStream::new(io::stderr(), color);
-    let input = Input::resolve_one(arguments.input.as_deref());
+    let input = Input::resolve_one(arguments.input().as_deref());
 
     let json = match analyze(&input) {
         Ok(json) => json,
@@ -31,7 +31,7 @@ pub(crate) fn run(arguments: &AstArguments, color: ColorChoice) -> ExitCode {
     let mut bytes = json.into_bytes();
     bytes.push(b'\n');
 
-    if let Err(error) = output::write_bytes(arguments.output.as_deref(), &bytes) {
+    if let Err(error) = output::write_bytes(arguments.output().as_deref(), &bytes) {
         output::human_error(&mut stderr, &error);
         return ExitCode::from(2);
     }
@@ -203,7 +203,7 @@ fn issue(issue: &CircuitIssue) -> JsonIssue {
 }
 
 #[must_use]
-fn source_location(location: &SourceLocation) -> JsonSourceLocation {
+const fn source_location(location: &SourceLocation) -> JsonSourceLocation {
     JsonSourceLocation {
         index: location.index,
         line: location.line,

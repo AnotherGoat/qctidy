@@ -55,7 +55,7 @@ fn are_very_close_floats_equal() {
 
 #[test]
 fn are_some_floats_equal() {
-    assert!(are_option_floats_equal(Some(5.0_f64), Some(5.0_f64)));
+    assert!(are_option_floats_equal(Some(5.0), Some(5.0)));
     assert!(are_option_floats_equal(Some(PI), Some(PI)));
     assert!(are_option_floats_equal(Some(FRAC_PI_2), Some(FRAC_PI_2)));
 }
@@ -67,15 +67,15 @@ fn are_none_floats_equal() {
 
 #[test]
 fn are_none_and_some_floats_not_equal() {
-    assert!(!are_option_floats_equal(None, Some(3.0_f64)));
-    assert!(!are_option_floats_equal(Some(3.0_f64), None));
+    assert!(!are_option_floats_equal(None, Some(3.0)));
+    assert!(!are_option_floats_equal(Some(3.0), None));
 }
 
 #[test]
 fn are_same_matrices_equal() {
     let matrix = mat![
-        [Complex64::from(1.0_f64), Complex64::new(2.0_f64, 3.0_f64)],
-        [Complex64::from(4.0_f64), Complex64::new(5.0_f64, 6.0_f64)]
+        [Complex64::from(1.0), Complex64::new(2.0, 3.0)],
+        [Complex64::from(4.0), Complex64::new(5.0, 6.0)]
     ];
 
     assert!(are_matrices_equal(&matrix, &matrix.clone()));
@@ -83,36 +83,36 @@ fn are_same_matrices_equal() {
 
 #[test]
 fn matrices_with_different_row_count_are_not_equal() {
-    let one_row = mat![[Complex64::from(1.0_f64)]];
+    let one_row = mat![[Complex64::from(1.0)]];
 
-    let two_rows = mat![[Complex64::from(1.0_f64)], [Complex64::from(2.0_f64)]];
+    let two_rows = mat![[Complex64::from(1.0)], [Complex64::from(2.0)]];
 
     assert!(!are_matrices_equal(&one_row, &two_rows));
 }
 
 #[test]
 fn matrices_with_different_column_count_are_not_equal() {
-    let one_column = mat![[Complex64::from(1.0_f64)]];
+    let one_column = mat![[Complex64::from(1.0)]];
 
-    let two_columns = mat![[Complex64::from(1.0_f64), Complex64::from(2.0_f64)]];
+    let two_columns = mat![[Complex64::from(1.0), Complex64::from(2.0)]];
 
     assert!(!are_matrices_equal(&one_column, &two_columns));
 }
 
 #[test]
 fn close_matrices_are_not_equal() {
-    let first = mat![[Complex64::from(0.0_f64)],];
+    let first = mat![[Complex64::from(0.0)],];
 
-    let second = mat![[Complex64::from(1e-7_f64)],];
+    let second = mat![[Complex64::from(1e-7)],];
 
     assert!(!are_matrices_equal(&first, &second));
 }
 
 #[test]
 fn very_close_matrices_are_equal() {
-    let first = mat![[Complex64::from(0.0_f64)],];
+    let first = mat![[Complex64::from(0.0)],];
 
-    let second = mat![[Complex64::from(1e-8_f64)],];
+    let second = mat![[Complex64::from(1e-8)],];
 
     assert!(are_matrices_equal(&first, &second));
 }

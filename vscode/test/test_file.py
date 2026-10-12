@@ -1,13 +1,3 @@
-"""Sample circuit that uses every gate supported by the QCTidy Rust crates.
-
-The gate list mirrors `GateType` in
-`crates/library/src/domain/graph/gate_type.rs`.
-"""
-
-import numpy
-from qiskit import QuantumCircuit
-from qiskit.circuit.library.standard_gates import YGate
-
 
 def build_all_gates_circuit():
     circuit = QuantumCircuit(4, 4)
@@ -67,6 +57,9 @@ def build_all_gates_circuit():
 
     another.h(0)
     another.cx(0, 1)
+
+    # Empty circuit
+    empty = QuantumCircuit(0)  # noqa: F841
 
     # Redefinition of the original circuit
     original = circuit.copy()

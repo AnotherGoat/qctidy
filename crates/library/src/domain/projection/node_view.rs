@@ -18,9 +18,10 @@ pub struct NodeView {
 
 impl NodeView {
     pub(crate) fn semantic_angle(&self) -> Option<f64> {
-        match self.r#type() {
-            GateType::RZ => self.phi(),
-            _ => self.theta(),
+        if self.r#type() == GateType::RZ {
+            self.phi()
+        } else {
+            self.theta()
         }
     }
 }

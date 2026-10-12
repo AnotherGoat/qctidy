@@ -6,7 +6,7 @@ use crate::openqasm3;
 #[test]
 fn generate_empty_circuit() {
     let graph = GraphBuilder::default().build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -24,7 +24,7 @@ fn generate_single_qubit_circuit() {
         .push_z(0)
         .push_t(0)
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -43,7 +43,7 @@ t q[0];";
 #[test]
 fn generate_circuit_with_identity() {
     let graph = GraphBuilder::default().push_id(0).build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -58,7 +58,7 @@ id q[0];";
 #[test]
 fn generate_circuit_with_measurements() {
     let graph = GraphBuilder::default().push_h(0).push_measure(0, 0).build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -84,7 +84,7 @@ fn generate_circuit_with_rotations() {
         .push_p(5.0 * FRAC_PI_4, 0)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -107,7 +107,7 @@ fn generate_circuit_with_zero_rotations() {
         .push_p(1e-8, 0)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -132,7 +132,7 @@ fn generate_circuit_with_uncommon_rotations() {
         .push_p(3.555, 0)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -150,7 +150,7 @@ p(3.555) q[0];";
 #[test]
 fn generate_circuit_with_sy_gate() {
     let graph = GraphBuilder::default().push_sy(0).build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -174,7 +174,7 @@ fn generate_circuit_with_two_qubits() {
         .push_cy(1, 0)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -196,7 +196,7 @@ fn generate_circuit_orders_qubits() {
         .push_z(1)
         .push_s(3)
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -224,7 +224,7 @@ fn generate_circuit_orders_symmetrical_gates() {
         .push_cz(3, 2)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -249,7 +249,7 @@ fn generate_circuit_with_three_qubits() {
         .push_ccz(0, 1, 2)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -273,7 +273,7 @@ fn generate_circuit_with_multiple_bits() {
         .push_measure(1, 1)
         .push_measure(2, 2)
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -301,7 +301,7 @@ fn generate_circuit_with_flipped_measurements() {
         .push_measure(1, 2)
         .push_measure(2, 0)
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -325,7 +325,7 @@ fn generate_circuit_with_cp_gate() {
         .push_cp(FRAC_PI_3, 0, 1)
         .unwrap()
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -340,7 +340,7 @@ cp(pi / 3) q[0], q[1];";
 #[test]
 fn generate_circuit_with_ch_gate() {
     let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;
@@ -361,7 +361,7 @@ fn generate_circuit_with_s_gates() {
         .push_t(0)
         .push_tdg(0)
         .build();
-    let actual = openqasm3::generate(&graph).unwrap();
+    let actual = openqasm3::generate(&graph);
 
     let expected = "\
 OPENQASM 3.0;

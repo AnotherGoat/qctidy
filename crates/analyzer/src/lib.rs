@@ -1,7 +1,8 @@
 pub mod calculator;
-pub mod metrics;
+pub mod stats;
 
 use qctidy::Graph;
+use qctidy::number::truncate_usize_to_isize;
 use qctidy_ports::{
     AnalysisMetrics, AnalysisMode, AnalysisResult, AnalyzerPort, DeltaAnalysisMetrics,
     DeltaAnalysisResult, DeltaDetailedAnalysisMetrics, DetailedAnalysisMetrics,
@@ -96,8 +97,8 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
     }
 }
 
-impl From<metrics::Metrics> for AnalysisMetrics {
-    fn from(metrics: metrics::Metrics) -> Self {
+impl From<stats::Metrics> for AnalysisMetrics {
+    fn from(metrics: stats::Metrics) -> Self {
         Self {
             qubit_count: metrics.qubit_count,
             depth: metrics.depth,
@@ -120,8 +121,8 @@ impl From<metrics::Metrics> for AnalysisMetrics {
     }
 }
 
-impl From<metrics::DeltaMetrics> for DeltaAnalysisMetrics {
-    fn from(metrics: metrics::DeltaMetrics) -> Self {
+impl From<stats::DeltaMetrics> for DeltaAnalysisMetrics {
+    fn from(metrics: stats::DeltaMetrics) -> Self {
         Self {
             qubit_count: metrics.qubit_count,
             depth: metrics.depth,
@@ -144,8 +145,8 @@ impl From<metrics::DeltaMetrics> for DeltaAnalysisMetrics {
     }
 }
 
-impl From<metrics::DetailedMetrics> for DetailedAnalysisMetrics {
-    fn from(metrics: metrics::DetailedMetrics) -> Self {
+impl From<stats::DetailedMetrics> for DetailedAnalysisMetrics {
+    fn from(metrics: stats::DetailedMetrics) -> Self {
         Self {
             width: metrics.width,
             depth: metrics.depth,
@@ -180,11 +181,14 @@ impl From<metrics::DetailedMetrics> for DetailedAnalysisMetrics {
 }
 
 fn delta_usize(old: usize, new: usize) -> Option<isize> {
-    let diff = new as isize - old as isize;
-    (diff != 0).then_some(diff)
+    let difference = truncate_usize_to_isize(new) - truncate_usize_to_isize(old);
+    (difference != 0).then_some(difference)
 }
 
 fn delta_f64(old: f64, new: f64) -> Option<f64> {
-    let diff = new - old;
-    (diff != 0.0).then_some(diff)
+    let difference = new - old;
+    (difference != 0.0).then_some(difference)
 }
+
+#[cfg(test)]
+mod calculator_tests;

@@ -3,12 +3,11 @@ use std::fmt::Write;
 use qctidy::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
-use qctidy_ports::CodeGenerationError;
 
 const PI_FORMAT: PiFormat = PiFormat::Custom { pi: "numpy.pi" };
 
 /// Convert the provided graph into Python code that uses the Qiskit library.
-pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> Result<String, CodeGenerationError> {
+pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
     let circuit = Circuit::from(graph);
     let mut imports = Vec::<String>::new();
     let mut build_steps = Vec::new();
@@ -52,7 +51,7 @@ pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> Result<String, Code
         writeln!(output, "{step}").expect("String should always be writable");
     }
 
-    Ok(output.trim_end().to_owned())
+    output.trim_end().to_owned()
 }
 
 fn add_import(imports: &mut Vec<String>, import: &str) {
@@ -312,12 +311,10 @@ fn add_build_step_with_string_parameters(
     build_steps.push(format!("{circuit_name}.{gate_name}({joined_parameters})"));
 }
 
-#[expect(clippy::wildcard_enum_match_arm)]
 fn get_qiskit_gate_name(gate_type: GateType) -> String {
-    use GateType::*;
-
-    match gate_type {
-        Measure => "measure".to_owned(),
-        _ => gate_type.to_string(),
+    if gate_type == GateType::Measure {
+        "measure".to_owned()
+    } else {
+        gate_type.to_string()
     }
 }

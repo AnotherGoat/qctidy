@@ -1,3 +1,4 @@
+use getset::Getters;
 use qctidy::Circuit;
 use qctidy_facade::{ParsePythonRequest, parse_python};
 use qctidy_ports::{ParsedCircuit, PythonAnalysis, Scope, ScopeChild, SourceLocation};
@@ -6,14 +7,18 @@ use qctidy_python::PythonAdapter;
 use crate::error::CliError;
 
 /// A checkable circuit extracted from a Python file.
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Getters)]
 pub(crate) struct CircuitInfo {
     /// The input name followed by the circuit's variable name.
-    pub(crate) name: String,
+    #[get = "pub(crate)"]
+    name: String,
     /// The circuit's variable name in the source.
-    pub(crate) circuit_name: String,
-    pub(crate) circuit: Circuit,
-    pub(crate) source_map: Vec<SourceLocation>,
+    #[get = "pub(crate)"]
+    circuit_name: String,
+    #[get = "pub(crate)"]
+    circuit: Circuit,
+    #[get = "pub(crate)"]
+    source_map: Vec<SourceLocation>,
 }
 
 /// Parse Python source and return one outcome per selected circuit.

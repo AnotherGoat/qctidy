@@ -158,7 +158,9 @@ fn detailed_delta_to_json(metrics: &DeltaDetailedAnalysisMetrics) -> Value {
 }
 
 fn insert_delta<T: Serialize>(json: &mut Map<String, Value>, key: &str, value: Option<T>) {
-    if let Some(value) = value {
-        json.insert(key.to_owned(), serde_json::to_value(value).unwrap());
+    if let Some(value) = value
+        && let Ok(value) = serde_json::to_value(value)
+    {
+        json.insert(key.to_owned(), value);
     }
 }

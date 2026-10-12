@@ -1,0 +1,65 @@
+name: Lints and tests
+
+# Informational workflow: it runs Clippy and the test suite and publishes their
+# output as artifacts, but never fails the pipeline. Warnings and failures are
+# reported to contributors without blocking them.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Run Clippy
+        # Non-blocking: a failure is captured in the artifact below.
+        continue-on-error: true
+        run: cargo clippy --workspace --exclude qctidy-qiskit --all-targets > clippy.txt 2>&1
+      - name: Show Clippy output
+        if: always()
+        run: cat clippy.txt
+      - name: Upload Clippy results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clippy-results
+          path: clippy.txt
+          if-no-files-found: warn
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        # Non-blocking: a failure is captured in the artifact below.
+        continue-on-error: true
+        run: cargo test --workspace --exclude qctidy-qiskit --no-fail-fast > test-results.txt 2>&1
+      - name: Show test output
+        if: always()
+        run: cat test-results.txt
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.txt
+          if-no-files-found: warn

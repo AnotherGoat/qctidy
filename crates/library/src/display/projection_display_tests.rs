@@ -45,14 +45,7 @@ fn node_view_display_with_angle() {
     let rx_node = NodeView::new(RX, Position::new(0, 0), Some(FRAC_PI_2), None, None, None);
     assert_eq!(rx_node.to_string(), "RX(theta=pi/2) at (0, 0)");
 
-    let ry_node = NodeView::new(
-        RY,
-        Position::new(1, 2),
-        Some(3.0_f64 * PI),
-        None,
-        None,
-        None,
-    );
+    let ry_node = NodeView::new(RY, Position::new(1, 2), Some(3.0 * PI), None, None, None);
     assert_eq!(
         ry_node.display(PiFormat::Uppercase),
         "RY(theta=3PI) at (1, 2)"
@@ -62,7 +55,7 @@ fn node_view_display_with_angle() {
         RZ,
         Position::new(0, 1),
         None,
-        Some(2.0_f64 * FRAC_PI_3),
+        Some(2.0 * FRAC_PI_3),
         None,
         None,
     );
@@ -77,7 +70,7 @@ fn node_view_display_with_angle() {
 
 #[test]
 fn node_view_rotation_with_zero_angle_to_string() {
-    let node = NodeView::new(RZ, Position::new(1, 1), None, Some(0.0_f64), None, None);
+    let node = NodeView::new(RZ, Position::new(1, 1), None, Some(0.0), None, None);
     assert_eq!(node.to_string(), "RZ(phi=0) at (1, 1)");
 }
 

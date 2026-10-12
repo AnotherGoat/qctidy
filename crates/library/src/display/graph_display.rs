@@ -170,7 +170,7 @@ impl Graph {
             })
             .collect();
 
-        let mut column_widths = vec![0_usize; size];
+        let mut column_widths = vec![0; size];
 
         for column in 0..size {
             column_widths[column] = (0..size)

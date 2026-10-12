@@ -1,8 +1,12 @@
+use std::fs;
+
 use crossterm::event::KeyCode;
 use qctidy::{Circuit, GateOperation};
 use ratatui::widgets::ListState;
 
-use crate::picker::{AddState, format_gate};
+use crate::picker::{
+    AddState, FORMATS, detect_format, export_circuit, format_gate, import_circuit,
+};
 
 pub(crate) enum AppMode {
     Normal,
@@ -63,7 +67,7 @@ impl App {
         if let Some(i) = self.list_state.selected()
             && i < self.operations.len()
         {
-            let _ = self.operations.remove(i);
+            _ = self.operations.remove(i);
             let len = self.operations.len();
             self.list_state.select(if len == 0 {
                 None
@@ -179,40 +183,7 @@ impl App {
                 }
                 KeyCode::Enter => {
                     let path = buffer.trim().to_owned();
-                    if path.is_empty() {
-                        self.set_message("No path entered".to_owned());
-                        self.mode = AppMode::Normal;
-                        return;
-                    }
-                    let data = match std::fs::read(&path) {
-                        Ok(d) => d,
-                        Err(e) => {
-                            self.set_message(format!("Cannot read '{path}': {e}"));
-                            self.mode = AppMode::Normal;
-                            return;
-                        }
-                    };
-                    let fmt = crate::picker::detect_format(&path);
-                    let fmt = if let Some(f) = fmt {
-                        f
-                    } else {
-                        self.set_message(format!(
-                            "Unknown format for '{path}'. Use .json, .xml, .cbor, or .msgpack"
-                        ));
-                        self.mode = AppMode::Normal;
-                        return;
-                    };
-                    match crate::picker::import_circuit(&data, fmt) {
-                        Ok(circuit) => {
-                            let count = circuit.operations().len();
-                            self.set_operations(circuit.operations().clone());
-                            self.set_message(format!("Imported {count} gates from '{path}'"));
-                        }
-                        Err(e) => {
-                            self.set_message(format!("Parse error: {e}"));
-                        }
-                    }
-                    self.mode = AppMode::Normal;
+                    self.import_circuit_from(&path);
                 }
                 KeyCode::Char(c) => {
                     buffer.push(c);
@@ -242,14 +213,14 @@ impl App {
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     if matches!(step, ExportStep::SelectingFormat)
-                        && *format_index + 1 < crate::picker::FORMATS.len()
+                        && *format_index + 1 < FORMATS.len()
                     {
                         *format_index += 1;
                     }
                 }
                 KeyCode::Enter => match step {
                     ExportStep::SelectingFormat => {
-                        let (_, ext, _) = crate::picker::FORMATS[*format_index];
+                        let (_, ext, _) = FORMATS[*format_index];
                         let default_name = format!("circuit{ext}");
                         *step = ExportStep::EnteringFilename;
                         buffer.clear();
@@ -257,31 +228,8 @@ impl App {
                     }
                     ExportStep::EnteringFilename => {
                         let path = buffer.trim().to_owned();
-                        if path.is_empty() {
-                            self.set_message("No filename entered".to_owned());
-                            self.mode = AppMode::Normal;
-                            return;
-                        }
-                        let (name, _, _) = crate::picker::FORMATS[*format_index];
-                        let format_name = name.to_lowercase();
-                        let circuit = Circuit::from_operations(self.operations.clone());
-                        let bytes = match crate::picker::export_circuit(&circuit, &format_name) {
-                            Ok(b) => b,
-                            Err(e) => {
-                                self.set_message(format!("Serialize error: {e}"));
-                                self.mode = AppMode::Normal;
-                                return;
-                            }
-                        };
-                        match std::fs::write(&path, &bytes) {
-                            Ok(()) => {
-                                self.set_message(format!("Exported to '{path}'"));
-                            }
-                            Err(e) => {
-                                self.set_message(format!("Cannot write '{path}': {e}"));
-                            }
-                        }
-                        self.mode = AppMode::Normal;
+                        let index = *format_index;
+                        self.export_circuit_to(&path, index);
                     }
                 },
                 KeyCode::Char(c) => {
@@ -303,6 +251,77 @@ impl App {
                 _ => {}
             },
         }
+    }
+
+    /// Import a circuit from `path`, reporting errors to the status line.
+    fn import_circuit_from(&mut self, path: &str) {
+        if path.is_empty() {
+            self.set_message("No path entered".to_owned());
+            self.mode = AppMode::Normal;
+            return;
+        }
+
+        let data = match fs::read(path) {
+            Ok(data) => data,
+            Err(error) => {
+                self.set_message(format!("Cannot read '{path}': {error}"));
+                self.mode = AppMode::Normal;
+                return;
+            }
+        };
+
+        let Some(format) = detect_format(path) else {
+            self.set_message(format!(
+                "Unknown format for '{path}'. Use .json, .xml, .cbor, or .msgpack"
+            ));
+            self.mode = AppMode::Normal;
+            return;
+        };
+
+        match import_circuit(&data, format) {
+            Ok(circuit) => {
+                let count = circuit.operations().len();
+                self.set_operations(circuit.operations().clone());
+                self.set_message(format!("Imported {count} gates from '{path}'"));
+            }
+            Err(error) => {
+                self.set_message(format!("Parse error: {error}"));
+            }
+        }
+
+        self.mode = AppMode::Normal;
+    }
+
+    /// Export the current circuit to `path` using the format at `format_index`.
+    fn export_circuit_to(&mut self, path: &str, format_index: usize) {
+        if path.is_empty() {
+            self.set_message("No filename entered".to_owned());
+            self.mode = AppMode::Normal;
+            return;
+        }
+
+        let (name, _, _) = FORMATS[format_index];
+        let format_name = name.to_lowercase();
+        let circuit = Circuit::from_operations(self.operations.clone());
+        let bytes = match export_circuit(&circuit, &format_name) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                self.set_message(format!("Serialize error: {error}"));
+                self.mode = AppMode::Normal;
+                return;
+            }
+        };
+
+        match fs::write(path, &bytes) {
+            Ok(()) => {
+                self.set_message(format!("Exported to '{path}'"));
+            }
+            Err(error) => {
+                self.set_message(format!("Cannot write '{path}': {error}"));
+            }
+        }
+
+        self.mode = AppMode::Normal;
     }
 
     /// Return a short contextual status line for the current mode.

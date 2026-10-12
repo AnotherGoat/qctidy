@@ -3,6 +3,7 @@ use std::{fmt, str::FromStr};
 use thiserror::Error;
 
 use crate::GATE_METADATAS;
+use crate::domain::number::truncate_usize_to_u8;
 
 #[derive(Debug, Clone, Error)]
 pub enum GateTypeError {
@@ -71,7 +72,6 @@ pub enum GateType {
 }
 
 impl From<GateType> for u8 {
-    #[expect(clippy::as_conversions)]
     fn from(gate_type: GateType) -> Self {
         gate_type as Self
     }
@@ -125,7 +125,7 @@ impl TryFrom<usize> for GateType {
     type Error = GateTypeError;
 
     fn try_from(value: usize) -> Result<Self, Self::Error> {
-        Self::try_from(value as u8)
+        Self::try_from(truncate_usize_to_u8(value))
     }
 }
 
@@ -212,18 +212,20 @@ impl FromStr for GateType {
 
 impl GateType {
     /// Get the number of qubits used by this type of gate.
+    #[must_use]
     pub fn qubit_count(self) -> usize {
-        GATE_METADATAS[usize::from(self)].qubit_count()
+        GATE_METADATAS[self as usize].qubit_count()
     }
 
     /// Get the number of control qubits used by this type of gate.
     ///
     /// If a gate has control qubits, it also has at least one target qubit.
     pub(crate) fn control_qubit_count(self) -> usize {
-        GATE_METADATAS[usize::from(self)].control_qubit_count()
+        GATE_METADATAS[self as usize].control_qubit_count()
     }
 
     /// Check whether this gate type has control and target qubits or not.
+    #[must_use]
     pub fn is_controlled(self) -> bool {
         self.control_qubit_count() > 0
     }
@@ -234,26 +236,29 @@ impl GateType {
     /// Having a target qubit doesn't guarantee that the gate has a control qubit.
     /// All single-qubit gates have a target qubit.
     pub(crate) fn target_qubit_count(self) -> usize {
-        GATE_METADATAS[usize::from(self)].target_qubit_count()
+        GATE_METADATAS[self as usize].target_qubit_count()
     }
 
     /// Check whether this gate type has a single control and a single target qubit.
+    #[must_use]
     pub fn is_single_controlled(self) -> bool {
         self.control_qubit_count() == 1 && self.target_qubit_count() == 1
     }
 
     /// Check whether this gate type is a phase gate or not.
     pub(crate) fn is_phase(self) -> bool {
-        GATE_METADATAS[usize::from(self)].is_phase()
+        GATE_METADATAS[self as usize].is_phase()
     }
 
     /// Check whether this gate type is a rotation gate or not.
+    #[must_use]
     pub fn is_rotation(self) -> bool {
-        GATE_METADATAS[usize::from(self)].is_rotation()
+        GATE_METADATAS[self as usize].is_rotation()
     }
 
     /// Check whether this gate type is a square root or not.
+    #[must_use]
     pub fn is_square_root(self) -> bool {
-        GATE_METADATAS[usize::from(self)].is_square_root()
+        GATE_METADATAS[self as usize].is_square_root()
     }
 }

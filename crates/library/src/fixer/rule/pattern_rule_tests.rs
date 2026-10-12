@@ -22,7 +22,7 @@ fn fails_with_invalid_left_side() {
         GateType::X,
         Position::new(0, 0),
         Some(PI),
-        Some(0.0_f64),
+        Some(0.0),
         Some(FRAC_PI_2),
         Some(1),
     );
@@ -43,7 +43,7 @@ fn fails_with_invalid_right_side() {
         GateType::X,
         Position::new(0, 0),
         Some(PI),
-        Some(0.0_f64),
+        Some(0.0),
         Some(FRAC_PI_2),
         Some(1),
     );

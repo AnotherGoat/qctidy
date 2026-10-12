@@ -2,19 +2,21 @@ use std::path::PathBuf;
 
 use anstream::ColorChoice;
 use clap::{Args, Parser, Subcommand, ValueEnum};
+use getset::{CopyGetters, Getters};
 use qctidy_facade::DisplayFormat;
 use qctidy_ports::{ConversionFormat, PresentationFormat};
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Parser, Getters, CopyGetters)]
 #[command(name = "qctidy", version)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct Cli {
     /// When to use colors in the output.
     #[arg(long, value_enum, default_value_t = ColorMode::Auto, global = true)]
-    pub(crate) color: ColorMode,
+    #[get_copy = "pub(crate)"]
+    color: ColorMode,
 
     #[command(subcommand)]
-    pub(crate) command: Command,
+    #[get = "pub(crate) with_prefix"]
+    command: Command,
 }
 
 #[derive(Debug, Subcommand)]
@@ -33,162 +35,188 @@ pub(crate) enum Command {
     Rules,
 }
 
-#[derive(Debug, Args)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Args, Getters)]
 pub(crate) struct AstArguments {
     /// Python file to analyze (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) input: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    input: Option<PathBuf>,
 
     /// File to write the analysis to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) output: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
 }
 
-#[derive(Debug, Args)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Args, Getters, CopyGetters)]
 pub(crate) struct CheckArguments {
     /// Circuit files to check (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) input: Vec<PathBuf>,
+    #[get = "pub(crate)"]
+    input: Vec<PathBuf>,
 
     /// Input format, overriding the guessed format.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
-    pub(crate) input_format: Option<ConversionFormat>,
+    #[get_copy = "pub(crate)"]
+    input_format: Option<ConversionFormat>,
 
     /// Name reported for standard input, instead of `<stdin>`.
     #[arg(long, value_name = "NAME")]
-    pub(crate) input_name: Option<String>,
+    #[get = "pub(crate)"]
+    input_name: Option<String>,
 
     /// Select a single circuit from a Python file, by variable name or `name:line`.
     #[arg(long, value_name = "NAME")]
-    pub(crate) circuit: Option<String>,
+    #[get = "pub(crate)"]
+    circuit: Option<String>,
 
     /// Only report diagnostics for the given rule or category codes.
     ///
     /// Accepts a comma-separated list, such as `R` or `R001,R002`.
     #[arg(long, value_name = "CODES", value_delimiter = ',')]
-    pub(crate) select: Vec<String>,
+    #[get = "pub(crate)"]
+    select: Vec<String>,
 
     /// Do not report diagnostics for the given rule or category codes.
     ///
     /// Accepts a comma-separated list, such as `R` or `R001,R002`.
     #[arg(long, value_name = "CODES", value_delimiter = ',')]
-    pub(crate) ignore: Vec<String>,
+    #[get = "pub(crate)"]
+    ignore: Vec<String>,
 
     /// File to write the report to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) output: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
 
     /// Format used to report the results.
     #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
-    pub(crate) output_format: OutputFormat,
+    #[get_copy = "pub(crate)"]
+    output_format: OutputFormat,
 
     /// Print only the diagnostics, without headers or summaries.
     #[arg(short, long)]
-    pub(crate) quiet: bool,
+    #[get_copy = "pub(crate)"]
+    quiet: bool,
 
     /// Exit with code 0 even when fixes are detected.
     #[arg(long)]
-    pub(crate) no_fail: bool,
+    #[get_copy = "pub(crate)"]
+    no_fail: bool,
 
     /// Show a circuit snippet around every diagnostic.
     #[arg(short, long, conflicts_with = "quiet")]
-    pub(crate) verbose: bool,
+    #[get_copy = "pub(crate)"]
+    verbose: bool,
 }
 
-#[derive(Debug, Args)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Args, Getters, CopyGetters)]
 pub(crate) struct ConvertArguments {
     /// Circuit file to convert (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) input: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    input: Option<PathBuf>,
 
     /// File to write the converted circuit to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) output: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
 
     /// Input format, overriding the guessed format.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
-    pub(crate) input_format: Option<ConversionFormat>,
+    #[get_copy = "pub(crate)"]
+    input_format: Option<ConversionFormat>,
 
     /// Output format, overriding the format guessed from the output file.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
-    pub(crate) output_format: Option<ConversionFormat>,
+    #[get_copy = "pub(crate)"]
+    output_format: Option<ConversionFormat>,
 
     /// Pretty-print the output, for formats that support it.
     #[arg(long)]
-    pub(crate) prettify: bool,
+    #[get_copy = "pub(crate)"]
+    prettify: bool,
 
     /// Number of spaces per indentation level.
     #[arg(long, value_name = "N", requires = "prettify")]
-    pub(crate) indentation: Option<usize>,
+    #[get_copy = "pub(crate)"]
+    indentation: Option<usize>,
 
     /// Select a single circuit from a Python file, by variable name or `name:line`.
     #[arg(long, value_name = "NAME")]
-    pub(crate) circuit: Option<String>,
+    #[get = "pub(crate)"]
+    circuit: Option<String>,
 }
 
-#[derive(Debug, Args)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Args, Getters, CopyGetters)]
 pub(crate) struct DisplayArguments {
     /// Circuit file to display (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) input: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    input: Option<PathBuf>,
 
     /// Input format, overriding the guessed format.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
-    pub(crate) input_format: Option<ConversionFormat>,
+    #[get_copy = "pub(crate)"]
+    input_format: Option<ConversionFormat>,
 
     /// How to display the circuit.
     #[arg(long, value_enum, default_value_t = DisplayMode::Grid)]
-    pub(crate) format: DisplayMode,
+    #[get_copy = "pub(crate)"]
+    format: DisplayMode,
 
     /// File to write the display to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) output: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
 
     /// Select a single circuit from a Python file, by variable name or `name:line`.
     #[arg(long, value_name = "NAME")]
-    pub(crate) circuit: Option<String>,
+    #[get = "pub(crate)"]
+    circuit: Option<String>,
 }
 
-#[derive(Debug, Args)]
-#[expect(clippy::field_scoped_visibility_modifiers)]
+#[derive(Debug, Args, Getters, CopyGetters)]
 pub(crate) struct PresentArguments {
     /// Circuit file to render (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) input: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    input: Option<PathBuf>,
 
     /// Input format, overriding the guessed format.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
     #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
-    pub(crate) input_format: Option<ConversionFormat>,
+    #[get_copy = "pub(crate)"]
+    input_format: Option<ConversionFormat>,
 
     /// Image format used to render the circuit.
     #[arg(long, value_enum, default_value_t = PresentationMode::Svg)]
-    pub(crate) format: PresentationMode,
+    #[get_copy = "pub(crate)"]
+    format: PresentationMode,
 
     /// File to write the image to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
-    pub(crate) output: Option<PathBuf>,
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
 
     /// Resolution in dots per inch.
     #[arg(long, value_name = "DPI")]
-    pub(crate) dpi: Option<u32>,
+    #[get_copy = "pub(crate)"]
+    dpi: Option<u32>,
 
     /// Select a single circuit from a Python file, by variable name or `name:line`.
     #[arg(long, value_name = "NAME")]
-    pub(crate) circuit: Option<String>,
+    #[get = "pub(crate)"]
+    circuit: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

@@ -24,7 +24,7 @@ pub enum ConversionFormat {
 }
 
 impl fmt::Display for ConversionFormat {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use ConversionFormat::*;
 
         let name = match self {
@@ -34,7 +34,7 @@ impl fmt::Display for ConversionFormat {
             Cbor => "Cbor",
         };
 
-        write!(formatter, "{name}")
+        write!(f, "{name}")
     }
 }
 

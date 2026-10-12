@@ -1,3 +1,5 @@
+#![allow(clippy::exit, clippy::print_stderr, clippy::print_stdout)]
+
 mod app;
 mod picker;
 mod ui;

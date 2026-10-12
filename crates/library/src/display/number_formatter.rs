@@ -18,13 +18,13 @@ fn trim_trailing_zeroes(number: &str) -> String {
 #[must_use]
 pub(crate) fn format_complex(complex: Complex64) -> String {
     let real = if complex.re.abs() < math::EPSILON {
-        0.0_f64
+        0.0
     } else {
         complex.re
     };
 
     let imaginary = if complex.im.abs() < math::EPSILON {
-        0.0_f64
+        0.0
     } else {
         complex.im
     };

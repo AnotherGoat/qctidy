@@ -170,11 +170,11 @@ fn graph_is_equal_with_angles() {
     let first = Position::new(0, 0);
     let second = Position::new(0, 1);
 
-    graph1.replace_node(RX, first, Some(0.0_f64), None, None, None);
+    graph1.replace_node(RX, first, Some(0.0), None, None, None);
     graph1.replace_node(P, second, Some(FRAC_PI_2), None, None, None);
 
-    graph2.replace_node(RX, first, Some(1e-8_f64), None, None, None);
-    graph2.replace_node(P, second, Some(1e-8_f64 + FRAC_PI_2), None, None, None);
+    graph2.replace_node(RX, first, Some(1e-8), None, None, None);
+    graph2.replace_node(P, second, Some(1e-8 + FRAC_PI_2), None, None, None);
 
     assert_eq!(graph1, graph2);
 }

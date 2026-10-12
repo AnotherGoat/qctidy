@@ -496,13 +496,13 @@ impl GateOperation {
 
     /// Get all the bits used by this operation.
     #[must_use]
-    #[expect(clippy::wildcard_enum_match_arm)]
     pub fn bits(&self) -> Vec<usize> {
         use GateOperation::*;
 
-        match *self {
-            Measure { bit, .. } => vec![bit],
-            _ => vec![],
+        if let Measure { bit, .. } = *self {
+            vec![bit]
+        } else {
+            Vec::new()
         }
     }
 }

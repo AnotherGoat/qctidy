@@ -1,3 +1,4 @@
+use std::io;
 use std::str;
 
 use qctidy::{Circuit, GateType};
@@ -117,9 +118,12 @@ fn parse_gate_attributes(attributes: Attributes) -> Result<GateOperationData, Pa
         match key {
             "type" => {
                 gate_type_seen = true;
-                data.gate = value.parse().map_err(|_| ParseError::UnknownGateType {
-                    gate: value.to_owned(),
-                })?;
+                let Ok(gate) = value.parse() else {
+                    return Err(ParseError::UnknownGateType {
+                        gate: value.to_owned(),
+                    });
+                };
+                data.gate = gate;
             }
 
             "qubit" => data.qubit = value.parse().ok(),
@@ -174,7 +178,7 @@ pub fn serialize(
         Writer::new(&mut buffer)
     };
 
-    let write_error = |error: std::io::Error| SerializeError::SerializationFailure {
+    let write_error = |error: io::Error| SerializeError::SerializationFailure {
         format: ConversionFormat::Xml,
         message: error.to_string(),
     };
@@ -208,10 +212,7 @@ pub fn serialize(
     Ok(buffer)
 }
 
-fn write_gate(
-    writer: &mut Writer<&mut Vec<u8>>,
-    operation: &GateOperationData,
-) -> std::io::Result<()> {
+fn write_gate(writer: &mut Writer<&mut Vec<u8>>, operation: &GateOperationData) -> io::Result<()> {
     let mut element = BytesStart::new("gate");
 
     element.push_attribute(("type", operation.gate.to_string().as_str()));

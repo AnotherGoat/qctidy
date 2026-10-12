@@ -3,9 +3,7 @@ use std::fmt::Write;
 use qctidy::{
     AngleFormat, Circuit, GateOperation, GateType, Graph, PiFormat, formatter::format_angle,
 };
-use qctidy_ports::CodeGenerationError;
-
-pub(crate) fn generate(graph: &Graph) -> Result<String, CodeGenerationError> {
+pub(crate) fn generate(graph: &Graph) -> String {
     let circuit = Circuit::from(graph);
     let mut headers = Vec::<String>::new();
     let mut build_steps = Vec::new();
@@ -47,7 +45,7 @@ pub(crate) fn generate(graph: &Graph) -> Result<String, CodeGenerationError> {
         writeln!(output, "{step}").expect("String should always be writable");
     }
 
-    Ok(output.trim_end().to_owned())
+    output.trim_end().to_owned()
 }
 
 fn generate_gate(operation: &GateOperation, has_sy_gate: &mut bool, build_steps: &mut Vec<String>) {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    EdgeType, EdgeView, Graph, NodeView, PatternMatch, PatternRule, Position,
+    EdgeType, EdgeView, Graph, NodeView, PatternMatch, PatternRule, Position, Rule,
     domain::math,
     fixer::pattern::{cache::GraphCache, occupancy::OccupancyMap, pattern_match::QubitMapping},
 };

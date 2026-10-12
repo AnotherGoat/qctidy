@@ -1,8 +1,9 @@
 use std::collections::HashMap;
-use std::fs;
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{env, fs};
 
+use qctidy::number::truncate_u64_to_f64;
 use regex::Regex;
 use reqwest::Client;
 use scraper::Html;
@@ -29,13 +30,14 @@ fn cache_path() -> PathBuf {
     //
     // Defaults to `./pricing_cache.json`, or `QCTIDY_CACHE_DIR/pricing_cache.json` when that
     // environment variable is set.
-    if let Some(directory) = std::env::var_os("QCTIDY_CACHE_DIR") {
+    if let Some(directory) = env::var_os("QCTIDY_CACHE_DIR") {
         return PathBuf::from(directory).join(CACHE_FILE);
     }
 
     PathBuf::from(CACHE_FILE)
 }
 
+#[must_use]
 pub fn load_cache() -> Option<Value> {
     let path = cache_path();
     if !path.exists() {
@@ -45,13 +47,13 @@ pub fn load_cache() -> Option<Value> {
     let content = fs::read_to_string(path).ok()?;
     let cache: Value = serde_json::from_str(&content).ok()?;
 
-    let timestamp = cache.get("timestamp").and_then(|t| t.as_f64())?;
+    let timestamp = cache.get("timestamp").and_then(Value::as_f64)?;
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .ok()?
         .as_secs_f64();
-    if now - timestamp > CACHE_EXPIRY_SECONDS as f64 {
+    if now - timestamp > truncate_u64_to_f64(CACHE_EXPIRY_SECONDS) {
         return None;
     }
 
@@ -78,10 +80,10 @@ fn save_cache(data: &Value) {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
     {
-        let _ = fs::create_dir_all(parent);
+        drop(fs::create_dir_all(parent));
     }
 
-    let _ = fs::write(path, content);
+    drop(fs::write(path, content));
 }
 
 fn normalize_text(html: &str) -> String {
@@ -99,13 +101,13 @@ fn normalize_text(html: &str) -> String {
 
 async fn fetch_ibm_quantum_api(client: &Client) -> Value {
     let downloaded_at = now_iso();
-    let mut plans = Vec::new();
-
-    if let Ok(response) = client.get(IBM_PRICING_URL).send().await
+    let plans = if let Ok(response) = client.get(IBM_PRICING_URL).send().await
         && let Ok(html) = response.text().await
     {
-        plans = extract_ibm_plans(&normalize_text(&html));
-    }
+        extract_ibm_plans(&normalize_text(&html))
+    } else {
+        Vec::new()
+    };
 
     let catalog_fallback = fetch_ibm_catalog_paygo(client).await;
 
@@ -134,7 +136,7 @@ fn extract_ibm_plans(text: &str) -> Vec<Value> {
     let Ok(price_regex) = Regex::new(r"\$\s*([0-9]+(?:\.[0-9]+)?)\s*USD\s*/\s*minute") else {
         return Vec::new();
     };
-    let Ok(quote_regex) = Regex::new(r"(?i)requires quote|contact for quote") else {
+    let Ok(quote_regex) = Regex::new("(?i)requires quote|contact for quote") else {
         return Vec::new();
     };
 
@@ -147,7 +149,9 @@ fn extract_ibm_plans(text: &str) -> Vec<Value> {
 
         let end = next_plan_offset(text, start, plan_name, &expected_plans[index + 1..])
             .unwrap_or_else(|| clamp_to_char_boundary(text, start + 500));
-        let segment = &text[start..end];
+        let Some(segment) = text.get(start..end) else {
+            continue;
+        };
 
         if plan_name == "Open Plan" {
             plans.push(json!({
@@ -169,7 +173,7 @@ fn extract_ibm_plans(text: &str) -> Vec<Value> {
             continue;
         }
 
-        let mut price_label = "not_found".to_string();
+        let mut price_label = "not_found".to_owned();
         let mut price_per_minute = Value::Null;
         let mut price_per_second = Value::Null;
 
@@ -180,7 +184,9 @@ fn extract_ibm_plans(text: &str) -> Vec<Value> {
             price_per_second = json!(value / 60.0);
             price_label = format!("${value} USD / minute");
         } else if quote_regex.is_match(segment) {
-            price_label = "Contact for quote".to_string();
+            price_label = "Contact for quote".to_owned();
+        } else {
+            // Leave the default price label.
         }
 
         plans.push(json!({
@@ -204,7 +210,7 @@ fn next_plan_offset(
 
     remaining_plans
         .iter()
-        .filter_map(|next_plan| text[after_plan..].find(next_plan))
+        .filter_map(|next_plan| text.get(after_plan..)?.find(next_plan))
         .map(|offset| after_plan + offset)
         .min()
 }
@@ -273,21 +279,21 @@ async fn fetch_aws_braket_api(client: &Client) -> Value {
     let downloaded_at = now_iso();
 
     let Ok(response) = client.get(AWS_PRICE_LIST_API_URL).send().await else {
-        return aws_error(downloaded_at);
+        return aws_error(&downloaded_at);
     };
     let Ok(payload) = response.json::<Value>().await else {
-        return aws_error(downloaded_at);
+        return aws_error(&downloaded_at);
     };
 
     let Some(products) = payload.get("products").and_then(Value::as_object) else {
-        return aws_error(downloaded_at);
+        return aws_error(&downloaded_at);
     };
     let Some(terms) = payload
         .get("terms")
         .and_then(|terms| terms.get("OnDemand"))
         .and_then(Value::as_object)
     else {
-        return aws_error(downloaded_at);
+        return aws_error(&downloaded_at);
     };
 
     let mut qpus: HashMap<String, serde_json::Map<String, Value>> = HashMap::new();
@@ -317,17 +323,17 @@ async fn fetch_aws_braket_api(client: &Client) -> Value {
 
         let entry = qpus.entry(key).or_insert_with(|| {
             let mut map = serde_json::Map::new();
-            map.insert("hardware_provider".to_string(), json!(provider));
-            map.insert("qpu_family".to_string(), json!(device_name));
-            map.insert("per_task_usd".to_string(), Value::Null);
-            map.insert("per_shot_usd".to_string(), Value::Null);
+            map.insert("hardware_provider".to_owned(), json!(provider));
+            map.insert("qpu_family".to_owned(), json!(device_name));
+            map.insert("per_task_usd".to_owned(), Value::Null);
+            map.insert("per_shot_usd".to_owned(), Value::Null);
             map
         });
 
         if family == "Quantum Task" {
-            entry.insert("per_task_usd".to_string(), json!(price_usd));
+            entry.insert("per_task_usd".to_owned(), json!(price_usd));
         } else {
-            entry.insert("per_shot_usd".to_string(), json!(price_usd));
+            entry.insert("per_shot_usd".to_owned(), json!(price_usd));
         }
     }
 
@@ -356,7 +362,7 @@ fn aws_price_usd(sku_terms: Option<&Value>) -> f64 {
         .unwrap_or(0.0)
 }
 
-fn aws_error(downloaded_at: String) -> Value {
+fn aws_error(downloaded_at: &str) -> Value {
     json!({
         "status": "error",
         "provider": "AWS Braket",
@@ -374,7 +380,7 @@ pub async fn get_pricing_data(force_refresh: bool) -> Value {
 
     let client = Client::builder()
         .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36")
-        .timeout(std::time::Duration::from_secs(15))
+        .timeout(Duration::from_secs(15))
         .build()
         .unwrap_or_else(|_| Client::new());
 

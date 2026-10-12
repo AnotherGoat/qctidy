@@ -1,8 +1,9 @@
 use crate::models::BackendProfile;
+use qctidy::number::truncate_usize_to_f64;
 use qctidy::{GateType, Graph, Position};
 use std::collections::HashSet;
 
-pub(crate) fn get_gate_cost(gate: GateType, profile: &BackendProfile) -> f64 {
+pub(crate) const fn get_gate_cost(gate: GateType, profile: &BackendProfile) -> f64 {
     use GateType::*;
     match gate {
         P | RZ | ID => profile.phase_cost,
@@ -18,7 +19,7 @@ pub(crate) fn get_gate_cost(gate: GateType, profile: &BackendProfile) -> f64 {
 /// Estimates total quantum circuit execution time using critical-path analysis.
 pub fn estimate_execution_time(graph: &Graph, shots: usize, profile: &BackendProfile) -> f64 {
     if graph.is_empty() {
-        return (shots as f64) * profile.repetition_delay_cost;
+        return truncate_usize_to_f64(shots) * profile.repetition_delay_cost;
     }
 
     let num_qubits = graph.height();
@@ -65,5 +66,5 @@ pub fn estimate_execution_time(graph: &Graph, shots: usize, profile: &BackendPro
 
     let critical_path_time = qubit_times.into_iter().fold(0.0, f64::max);
 
-    (shots as f64) * (critical_path_time + profile.repetition_delay_cost)
+    truncate_usize_to_f64(shots) * (critical_path_time + profile.repetition_delay_cost)
 }

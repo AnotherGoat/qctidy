@@ -37,3 +37,12 @@ pub mod formatter {
 pub mod math {
     pub use crate::domain::math::{ABSOLUTE_TOLERANCE, RELATIVE_TOLERANCE, are_floats_equal};
 }
+
+/// Lossy number conversions, exposed so other crates keep every unsafe cast in one place.
+pub mod number {
+    pub use crate::domain::number::{
+        truncate_f64_to_i64, truncate_f64_to_usize, truncate_i64_to_f64, truncate_u64_to_f64,
+        truncate_usize_to_f64, truncate_usize_to_isize, truncate_usize_to_u8,
+        truncate_usize_to_u16,
+    };
+}

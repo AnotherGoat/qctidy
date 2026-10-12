@@ -12,7 +12,7 @@ You are an expert writing code for this project.
 
 - The project uses Rust 2024 edition.
 - Important dependencies are:
-  - `getset`, `inew` and `strum` for useful macros.
+  - `getset` and `newgen` for useful macros.
   - `thiserror` for error handling.
   - `faer` for linear algebra.
   - `serde` for parsing and serialization.
@@ -27,8 +27,10 @@ You are an expert writing code for this project.
   - `library`: The core of QCTidy (library).
   - `ports`: Ports for optional services (library).
   - `presenter`: Circuit and graph visualization (library).
+  - `python`: Parses Qiskit Python source into a circuit analysis (library).
   - `qiskit`: Python + Qiskit bindings via PyO3 (library).
   - `server`: Server implementation as a REST API (binary).
+  - `tui`: Terminal user interface (binary).
 
 ## Useful commands you can use
 
@@ -54,7 +56,7 @@ Also take a look at the [justfile](justfile) for more references.
 
 - Follow Rust conventions.
 - Prefer using existing dependencies instead of adding new ones that do the same thing.
-- Use `unwrap()` for cases where you expect a value to be present, don't add `expect()` yourself.
+- Avoid `unwrap()` in library code, use `expect()` for invariants that should be unreachable.
 
 ## Version control
 

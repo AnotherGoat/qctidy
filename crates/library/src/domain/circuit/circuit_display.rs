@@ -178,9 +178,7 @@ fn pack_operations(operations: &[GateOperation], rows: usize) -> Vec<PackedColum
                     .max()
                     .expect("There should be at least 2 qubits");
 
-                for qubit in min..=max {
-                    used_qubits[qubit] = true;
-                }
+                used_qubits[min..=max].fill(true);
             } else {
                 for &qubit in &qubits {
                     used_qubits[qubit] = true;

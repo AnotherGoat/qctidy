@@ -6,9 +6,9 @@ use crate::{Circuit, GateOperation, Graph, domain::math};
 
 const EPSILON: f64 = math::ABSOLUTE_TOLERANCE;
 
-const ONE: Complex64 = Complex64::new(1.0_f64, 0.0_f64);
-const I: Complex64 = Complex64::new(0.0_f64, 1.0_f64);
-static HALF_SQRT: LazyLock<f64> = LazyLock::new(|| 1.0_f64 / 2.0_f64.sqrt());
+const ONE: Complex64 = Complex64::new(1.0, 0.0);
+const I: Complex64 = Complex64::new(0.0, 1.0);
+static HALF_SQRT: LazyLock<f64> = LazyLock::new(|| 1.0 / 2.0_f64.sqrt());
 
 static ID_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| identity(2));
 
@@ -62,8 +62,8 @@ static SDG_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
 
 static SX_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
-        (0, 0) | (1, 1) => 0.5_f64 * (ONE + I),
-        (0, 1) | (1, 0) => 0.5_f64 * (ONE - I),
+        (0, 0) | (1, 1) => 0.5 * (ONE + I),
+        (0, 1) | (1, 0) => 0.5 * (ONE - I),
         _ => Complex64::default(),
     })
 });
@@ -71,8 +71,8 @@ static SX_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
 #[expect(clippy::unnested_or_patterns)]
 static SY_MATRIX: LazyLock<Mat<Complex64>> = LazyLock::new(|| {
     Mat::from_fn(2, 2, |row, column| match (row, column) {
-        (0, 0) | (1, 0) | (1, 1) => 0.5_f64 * (ONE + I),
-        (0, 1) => -0.5_f64 * (ONE + I),
+        (0, 0) | (1, 0) | (1, 1) => 0.5 * (ONE + I),
+        (0, 1) => -0.5 * (ONE + I),
         _ => Complex64::default(),
     })
 });
@@ -264,7 +264,7 @@ fn ry_matrix(angle: f64) -> Mat<Complex64> {
 }
 
 fn rz_matrix(angle: f64) -> Mat<Complex64> {
-    let half_angle = angle / 2.0_f64;
+    let half_angle = angle / 2.0;
 
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => (I * -half_angle).exp(),
@@ -274,7 +274,7 @@ fn rz_matrix(angle: f64) -> Mat<Complex64> {
 }
 
 fn u_matrix(theta: f64, phi: f64, lambda: f64) -> Mat<Complex64> {
-    let half_theta = theta / 2.0_f64;
+    let half_theta = theta / 2.0;
 
     Mat::from_fn(2, 2, |row, column| match (row, column) {
         (0, 0) => half_theta.cos() * ONE,
@@ -306,7 +306,7 @@ fn control_gate(
 
                 let row = new_bits
                     .iter()
-                    .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
+                    .fold(0, |accumulator, &other| (accumulator << 1) | other);
 
                 unitary[(row, column)] = base[(new_target, target_bit)];
             }
@@ -329,7 +329,7 @@ fn swap_gate(height: usize, qubit1: usize, qubit2: usize) -> Mat<Complex64> {
 
         let row = bits
             .iter()
-            .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
+            .fold(0, |accumulator, &other| (accumulator << 1) | other);
 
         unitary[(row, column)] = ONE;
     }
@@ -350,7 +350,7 @@ fn control_swap(height: usize, control: usize, target1: usize, target2: usize) -
 
         let row = bits
             .iter()
-            .fold(0, |accumulator, &other| (accumulator << 1_i32) | other);
+            .fold(0, |accumulator, &other| (accumulator << 1) | other);
         unitary[(row, column)] = ONE;
     }
 

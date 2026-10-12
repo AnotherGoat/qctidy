@@ -8,7 +8,7 @@ To use this repository, you'll need the following tools (besides your editor of 
 | --------------------------------- | ------- | ------------------------------------------------------- |
 | [just](https://just.systems/)     | 1.50.0  | Simple command runner                                   |
 | [prek](https://prek.j178.dev/)    | 0.3.8   | Git pre-commit hooks.                                   |
-| [Rust](https://rust-lang.org/)    | 1.95.0  | Programming language for the core library.              |
+| [Rust](https://rust-lang.org/)    | 1.96.0  | Programming language for the core library.              |
 | [Python](https://www.python.org/) | 3.12    | Manual Python binding tests.                            |
 | [uv](https://docs.astral.sh/uv/)  | 0.7.21  | Easy Python virtual environment and package management. |
 
@@ -46,13 +46,18 @@ Follow standard Rust conventions:
 In addition, use the following naming conventions:
 
 - Try to use concise and descriptive variable names. If both aren't possible at the same time, prefer descriptive names over concise.
-- Avoid using abbreviations for variable names. For example: `col -> column`, `pos -> position`.
+- Avoid using abbreviations for variable names. For example:
+  - `idx -> index`
+  - `col -> column`
+  - `pos -> position`
+  - `fn -> function`
+  - `args -> arguments`
 - The same is true for parameters inside lambdas. Avoid using single letter variable names in them.
 
 ## Linting
 
 - The project enables many pedantic Clippy warnings on purpose.
-- It's not required for contributions to have 0 warnings (the current code doesn't, and will probably never reach them).
+- It's not required for contributions to have 0 warnings, but try keeping the number low.
 
 ## Error handling
 
@@ -65,9 +70,9 @@ In addition, use the following naming conventions:
 
 ## Type Conversions
 
-- Avoid using `as` conversions with numeric types.
-- Use `T::from()` if the conversion is lossless or `T::try_from()` if the conversion is lossy.
-- If truncation or saturation is required to convert the values, create your own wrapper function where `#[expect]` is used to make the Clippy lints pass. This is done to make the conversion explicit and make it clear that the truncation or saturation is intentional.
+- Lossless numeric conversions can be written directly with `as`, `T::from()` is also fine when it exists.
+- For conversions that can lose information (truncation, precision loss, sign loss or wrapping), use the helpers in `qctidy::number` instead of writing `as` directly.
+- `qctidy::number` is the single place where the lossy-conversion Clippy lints are expected. Don't add `#[expect]` attributes for conversion lints anywhere else.
 
 ## Documentation
 
@@ -79,7 +84,8 @@ In addition, use the following naming conventions:
 
 ## Testing Guidelines
 
-- Unit tests live in `#[cfg(test)]` local modules in the same directory as the original source file, with the `_tests` suffix added to the original module name.
+- Unit tests live in their own file, in the same directory as the original source file, with the `_tests` suffix added to the original module name. Declare it in the parent module as `#[cfg(test)] mod <name>_tests;`.
+- Never define test modules inline inside a source file (no `#[cfg(test)] mod tests { ... }`).
 - Integration tests live in a `tests/` directory inside the relevant crate.
 - Name tests descriptively, but don't add the `test` prefix to their functions. Take the name of the original function as a reference when naming them.
 - No minimum coverage threshold is enforced yet, but all public functions should have at least one test covering the "happy" execution path.

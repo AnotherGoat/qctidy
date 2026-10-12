@@ -58,18 +58,18 @@ impl GateTypeBitset {
     }
 
     /// Add a `GateType` to the bitset.
-    pub fn insert(&mut self, gate_type: GateType) {
-        self.bits |= 1 << u8::from(gate_type);
+    pub const fn insert(&mut self, gate_type: GateType) {
+        self.bits |= 1 << gate_type as u8;
     }
 
     /// Remove a `GateType` from the bitset.
-    pub fn remove(&mut self, gate_type: GateType) {
-        self.bits &= !(1 << u8::from(gate_type));
+    pub const fn remove(&mut self, gate_type: GateType) {
+        self.bits &= !(1 << gate_type as u8);
     }
 
     /// Check whether the bitset contains a `GateType` or not.
-    pub fn contains(&self, gate_type: GateType) -> bool {
-        self.bits & (1 << u8::from(gate_type)) != 0
+    pub const fn contains(self, gate_type: GateType) -> bool {
+        self.bits & (1 << gate_type as u8) != 0
     }
 
     pub const fn is_superset_of(self, other: Self) -> bool {

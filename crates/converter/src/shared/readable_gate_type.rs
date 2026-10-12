@@ -4,6 +4,7 @@ use qctidy::{GateType, GateTypeError};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 #[derive(Debug, Clone)]
+#[expect(clippy::field_scoped_visibility_modifiers)]
 pub(crate) struct ReadableGateType(pub(crate) GateType);
 
 impl From<ReadableGateType> for String {

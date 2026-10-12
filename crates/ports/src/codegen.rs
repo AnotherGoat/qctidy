@@ -19,7 +19,7 @@ pub enum CodeGenerationTarget {
 }
 
 impl fmt::Display for CodeGenerationTarget {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use CodeGenerationTarget::*;
 
         let name = match *self {
@@ -27,7 +27,7 @@ impl fmt::Display for CodeGenerationTarget {
             OpenQasm3 => "OpenQasm3",
         };
 
-        write!(formatter, "{name}")
+        write!(f, "{name}")
     }
 }
 

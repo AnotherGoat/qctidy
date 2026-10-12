@@ -1,5 +1,10 @@
+use std::cmp::Reverse;
+use std::f64::consts::PI;
+use std::path::Path;
+
 use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
+use qctidy::number::{truncate_f64_to_usize, truncate_usize_to_f64};
 use qctidy::{Circuit, GateOperation, GateOperationError, GateType};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -169,7 +174,7 @@ pub(crate) fn filter_entries(query: &str) -> Vec<usize> {
         })
         .collect();
 
-    scored.sort_by(|a, b| b.0.cmp(&a.0));
+    scored.sort_by_key(|&(score, _)| Reverse(score));
     scored.into_iter().map(|(_, index)| index).collect()
 }
 
@@ -520,11 +525,7 @@ impl AddState {
     }
 
     pub(crate) fn handle_escape(&mut self) {
-        if matches!(self, Self::EnteringArguments { .. }) {
-            *self = Self::new();
-        } else {
-            *self = Self::new();
-        }
+        *self = Self::new();
     }
 }
 
@@ -552,86 +553,116 @@ fn parse_argument_value(kind: ArgumentKind, input: &str) -> Result<f64, String> 
     let trimmed = input.trim();
     match kind {
         ArgumentKind::Qubit | ArgumentKind::Bit => {
-            let value: usize = trimmed
-                .parse()
-                .map_err(|_| format!("Invalid integer: '{trimmed}'"))?;
-            Ok(value as f64)
+            let Ok(value) = trimmed.parse::<usize>() else {
+                return Err(format!("Invalid integer: '{trimmed}'"));
+            };
+            Ok(truncate_usize_to_f64(value))
         }
         ArgumentKind::Angle => {
             if let Some(rest) = trimmed.strip_prefix("pi") {
                 if rest.is_empty() {
-                    return Ok(std::f64::consts::PI);
+                    return Ok(PI);
                 }
                 if let Some(den_str) = rest.strip_prefix('/') {
-                    let den: f64 = den_str
-                        .parse()
-                        .map_err(|_| format!("Invalid denominator: '{den_str}'"))?;
-                    if den == 0.0_f64 {
+                    let Ok(den) = den_str.parse::<f64>() else {
+                        return Err(format!("Invalid denominator: '{den_str}'"));
+                    };
+                    if den == 0.0 {
                         return Err("Division by zero".to_owned());
                     }
-                    return Ok(std::f64::consts::PI / den);
+                    return Ok(PI / den);
                 }
                 return Err(format!("Invalid pi expression: '{trimmed}'"));
             }
-            trimmed
-                .parse::<f64>()
-                .map_err(|_| format!("Invalid number: '{trimmed}'"))
+            let Ok(value) = trimmed.parse::<f64>() else {
+                return Err(format!("Invalid number: '{trimmed}'"));
+            };
+            Ok(value)
         }
     }
 }
 
-#[expect(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn try_build_operation(gate_type: GateType, values: &[f64]) -> Result<GateOperation, String> {
     match gate_type {
-        GateType::ID => Ok(GateOperation::id(values[0] as usize)),
-        GateType::H => Ok(GateOperation::h(values[0] as usize)),
-        GateType::X => Ok(GateOperation::x(values[0] as usize)),
-        GateType::Y => Ok(GateOperation::y(values[0] as usize)),
-        GateType::Z => Ok(GateOperation::z(values[0] as usize)),
-        GateType::P => GateOperation::try_p(values[0], values[1] as usize)
+        GateType::ID => Ok(GateOperation::id(truncate_f64_to_usize(values[0]))),
+        GateType::H => Ok(GateOperation::h(truncate_f64_to_usize(values[0]))),
+        GateType::X => Ok(GateOperation::x(truncate_f64_to_usize(values[0]))),
+        GateType::Y => Ok(GateOperation::y(truncate_f64_to_usize(values[0]))),
+        GateType::Z => Ok(GateOperation::z(truncate_f64_to_usize(values[0]))),
+        GateType::P => GateOperation::try_p(values[0], truncate_f64_to_usize(values[1]))
             .map_err(|e: GateOperationError| e.to_string()),
-        GateType::RX => GateOperation::try_rx(values[0], values[1] as usize)
+        GateType::RX => GateOperation::try_rx(values[0], truncate_f64_to_usize(values[1]))
             .map_err(|e: GateOperationError| e.to_string()),
-        GateType::RY => GateOperation::try_ry(values[0], values[1] as usize)
+        GateType::RY => GateOperation::try_ry(values[0], truncate_f64_to_usize(values[1]))
             .map_err(|e: GateOperationError| e.to_string()),
-        GateType::RZ => GateOperation::try_rz(values[0], values[1] as usize)
+        GateType::RZ => GateOperation::try_rz(values[0], truncate_f64_to_usize(values[1]))
             .map_err(|e: GateOperationError| e.to_string()),
-        GateType::S => Ok(GateOperation::s(values[0] as usize)),
-        GateType::SDG => Ok(GateOperation::sdg(values[0] as usize)),
-        GateType::SX => Ok(GateOperation::sx(values[0] as usize)),
-        GateType::SY => Ok(GateOperation::sy(values[0] as usize)),
-        GateType::T => Ok(GateOperation::t(values[0] as usize)),
-        GateType::TDG => Ok(GateOperation::tdg(values[0] as usize)),
-        GateType::U => GateOperation::try_u(values[0], values[1], values[2], values[3] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
+        GateType::S => Ok(GateOperation::s(truncate_f64_to_usize(values[0]))),
+        GateType::SDG => Ok(GateOperation::sdg(truncate_f64_to_usize(values[0]))),
+        GateType::SX => Ok(GateOperation::sx(truncate_f64_to_usize(values[0]))),
+        GateType::SY => Ok(GateOperation::sy(truncate_f64_to_usize(values[0]))),
+        GateType::T => Ok(GateOperation::t(truncate_f64_to_usize(values[0]))),
+        GateType::TDG => Ok(GateOperation::tdg(truncate_f64_to_usize(values[0]))),
+        GateType::U => GateOperation::try_u(
+            values[0],
+            values[1],
+            values[2],
+            truncate_f64_to_usize(values[3]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
         GateType::Measure => Ok(GateOperation::measure(
-            values[0] as usize,
-            values[1] as usize,
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
         )),
-        GateType::Swap => GateOperation::try_swap(values[0] as usize, values[1] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CH => GateOperation::try_ch(values[0] as usize, values[1] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CX => GateOperation::try_cx(values[0] as usize, values[1] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CY => GateOperation::try_cy(values[0] as usize, values[1] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CZ => GateOperation::try_cz(values[0] as usize, values[1] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CP => GateOperation::try_cp(values[0], values[1] as usize, values[2] as usize)
-            .map_err(|e: GateOperationError| e.to_string()),
-        GateType::CSwap => {
-            GateOperation::try_c_swap(values[0] as usize, values[1] as usize, values[2] as usize)
-                .map_err(|e: GateOperationError| e.to_string())
-        }
-        GateType::CCX => {
-            GateOperation::try_ccx(values[0] as usize, values[1] as usize, values[2] as usize)
-                .map_err(|e: GateOperationError| e.to_string())
-        }
-        GateType::CCZ => {
-            GateOperation::try_ccz(values[0] as usize, values[1] as usize, values[2] as usize)
-                .map_err(|e: GateOperationError| e.to_string())
-        }
+        GateType::Swap => GateOperation::try_swap(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CH => GateOperation::try_ch(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CX => GateOperation::try_cx(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CY => GateOperation::try_cy(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CZ => GateOperation::try_cz(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CP => GateOperation::try_cp(
+            values[0],
+            truncate_f64_to_usize(values[1]),
+            truncate_f64_to_usize(values[2]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CSwap => GateOperation::try_c_swap(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+            truncate_f64_to_usize(values[2]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CCX => GateOperation::try_ccx(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+            truncate_f64_to_usize(values[2]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
+        GateType::CCZ => GateOperation::try_ccz(
+            truncate_f64_to_usize(values[0]),
+            truncate_f64_to_usize(values[1]),
+            truncate_f64_to_usize(values[2]),
+        )
+        .map_err(|e: GateOperationError| e.to_string()),
     }
 }
 
@@ -643,14 +674,15 @@ pub(crate) const FORMATS: &[(&str, &str, &str)] = &[
 ];
 
 pub(crate) fn detect_format(path: &str) -> Option<&'static str> {
-    let lower = path.to_lowercase();
-    if lower.ends_with(".json") {
+    let extension = Path::new(path).extension()?.to_str()?;
+
+    if extension.eq_ignore_ascii_case("json") {
         Some("json")
-    } else if lower.ends_with(".xml") {
+    } else if extension.eq_ignore_ascii_case("xml") {
         Some("xml")
-    } else if lower.ends_with(".cbor") {
+    } else if extension.eq_ignore_ascii_case("cbor") {
         Some("cbor")
-    } else if lower.ends_with(".msgpack") || lower.ends_with(".mpk") {
+    } else if extension.eq_ignore_ascii_case("msgpack") || extension.eq_ignore_ascii_case("mpk") {
         Some("msgpack")
     } else {
         None

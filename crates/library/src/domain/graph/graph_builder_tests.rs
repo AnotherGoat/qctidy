@@ -541,9 +541,9 @@ fn push_rz_rejects_nan() {
 
 #[test]
 fn push_u_stores_payloads() {
-    let theta = 1.234_f64;
-    let phi = 2.345_f64;
-    let lambda = 3.456_f64;
+    let theta = 1.234;
+    let phi = 2.345;
+    let lambda = 3.456;
     let graph = GraphBuilder::default()
         .push_u(theta, phi, lambda, 3)
         .unwrap()

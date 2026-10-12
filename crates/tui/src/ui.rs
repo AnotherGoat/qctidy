@@ -1,9 +1,12 @@
+use std::env;
+
 use qctidy::Circuit;
+use qctidy::number::truncate_usize_to_u16;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Line;
-use ratatui::widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap};
+use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap};
 
 use crate::app::{App, AppMode, ExportStep};
 use crate::picker::{ALL_ENTRIES, AddState, FORMATS, format_gate};
@@ -161,7 +164,7 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
                 )
                 .highlight_symbol("▸ ");
 
-            let mut list_state = ratatui::widgets::ListState::default();
+            let mut list_state = ListState::default();
             list_state.select(Some(*selected));
             frame.render_stateful_widget(gate_list, chunks[0], &mut list_state);
 
@@ -219,14 +222,14 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
                 .filter(|value| value.trim().is_empty())
                 .count();
 
+            lines.push(Line::from(""));
+
             if remaining > 0 {
-                lines.push(Line::from(""));
                 lines.push(Line::from(format!(
                     "  ({remaining} empty field{})",
                     if remaining > 1 { "s" } else { "" }
                 )));
             } else {
-                lines.push(Line::from(""));
                 lines.push(Line::from("  Press Enter to add gate"));
             }
 
@@ -260,7 +263,7 @@ fn render_picker(frame: &mut Frame, area: Rect, _status_area: Rect, state: &AddS
 
 fn render_toast(frame: &mut Frame, area: Rect, status_area: Rect, message: &str) {
     let max_width = area.width.saturating_sub(4).max(1);
-    let content_width = message.chars().count() as u16 + 4;
+    let content_width = truncate_usize_to_u16(message.chars().count()) + 4;
     let width = content_width.min(max_width).max(20.min(max_width));
     let height = 3.min(area.height);
 
@@ -335,7 +338,7 @@ fn render_import_popup(frame: &mut Frame, area: Rect, buffer: &str) {
     let popup_area = centered_rect(60, 20, area);
     frame.render_widget(Clear, popup_area);
 
-    let cwd = std::env::current_dir()
+    let cwd = env::current_dir()
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_default();
     let display = if buffer.is_empty() {
@@ -391,11 +394,11 @@ fn render_export_popup(
         .direction(Direction::Vertical)
         .constraints(if matches!(step, ExportStep::EnteringFilename) {
             vec![
-                Constraint::Length(FORMATS.len() as u16 + 2),
+                Constraint::Length(truncate_usize_to_u16(FORMATS.len()) + 2),
                 Constraint::Length(3),
             ]
         } else {
-            vec![Constraint::Length(FORMATS.len() as u16 + 2)]
+            vec![Constraint::Length(truncate_usize_to_u16(FORMATS.len()) + 2)]
         })
         .split(popup_area);
 

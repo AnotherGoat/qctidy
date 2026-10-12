@@ -139,6 +139,6 @@ pub(super) const CCZ_SCHEMA: GateSchema = GateSchema {
 impl GateType {
     /// The node and edge structure of this gate.
     pub(super) fn schema(self) -> &'static GateSchema {
-        GATE_METADATAS[usize::from(self)].schema()
+        GATE_METADATAS[self as usize].schema()
     }
 }

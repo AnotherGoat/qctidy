@@ -16,11 +16,11 @@ use crate::python;
 /// Run the `display` command.
 pub(crate) fn run(arguments: &DisplayArguments, color: ColorChoice) -> ExitCode {
     let mut stderr = AutoStream::new(io::stderr(), color);
-    let input = Input::resolve_one(arguments.input.as_deref());
+    let input = Input::resolve_one(arguments.input().as_deref());
 
     let result = if input.is_python() {
         display_python(&input, arguments, &mut stderr)
-    } else if arguments.circuit.is_some() {
+    } else if arguments.circuit().is_some() {
         Err(CliError::CircuitSelectorNotPython)
     } else {
         display_serialized(&input, arguments).map(|text| (text, false))
@@ -39,7 +39,7 @@ pub(crate) fn run(arguments: &DisplayArguments, color: ColorChoice) -> ExitCode 
         bytes.push(b'\n');
     }
 
-    if let Err(error) = output::write_bytes(arguments.output.as_deref(), &bytes) {
+    if let Err(error) = output::write_bytes(arguments.output().as_deref(), &bytes) {
         output::human_error(&mut stderr, &error);
         return ExitCode::from(2);
     }
@@ -58,7 +58,7 @@ fn display_serialized(input: &Input, arguments: &DisplayArguments) -> Result<Str
     })?;
 
     let format = input
-        .format(arguments.input_format, &bytes)
+        .format(arguments.input_format(), &bytes)
         .ok_or_else(|| CliError::UnknownInputFormat {
             source_name: input.name().to_owned(),
         })?;
@@ -75,7 +75,7 @@ fn display_serialized(input: &Input, arguments: &DisplayArguments) -> Result<Str
 
     let display_request = DisplayRequest::new(
         parsed.circuit(),
-        DisplayFormat::from(arguments.format),
+        DisplayFormat::from(arguments.format()),
         None,
         None,
     );
@@ -94,7 +94,7 @@ fn display_python(
     })?;
 
     let source = String::from_utf8_lossy(&bytes).into_owned();
-    let outcomes = python::extract_circuits(&source, input.name(), arguments.circuit.as_deref())?;
+    let outcomes = python::extract_circuits(&source, input.name(), arguments.circuit().as_deref())?;
 
     let multiple = outcomes.iter().filter(|outcome| outcome.is_ok()).count() > 1;
     let mut failed = false;
@@ -108,12 +108,12 @@ fn display_python(
                         output.push('\n');
                     }
 
-                    let _header_result = writeln!(output, "circuit {}", info.name);
+                    let _header_result = writeln!(output, "circuit {}", info.name());
                 }
 
                 let display_request = DisplayRequest::new(
-                    Arc::new(info.circuit),
-                    DisplayFormat::from(arguments.format),
+                    Arc::new(info.circuit().clone()),
+                    DisplayFormat::from(arguments.format()),
                     None,
                     None,
                 );
