@@ -11,6 +11,7 @@ use qctidy_ports::SourceLocation;
 use serde::Serialize;
 
 use crate::error::CliError;
+use crate::fix::Edit;
 
 const MAX_POSITIONS: usize = 8;
 
@@ -75,6 +76,9 @@ pub(crate) struct CircuitReport {
     /// Maps operation indices to source ranges, only filled for Python inputs.
     #[get = "pub(crate)"]
     source_map: Option<Vec<SourceLocation>>,
+    /// One optional fix (list of edits) per diagnostic, parallel to `diagnostics`.
+    #[get = "pub(crate)"]
+    fixes: Vec<Option<Vec<Edit>>>,
 }
 
 impl CircuitReport {
@@ -90,6 +94,7 @@ impl CircuitReport {
         diagnostics: Vec<Diagnostic>,
         snippets: Vec<Option<String>>,
         source_map: Option<Vec<SourceLocation>>,
+        fixes: Vec<Option<Vec<Edit>>>,
     ) -> Self {
         Self {
             filename,
@@ -101,6 +106,7 @@ impl CircuitReport {
             diagnostics,
             snippets,
             source_map,
+            fixes,
         }
     }
 }
@@ -396,6 +402,7 @@ pub(crate) struct JsonDiagnostic {
     circuit_positions: Vec<JsonCircuitPosition>,
     operation_indices: Vec<usize>,
     source_locations: Vec<JsonSourceLocation>,
+    fixes: Option<Vec<Edit>>,
 }
 
 /// A circuit that could not be checked, reported in the JSON report.
@@ -457,6 +464,7 @@ impl JsonDiagnostic {
         circuit: Option<&str>,
         diagnostic: &Diagnostic,
         source_map: Option<&[SourceLocation]>,
+        fixes: Option<Vec<Edit>>,
     ) -> Self {
         let metadata = diagnostic.metadata();
 
@@ -489,6 +497,7 @@ impl JsonDiagnostic {
                     })
                     .collect()
             }),
+            fixes,
         }
     }
 }

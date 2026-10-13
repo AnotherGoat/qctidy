@@ -13,6 +13,7 @@ use qctidy_ports::ConversionFormat;
 
 use crate::arguments::{CheckArguments, OutputFormat};
 use crate::error::CliError;
+use crate::fix::{self, Edit};
 use crate::input::{Input, format_name};
 use crate::output::{self, CircuitReport, JsonDiagnostic, JsonError, Stats};
 use crate::progress::Progress;
@@ -57,6 +58,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
             report_python(
                 input,
                 snippets,
+                arguments.fix(),
                 &session,
                 arguments.circuit().as_deref(),
                 &mut reporter,
@@ -147,12 +149,14 @@ fn analyze(
         response.diagnostics().clone(),
         snippets,
         None,
+        Vec::new(),
     ))
 }
 
 fn report_python(
     input: &Input,
     snippets: bool,
+    fix: bool,
     session: &Session,
     selector: Option<&str>,
     reporter: &mut Reporter,
@@ -180,6 +184,8 @@ fn report_python(
         }
     };
 
+    let mut all_edits: Vec<Edit> = Vec::new();
+
     for outcome in outcomes {
         match outcome {
             Ok(info) => {
@@ -198,6 +204,26 @@ fn report_python(
                     Vec::new()
                 };
 
+                let fixes: Vec<Option<Vec<Edit>>> = check
+                    .diagnostics()
+                    .iter()
+                    .map(|diagnostic| {
+                        fix::edits_for(
+                            &source,
+                            info.circuit(),
+                            diagnostic,
+                            info.source_map(),
+                            info.circuit_name(),
+                        )
+                    })
+                    .collect();
+
+                if fix {
+                    for edits in fixes.iter().flatten() {
+                        all_edits.extend(edits.iter().cloned());
+                    }
+                }
+
                 let report = CircuitReport::new(
                     input.name().to_owned(),
                     Some(info.circuit_name().clone()),
@@ -208,6 +234,7 @@ fn report_python(
                     check.diagnostics().clone(),
                     circuit_snippets,
                     Some(info.source_map().clone()),
+                    fixes,
                 );
 
                 *stats.circuits_mut() += 1;
@@ -218,6 +245,18 @@ fn report_python(
                 *stats.errors_mut() += 1;
                 reporter.error(&error);
             }
+        }
+    }
+
+    if fix && !all_edits.is_empty() {
+        let fixed_source = fix::apply_edits(&source, &all_edits);
+
+        if let Err(error) = input.write(fixed_source.as_bytes()) {
+            *stats.errors_mut() += 1;
+            reporter.error(&CliError::Write {
+                target_name: input.name().to_owned(),
+                error,
+            });
         }
     }
 }
@@ -320,14 +359,21 @@ impl Reporter {
             OutputFormat::Human => output::human_report(&mut self.stdout, report, self.quiet),
             OutputFormat::Json => {
                 self.diagnostics
-                    .extend(report.diagnostics().iter().map(|diagnostic| {
-                        JsonDiagnostic::new(
-                            report.filename(),
-                            report.circuit_name().as_deref(),
-                            diagnostic,
-                            report.source_map().as_deref(),
-                        )
-                    }));
+                    .extend(
+                        report
+                            .diagnostics()
+                            .iter()
+                            .enumerate()
+                            .map(|(index, diagnostic)| {
+                                JsonDiagnostic::new(
+                                    report.filename(),
+                                    report.circuit_name().as_deref(),
+                                    diagnostic,
+                                    report.source_map().as_deref(),
+                                    report.fixes().get(index).cloned().flatten(),
+                                )
+                            }),
+                    );
             }
         }
     }

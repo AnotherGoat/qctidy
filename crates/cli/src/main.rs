@@ -6,6 +6,7 @@ mod check;
 mod convert;
 mod display;
 mod error;
+mod fix;
 mod input;
 mod output;
 mod present;
@@ -15,6 +16,8 @@ mod rules;
 
 #[cfg(test)]
 mod check_tests;
+#[cfg(test)]
+mod fix_tests;
 #[cfg(test)]
 mod input_tests;
 

@@ -44,6 +44,8 @@ pub enum GraphError {
     InvalidAngle { gate: GateType, position: Position },
     #[error("Invalid bit for gate {gate:?} at {position}")]
     InvalidBit { gate: GateType, position: Position },
+    #[error("Invalid row-order edges around {position}")]
+    InvalidRowOrder { position: Position },
     #[error("Invalid gate structure")]
     InvalidGateStructure,
 }

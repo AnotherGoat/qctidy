@@ -322,12 +322,16 @@ fn build_pattern_match(
 
     relationships_match(rule.lhs(), graph, &matched_nodes).then_some(())?;
 
+    // The pattern's bounding box must not contain nodes the pattern does not cover.
+    pattern_region_is_clear(graph, rule, mapping, anchor_graph_position).then_some(())?;
+
     let covered_positions = collect_covered_positions(&matched_nodes);
 
     Some(PatternMatch::new(
         rule.metadata().code(),
         mapping.clone(),
         covered_positions,
+        anchor_graph_position,
     ))
 }
 
@@ -343,6 +347,39 @@ fn collect_matched_nodes(
             match_pattern_node(graph, rule, mapping, anchor_graph_position, pattern_node)
         })
         .collect()
+}
+
+/// Check that the pattern's bounding box has no nodes beyond the pattern nodes.
+fn pattern_region_is_clear(
+    graph: &Graph,
+    rule: &PatternRule,
+    mapping: &QubitMapping,
+    anchor_graph_position: Position,
+) -> bool {
+    for row in 0..rule.height() {
+        for column in 0..rule.width() {
+            let pattern_position = Position::new(row, column);
+
+            if rule.lhs().has_node_at(pattern_position) {
+                continue;
+            }
+
+            let Some(graph_position) = map_pattern_position_to_graph(
+                rule,
+                mapping,
+                anchor_graph_position,
+                pattern_position,
+            ) else {
+                return false;
+            };
+
+            if graph.has_node_at(graph_position) {
+                return false;
+            }
+        }
+    }
+
+    true
 }
 
 fn match_pattern_node(

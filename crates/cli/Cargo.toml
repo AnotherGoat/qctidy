@@ -17,6 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 qctidy = { path = "../library" }
+qctidy-codegen = { path = "../codegen" }
 qctidy-converter = { path = "../converter" }
 qctidy-facade = { path = "../facade" }
 qctidy-ports = { path = "../ports" }

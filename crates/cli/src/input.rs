@@ -81,6 +81,17 @@ impl Input {
         }
     }
 
+    /// Write the whole input back to its file.
+    pub(crate) fn write(&self, bytes: &[u8]) -> io::Result<()> {
+        match &self.source {
+            Source::File(path) => fs::write(path, bytes),
+            Source::Stdin => Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "cannot write back to standard input",
+            )),
+        }
+    }
+
     /// The format to parse this input with.
     ///
     /// An explicit format always wins. Otherwise, it is guessed from the file

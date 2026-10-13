@@ -1,10 +1,10 @@
-use getset::Getters;
+use getset::{CopyGetters, Getters};
 use newgen::New;
 
 use crate::{Position, RuleCode};
 
 /// An instance of a pattern found inside a graph.
-#[derive(Debug, Clone, Getters, New)]
+#[derive(Debug, Clone, Getters, CopyGetters, New)]
 #[new(pub, const)]
 pub struct PatternMatch {
     /// The code of the rule that was matched.
@@ -16,6 +16,9 @@ pub struct PatternMatch {
     /// Every position from the matched graph that was covered by the pattern.
     #[get = "pub"]
     covered_positions: Vec<Position>,
+    /// The position in the graph where the pattern's anchor matched.
+    #[get_copy = "pub"]
+    anchor_position: Position,
 }
 
 /// A mapping from a qubit's index in the pattern to the qubit's index in the graph.

@@ -20,7 +20,7 @@ fn estimates_execution_time_with_parallel_gates() {
     builder.push_h(1);
     builder.push_cx(0, 1).unwrap();
 
-    let graph = builder.build();
+    let graph = builder.into_graph();
     let shots = 10;
 
     let time = estimate_execution_time(&graph, shots, &profile);

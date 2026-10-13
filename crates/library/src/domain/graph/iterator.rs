@@ -86,6 +86,10 @@ impl Graph {
         position: Position,
         key: impl Fn(&EdgeData) -> (EdgeType, usize, usize),
     ) -> Vec<EdgeView> {
+        let Some(start) = self.get_node(position) else {
+            return Vec::new();
+        };
+
         let mut edges: Vec<_> = self
             .edges_out
             .get(&position)
@@ -97,8 +101,7 @@ impl Graph {
 
         edges
             .into_iter()
-            .filter_map(move |edge| {
-                let start = self.get_node(position)?;
+            .filter_map(|edge| {
                 let end = self.get_node(edge.other)?;
                 Some(EdgeView::new(edge.edge_type, start, end))
             })

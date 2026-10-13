@@ -60,6 +60,24 @@ fn add_import(imports: &mut Vec<String>, import: &str) {
     }
 }
 
+/// Render a single gate operation as a Qiskit method call, such as `qc.h(0)`.
+///
+/// Gates that require an extra import (`SY`, `U`, or rotations expressed with
+/// `numpy.pi`) also need that import in the surrounding source; callers that only
+/// render built-in pattern replacements never hit those cases.
+#[must_use]
+pub fn render_operation(operation: &GateOperation, circuit_name: &str) -> String {
+    let mut imports = Vec::new();
+    let mut build_steps = Vec::new();
+
+    generate_gate(circuit_name, operation, &mut imports, &mut build_steps);
+
+    build_steps
+        .into_iter()
+        .next()
+        .expect("A single operation always produces one build step")
+}
+
 fn generate_gate(
     circuit_name: &str,
     operation: &GateOperation,

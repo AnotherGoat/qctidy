@@ -2,6 +2,8 @@
 mod openqasm3;
 #[cfg(feature = "codegen-qiskit")]
 mod qiskit;
+#[cfg(feature = "codegen-qiskit")]
+pub use qiskit::render_operation;
 
 #[cfg(test)]
 #[cfg(feature = "codegen-openqasm3")]

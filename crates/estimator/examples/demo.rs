@@ -14,7 +14,7 @@ async fn main() {
     builder.push_cx(0, 1).unwrap();
     builder.push_ccx(1, 2, 0).unwrap();
 
-    let graph = builder.build();
+    let graph = builder.into_graph();
     println!(
         "Circuit built: {} qubits high and {} levels of depth.",
         graph.height(),

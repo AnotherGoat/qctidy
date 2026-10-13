@@ -1,12 +1,20 @@
+//! Random circuit generation.
+
 use std::f64;
 
 use rand::rngs::StdRng;
 use rand::{RngExt, SeedableRng};
 
-use qctidy::{Graph, GraphBuilder};
+use crate::{Graph, GraphBuilder};
 
 const GATE_TYPES: usize = 25;
 
+/// Generate a random `Graph` with `height` qubits and `width` time steps.
+///
+/// The output only depends on `seed`, so it is reproducible.
+///
+/// Panics if `width` or `height` are zero.
+#[expect(clippy::unreachable)]
 pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
     assert!(width > 0);
     assert!(height > 0);
@@ -41,19 +49,27 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                 }
                 5 => {
                     let qubit = generator.take_qubit(&mut available_qubits);
-                    builder.push_p(generator.angle(), qubit).unwrap();
+                    builder
+                        .push_p(generator.angle(), qubit)
+                        .expect("the generated gate should be valid");
                 }
                 6 => {
                     let qubit = generator.take_qubit(&mut available_qubits);
-                    builder.push_rx(generator.angle(), qubit).unwrap();
+                    builder
+                        .push_rx(generator.angle(), qubit)
+                        .expect("the generated gate should be valid");
                 }
                 7 => {
                     let qubit = generator.take_qubit(&mut available_qubits);
-                    builder.push_ry(generator.angle(), qubit).unwrap();
+                    builder
+                        .push_ry(generator.angle(), qubit)
+                        .expect("the generated gate should be valid");
                 }
                 8 => {
                     let qubit = generator.take_qubit(&mut available_qubits);
-                    builder.push_rz(generator.angle(), qubit).unwrap();
+                    builder
+                        .push_rz(generator.angle(), qubit)
+                        .expect("the generated gate should be valid");
                 }
                 9 => {
                     let qubit = generator.take_qubit(&mut available_qubits);
@@ -88,7 +104,7 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                             generator.angle(),
                             qubit,
                         )
-                        .unwrap();
+                        .expect("the generated gate should be valid");
                 }
                 16 => {
                     if available_qubits.len() < 2 {
@@ -96,7 +112,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (qubit1, qubit2) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_swap(qubit1, qubit2).unwrap();
+                    builder
+                        .push_swap(qubit1, qubit2)
+                        .expect("the generated gate should be valid");
                 }
                 17 => {
                     if available_qubits.len() < 2 {
@@ -104,7 +122,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (control, target) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_ch(control, target).unwrap();
+                    builder
+                        .push_ch(control, target)
+                        .expect("the generated gate should be valid");
                 }
                 18 => {
                     if available_qubits.len() < 2 {
@@ -112,7 +132,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (control, target) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_cx(control, target).unwrap();
+                    builder
+                        .push_cx(control, target)
+                        .expect("the generated gate should be valid");
                 }
                 19 => {
                     if available_qubits.len() < 2 {
@@ -120,7 +142,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (control, target) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_cy(control, target).unwrap();
+                    builder
+                        .push_cy(control, target)
+                        .expect("the generated gate should be valid");
                 }
                 20 => {
                     if available_qubits.len() < 2 {
@@ -128,7 +152,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (qubit1, qubit2) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_cz(qubit1, qubit2).unwrap();
+                    builder
+                        .push_cz(qubit1, qubit2)
+                        .expect("the generated gate should be valid");
                 }
                 21 => {
                     if available_qubits.len() < 2 {
@@ -136,7 +162,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
                     }
 
                     let (qubit1, qubit2) = generator.take_distinct_pair(&mut available_qubits);
-                    builder.push_cp(generator.angle(), qubit1, qubit2).unwrap();
+                    builder
+                        .push_cp(generator.angle(), qubit1, qubit2)
+                        .expect("the generated gate should be valid");
                 }
                 22 => {
                     if available_qubits.len() < 3 {
@@ -145,7 +173,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
 
                     let [control, target1, target2] =
                         generator.take_distinct_three(&mut available_qubits);
-                    builder.push_cswap(control, target1, target2).unwrap();
+                    builder
+                        .push_cswap(control, target1, target2)
+                        .expect("the generated gate should be valid");
                 }
                 23 => {
                     if available_qubits.len() < 3 {
@@ -154,7 +184,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
 
                     let [control1, control2, target] =
                         generator.take_distinct_three(&mut available_qubits);
-                    builder.push_ccx(control1, control2, target).unwrap();
+                    builder
+                        .push_ccx(control1, control2, target)
+                        .expect("the generated gate should be valid");
                 }
                 24 => {
                     if available_qubits.len() < 3 {
@@ -163,7 +195,9 @@ pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
 
                     let [qubit1, qubit2, qubit3] =
                         generator.take_distinct_three(&mut available_qubits);
-                    builder.push_ccz(qubit1, qubit2, qubit3).unwrap();
+                    builder
+                        .push_ccz(qubit1, qubit2, qubit3)
+                        .expect("the generated gate should be valid");
                 }
                 _ => unreachable!(),
             }

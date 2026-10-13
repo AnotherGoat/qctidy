@@ -49,6 +49,7 @@ pub(crate) struct AstArguments {
 }
 
 #[derive(Debug, Args, Getters, CopyGetters)]
+#[expect(clippy::struct_excessive_bools)]
 pub(crate) struct CheckArguments {
     /// Circuit files to check (reads from standard input when omitted).
     #[arg(short, long, value_name = "FILE")]
@@ -110,6 +111,11 @@ pub(crate) struct CheckArguments {
     #[arg(short, long, conflicts_with = "quiet")]
     #[get_copy = "pub(crate)"]
     verbose: bool,
+
+    /// Apply every fix to the input Python files, rewriting them in place.
+    #[arg(long)]
+    #[get_copy = "pub(crate)"]
+    fix: bool,
 }
 
 #[derive(Debug, Args, Getters, CopyGetters)]

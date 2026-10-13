@@ -2,6 +2,7 @@ pub(crate) mod display;
 /// Contains domain structures used to represent a `Graph`.
 pub(crate) mod domain;
 pub mod fixer;
+pub mod random;
 
 pub use display::{
     angle_formatter::{AngleFormat, PiFormat},

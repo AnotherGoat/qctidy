@@ -88,7 +88,7 @@ fn compact_columns_empty_column_after_remove() {
     builder.put_x(0, 0);
     builder.put_x(0, 1);
     builder.put_x(0, 2);
-    let mut graph = builder.build();
+    let mut graph = builder.into_graph();
     graph.remove_node(Position::new(0, 1));
     let rule = canonicalization::compact_columns();
     let matches = rule.detect(&graph);
@@ -244,4 +244,33 @@ fn normalize_bits_no_measurements() {
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
+}
+
+#[test]
+fn compact_columns_preserves_qubit_count() {
+    // Three qubits, but only qubit 0 has gates, with a gap between columns 0 and 2.
+    let mut graph = Graph::new(3);
+    graph.replace_node(
+        crate::GateType::X,
+        Position::new(0, 0),
+        None,
+        None,
+        None,
+        None,
+    );
+    graph.replace_node(
+        crate::GateType::X,
+        Position::new(0, 2),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    let rule = canonicalization::compact_columns();
+    assert!(rule.apply(&mut graph));
+
+    assert_eq!(graph.height(), 3);
+    assert!(graph.has_node_at(Position::new(0, 0)));
+    assert!(graph.has_node_at(Position::new(0, 1)));
 }

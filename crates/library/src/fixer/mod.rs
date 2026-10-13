@@ -10,16 +10,20 @@ pub(crate) mod fixer_mother;
 #[cfg(test)]
 mod matrix_calculator_tests;
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use getset::{CopyGetters, Getters};
 use newgen::New;
 
 use crate::{
-    Graph, PatternRule, Position, Rule, RuleConfiguration, RuleMetadata, RuleRegistry,
-    RuleSeverity,
+    GateOperation, Graph, PatternRule, Position, Rule, RuleConfiguration, RuleMetadata,
+    RuleRegistry, RuleSeverity,
     fixer::{
-        pattern::cache::{GateTypeBitset, GraphCache},
+        pattern::{
+            cache::{GateTypeBitset, GraphCache},
+            replacer,
+        },
         rule::registry::DEFAULT_RULE_REGISTRY,
     },
 };
@@ -122,6 +126,28 @@ impl Fixer {
 
         diagnostics
     }
+
+    /// Apply the fix that produced the given diagnostic, at exactly that match.
+    ///
+    /// Returns the operations that replace the matched pattern, in source order,
+    /// or `None` when the diagnostic's rule has no applicable match (for example,
+    /// canonicalization rules).
+    pub fn apply(&self, graph: &mut Graph, diagnostic: &Diagnostic) -> Option<Vec<GateOperation>> {
+        let rule = self
+            .rules
+            .iter()
+            .find(|rule| rule.metadata().code() == diagnostic.metadata().code())?;
+
+        let pattern_rule = rule.as_any().downcast_ref::<PatternRule>()?;
+
+        let positions: HashSet<Position> = diagnostic.positions().iter().copied().collect();
+        let pattern_match = pattern_rule.find_match(graph, &positions)?;
+        let replacement_operations = replacer::replacement_operations(pattern_rule, &pattern_match);
+
+        replacer::apply_match(graph, pattern_rule, &pattern_match);
+
+        Some(replacement_operations)
+    }
 }
 
 pub fn fix(mut graph: Graph, iterations: u32) -> Graph {
@@ -141,6 +167,19 @@ pub fn fix(mut graph: Graph, iterations: u32) -> Graph {
 #[must_use]
 pub fn detect(graph: &Graph, configuration: &RuleConfiguration) -> Vec<Diagnostic> {
     Fixer::new(&DEFAULT_RULE_REGISTRY, vec![], configuration).detect(graph)
+}
+
+/// Apply the fix that produced the given diagnostic to `graph`.
+///
+/// Returns the operations that replace the matched pattern, or `None` when the
+/// diagnostic's rule has no applicable match.
+pub fn apply(graph: &mut Graph, diagnostic: &Diagnostic) -> Option<Vec<GateOperation>> {
+    Fixer::new(
+        &DEFAULT_RULE_REGISTRY,
+        vec![],
+        &RuleConfiguration::new(RuleSeverity::Warn),
+    )
+    .apply(graph, diagnostic)
 }
 
 /// List the metadata of every built-in fix rule, ordered by code.

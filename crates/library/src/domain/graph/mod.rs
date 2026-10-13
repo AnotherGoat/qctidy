@@ -88,6 +88,15 @@ pub struct Graph {
     pub(self) edges_in: FxHashMap<Position, Vec<EdgeData>>,
 }
 
+/// Collect the semantic (non-`Right`) edges from a node's edge list.
+fn non_right_edges(edges: &[EdgeData]) -> Vec<(EdgeType, Position)> {
+    edges
+        .iter()
+        .filter(|edge| edge.edge_type != EdgeType::Right)
+        .map(|edge| (edge.edge_type, edge.other))
+        .collect()
+}
+
 impl PartialEq for Graph {
     /// Check whether two graphs are equal.
     ///
@@ -211,6 +220,7 @@ impl Graph {
     ///
     /// Returns an error if a node already exists at the specified position.
     /// Increases the graph height if necessary.
+    /// Connects the node to its row neighbors with `Right` edges.
     ///
     /// Complexity: O(log n).
     pub fn add_node(
@@ -234,6 +244,7 @@ impl Graph {
             bit,
         };
         self.insert_new_node(position, node);
+        self.connect_row_neighbors(position)?;
         Ok(())
     }
 
@@ -261,6 +272,7 @@ impl Graph {
     ///
     /// The node at the specified position is overwritten if present, or inserted if not.
     /// Increases the graph height if necessary (when the node is inserted).
+    /// When a node is inserted, it is connected to its row neighbors with `Right` edges.
     ///
     /// Complexity: O(log n).
     pub fn replace_node(
@@ -286,6 +298,8 @@ impl Graph {
         }
 
         self.insert_new_node(position, node);
+        self.connect_row_neighbors(position)
+            .expect("The node was just inserted");
     }
 
     fn replace_existing_node(&mut self, position: Position, node: &NodeData) {
@@ -412,20 +426,33 @@ impl Graph {
             return Err(GraphError::NullMove);
         }
 
-        self.remove_node(end);
-
-        let (node, outgoing, incoming) = self
-            .detach_node(start)
+        let node = self
+            .nodes
+            .get(&start)
+            .cloned()
             .expect("Node at start position should exist");
 
-        self.insert_new_node(end, node);
+        // Only the semantic edges move with the node; the row-order (`Right`) edges are
+        // recomputed from the destination position.
+        let outgoing = self
+            .edges_out
+            .get(&start)
+            .map_or_else(Vec::new, |edges| non_right_edges(edges));
+        let incoming = self
+            .edges_in
+            .get(&start)
+            .map_or_else(Vec::new, |edges| non_right_edges(edges));
 
-        for edge in outgoing {
-            self.add_edge_internal(edge.edge_type, end, edge.other);
+        self.remove_node(start);
+        self.remove_node(end);
+        self.add_node(node.gate, end, node.theta, node.phi, node.lambda, node.bit)?;
+
+        for (edge_type, other) in outgoing {
+            self.add_edge_internal(edge_type, end, other);
         }
 
-        for edge in incoming {
-            self.add_edge_internal(edge.edge_type, edge.other, end);
+        for (edge_type, other) in incoming {
+            self.add_edge_internal(edge_type, other, end);
         }
 
         Ok(())
@@ -734,8 +761,14 @@ impl Graph {
         semantic_validator::validate(self).unwrap();
     }
 
+    /// Remap every node and edge position with the given function.
+    ///
+    /// The graph height is preserved: a remap must not silently drop qubits (for
+    /// example, when the graph has trailing rows without nodes).
     pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {
         // Complexity: O(n + edges).
+        let previous_height = self.qubit_count;
+
         self.qubit_count = 0;
         self.time_step_count = 0;
         self.bit_count = 0;
@@ -807,6 +840,6 @@ impl Graph {
             }
         }
 
-        self.qubit_count = self.row_node_counts.len();
+        self.qubit_count = self.row_node_counts.len().max(previous_height);
     }
 }

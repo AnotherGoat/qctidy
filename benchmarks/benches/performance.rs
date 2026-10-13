@@ -3,7 +3,7 @@ use std::hint::black_box;
 use criterion::{BatchSize, BenchmarkId, Criterion, criterion_group};
 use qctidy::{GraphBuilder, fixer::fix};
 
-use crate::random_circuit_generator;
+use qctidy::random;
 
 const MAX_ITERATIONS: u32 = 5;
 
@@ -321,7 +321,7 @@ fn random_circuit(criterion: &mut Criterion) {
             &(width, height),
             |bencher, &(width, height)| {
                 bencher.iter_batched(
-                    || random_circuit_generator::generate(0, width, height),
+                    || random::generate(0, width, height),
                     |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )

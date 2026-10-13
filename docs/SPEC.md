@@ -198,7 +198,7 @@
 - [x] Load circuit from file (using converter)
 - [x] Save circuit to file (using converter)
 - [x] Display circuit as text/grid/matrix
-- [ ] Fix circuit
+- [x] Fix circuit
 - [x] Check circuit for fixable patterns
 - [x] List available fix rules
 - [x] Generate graph visualization

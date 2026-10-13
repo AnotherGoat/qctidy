@@ -18,7 +18,6 @@ sysinfo = { workspace = true }
 [dev-dependencies]
 qctidy = { path = "../crates/library" }
 criterion = { workspace = true }
-rand = { workspace = true }
 
 [[bench]]
 name = "performance"

@@ -160,6 +160,35 @@ impl PatternRule {
         matcher::find_matches(graph, self)
     }
 
+    /// Find the match whose covered positions equal `positions`.
+    pub(crate) fn find_match(
+        &self,
+        graph: &Graph,
+        positions: &HashSet<Position>,
+    ) -> Option<PatternMatch> {
+        self.find_matches(graph).into_iter().find(|pattern_match| {
+            pattern_match
+                .covered_positions()
+                .iter()
+                .copied()
+                .collect::<HashSet<_>>()
+                == *positions
+        })
+    }
+
+    /// Apply this rule at the match whose covered positions equal `positions`.
+    ///
+    /// Returns `false` when no match covers exactly those positions.
+    pub fn apply_at(&self, graph: &mut Graph, positions: &HashSet<Position>) -> bool {
+        let Some(pattern_match) = self.find_match(graph, positions) else {
+            return false;
+        };
+
+        replacer::apply_match(graph, self, &pattern_match);
+
+        true
+    }
+
     /// Find all the matches of this rule's pattern, reusing a graph cache.
     ///
     /// The cache must have been built from the same, unchanged graph.

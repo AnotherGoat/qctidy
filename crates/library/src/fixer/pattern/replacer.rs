@@ -1,11 +1,31 @@
 use std::collections::HashSet;
 
-use crate::{Graph, NodeView, PatternMatch, PatternRule, Position};
+use crate::{Circuit, GateOperation, Graph, NodeView, PatternMatch, PatternRule, Position};
 
 pub(crate) fn apply_match(graph: &mut Graph, rule: &PatternRule, pattern_match: &PatternMatch) {
     remove_lhs_nodes(graph, pattern_match);
     insert_rhs_nodes(graph, rule, pattern_match);
     reconnect_rhs_edges(graph, rule, pattern_match);
+}
+
+/// The operations that replace the matched pattern, in source order.
+pub(crate) fn replacement_operations(
+    rule: &PatternRule,
+    pattern_match: &PatternMatch,
+) -> Vec<GateOperation> {
+    // Map the right-hand side onto the graph rows and read it back as operations.
+    let mut mapped_rhs = rule.rhs().clone();
+    mapped_rhs.remap_positions(|position| {
+        Position::new(
+            pattern_match
+                .mapping()
+                .graph_row(position.row())
+                .expect("RHS rows should be mapped"),
+            position.column(),
+        )
+    });
+
+    Circuit::from(&mapped_rhs).operations().clone()
 }
 
 fn remove_lhs_nodes(graph: &mut Graph, pattern_match: &PatternMatch) {
@@ -96,21 +116,13 @@ fn map_rhs_position_to_graph(
     let mapping = pattern_match.mapping();
     let graph_row = mapping.graph_row(rhs_position.row())?;
 
-    let lhs_anchor = rule.anchor().position();
-    let matched_anchor = find_matched_anchor_position(rule, pattern_match)?;
+    // Offset between the anchor's position in the graph and in the pattern.
+    let column_offset = pattern_match
+        .anchor_position()
+        .column()
+        .checked_sub(rule.anchor().position().column())?;
 
-    let graph_column = matched_anchor.column() + rhs_position.column() - lhs_anchor.column();
+    let graph_column = column_offset.checked_add(rhs_position.column())?;
 
     Some(Position::new(graph_row, graph_column))
-}
-
-fn find_matched_anchor_position(
-    rule: &PatternRule,
-    pattern_match: &PatternMatch,
-) -> Option<Position> {
-    pattern_match
-        .covered_positions()
-        .iter()
-        .copied()
-        .find(|position| *position == rule.anchor().position())
 }

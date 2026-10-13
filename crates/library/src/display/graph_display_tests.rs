@@ -104,7 +104,7 @@ H at (0, 0)
 X at (0, 2)
 
 Edges:
-(empty)";
+[right] from H at (0, 0) to X at (0, 2)";
 
     assert_eq!(result, expected);
 }

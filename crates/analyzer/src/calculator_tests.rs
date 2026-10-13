@@ -8,7 +8,7 @@ fn calculates_expected_metrics() {
     let mut builder = GraphBuilder::new(2);
     builder.push_h(0);
     builder.push_cx(0, 1).unwrap();
-    let graph = builder.build();
+    let graph = builder.into_graph();
 
     let metrics = calculate_metrics(&graph);
 

@@ -2,7 +2,7 @@ use crate::{
     Graph, GraphBuilder,
     fixer::{
         pattern::{matcher, pattern_match_asserter::PatternMatchAsserter},
-        rule::default::redundancy,
+        rule::default::{basis_change, redundancy},
     },
 };
 
@@ -186,6 +186,25 @@ fn match_double_ccz_on_three_qubits() {
 
     assert_eq!(matches.len(), 1);
     PatternMatchAsserter::new(&matches[0]).three_qubit_double_gate("R013");
+}
+
+#[test]
+fn dont_match_when_a_pattern_hole_is_occupied() {
+    // `hadamard_cz_hadamard` (B004) has holes on qubit 0 at the first and last columns
+    // (the H gates act on qubit 1). An extra gate there means the region is not the
+    // pattern, so it must not match (otherwise the replacement would collide with it).
+    let graph = GraphBuilder::default()
+        .push_x(0)
+        .push_h(1)
+        .push_cz(0, 1)
+        .unwrap()
+        .push_h(1)
+        .build();
+
+    let rule = basis_change::hadamard_cz_hadamard();
+    let matches = matcher::find_matches(&graph, &rule);
+
+    assert!(matches.is_empty());
 }
 
 #[test]

@@ -433,7 +433,7 @@ fn move_node_overwrites_destination() {
 }
 
 #[test]
-fn move_node_preserves_edges() {
+fn move_node_preserves_semantic_edges() {
     let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 1), None, None, None, None);
@@ -458,8 +458,12 @@ fn move_node_preserves_edges() {
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
-    assert!(edges.contains(&EdgeView::new(Right, cx_controller, hadamard)));
+    // The semantic `Targets` edge moves with the node.
     assert!(edges.contains(&EdgeView::new(Targets, cx_controller, cx_target)));
+
+    // The row-order `Right` edge is recomputed for the new position, so it must not
+    // follow the node across rows.
+    assert!(!edges.contains(&EdgeView::new(Right, cx_controller, hadamard)));
 }
 
 #[test]
@@ -733,4 +737,62 @@ fn circuit_to_graph_round_trip_with_id() {
 
     assert_eq!(first.r#type(), ID);
     assert_eq!(second.r#type(), X);
+}
+
+#[test]
+fn move_node_updates_row_neighbors() {
+    let mut graph = Graph::default();
+    graph.replace_node(X, Position::new(1, 0), None, None, None, None);
+    graph.replace_node(Y, Position::new(1, 2), None, None, None, None);
+
+    // Row 1 has `X -> Y`. Moving X out must not leave a cross-row `Right` edge.
+    graph
+        .move_node(Position::new(1, 0), Position::new(0, 0))
+        .unwrap();
+
+    let mut expected = Graph::default();
+    expected.replace_node(X, Position::new(0, 0), None, None, None, None);
+    expected.replace_node(Y, Position::new(1, 2), None, None, None, None);
+
+    assert_eq!(graph, expected);
+}
+
+#[test]
+fn move_node_connects_to_destination_row_neighbors() {
+    let mut graph = Graph::default();
+    graph.replace_node(X, Position::new(0, 0), None, None, None, None);
+    graph.replace_node(Z, Position::new(0, 3), None, None, None, None);
+    graph.replace_node(Y, Position::new(1, 1), None, None, None, None);
+
+    // Inserting Y between X and Z must connect `X -> Y -> Z`.
+    graph
+        .move_node(Position::new(1, 1), Position::new(0, 2))
+        .unwrap();
+
+    let mut expected = Graph::new(2);
+    expected.replace_node(X, Position::new(0, 0), None, None, None, None);
+    expected.replace_node(Y, Position::new(0, 2), None, None, None, None);
+    expected.replace_node(Z, Position::new(0, 3), None, None, None, None);
+
+    assert_eq!(graph, expected);
+}
+
+#[test]
+fn validate_rejects_invalid_row_order_edges() {
+    let mut graph = Graph::default();
+    graph.replace_node(X, Position::new(0, 0), None, None, None, None);
+    graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
+    graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
+
+    assert!(graph.validate().is_ok());
+
+    // A `Right` edge must connect row neighbors; this one crosses rows.
+    graph
+        .add_edge(Right, Position::new(0, 0), Position::new(1, 0))
+        .unwrap();
+
+    assert!(matches!(
+        graph.validate(),
+        Err(GraphError::InvalidRowOrder { .. })
+    ));
 }
