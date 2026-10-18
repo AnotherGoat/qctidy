@@ -48,6 +48,16 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "QCTidy",
+      "properties": {
+        "qctidy.path": {
+          "type": "string",
+          "default": "qctidy",
+          "description": "Path to the QCTidy executable (default: 'qctidy' from PATH)."
+        }
+      }
     }
   },
   "scripts": {

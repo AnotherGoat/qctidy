@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { AstAnalysis, AstCircuit, AstScope, runAst } from './ast';
+import { QctidyStatus } from './cli';
 
 export type AstNodeType =
     | 'class'
@@ -78,12 +79,21 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
     private rootItems: AstNodeItem[] = [];
     private qiskitVersion: string | null = null;
     private qiskitChecked = false;
+    private qctidyStatus: QctidyStatus | null = null;
+    private qctidyChecked = false;
     private foundCircuits = 0;
     private circuitNameCounts = new Map<string, number>();
 
     refresh(): void {
         this.rootItems = [];
         this._onDidChangeTreeData.fire();
+    }
+
+    /** Store the detected QCTidy status and refresh the sidebar. */
+    setQctidyStatus(status: QctidyStatus): void {
+        this.qctidyStatus = status;
+        this.qctidyChecked = true;
+        this.refresh();
     }
 
     /** Store the detected Qiskit version and refresh the sidebar. */
@@ -93,10 +103,12 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
         this.refresh();
     }
 
-    /** Reset the detected Qiskit version and re-parse the sidebar. */
+    /** Reset the detected versions and re-parse the sidebar. */
     reload(): void {
         this.qiskitVersion = null;
         this.qiskitChecked = false;
+        this.qctidyStatus = null;
+        this.qctidyChecked = false;
         this.refresh();
     }
 
@@ -129,7 +141,22 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             return element.children;
         }
 
-        const items: AstNodeItem[] = [this.createQiskitItem()];
+        const items: AstNodeItem[] = [
+            this.createQctidyItem(),
+            this.createQiskitItem()
+        ];
+
+        // If QCTidy CLI is not available, disable all circuit analysis features
+        if (this.qctidyChecked && this.qctidyStatus && !this.qctidyStatus.available) {
+            items.push(this.createMessageItem(
+                this.qctidyStatus.error
+                    ? `QCTidy error: ${this.qctidyStatus.error}`
+                    : 'QCTidy executable not found. Check "qctidy.path" in settings.'
+            ));
+            this.rootItems = items;
+            return items;
+        }
+
         const editor = vscode.window.activeTextEditor;
 
         if (!editor || editor.document.languageId !== 'python') {
@@ -159,6 +186,34 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
         this.rootItems = items;
         return items;
+    }
+
+    private createQctidyItem(): AstNodeItem {
+        if (!this.qctidyChecked) {
+            return new AstNodeItem('QCTidy: detecting...', 'metadata', -1, -1, vscode.TreeItemCollapsibleState.None, undefined, 'sync~spin');
+        }
+
+        if (!this.qctidyStatus || !this.qctidyStatus.available) {
+            return new AstNodeItem(
+                'QCTidy: not found',
+                'metadata',
+                -1,
+                -1,
+                vscode.TreeItemCollapsibleState.None,
+                this.qctidyStatus?.error ?? 'Executable not found in PATH or configured path',
+                'error'
+            );
+        }
+
+        return new AstNodeItem(
+            `QCTidy: ${this.qctidyStatus.version ?? 'available'}`,
+            'metadata',
+            -1,
+            -1,
+            vscode.TreeItemCollapsibleState.None,
+            this.qctidyStatus.executable,
+            'tools'
+        );
     }
 
     private createQiskitItem(): AstNodeItem {

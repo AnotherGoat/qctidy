@@ -25,10 +25,11 @@ Para mantener el proyecto ligero y sin dependencias innecesarias, la extensión 
 
 Los componentes principales son:
 
-1. **`src/extension.ts`**: Punto de entrada de la extensión. Inicializa el entorno, crea la vista de árbol y registra los comandos de navegación y recarga (`qctidy.openNode`, `qctidy.refresh`).
-2. **`src/ast.ts`**: Cliente del CLI (`qctidy ast`) y tipos del análisis que devuelve. Invoca el comando sobre el contenido del archivo abierto y entrega el AST en JSON.
-3. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Recorre el análisis devuelto por el CLI y construye la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación.
-4. **`src/qiskit.ts`**: Detecta la versión de Qiskit usando el intérprete configurado en la extensión de Python (con el `PATH` como respaldo) y se vuelve a detectar cuando cambia el intérprete.
+1. **`src/extension.ts`**: Punto de entrada de la extensión. Inicializa el entorno, crea la vista de árbol, supervisa la disponibilidad de QCTidy y registra los comandos de navegación y recarga (`qctidy.openNode`, `qctidy.refresh`).
+2. **`src/cli.ts`**: Cliente unificado del CLI de QCTidy. Gestiona la resolución del ejecutable (`qctidy.path` o `PATH`, con soporte multiplataforma y expansión de `~`), verificación de disponibilidad (`qctidy --version`) con timeout y caché, ejecución desacoplada por `spawn` (sin shell y con soporte de `stdin`), y canal de subcomandos (`ast`, etc.).
+3. **`src/ast.ts`**: Tipos y modelos de datos del análisis AST emitido por `qctidy ast`. Reexporta la ejecución delegando al runner de `cli.ts`.
+4. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Recorre el análisis devuelto por el CLI y construye la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación. También reporta el estado y versión tanto de QCTidy como de Qiskit.
+5. **`src/qiskit.ts`**: Detecta la versión de Qiskit usando el intérprete configurado en la extensión de Python (con el `PATH` como respaldo) y se vuelve a detectar cuando cambia el intérprete.
 
 ## Entorno de Desarrollo (Pruebas Locales)
 
