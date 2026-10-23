@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use qctidy::Circuit;
 use qctidy_ports::{
-    CircuitBuild, CircuitIssue, ParsedCircuit, PythonAnalysis, Scope, ScopeChild, ScopeType,
+    CircuitBuild, ParseIssue, ParsedCircuit, PythonAnalysis, Scope, ScopeChild, ScopeType,
     SourceLocation,
 };
 use tree_sitter::{Node, Parser};
@@ -145,13 +145,13 @@ fn find_assignments(
             if function_text == "QuantumCircuit" || function_text.ends_with(".QuantumCircuit") {
                 let variable_name = node_text(left, source);
                 let arguments = right.child_by_field_name("arguments");
-                let (qubits, clbits) = circuit_counts(arguments, source);
+                let (qubit_count, bit_count) = circuit_counts(arguments, source);
                 let start = node.start_position();
 
                 let circuit = ParsedCircuit {
                     name: variable_name.clone(),
-                    qubits,
-                    clbits,
+                    qubit_count,
+                    bit_count,
                     line: start.row,
                     column: start.column,
                     gates: Vec::new(),
@@ -245,11 +245,11 @@ fn collect_arguments(arguments: Option<Node>, source: &str) -> Vec<Argument> {
 
 #[must_use]
 fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
-    let mut qubits = "0".to_owned();
-    let mut clbits = "0".to_owned();
+    let mut qubit_count = "0".to_owned();
+    let mut bit_count = "0".to_owned();
 
     let Some(arguments) = arguments else {
-        return (qubits, clbits);
+        return (qubit_count, bit_count);
     };
 
     let mut positional = Vec::new();
@@ -265,10 +265,10 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
 
             match key_name.as_deref() {
                 Some("qubits" | "num_qubits") => {
-                    qubits = value.unwrap_or_else(|| "0".to_owned());
+                    qubit_count = value.unwrap_or_else(|| "0".to_owned());
                 }
                 Some("clbits" | "num_clbits") => {
-                    clbits = value.unwrap_or_else(|| "0".to_owned());
+                    bit_count = value.unwrap_or_else(|| "0".to_owned());
                 }
                 _ => {}
             }
@@ -277,15 +277,15 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
         }
     }
 
-    if let Some(positional_qubits) = positional.first() {
-        qubits = positional_qubits.clone();
+    if let Some(positional_qubit_count) = positional.first() {
+        qubit_count = positional_qubit_count.clone();
     }
 
-    if let Some(positional_clbits) = positional.get(1) {
-        clbits = positional_clbits.clone();
+    if let Some(positional_bit_count) = positional.get(1) {
+        bit_count = positional_bit_count.clone();
     }
 
-    (qubits, clbits)
+    (qubit_count, bit_count)
 }
 
 fn finalize_circuits(circuits: &mut [ParsedCircuit]) {
@@ -301,20 +301,20 @@ fn finalize_circuits(circuits: &mut [ParsedCircuit]) {
 }
 
 #[must_use]
-fn compute_issues(circuit: &ParsedCircuit) -> Vec<CircuitIssue> {
+fn compute_issues(circuit: &ParsedCircuit) -> Vec<ParseIssue> {
     let mut issues = Vec::new();
 
-    if expressions::evaluate_integer(&circuit.qubits).is_none() {
-        issues.push(CircuitIssue {
-            message: format!("qubit count is not a number: {}", circuit.qubits),
+    if expressions::evaluate_integer(&circuit.qubit_count).is_none() {
+        issues.push(ParseIssue {
+            message: format!("qubit count is not a number: {}", circuit.qubit_count),
             line: circuit.line,
             column: circuit.column,
         });
     }
 
-    if expressions::evaluate_integer(&circuit.clbits).is_none() {
-        issues.push(CircuitIssue {
-            message: format!("classical bit count is not a number: {}", circuit.clbits),
+    if expressions::evaluate_integer(&circuit.bit_count).is_none() {
+        issues.push(ParseIssue {
+            message: format!("classical bit count is not a number: {}", circuit.bit_count),
             line: circuit.line,
             column: circuit.column,
         });
@@ -322,7 +322,7 @@ fn compute_issues(circuit: &ParsedCircuit) -> Vec<CircuitIssue> {
 
     for gate in &circuit.gates {
         if gate.operation.is_none() {
-            issues.push(CircuitIssue {
+            issues.push(ParseIssue {
                 message: gate
                     .reason
                     .clone()
@@ -337,7 +337,7 @@ fn compute_issues(circuit: &ParsedCircuit) -> Vec<CircuitIssue> {
 }
 
 fn build_circuit(circuit: &ParsedCircuit) -> Option<CircuitBuild> {
-    let qubit_count = expressions::evaluate_integer(&circuit.qubits)?;
+    let qubit_count = expressions::evaluate_integer(&circuit.qubit_count)?;
     let mut operations = Vec::new();
     let mut source_map = Vec::new();
 

@@ -29,6 +29,9 @@ use crate::{
 };
 
 /// A diagnostic describing a fixable pattern in a graph.
+///
+/// Follows the Language Server Protocol (LSP) notion of a diagnostic: a severity and
+/// the positions affected by the match, produced by the rule that was detected.
 #[derive(Debug, Clone, Getters, CopyGetters, New)]
 #[new(pub)]
 #[must_use]
@@ -39,7 +42,7 @@ pub struct Diagnostic {
     /// Severity reported for the detected match.
     #[get_copy = "pub"]
     severity: RuleSeverity,
-    /// Positions affected by the detected match, sorted by row and then column.
+    /// Positions affected by the detected match, sorted by qubit and then time step.
     #[get = "pub"]
     positions: Vec<Position>,
 }
@@ -232,8 +235,8 @@ fn is_applicable(rule: &dyn Rule, graph: &Graph, gate_types: GateTypeBitset) -> 
     // Whether a rule can possibly match the graph, based on its quick checks.
     //
     // Skipping impossible rules avoids running their matcher over the whole graph.
-    rule.minimum_height() <= graph.height()
-        && rule.minimum_width() <= graph.width()
+    rule.minimum_qubit_count() <= graph.qubit_count()
+        && rule.minimum_time_step_count() <= graph.time_step_count()
         && rule
             .required_gate_types()
             .iter()

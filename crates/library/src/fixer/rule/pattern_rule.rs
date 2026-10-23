@@ -38,7 +38,7 @@ impl fmt::Display for PatternRuleSide {
 
 #[derive(Debug, Clone)]
 struct GraphStatistics {
-    gate_count: usize,
+    operation_count: usize,
     gate_types: HashSet<GateType>,
     node_frequencies: HashMap<GateType, usize>,
 }
@@ -51,14 +51,14 @@ impl GraphStatistics {
             *node_frequencies.entry(node.r#type()).or_insert(0) += 1;
         }
 
-        let gate_count = node_frequencies
+        let operation_count = node_frequencies
             .iter()
-            .map(|(gate_type, count)| count / gate_type.qubit_count())
+            .map(|(gate_type, count)| count / gate_type.arity())
             .sum();
         let gate_types = node_frequencies.keys().copied().collect();
 
         Self {
-            gate_count,
+            operation_count,
             gate_types,
             node_frequencies,
         }
@@ -73,7 +73,7 @@ impl GraphStatistics {
 /// - LHS and RHS must not contain forbidden gates: measurement.
 /// - Additionally, identity is forbidden from the RHS.
 /// - LHS cannot be empty.
-/// - RHS cannot have more qubits (height) than LHS.
+/// - RHS cannot have more qubits than LHS.
 /// - LHS must not have gaps between rows.
 /// - LHS and RHS cannot be identical graphs.
 /// - LHS and RHS must be equivalent in global phase.
@@ -81,8 +81,8 @@ impl GraphStatistics {
 /// Anchors are determined by heuristics in this order:
 /// - Highest arity (qubit count).
 /// - Lowest frequency (appears the least).
-/// - Earliest time (column).
-/// - Lowest qubit index (row).
+/// - Earliest time step.
+/// - Lowest qubit index.
 #[derive(Debug, Clone, Getters, CopyGetters)]
 pub struct PatternRule {
     /// Metadata associated with the rule.
@@ -96,12 +96,12 @@ pub struct PatternRule {
     /// The gate types required to apply the rule.
     #[get = "pub"]
     gate_types: HashSet<GateType>,
-    /// The width (number of time steps) of the left-hand side of the rule.
+    /// The number of time steps in the left-hand side of the rule.
     #[get_copy = "pub"]
-    width: usize,
+    time_step_count: usize,
     /// The number of qubits covered by this rule.
     #[get_copy = "pub"]
-    height: usize,
+    qubit_count: usize,
     /// Cached rows and columns of the left-hand side of the rule.
     #[get = "pub"]
     lhs_cache: GraphCache,
@@ -119,12 +119,12 @@ impl Rule for PatternRule {
         &self.gate_types
     }
 
-    fn minimum_width(&self) -> usize {
-        self.width
+    fn minimum_time_step_count(&self) -> usize {
+        self.time_step_count
     }
 
-    fn minimum_height(&self) -> usize {
-        self.height
+    fn minimum_qubit_count(&self) -> usize {
+        self.qubit_count
     }
 
     fn detect(&self, graph: &Graph) -> Vec<HashSet<Position>> {
@@ -232,13 +232,13 @@ impl PatternRule {
             return Err(RuleBuildError::EmptyPattern);
         }
 
-        let height = lhs.height();
-        let rhs_height = rhs.height();
+        let qubit_count = lhs.qubit_count();
+        let rhs_qubit_count = rhs.qubit_count();
 
-        if height != rhs_height {
-            return Err(RuleBuildError::InvalidHeight {
-                lhs_height: height,
-                rhs_height,
+        if qubit_count != rhs_qubit_count {
+            return Err(RuleBuildError::InvalidQubitCount {
+                lhs_qubit_count: qubit_count,
+                rhs_qubit_count,
             });
         }
 
@@ -253,10 +253,10 @@ impl PatternRule {
         let lhs_statistics = GraphStatistics::from_graph(&lhs);
         let rhs_statistics = GraphStatistics::from_graph(&rhs);
 
-        if rhs_statistics.gate_count >= lhs_statistics.gate_count {
+        if rhs_statistics.operation_count >= lhs_statistics.operation_count {
             return Err(RuleBuildError::NonCompactingRule {
-                lhs_gate_count: lhs_statistics.gate_count,
-                rhs_gate_count: rhs_statistics.gate_count,
+                lhs_operation_count: lhs_statistics.operation_count,
+                rhs_operation_count: rhs_statistics.operation_count,
             });
         }
 
@@ -264,7 +264,7 @@ impl PatternRule {
             return Err(RuleBuildError::NonEquivalentGraphs);
         }
 
-        let width = lhs.width();
+        let time_step_count = lhs.time_step_count();
         let lhs_cache = GraphCache::from_graph(&lhs);
         let anchor = Self::extract_anchor(&lhs, &lhs_statistics)?;
         let gate_types = lhs_statistics.gate_types;
@@ -274,8 +274,8 @@ impl PatternRule {
             lhs,
             rhs,
             gate_types,
-            width,
-            height,
+            time_step_count,
+            qubit_count,
             lhs_cache,
             anchor,
         })
@@ -314,18 +314,18 @@ impl PatternRule {
     }
 
     fn is_contiguous(lhs: &Graph) -> bool {
-        let mut current_row = None;
+        let mut current_qubit = None;
 
-        for position in lhs.iter_positions_ordered_by_row() {
-            let row = position.row();
+        for position in lhs.iter_positions_ordered_by_qubit() {
+            let qubit = position.qubit();
 
-            match current_row {
-                None => current_row = Some(row),
-                Some(prev_row) => {
-                    if row > prev_row + 1 {
+            match current_qubit {
+                None => current_qubit = Some(qubit),
+                Some(prev_qubit) => {
+                    if qubit > prev_qubit + 1 {
                         return false;
                     }
-                    current_row = Some(row);
+                    current_qubit = Some(qubit);
                 }
             }
         }
@@ -340,12 +340,12 @@ impl PatternRule {
         let node_frequencies = &lhs_statistics.node_frequencies;
         let mut best = None;
 
-        for node in lhs.iter_nodes_ordered_by_column() {
+        for node in lhs.iter_nodes_ordered_by_time_step() {
             let position = node.position();
             let gate_type = node.r#type();
 
             let candidate = Anchor::new(position, gate_type);
-            let arity = gate_type.qubit_count();
+            let arity = gate_type.arity();
             let frequency = *node_frequencies
                 .get(&gate_type)
                 .ok_or(RuleBuildError::InvalidAnchor)?;

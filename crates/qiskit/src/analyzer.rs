@@ -78,7 +78,7 @@ fn metrics_to_dict(
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("qubit_count", metrics.qubit_count)?;
-    dict.set_item("depth", metrics.depth)?;
+    dict.set_item("time_step_count", metrics.time_step_count)?;
     dict.set_item("x_count", metrics.x_count)?;
     dict.set_item("y_count", metrics.y_count)?;
     dict.set_item("z_count", metrics.z_count)?;
@@ -86,13 +86,15 @@ fn metrics_to_dict(
     dict.set_item("hadamard_count", metrics.hadamard_count)?;
     dict.set_item("rotation_count", metrics.rotation_count)?;
     dict.set_item("square_root_count", metrics.square_root_count)?;
-    dict.set_item("measure_count", metrics.measure_count)?;
+    dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cx_count", metrics.cx_count)?;
+    dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
+    dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("single_gate_count", metrics.single_gate_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("auxiliary_qubit_count", metrics.auxiliary_qubit_count)?;
+    dict.set_item("unmeasured_qubit_count", metrics.unmeasured_qubit_count)?;
     dict.set_item("gate_types_count", metrics.gate_types_count)?;
     Ok(dict.into())
 }
@@ -102,8 +104,8 @@ fn detailed_metrics_to_dict(
     metrics: qctidy_ports::DetailedAnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
-    dict.set_item("width", metrics.width)?;
-    dict.set_item("depth", metrics.depth)?;
+    dict.set_item("qubit_count", metrics.qubit_count)?;
+    dict.set_item("time_step_count", metrics.time_step_count)?;
     dict.set_item("max_density", metrics.max_density)?;
     dict.set_item("average_density", metrics.average_density)?;
     dict.set_item("x_count", metrics.x_count)?;
@@ -115,27 +117,29 @@ fn detailed_metrics_to_dict(
         "initial_superposition_percent",
         metrics.initial_superposition_percent,
     )?;
-    dict.set_item("other_single_qubit_count", metrics.other_single_qubit_count)?;
-    dict.set_item("single_qubit_count", metrics.single_qubit_count)?;
+    dict.set_item("other_single_gate_count", metrics.other_single_gate_count)?;
+    dict.set_item("single_gate_count", metrics.single_gate_count)?;
     dict.set_item(
-        "single_controlled_qubit_count",
-        metrics.single_controlled_qubit_count,
+        "single_controlled_gate_count",
+        metrics.single_controlled_gate_count,
     )?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cnot_count", metrics.cnot_count)?;
     dict.set_item("cnot_qubit_percent", metrics.cnot_qubit_percent)?;
     dict.set_item("average_cnot", metrics.average_cnot)?;
-    dict.set_item("max_cnot", metrics.max_cnot)?;
+    dict.set_item("max_cnot_count", metrics.max_cnot_count)?;
     dict.set_item("toffoli_count", metrics.toffoli_count)?;
     dict.set_item("toffoli_qubit_percent", metrics.toffoli_qubit_percent)?;
     dict.set_item("average_toffoli", metrics.average_toffoli)?;
-    dict.set_item("max_toffoli", metrics.max_toffoli)?;
+    dict.set_item("max_toffoli_count", metrics.max_toffoli_count)?;
+    dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
+    dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("single_qubit_percent", metrics.single_qubit_percent)?;
-    dict.set_item("measure_count", metrics.measure_count)?;
+    dict.set_item("single_gate_percent", metrics.single_gate_percent)?;
+    dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
     dict.set_item("measure_percent", metrics.measure_percent)?;
-    dict.set_item("auxiliary_percent", metrics.auxiliary_percent)?;
+    dict.set_item("unmeasured_qubit_percent", metrics.unmeasured_qubit_percent)?;
     Ok(dict.into())
 }
 
@@ -145,7 +149,7 @@ fn delta_to_dict(
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
     dict.set_item("qubit_count", metrics.qubit_count)?;
-    dict.set_item("depth", metrics.depth)?;
+    dict.set_item("time_step_count", metrics.time_step_count)?;
     dict.set_item("x_count", metrics.x_count)?;
     dict.set_item("y_count", metrics.y_count)?;
     dict.set_item("z_count", metrics.z_count)?;
@@ -153,13 +157,15 @@ fn delta_to_dict(
     dict.set_item("hadamard_count", metrics.hadamard_count)?;
     dict.set_item("rotation_count", metrics.rotation_count)?;
     dict.set_item("square_root_count", metrics.square_root_count)?;
-    dict.set_item("measure_count", metrics.measure_count)?;
+    dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cx_count", metrics.cx_count)?;
+    dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
+    dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("single_gate_count", metrics.single_gate_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("auxiliary_qubit_count", metrics.auxiliary_qubit_count)?;
+    dict.set_item("unmeasured_qubit_count", metrics.unmeasured_qubit_count)?;
     dict.set_item("gate_types_count", metrics.gate_types_count)?;
     Ok(dict.into())
 }
@@ -169,8 +175,8 @@ fn detailed_delta_to_dict(
     metrics: &qctidy_ports::DeltaDetailedAnalysisMetrics,
 ) -> PyResult<Py<PyAny>> {
     let dict = PyDict::new(python);
-    dict.set_item("width", metrics.width)?;
-    dict.set_item("depth", metrics.depth)?;
+    dict.set_item("qubit_count", metrics.qubit_count)?;
+    dict.set_item("time_step_count", metrics.time_step_count)?;
     dict.set_item("max_density", metrics.max_density)?;
     dict.set_item("average_density", metrics.average_density)?;
     dict.set_item("x_count", metrics.x_count)?;
@@ -182,26 +188,28 @@ fn detailed_delta_to_dict(
         "initial_superposition_percent",
         metrics.initial_superposition_percent,
     )?;
-    dict.set_item("other_single_qubit_count", metrics.other_single_qubit_count)?;
-    dict.set_item("single_qubit_count", metrics.single_qubit_count)?;
+    dict.set_item("other_single_gate_count", metrics.other_single_gate_count)?;
+    dict.set_item("single_gate_count", metrics.single_gate_count)?;
     dict.set_item(
-        "single_controlled_qubit_count",
-        metrics.single_controlled_qubit_count,
+        "single_controlled_gate_count",
+        metrics.single_controlled_gate_count,
     )?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cnot_count", metrics.cnot_count)?;
     dict.set_item("cnot_qubit_percent", metrics.cnot_qubit_percent)?;
     dict.set_item("average_cnot", metrics.average_cnot)?;
-    dict.set_item("max_cnot", metrics.max_cnot)?;
+    dict.set_item("max_cnot_count", metrics.max_cnot_count)?;
     dict.set_item("toffoli_count", metrics.toffoli_count)?;
     dict.set_item("toffoli_qubit_percent", metrics.toffoli_qubit_percent)?;
     dict.set_item("average_toffoli", metrics.average_toffoli)?;
-    dict.set_item("max_toffoli", metrics.max_toffoli)?;
+    dict.set_item("max_toffoli_count", metrics.max_toffoli_count)?;
+    dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
+    dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("single_qubit_percent", metrics.single_qubit_percent)?;
-    dict.set_item("measure_count", metrics.measure_count)?;
+    dict.set_item("single_gate_percent", metrics.single_gate_percent)?;
+    dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
     dict.set_item("measure_percent", metrics.measure_percent)?;
-    dict.set_item("auxiliary_percent", metrics.auxiliary_percent)?;
+    dict.set_item("unmeasured_qubit_percent", metrics.unmeasured_qubit_percent)?;
     Ok(dict.into())
 }

@@ -47,7 +47,7 @@ fn find_components(graph: &Graph) -> Vec<Vec<Position>> {
     let mut visited = HashSet::new();
     let mut components = Vec::new();
 
-    for position in graph.iter_positions_ordered_by_row() {
+    for position in graph.iter_positions_ordered_by_qubit() {
         if visited.contains(&position) {
             continue;
         }

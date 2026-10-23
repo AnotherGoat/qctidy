@@ -1,5 +1,5 @@
 [package]
-name = "qctidy-python"
+name = "qctidy-python-ast"
 description = "Parses Qiskit Python source into a circuit analysis"
 version.workspace = true
 edition.workspace = true

@@ -23,7 +23,7 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Analyze a Python file and dump its circuits as JSON.
     Ast(AstArguments),
-    /// Detect fixable patterns in circuits without modifying them.
+    /// Report fixable diagnostics in circuits without modifying them.
     Check(CheckArguments),
     /// Convert a circuit between formats.
     Convert(ConvertArguments),

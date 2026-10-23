@@ -9,8 +9,8 @@ fn default_graph() {
     let graph = Graph::default();
 
     assert!(graph.is_empty());
-    assert!(graph.width() == 0);
-    assert!(graph.height() == 0);
+    assert!(graph.time_step_count() == 0);
+    assert!(graph.qubit_count() == 0);
 }
 
 #[test]
@@ -18,14 +18,14 @@ fn empty_sized_graph() {
     let size1 = Graph::new(1);
 
     assert!(size1.is_empty());
-    assert!(size1.width() == 0);
-    assert!(size1.height() == 1);
+    assert!(size1.time_step_count() == 0);
+    assert!(size1.qubit_count() == 1);
 
     let size2 = Graph::new(2);
 
     assert!(size2.is_empty());
-    assert!(size2.width() == 0);
-    assert!(size2.height() == 2);
+    assert!(size2.time_step_count() == 0);
+    assert!(size2.qubit_count() == 2);
 }
 
 #[test]
@@ -58,24 +58,24 @@ fn add_node_fails_if_it_exists() {
 }
 
 #[test]
-fn add_node_increases_height() {
+fn add_node_increases_qubit_count() {
     let mut graph = Graph::new(1);
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph
         .add_node(H, Position::new(0, 0), None, None, None, None)
         .unwrap();
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph
         .add_node(H, Position::new(1, 0), None, None, None, None)
         .unwrap();
-    assert!(graph.height() == 2);
+    assert!(graph.qubit_count() == 2);
 
     graph
         .add_node(H, Position::new(2, 0), None, None, None, None)
         .unwrap();
-    assert!(graph.height() == 3);
+    assert!(graph.qubit_count() == 3);
 }
 
 #[test]
@@ -91,18 +91,18 @@ fn replace_node_overwrites_existing_node() {
 }
 
 #[test]
-fn replace_node_increases_height() {
+fn replace_node_increases_qubit_count() {
     let mut graph = Graph::new(1);
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph.replace_node(Z, Position::new(0, 0), None, None, None, None);
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph.replace_node(Z, Position::new(0, 0), None, None, None, None);
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
-    assert!(graph.height() == 2);
+    assert!(graph.qubit_count() == 2);
 }
 
 #[test]
@@ -116,35 +116,35 @@ fn empty_space_has_no_node() {
 }
 
 #[test]
-fn graph_width() {
+fn graph_time_step_count() {
     let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 0), None, None, None, None);
-    assert_eq!(graph.width(), 1);
+    assert_eq!(graph.time_step_count(), 1);
 
     graph.replace_node(X, Position::new(0, 5), None, None, None, None);
-    assert_eq!(graph.width(), 6);
+    assert_eq!(graph.time_step_count(), 6);
 }
 
 #[test]
-fn graph_height() {
+fn graph_qubit_count() {
     let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(0, 0), None, None, None, None);
-    assert_eq!(graph.height(), 1);
+    assert_eq!(graph.qubit_count(), 1);
 
     graph.replace_node(X, Position::new(5, 0), None, None, None, None);
-    assert_eq!(graph.height(), 6);
+    assert_eq!(graph.qubit_count(), 6);
 }
 
 #[test]
-fn bits_counts_highest_measurement_bit() {
+fn bit_count_counts_highest_measurement_bit() {
     let mut graph = Graph::default();
 
     graph.replace_node(Measure, Position::new(0, 0), None, None, None, Some(0));
     graph.replace_node(Measure, Position::new(1, 0), None, None, None, Some(3));
 
-    assert_eq!(graph.bits(), 4);
+    assert_eq!(graph.bit_count(), 4);
 }
 
 #[test]
@@ -269,30 +269,30 @@ fn remove_nonexistent_node_is_noop() {
 
     graph.remove_node(Position::new(1, 1));
 
-    assert_eq!(graph.size(), 1);
+    assert_eq!(graph.node_count(), 1);
 }
 
 #[test]
-fn remove_node_keeps_height() {
+fn remove_node_keeps_qubit_count() {
     let mut graph = GraphBuilder::default()
         .push_h(0)
         .push_x(1)
         .push_y(2)
         .push_z(3)
         .build();
-    assert_eq!(graph.height(), 4);
+    assert_eq!(graph.qubit_count(), 4);
 
     graph.remove_node(Position::new(0, 0));
-    assert_eq!(graph.height(), 4);
+    assert_eq!(graph.qubit_count(), 4);
 
     graph.remove_node(Position::new(1, 0));
-    assert_eq!(graph.height(), 4);
+    assert_eq!(graph.qubit_count(), 4);
 
     graph.remove_node(Position::new(3, 0));
-    assert_eq!(graph.height(), 4);
+    assert_eq!(graph.qubit_count(), 4);
 
     graph.remove_node(Position::new(2, 0));
-    assert_eq!(graph.height(), 4);
+    assert_eq!(graph.qubit_count(), 4);
 }
 
 #[test]
@@ -388,32 +388,32 @@ fn move_node() {
 }
 
 #[test]
-fn move_node_increases_height_if_needed() {
+fn move_node_increases_qubit_count_if_needed() {
     let mut graph = Graph::new(1);
-    assert!(graph.height() == 1);
+    assert!(graph.qubit_count() == 1);
 
     graph.replace_node(T, Position::new(0, 0), None, None, None, None);
     graph
         .move_node(Position::new(0, 0), Position::new(1, 0))
         .unwrap();
-    assert!(graph.height() == 2);
+    assert!(graph.qubit_count() == 2);
 
     graph
         .move_node(Position::new(1, 0), Position::new(2, 0))
         .unwrap();
-    assert!(graph.height() == 3);
+    assert!(graph.qubit_count() == 3);
 }
 
 #[test]
-fn move_node_doesnt_decrease_height() {
+fn move_node_doesnt_decrease_qubit_count() {
     let mut graph = Graph::new(3);
-    assert!(graph.height() == 3);
+    assert!(graph.qubit_count() == 3);
 
     graph.replace_node(TDG, Position::new(2, 0), None, None, None, None);
     graph
         .move_node(Position::new(2, 0), Position::new(0, 0))
         .unwrap();
-    assert!(graph.height() == 3);
+    assert!(graph.qubit_count() == 3);
 }
 
 #[test]
@@ -461,7 +461,7 @@ fn move_node_preserves_semantic_edges() {
     // The semantic `Targets` edge moves with the node.
     assert!(edges.contains(&EdgeView::new(Targets, cx_controller, cx_target)));
 
-    // The row-order `Right` edge is recomputed for the new position, so it must not
+    // The time-step-order `Right` edge is recomputed for the new position, so it must not
     // follow the node across rows.
     assert!(!edges.contains(&EdgeView::new(Right, cx_controller, hadamard)));
 }
@@ -526,11 +526,11 @@ fn add_bidirectional_edge_creates_two_edges() {
 }
 
 #[test]
-fn connect_row_neighbors_fails_if_node_is_missing() {
+fn connect_qubit_neighbors_fails_if_node_is_missing() {
     let mut graph = Graph::default();
     let node_position = Position::new(0, 0);
 
-    let result = graph.connect_row_neighbors(node_position);
+    let result = graph.connect_qubit_neighbors(node_position);
 
     match result {
         Err(GraphError::NodeNotFound { position }) => assert_eq!(position, node_position),
@@ -539,7 +539,7 @@ fn connect_row_neighbors_fails_if_node_is_missing() {
 }
 
 #[test]
-fn connect_row_neighbors_relinks_correctly() {
+fn connect_qubit_neighbors_relinks_correctly() {
     let mut graph = Graph::default();
 
     let start = Position::new(0, 0);
@@ -550,7 +550,7 @@ fn connect_row_neighbors_relinks_correctly() {
     graph.replace_node(Y, middle, None, None, None, None);
     graph.replace_node(Z, end, None, None, None, None);
 
-    graph.connect_row_neighbors(middle).unwrap();
+    graph.connect_qubit_neighbors(middle).unwrap();
 
     let edges: Vec<_> = graph.iter_edges_unique().collect();
 
@@ -567,7 +567,7 @@ fn connect_row_neighbors_relinks_correctly() {
 }
 
 #[test]
-fn connect_row_neighbors_removes_direct_connection() {
+fn connect_qubit_neighbors_removes_direct_connection() {
     let mut graph = Graph::default();
 
     let first = Position::new(0, 0);
@@ -580,7 +580,7 @@ fn connect_row_neighbors_removes_direct_connection() {
 
     graph.add_edge(Right, first, third).unwrap();
 
-    graph.connect_row_neighbors(second).unwrap();
+    graph.connect_qubit_neighbors(second).unwrap();
 
     assert!(!graph.iter_edges_unique().any(|edge| edge
         == EdgeView::new(
@@ -608,7 +608,7 @@ fn remove_edge_removes_outgoing_and_incoming_entries() {
 }
 
 #[test]
-fn next_in_row_returns_correct_node() {
+fn next_in_qubit_returns_correct_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 0);
     let next_position = Position::new(0, 2);
@@ -616,23 +616,23 @@ fn next_in_row_returns_correct_node() {
     graph.replace_node(X, position, None, None, None, None);
     graph.replace_node(Y, next_position, None, None, None, None);
 
-    let next = graph.next_in_row(position);
+    let next = graph.next_in_qubit(position);
 
     assert_eq!(next, Some(next_position));
 }
 
 #[test]
-fn next_in_row_none_if_no_next_exists() {
+fn next_in_qubit_none_if_no_next_exists() {
     let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
     graph.replace_node(X, position, None, None, None, None);
 
-    assert_eq!(graph.next_in_row(position), None);
+    assert_eq!(graph.next_in_qubit(position), None);
 }
 
 #[test]
-fn previous_in_row_returns_correct_node() {
+fn previous_in_qubit_returns_correct_node() {
     let mut graph = Graph::default();
     let position = Position::new(0, 2);
     let previous_position = Position::new(0, 0);
@@ -640,19 +640,19 @@ fn previous_in_row_returns_correct_node() {
     graph.replace_node(X, previous_position, None, None, None, None);
     graph.replace_node(Y, position, None, None, None, None);
 
-    let previous = graph.previous_in_row(position);
+    let previous = graph.previous_in_qubit(position);
 
     assert_eq!(previous, Some(previous_position));
 }
 
 #[test]
-fn previous_in_row_none_if_no_previous_exists() {
+fn previous_in_qubit_none_if_no_previous_exists() {
     let mut graph = Graph::default();
 
     let position = Position::new(0, 0);
     graph.replace_node(X, position, None, None, None, None);
 
-    assert_eq!(graph.previous_in_row(position), None);
+    assert_eq!(graph.previous_in_qubit(position), None);
 }
 
 #[test]
@@ -662,7 +662,7 @@ fn clear_removes_everything() {
     graph.clear();
 
     assert!(graph.is_empty());
-    assert_eq!(graph.height(), 0);
+    assert_eq!(graph.qubit_count(), 0);
     assert_eq!(graph.iter_edges_unique().count(), 0);
 }
 
@@ -727,7 +727,7 @@ fn circuit_to_graph_round_trip_with_id() {
     let circuit = Circuit::new(1, vec![GateOperation::id(0), GateOperation::x(0)]);
     let graph = Graph::from(&circuit);
 
-    assert_eq!(graph.height(), 1);
+    assert_eq!(graph.qubit_count(), 1);
     assert_eq!(graph.iter_nodes().count(), 2);
     assert!(graph.is_occupied(Position::new(0, 0)));
     assert!(graph.is_occupied(Position::new(0, 1)));
@@ -740,12 +740,12 @@ fn circuit_to_graph_round_trip_with_id() {
 }
 
 #[test]
-fn move_node_updates_row_neighbors() {
+fn move_node_updates_qubit_neighbors() {
     let mut graph = Graph::default();
     graph.replace_node(X, Position::new(1, 0), None, None, None, None);
     graph.replace_node(Y, Position::new(1, 2), None, None, None, None);
 
-    // Row 1 has `X -> Y`. Moving X out must not leave a cross-row `Right` edge.
+    // Qubit 1 has `X -> Y`. Moving X out must not leave a cross-qubit `Right` edge.
     graph
         .move_node(Position::new(1, 0), Position::new(0, 0))
         .unwrap();
@@ -758,7 +758,7 @@ fn move_node_updates_row_neighbors() {
 }
 
 #[test]
-fn move_node_connects_to_destination_row_neighbors() {
+fn move_node_connects_to_destination_qubit_neighbors() {
     let mut graph = Graph::default();
     graph.replace_node(X, Position::new(0, 0), None, None, None, None);
     graph.replace_node(Z, Position::new(0, 3), None, None, None, None);
@@ -778,7 +778,7 @@ fn move_node_connects_to_destination_row_neighbors() {
 }
 
 #[test]
-fn validate_rejects_invalid_row_order_edges() {
+fn validate_rejects_invalid_time_step_order_edges() {
     let mut graph = Graph::default();
     graph.replace_node(X, Position::new(0, 0), None, None, None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
@@ -786,13 +786,27 @@ fn validate_rejects_invalid_row_order_edges() {
 
     assert!(graph.validate().is_ok());
 
-    // A `Right` edge must connect row neighbors; this one crosses rows.
+    // A `Right` edge must connect qubit neighbors; this one crosses rows.
     graph
         .add_edge(Right, Position::new(0, 0), Position::new(1, 0))
         .unwrap();
 
     assert!(matches!(
         graph.validate(),
-        Err(GraphError::InvalidRowOrder { .. })
+        Err(GraphError::InvalidTimeStepOrder { .. })
     ));
+}
+
+#[test]
+fn counts_operations_gates_and_measurements() {
+    let graph = GraphBuilder::new(2)
+        .push_cx(0, 1)
+        .expect("All qubits should be different")
+        .push_x(0)
+        .push_measure(0, 0)
+        .build();
+
+    assert_eq!(graph.operation_count(), 3);
+    assert_eq!(graph.gate_count(), 2);
+    assert_eq!(graph.measurement_count(), 1);
 }

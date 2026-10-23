@@ -10,20 +10,20 @@ use crate::{
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
     registry.register_all(vec![
-        Arc::new(compact_rows()),
-        Arc::new(compact_columns()),
+        Arc::new(compact_qubits()),
+        Arc::new(compact_time_steps()),
         Arc::new(normalize_angles()),
         Arc::new(normalize_bits()),
     ]);
 }
 
 #[named]
-pub(crate) fn compact_rows() -> CanonicalizationRule {
+pub(crate) fn compact_qubits() -> CanonicalizationRule {
     CanonicalizationRule::new(
         RuleMetadata::new(
             "C001",
             function_name!(),
-            "Compacts rows by removing gaps between qubit indices.",
+            "Compacts qubits by removing gaps between qubit indices.",
             RuleCategory::Canonicalization,
             0,
         ),
@@ -31,17 +31,20 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
         1,
         1,
         Box::new(|graph: &Graph| -> Vec<HashSet<Position>> {
-            let rows: HashSet<usize> = graph
-                .iter_nodes_ordered_by_row()
-                .map(|node| node.position().row())
+            let qubits: HashSet<usize> = graph
+                .iter_nodes_ordered_by_qubit()
+                .map(|node| node.position().qubit())
                 .collect();
 
-            if rows.is_empty() {
+            if qubits.is_empty() {
                 return Vec::new();
             }
 
-            let max_row = *rows.iter().max().expect("There should be at least 1 row");
-            let has_gap = (0..=max_row).any(|row| !rows.contains(&row));
+            let max_qubit = *qubits
+                .iter()
+                .max()
+                .expect("There should be at least 1 qubit");
+            let has_gap = (0..=max_qubit).any(|qubit| !qubits.contains(&qubit));
 
             if !has_gap {
                 return Vec::new();
@@ -50,19 +53,19 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
             vec![graph.iter_nodes().map(|node| node.position()).collect()]
         }),
         Box::new(|graph: &mut Graph| {
-            let mut rows: Vec<_> = graph
-                .iter_nodes_ordered_by_row()
-                .map(|node| node.position().row())
+            let mut qubits: Vec<_> = graph
+                .iter_nodes_ordered_by_qubit()
+                .map(|node| node.position().qubit())
                 .collect();
 
-            if rows.is_empty() {
+            if qubits.is_empty() {
                 return false;
             }
 
-            rows.sort_unstable();
-            rows.dedup();
+            qubits.sort_unstable();
+            qubits.dedup();
 
-            let mapping: HashMap<usize, usize> = rows
+            let mapping: HashMap<usize, usize> = qubits
                 .into_iter()
                 .enumerate()
                 .map(|(new, old)| (old, new))
@@ -73,14 +76,14 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
                 return false;
             }
 
-            let nodes: Vec<_> = graph.iter_nodes_ordered_by_row().collect();
+            let nodes: Vec<_> = graph.iter_nodes_ordered_by_qubit().collect();
 
             for node in nodes {
                 let position = node.position();
-                let new_row = mapping[&position.row()];
+                let new_qubit = mapping[&position.qubit()];
 
-                if new_row != position.row() {
-                    let new_position = Position::new(new_row, position.column());
+                if new_qubit != position.qubit() {
+                    let new_position = Position::new(new_qubit, position.time_step());
                     graph
                         .move_node(position, new_position)
                         .expect("Node at start position should exist");
@@ -93,12 +96,12 @@ pub(crate) fn compact_rows() -> CanonicalizationRule {
 }
 
 #[named]
-pub(crate) fn compact_columns() -> CanonicalizationRule {
+pub(crate) fn compact_time_steps() -> CanonicalizationRule {
     CanonicalizationRule::new(
         RuleMetadata::new(
             "C002",
             function_name!(),
-            "Compacts columns by removing gaps between time steps.",
+            "Compacts time steps by removing gaps between time steps.",
             RuleCategory::Canonicalization,
             0,
         ),
@@ -106,15 +109,15 @@ pub(crate) fn compact_columns() -> CanonicalizationRule {
         1,
         1,
         Box::new(|graph: &Graph| -> Vec<HashSet<Position>> {
-            let columns: HashSet<usize> = graph
-                .iter_nodes_ordered_by_column()
-                .map(|node| node.position().column())
+            let time_steps: HashSet<usize> = graph
+                .iter_nodes_ordered_by_time_step()
+                .map(|node| node.position().time_step())
                 .collect();
 
-            let Some(&max_column) = columns.iter().max() else {
+            let Some(&max_time_step) = time_steps.iter().max() else {
                 return Vec::new();
             };
-            let has_gap = (0..=max_column).any(|column| !columns.contains(&column));
+            let has_gap = (0..=max_time_step).any(|time_step| !time_steps.contains(&time_step));
 
             if !has_gap {
                 return Vec::new();
@@ -123,19 +126,19 @@ pub(crate) fn compact_columns() -> CanonicalizationRule {
             vec![graph.iter_nodes().map(|node| node.position()).collect()]
         }),
         Box::new(|graph: &mut Graph| {
-            let mut columns: Vec<_> = graph
-                .iter_nodes_ordered_by_column()
-                .map(|node| node.position().column())
+            let mut time_steps: Vec<_> = graph
+                .iter_nodes_ordered_by_time_step()
+                .map(|node| node.position().time_step())
                 .collect();
 
-            if columns.is_empty() {
+            if time_steps.is_empty() {
                 return false;
             }
 
-            columns.sort_unstable();
-            columns.dedup();
+            time_steps.sort_unstable();
+            time_steps.dedup();
 
-            let mapping: HashMap<usize, usize> = columns
+            let mapping: HashMap<usize, usize> = time_steps
                 .into_iter()
                 .enumerate()
                 .map(|(new, old)| (old, new))
@@ -147,7 +150,7 @@ pub(crate) fn compact_columns() -> CanonicalizationRule {
             }
 
             graph.remap_positions(|position| {
-                Position::new(position.row(), mapping[&position.column()])
+                Position::new(position.qubit(), mapping[&position.time_step()])
             });
             true
         }),
@@ -171,7 +174,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
         1,
         Box::new(|graph: &Graph| -> Vec<HashSet<Position>> {
             graph
-                .iter_nodes_ordered_by_row()
+                .iter_nodes_ordered_by_qubit()
                 .filter(|node| {
                     node.semantic_angle()
                         .is_some_and(|angle| !(0.0..math::FULL_CYCLE).contains(&angle))
@@ -181,7 +184,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
         }),
         Box::new(|graph: &mut Graph| {
             let nodes: Vec<NodeView> = graph
-                .iter_nodes_ordered_by_row()
+                .iter_nodes_ordered_by_qubit()
                 .filter(|node| node.semantic_angle().is_some())
                 .collect();
 
@@ -243,7 +246,7 @@ pub(crate) fn normalize_bits() -> CanonicalizationRule {
         1,
         Box::new(|graph: &Graph| -> Vec<HashSet<Position>> {
             let measurements: Vec<NodeView> = graph
-                .iter_nodes_ordered_by_row()
+                .iter_nodes_ordered_by_qubit()
                 .filter(|node| node.r#type() == GateType::Measure)
                 .collect();
 
@@ -270,7 +273,7 @@ pub(crate) fn normalize_bits() -> CanonicalizationRule {
         }),
         Box::new(|graph: &mut Graph| {
             let measurements: Vec<_> = graph
-                .iter_nodes_ordered_by_row()
+                .iter_nodes_ordered_by_qubit()
                 .filter(|node| node.r#type() == GateType::Measure)
                 .collect();
 

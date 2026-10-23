@@ -30,7 +30,7 @@ pub struct QubitMapping {
 }
 
 impl QubitMapping {
-    /// Create a new empty `QubitMapping` for a pattern of the given height.
+    /// Create a new empty `QubitMapping` for a pattern of the given qubit count.
     ///
     /// Complexity: O(`pattern_height`).
     pub fn new(pattern_height: usize) -> Self {
@@ -65,19 +65,19 @@ impl QubitMapping {
         self.pattern_to_graph[pattern_index] = None;
     }
 
-    /// Get the graph row corresponding to a pattern row.
+    /// Get the graph qubit corresponding to a pattern qubit.
     ///
     /// Complexity: O(1).
-    pub fn graph_row(&self, pattern_row: usize) -> Option<usize> {
-        self.pattern_to_graph[pattern_row]
+    pub fn graph_qubit(&self, pattern_qubit: usize) -> Option<usize> {
+        self.pattern_to_graph[pattern_qubit]
     }
 
-    /// Get the pattern row corresponding to a graph row.
+    /// Get the pattern qubit corresponding to a graph qubit.
     ///
     /// Complexity: O(`pattern_height`).
-    pub fn pattern_row(&self, graph_row: usize) -> Option<usize> {
+    pub fn pattern_qubit(&self, graph_qubit: usize) -> Option<usize> {
         self.pattern_to_graph
             .iter()
-            .position(|&mapped| mapped == Some(graph_row))
+            .position(|&mapped| mapped == Some(graph_qubit))
     }
 }

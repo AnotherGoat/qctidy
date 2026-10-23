@@ -27,7 +27,7 @@ You are an expert writing code for this project.
   - `library`: The core of QCTidy (library).
   - `ports`: Ports for optional services (library).
   - `presenter`: Circuit and graph visualization (library).
-  - `python`: Parses Qiskit Python source into a circuit analysis (library).
+  - `python_ast`: Parses Qiskit Python source into a circuit analysis (library).
   - `qiskit`: Python + Qiskit bindings via PyO3 (library).
   - `server`: Server implementation as a REST API (binary).
   - `tui`: Terminal user interface (binary).

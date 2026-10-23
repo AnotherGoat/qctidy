@@ -38,7 +38,9 @@ pub use converter::{
 pub use display::{DisplayFormat, DisplayRequest, DisplayResponse, display};
 #[cfg(feature = "estimator")]
 pub use estimator::{EstimationRequest, EstimationResponse, estimate};
-pub use fixer::{FixRequest, FixResponse, fix};
+pub use fixer::{
+    ApplyFixRequest, ApplyFixResponse, FixEdit, FixRequest, FixResponse, apply_fix, fix,
+};
 #[cfg(feature = "presenter-graphviz")]
 pub use presenter::{PresentationRequest, PresentationResponse, present};
 #[cfg(feature = "python-qiskit")]

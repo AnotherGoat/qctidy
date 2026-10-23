@@ -9,15 +9,15 @@ use qctidy::{EdgeType, GateType, Graph};
 pub fn calculate_metrics(graph: &Graph) -> Metrics {
     use GateType::*;
 
-    let qubit_count = graph.height();
+    let qubit_count = graph.qubit_count();
     let x_count = count_gates(graph, X);
     let y_count = count_gates(graph, Y);
     let z_count = count_gates(graph, Z);
-    let measure_count = count_measured_qubits(graph);
+    let measured_qubit_count = count_measured_qubits(graph);
 
     Metrics {
         qubit_count,
-        depth: graph.width(),
+        time_step_count: graph.time_step_count(),
         x_count,
         y_count,
         z_count,
@@ -25,13 +25,15 @@ pub fn calculate_metrics(graph: &Graph) -> Metrics {
         hadamard_count: count_gates(graph, H),
         rotation_count: count_rotation_gates(graph),
         square_root_count: count_square_root_gates(graph),
-        measure_count,
+        measured_qubit_count,
         swap_count: count_gates(graph, Swap),
         cx_count: count_gates(graph, CX),
-        gate_count: count_total_gates(graph),
+        operation_count: graph.operation_count(),
+        gate_count: graph.gate_count(),
+        measurement_count: graph.measurement_count(),
         single_gate_count: count_single_gates(graph),
         controlled_gate_count: count_controlled_gates(graph),
-        auxiliary_qubit_count: qubit_count.saturating_sub(measure_count),
+        unmeasured_qubit_count: qubit_count.saturating_sub(measured_qubit_count),
         gate_types_count: count_gate_types(graph),
     }
 }
@@ -44,7 +46,7 @@ pub fn compare_metrics(old: &Graph, new: &Graph) -> DeltaMetrics {
 
     DeltaMetrics {
         qubit_count: delta(old_metrics.qubit_count, new_metrics.qubit_count),
-        depth: delta(old_metrics.depth, new_metrics.depth),
+        time_step_count: delta(old_metrics.time_step_count, new_metrics.time_step_count),
         x_count: delta(old_metrics.x_count, new_metrics.x_count),
         y_count: delta(old_metrics.y_count, new_metrics.y_count),
         z_count: delta(old_metrics.z_count, new_metrics.z_count),
@@ -52,18 +54,23 @@ pub fn compare_metrics(old: &Graph, new: &Graph) -> DeltaMetrics {
         hadamard_count: delta(old_metrics.hadamard_count, new_metrics.hadamard_count),
         rotation_count: delta(old_metrics.rotation_count, new_metrics.rotation_count),
         square_root_count: delta(old_metrics.square_root_count, new_metrics.square_root_count),
-        measure_count: delta(old_metrics.measure_count, new_metrics.measure_count),
+        measured_qubit_count: delta(
+            old_metrics.measured_qubit_count,
+            new_metrics.measured_qubit_count,
+        ),
         swap_count: delta(old_metrics.swap_count, new_metrics.swap_count),
         cx_count: delta(old_metrics.cx_count, new_metrics.cx_count),
+        operation_count: delta(old_metrics.operation_count, new_metrics.operation_count),
         gate_count: delta(old_metrics.gate_count, new_metrics.gate_count),
+        measurement_count: delta(old_metrics.measurement_count, new_metrics.measurement_count),
         single_gate_count: delta(old_metrics.single_gate_count, new_metrics.single_gate_count),
         controlled_gate_count: delta(
             old_metrics.controlled_gate_count,
             new_metrics.controlled_gate_count,
         ),
-        auxiliary_qubit_count: delta(
-            old_metrics.auxiliary_qubit_count,
-            new_metrics.auxiliary_qubit_count,
+        unmeasured_qubit_count: delta(
+            old_metrics.unmeasured_qubit_count,
+            new_metrics.unmeasured_qubit_count,
         ),
         gate_types_count: delta(old_metrics.gate_types_count, new_metrics.gate_types_count),
     }
@@ -83,7 +90,9 @@ const fn delta(old: usize, new: usize) -> Option<isize> {
 pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedMetrics {
     use GateType::*;
 
-    let gate_count = count_total_gates(graph);
+    let operation_count = graph.operation_count();
+    let gate_count = graph.gate_count();
+    let measurement_count = graph.measurement_count();
     let x_count = count_gates(graph, X);
     let y_count = count_gates(graph, Y);
     let z_count = count_gates(graph, Z);
@@ -93,22 +102,22 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedMetrics {
     let cnot_count = count_gates(graph, CX);
     let toffoli_count = count_gates(graph, CCX);
 
-    let single_qubit_percent = if gate_count == 0 {
+    let single_gate_percent = if gate_count == 0 {
         0.0
     } else {
         truncate_usize_to_f64(single_gate_count) / truncate_usize_to_f64(gate_count)
     };
 
-    let measure_count = count_measured_qubits(graph);
-    let measure_percent = if graph.is_empty() || graph.height() == 0 {
+    let measured_qubit_count = count_measured_qubits(graph);
+    let measure_percent = if graph.is_empty() || graph.qubit_count() == 0 {
         0.0
     } else {
-        truncate_usize_to_f64(measure_count) / truncate_usize_to_f64(graph.height())
+        truncate_usize_to_f64(measured_qubit_count) / truncate_usize_to_f64(graph.qubit_count())
     };
 
     DetailedMetrics {
-        width: graph.height(),
-        depth: graph.width(),
+        qubit_count: graph.qubit_count(),
+        time_step_count: graph.time_step_count(),
         max_density: calculate_max_density(graph),
         average_density: calculate_average_density(graph),
         x_count,
@@ -117,62 +126,42 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedMetrics {
         pauli_count,
         hadamard_count,
         initial_superposition_percent: calculate_superposition_percent(graph),
-        single_qubit_count: single_gate_count,
-        other_single_qubit_count: single_gate_count
+        single_gate_count,
+        other_single_gate_count: single_gate_count
             .saturating_sub(pauli_count)
             .saturating_sub(hadamard_count),
-        single_controlled_qubit_count: count_single_controlled_gates(graph),
+        single_controlled_gate_count: count_single_controlled_gates(graph),
         swap_count: count_gates(graph, Swap),
         cnot_count,
         cnot_qubit_percent: calculate_cnot_qubit_percent(graph),
-        average_cnot: if graph.is_empty() || graph.height() == 0 {
+        average_cnot: if graph.is_empty() || graph.qubit_count() == 0 {
             0.0
         } else {
-            truncate_usize_to_f64(cnot_count) / truncate_usize_to_f64(graph.height())
+            truncate_usize_to_f64(cnot_count) / truncate_usize_to_f64(graph.qubit_count())
         },
-        max_cnot: count_max_cnot(graph),
+        max_cnot_count: count_max_cnot(graph),
         toffoli_count,
         toffoli_qubit_percent: calculate_toffoli_qubit_percent(graph),
-        average_toffoli: if graph.is_empty() || graph.height() == 0 {
+        average_toffoli: if graph.is_empty() || graph.qubit_count() == 0 {
             0.0
         } else {
-            truncate_usize_to_f64(toffoli_count) / truncate_usize_to_f64(graph.height())
+            truncate_usize_to_f64(toffoli_count) / truncate_usize_to_f64(graph.qubit_count())
         },
-        max_toffoli: count_max_toffoli(graph),
+        max_toffoli_count: count_max_toffoli(graph),
+        operation_count,
         gate_count,
+        measurement_count,
         controlled_gate_count: count_controlled_gates(graph),
-        single_qubit_percent,
-        measure_count,
+        single_gate_percent,
+        measured_qubit_count,
         measure_percent,
-        auxiliary_percent: 1.0 - measure_percent,
+        unmeasured_qubit_percent: 1.0 - measure_percent,
     }
-}
-
-fn count_total_gates(graph: &Graph) -> usize {
-    if graph.is_empty() {
-        return 0;
-    }
-
-    let mut counts: HashMap<GateType, usize> = HashMap::new();
-
-    for node in graph.iter_nodes() {
-        *counts.entry(node.r#type()).or_insert(0) += 1;
-    }
-
-    let mut total = 0;
-
-    for (gate_type, occurrences) in counts {
-        total += occurrences
-            .checked_div(gate_type.qubit_count())
-            .unwrap_or(0);
-    }
-
-    total
 }
 
 #[expect(clippy::integer_division)]
 fn count_gates(graph: &Graph, gate_type: GateType) -> usize {
-    let size = gate_type.qubit_count();
+    let size = gate_type.arity();
     if size == 0 {
         return 0;
     }
@@ -185,22 +174,22 @@ fn count_gates(graph: &Graph, gate_type: GateType) -> usize {
 }
 
 fn calculate_superposition_percent(graph: &Graph) -> f64 {
-    if graph.is_empty() || graph.height() == 0 {
+    if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }
 
     let hadamard_count = graph
         .iter_nodes()
-        .filter(|node| node.position().column() == 0 && node.r#type() == GateType::H)
+        .filter(|node| node.position().time_step() == 0 && node.r#type() == GateType::H)
         .count();
 
-    truncate_usize_to_f64(hadamard_count) / truncate_usize_to_f64(graph.height())
+    truncate_usize_to_f64(hadamard_count) / truncate_usize_to_f64(graph.qubit_count())
 }
 
 fn count_single_gates(graph: &Graph) -> usize {
     graph
         .iter_nodes()
-        .filter(|node| node.r#type().qubit_count() == 1)
+        .filter(|node| node.r#type().arity() == 1 && node.r#type() != GateType::Measure)
         .count()
 }
 
@@ -221,9 +210,7 @@ fn count_controlled_gates(graph: &Graph) -> usize {
 
     let mut total = 0;
     for (gate_type, occurrences) in counts {
-        total += occurrences
-            .checked_div(gate_type.qubit_count())
-            .unwrap_or(0);
+        total += occurrences.checked_div(gate_type.arity()).unwrap_or(0);
     }
     total
 }
@@ -249,7 +236,7 @@ fn count_measured_qubits(graph: &Graph) -> usize {
     graph
         .iter_nodes()
         .filter(|node| node.r#type() == GateType::Measure)
-        .map(|node| node.position().row())
+        .map(|node| node.position().qubit())
         .collect::<HashSet<_>>()
         .len()
 }
@@ -263,52 +250,52 @@ fn count_gate_types(graph: &Graph) -> usize {
         .len()
 }
 
-fn calculate_column_density(graph: &Graph, column: usize) -> usize {
+fn calculate_time_step_density(graph: &Graph, time_step: usize) -> usize {
     let mut count = 0;
     let mut counted_gates: HashMap<GateType, usize> = HashMap::new();
 
     for node in graph
         .iter_nodes()
-        .filter(|node| node.position().column() == column)
+        .filter(|node| node.position().time_step() == time_step)
     {
         *counted_gates.entry(node.r#type()).or_insert(0) += 1;
     }
 
     for (gate_type, occurences) in counted_gates {
-        count += occurences.checked_div(gate_type.qubit_count()).unwrap_or(0);
+        count += occurences.checked_div(gate_type.arity()).unwrap_or(0);
     }
     count
 }
 
 fn calculate_max_density(graph: &Graph) -> usize {
-    (0..graph.width())
-        .map(|col| calculate_column_density(graph, col))
+    (0..graph.time_step_count())
+        .map(|time_step| calculate_time_step_density(graph, time_step))
         .max()
         .unwrap_or(0)
 }
 
 fn calculate_average_density(graph: &Graph) -> f64 {
-    if graph.is_empty() || graph.width() == 0 {
+    if graph.is_empty() || graph.time_step_count() == 0 {
         return 0.0;
     }
-    let total: usize = (0..graph.width())
-        .map(|col| calculate_column_density(graph, col))
+    let total: usize = (0..graph.time_step_count())
+        .map(|time_step| calculate_time_step_density(graph, time_step))
         .sum();
 
-    truncate_usize_to_f64(total) / truncate_usize_to_f64(graph.width())
+    truncate_usize_to_f64(total) / truncate_usize_to_f64(graph.time_step_count())
 }
 
 fn calculate_cnot_qubit_percent(graph: &Graph) -> f64 {
-    if graph.is_empty() || graph.height() == 0 {
+    if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }
-    let rows: HashSet<_> = graph
+    let qubits: HashSet<_> = graph
         .iter_nodes()
         .filter(|node| node.r#type() == GateType::CX)
-        .map(|node| node.position().row())
+        .map(|node| node.position().qubit())
         .collect();
 
-    truncate_usize_to_f64(rows.len()) / truncate_usize_to_f64(graph.height())
+    truncate_usize_to_f64(qubits.len()) / truncate_usize_to_f64(graph.qubit_count())
 }
 
 fn count_max_cnot(graph: &Graph) -> usize {
@@ -320,23 +307,23 @@ fn count_max_cnot(graph: &Graph) -> usize {
     for edge in graph.iter_edges() {
         if edge.r#type() == EdgeType::Targets && edge.start().r#type() == GateType::CX {
             // Target edge from control to target. The control is start().
-            *counts.entry(edge.start().position().row()).or_insert(0) += 1;
+            *counts.entry(edge.start().position().qubit()).or_insert(0) += 1;
         }
     }
     counts.into_values().max().unwrap_or(0)
 }
 
 fn calculate_toffoli_qubit_percent(graph: &Graph) -> f64 {
-    if graph.is_empty() || graph.height() == 0 {
+    if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }
-    let rows: HashSet<_> = graph
+    let qubits: HashSet<_> = graph
         .iter_nodes()
         .filter(|node| node.r#type() == GateType::CCX)
-        .map(|node| node.position().row())
+        .map(|node| node.position().qubit())
         .collect();
 
-    truncate_usize_to_f64(rows.len()) / truncate_usize_to_f64(graph.height())
+    truncate_usize_to_f64(qubits.len()) / truncate_usize_to_f64(graph.qubit_count())
 }
 
 fn count_max_toffoli(graph: &Graph) -> usize {
@@ -347,7 +334,7 @@ fn count_max_toffoli(graph: &Graph) -> usize {
     let mut counts = HashMap::new();
     for edge in graph.iter_edges() {
         if edge.r#type() == EdgeType::Targets && edge.start().r#type() == GateType::CCX {
-            *counts.entry(edge.start().position().row()).or_insert(0) += 1;
+            *counts.entry(edge.start().position().qubit()).or_insert(0) += 1;
         }
     }
     counts.into_values().max().unwrap_or(0)

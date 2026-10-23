@@ -43,56 +43,56 @@ impl GraphBuilder {
         use GateOperation::*;
 
         let qubits = operation.qubits();
-        let column = self.find_push_column(&qubits);
+        let time_step = self.find_push_time_step(&qubits);
 
         match *operation {
-            ID { qubit } => self.put_id(qubit, column),
-            H { qubit } => self.put_h(qubit, column),
-            X { qubit } => self.put_x(qubit, column),
-            Y { qubit } => self.put_y(qubit, column),
-            Z { qubit } => self.put_z(qubit, column),
-            P { theta, qubit } => self.put_p(theta, qubit, column),
-            RX { theta, qubit } => self.put_rx(theta, qubit, column),
-            RY { theta, qubit } => self.put_ry(theta, qubit, column),
-            RZ { phi, qubit } => self.put_rz(phi, qubit, column),
-            S { qubit } => self.put_s(qubit, column),
-            SDG { qubit } => self.put_sdg(qubit, column),
-            SX { qubit } => self.put_sx(qubit, column),
-            SY { qubit } => self.put_sy(qubit, column),
-            T { qubit } => self.put_t(qubit, column),
-            TDG { qubit } => self.put_tdg(qubit, column),
+            ID { qubit } => self.put_id(qubit, time_step),
+            H { qubit } => self.put_h(qubit, time_step),
+            X { qubit } => self.put_x(qubit, time_step),
+            Y { qubit } => self.put_y(qubit, time_step),
+            Z { qubit } => self.put_z(qubit, time_step),
+            P { theta, qubit } => self.put_p(theta, qubit, time_step),
+            RX { theta, qubit } => self.put_rx(theta, qubit, time_step),
+            RY { theta, qubit } => self.put_ry(theta, qubit, time_step),
+            RZ { phi, qubit } => self.put_rz(phi, qubit, time_step),
+            S { qubit } => self.put_s(qubit, time_step),
+            SDG { qubit } => self.put_sdg(qubit, time_step),
+            SX { qubit } => self.put_sx(qubit, time_step),
+            SY { qubit } => self.put_sy(qubit, time_step),
+            T { qubit } => self.put_t(qubit, time_step),
+            TDG { qubit } => self.put_tdg(qubit, time_step),
             U {
                 theta,
                 phi,
                 lambda,
                 qubit,
-            } => self.put_u(theta, phi, lambda, qubit, column),
-            Measure { qubit, bit } => self.put_measure(qubit, bit, column),
-            Swap { qubit1, qubit2 } => self.put_swap(qubit1, qubit2, column),
-            CH { control, target } => self.put_ch(control, target, column),
-            CX { control, target } => self.put_cx(control, target, column),
-            CY { control, target } => self.put_cy(control, target, column),
-            CZ { qubit1, qubit2 } => self.put_cz(qubit1, qubit2, column),
+            } => self.put_u(theta, phi, lambda, qubit, time_step),
+            Measure { qubit, bit } => self.put_measure(qubit, bit, time_step),
+            Swap { qubit1, qubit2 } => self.put_swap(qubit1, qubit2, time_step),
+            CH { control, target } => self.put_ch(control, target, time_step),
+            CX { control, target } => self.put_cx(control, target, time_step),
+            CY { control, target } => self.put_cy(control, target, time_step),
+            CZ { qubit1, qubit2 } => self.put_cz(qubit1, qubit2, time_step),
             CP {
                 theta,
                 qubit1,
                 qubit2,
-            } => self.put_cp(theta, qubit1, qubit2, column),
+            } => self.put_cp(theta, qubit1, qubit2, time_step),
             CSwap {
                 control,
                 target1,
                 target2,
-            } => self.put_cswap(control, target1, target2, column),
+            } => self.put_cswap(control, target1, target2, time_step),
             CCX {
                 control1,
                 control2,
                 target,
-            } => self.put_ccx(control1, control2, target, column),
+            } => self.put_ccx(control1, control2, target, time_step),
             CCZ {
                 qubit1,
                 qubit2,
                 qubit3,
-            } => self.put_ccz(qubit1, qubit2, qubit3, column),
+            } => self.put_ccz(qubit1, qubit2, qubit3, time_step),
         }
     }
 
@@ -112,27 +112,27 @@ impl GraphBuilder {
     ///
     /// Note that this is not a no-op, which means a node will always be added.
     pub fn push_id(&mut self, qubit: usize) -> &mut Self {
-        self.put_id(qubit, self.find_push_column(&[qubit]))
+        self.put_id(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a H gate at the end of the graph.
     pub fn push_h(&mut self, qubit: usize) -> &mut Self {
-        self.put_h(qubit, self.find_push_column(&[qubit]))
+        self.put_h(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a X gate at the end of the graph.
     pub fn push_x(&mut self, qubit: usize) -> &mut Self {
-        self.put_x(qubit, self.find_push_column(&[qubit]))
+        self.put_x(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a Y gate at the end of the graph.
     pub fn push_y(&mut self, qubit: usize) -> &mut Self {
-        self.put_y(qubit, self.find_push_column(&[qubit]))
+        self.put_y(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a Z gate at the end of the graph.
     pub fn push_z(&mut self, qubit: usize) -> &mut Self {
-        self.put_z(qubit, self.find_push_column(&[qubit]))
+        self.put_z(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a P gate at the end of the graph.
@@ -141,7 +141,7 @@ impl GraphBuilder {
             return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_p(theta, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_p(theta, qubit, self.find_push_time_step(&[qubit])))
     }
 
     /// Push a RX gate at the end of the graph.
@@ -150,7 +150,7 @@ impl GraphBuilder {
             return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_rx(theta, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_rx(theta, qubit, self.find_push_time_step(&[qubit])))
     }
 
     /// Push a RY gate at the end of the graph.
@@ -159,7 +159,7 @@ impl GraphBuilder {
             return Err(GraphBuilderError::NonFiniteAngle { angle: theta });
         }
 
-        Ok(self.put_ry(theta, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_ry(theta, qubit, self.find_push_time_step(&[qubit])))
     }
 
     /// Push a RZ gate at the end of the graph.
@@ -168,37 +168,37 @@ impl GraphBuilder {
             return Err(GraphBuilderError::NonFiniteAngle { angle: phi });
         }
 
-        Ok(self.put_rz(phi, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_rz(phi, qubit, self.find_push_time_step(&[qubit])))
     }
 
     /// Push a S gate at the end of the graph.
     pub fn push_s(&mut self, qubit: usize) -> &mut Self {
-        self.put_s(qubit, self.find_push_column(&[qubit]))
+        self.put_s(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a SDG gate at the end of the graph.
     pub fn push_sdg(&mut self, qubit: usize) -> &mut Self {
-        self.put_sdg(qubit, self.find_push_column(&[qubit]))
+        self.put_sdg(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a SX gate at the end of the graph.
     pub fn push_sx(&mut self, qubit: usize) -> &mut Self {
-        self.put_sx(qubit, self.find_push_column(&[qubit]))
+        self.put_sx(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a SY gate at the end of the graph.
     pub fn push_sy(&mut self, qubit: usize) -> &mut Self {
-        self.put_sy(qubit, self.find_push_column(&[qubit]))
+        self.put_sy(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a T gate at the end of the graph.
     pub fn push_t(&mut self, qubit: usize) -> &mut Self {
-        self.put_t(qubit, self.find_push_column(&[qubit]))
+        self.put_t(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a TDG gate at the end of the graph.
     pub fn push_tdg(&mut self, qubit: usize) -> &mut Self {
-        self.put_tdg(qubit, self.find_push_column(&[qubit]))
+        self.put_tdg(qubit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a U gate at the end of the graph.
@@ -221,12 +221,18 @@ impl GraphBuilder {
             return Err(GraphBuilderError::NonFiniteAngle { angle: lambda });
         }
 
-        Ok(self.put_u(theta, phi, lambda, qubit, self.find_push_column(&[qubit])))
+        Ok(self.put_u(
+            theta,
+            phi,
+            lambda,
+            qubit,
+            self.find_push_time_step(&[qubit]),
+        ))
     }
 
     /// Push a Measure gate at the end of the graph.
     pub fn push_measure(&mut self, qubit: usize, bit: usize) -> &mut Self {
-        self.put_measure(qubit, bit, self.find_push_column(&[qubit]))
+        self.put_measure(qubit, bit, self.find_push_time_step(&[qubit]))
     }
 
     /// Push a Swap gate at the end of the graph.
@@ -236,7 +242,7 @@ impl GraphBuilder {
         qubit2: usize,
     ) -> Result<&mut Self, GraphBuilderError> {
         check_unique_qubits(&[qubit1, qubit2])?;
-        Ok(self.put_swap(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2])))
+        Ok(self.put_swap(qubit1, qubit2, self.find_push_time_step(&[qubit1, qubit2])))
     }
 
     /// Push a CH gate at the end of the graph.
@@ -250,7 +256,7 @@ impl GraphBuilder {
         Ok(self.put_ch(
             control_qubit,
             target_qubit,
-            self.find_push_column(&[control_qubit, target_qubit]),
+            self.find_push_time_step(&[control_qubit, target_qubit]),
         ))
     }
 
@@ -265,7 +271,7 @@ impl GraphBuilder {
         Ok(self.put_cx(
             control_qubit,
             target_qubit,
-            self.find_push_column(&[control_qubit, target_qubit]),
+            self.find_push_time_step(&[control_qubit, target_qubit]),
         ))
     }
 
@@ -280,7 +286,7 @@ impl GraphBuilder {
         Ok(self.put_cy(
             control_qubit,
             target_qubit,
-            self.find_push_column(&[control_qubit, target_qubit]),
+            self.find_push_time_step(&[control_qubit, target_qubit]),
         ))
     }
 
@@ -292,7 +298,7 @@ impl GraphBuilder {
     ) -> Result<&mut Self, GraphBuilderError> {
         check_unique_qubits(&[qubit1, qubit2])?;
 
-        Ok(self.put_cz(qubit1, qubit2, self.find_push_column(&[qubit1, qubit2])))
+        Ok(self.put_cz(qubit1, qubit2, self.find_push_time_step(&[qubit1, qubit2])))
     }
 
     /// Push a CP gate at the end of the graph.
@@ -312,7 +318,7 @@ impl GraphBuilder {
             theta,
             qubit1,
             qubit2,
-            self.find_push_column(&[qubit1, qubit2]),
+            self.find_push_time_step(&[qubit1, qubit2]),
         ))
     }
 
@@ -329,7 +335,7 @@ impl GraphBuilder {
             control_qubit,
             target_qubit1,
             target_qubit2,
-            self.find_push_column(&[control_qubit, target_qubit1, target_qubit2]),
+            self.find_push_time_step(&[control_qubit, target_qubit1, target_qubit2]),
         ))
     }
 
@@ -346,7 +352,7 @@ impl GraphBuilder {
             control_qubit1,
             control_qubit2,
             target_qubit,
-            self.find_push_column(&[control_qubit1, control_qubit2, target_qubit]),
+            self.find_push_time_step(&[control_qubit1, control_qubit2, target_qubit]),
         ))
     }
 
@@ -363,44 +369,44 @@ impl GraphBuilder {
             qubit1,
             qubit2,
             qubit3,
-            self.find_push_column(&[qubit1, qubit2, qubit3]),
+            self.find_push_time_step(&[qubit1, qubit2, qubit3]),
         ))
     }
 
     /// Put a ID gate directly into the graph.
     ///
     /// Note that this is not a no-op, which means a node will be added.
-    pub(crate) fn put_id(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::ID, qubit, column)
+    pub(crate) fn put_id(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::ID, qubit, time_step)
     }
 
     /// Put a H gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_h(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::H, qubit, column)
+    pub(crate) fn put_h(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::H, qubit, time_step)
     }
 
     /// Put a X gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_x(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::X, qubit, column)
+    pub(crate) fn put_x(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::X, qubit, time_step)
     }
 
     /// Put a Y gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_y(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::Y, qubit, column)
+    pub(crate) fn put_y(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::Y, qubit, time_step)
     }
 
     /// Put a Z gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_z(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::Z, qubit, column)
+    pub(crate) fn put_z(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::Z, qubit, time_step)
     }
 
-    fn put_single(&mut self, gate: GateType, qubit: usize, column: usize) -> &mut Self {
-        let position = Position::new(qubit, column);
+    fn put_single(&mut self, gate: GateType, qubit: usize, time_step: usize) -> &mut Self {
+        let position = Position::new(qubit, time_step);
 
         self.graph
             .replace_node(gate, position, None, None, None, None);
         self.graph
-            .connect_row_neighbors(position)
+            .connect_qubit_neighbors(position)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -409,28 +415,28 @@ impl GraphBuilder {
     }
 
     /// Put a P gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_p(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_theta_rotation(GateType::P, theta, qubit, column)
+    pub(crate) fn put_p(&mut self, theta: f64, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::P, theta, qubit, time_step)
     }
 
     /// Put a RX gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_rx(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_theta_rotation(GateType::RX, theta, qubit, column)
+    pub(crate) fn put_rx(&mut self, theta: f64, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::RX, theta, qubit, time_step)
     }
 
     /// Put a RY gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_ry(&mut self, theta: f64, qubit: usize, column: usize) -> &mut Self {
-        self.put_theta_rotation(GateType::RY, theta, qubit, column)
+    pub(crate) fn put_ry(&mut self, theta: f64, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_theta_rotation(GateType::RY, theta, qubit, time_step)
     }
 
     /// Put a RZ gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_rz(&mut self, phi: f64, qubit: usize, column: usize) -> &mut Self {
-        let position = Position::new(qubit, column);
+    pub(crate) fn put_rz(&mut self, phi: f64, qubit: usize, time_step: usize) -> &mut Self {
+        let position = Position::new(qubit, time_step);
 
         self.graph
             .replace_node(GateType::RZ, position, None, Some(phi), None, None);
         self.graph
-            .connect_row_neighbors(position)
+            .connect_qubit_neighbors(position)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -443,14 +449,14 @@ impl GraphBuilder {
         gate: GateType,
         theta: f64,
         qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let position = Position::new(qubit, column);
+        let position = Position::new(qubit, time_step);
 
         self.graph
             .replace_node(gate, position, Some(theta), None, None, None);
         self.graph
-            .connect_row_neighbors(position)
+            .connect_qubit_neighbors(position)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -459,33 +465,33 @@ impl GraphBuilder {
     }
 
     /// Put a S gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_s(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::S, qubit, column)
+    pub(crate) fn put_s(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::S, qubit, time_step)
     }
 
     /// Put a SDG gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_sdg(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::SDG, qubit, column)
+    pub(crate) fn put_sdg(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::SDG, qubit, time_step)
     }
 
     /// Put a SX gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_sx(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::SX, qubit, column)
+    pub(crate) fn put_sx(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::SX, qubit, time_step)
     }
 
     /// Put a SY gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_sy(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::SY, qubit, column)
+    pub(crate) fn put_sy(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::SY, qubit, time_step)
     }
 
     /// Put a T gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_t(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::T, qubit, column)
+    pub(crate) fn put_t(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::T, qubit, time_step)
     }
 
     /// Put a TDG gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_tdg(&mut self, qubit: usize, column: usize) -> &mut Self {
-        self.put_single(GateType::TDG, qubit, column)
+    pub(crate) fn put_tdg(&mut self, qubit: usize, time_step: usize) -> &mut Self {
+        self.put_single(GateType::TDG, qubit, time_step)
     }
 
     /// Put a U gate directly into the graph, which may break it when used incorrectly.
@@ -495,9 +501,9 @@ impl GraphBuilder {
         phi: f64,
         lambda: f64,
         qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let position = Position::new(qubit, column);
+        let position = Position::new(qubit, time_step);
 
         self.graph.replace_node(
             GateType::U,
@@ -508,7 +514,7 @@ impl GraphBuilder {
             None,
         );
         self.graph
-            .connect_row_neighbors(position)
+            .connect_qubit_neighbors(position)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -517,13 +523,13 @@ impl GraphBuilder {
     }
 
     /// Put a Measure gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_measure(&mut self, qubit: usize, bit: usize, column: usize) -> &mut Self {
-        let position = Position::new(qubit, column);
+    pub(crate) fn put_measure(&mut self, qubit: usize, bit: usize, time_step: usize) -> &mut Self {
+        let position = Position::new(qubit, time_step);
 
         self.graph
             .replace_node(GateType::Measure, position, None, None, None, Some(bit));
         self.graph
-            .connect_row_neighbors(position)
+            .connect_qubit_neighbors(position)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -532,9 +538,9 @@ impl GraphBuilder {
     }
 
     /// Put a Swap gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_swap(&mut self, qubit1: usize, qubit2: usize, column: usize) -> &mut Self {
-        let first = Position::new(qubit1, column);
-        let second = Position::new(qubit2, column);
+    pub(crate) fn put_swap(&mut self, qubit1: usize, qubit2: usize, time_step: usize) -> &mut Self {
+        let first = Position::new(qubit1, time_step);
+        let second = Position::new(qubit2, time_step);
 
         self.graph
             .replace_node(GateType::Swap, first, None, None, None, None);
@@ -546,10 +552,10 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(first)
+            .connect_qubit_neighbors(first)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(second)
+            .connect_qubit_neighbors(second)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -562,9 +568,9 @@ impl GraphBuilder {
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        self.put_control(GateType::CH, control_qubit, target_qubit, column)
+        self.put_control(GateType::CH, control_qubit, target_qubit, time_step)
     }
 
     /// Put a CX gate directly into the graph, which may break it when used incorrectly.
@@ -572,9 +578,9 @@ impl GraphBuilder {
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        self.put_control(GateType::CX, control_qubit, target_qubit, column)
+        self.put_control(GateType::CX, control_qubit, target_qubit, time_step)
     }
 
     /// Put a CY gate directly into the graph, which may break it when used incorrectly.
@@ -582,9 +588,9 @@ impl GraphBuilder {
         &mut self,
         control_qubit: usize,
         target_qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        self.put_control(GateType::CY, control_qubit, target_qubit, column)
+        self.put_control(GateType::CY, control_qubit, target_qubit, time_step)
     }
 
     fn put_control(
@@ -592,10 +598,10 @@ impl GraphBuilder {
         gate: GateType,
         control_qubit: usize,
         target_qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let control = Position::new(control_qubit, column);
-        let target = Position::new(target_qubit, column);
+        let control = Position::new(control_qubit, time_step);
+        let target = Position::new(target_qubit, time_step);
 
         self.graph
             .replace_node(gate, control, None, None, None, None);
@@ -607,10 +613,10 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(control)
+            .connect_qubit_neighbors(control)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target)
+            .connect_qubit_neighbors(target)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -619,9 +625,9 @@ impl GraphBuilder {
     }
 
     /// Put a CZ gate directly into the graph, which may break it when used incorrectly.
-    pub(crate) fn put_cz(&mut self, qubit1: usize, qubit2: usize, column: usize) -> &mut Self {
-        let first = Position::new(qubit1, column);
-        let second = Position::new(qubit2, column);
+    pub(crate) fn put_cz(&mut self, qubit1: usize, qubit2: usize, time_step: usize) -> &mut Self {
+        let first = Position::new(qubit1, time_step);
+        let second = Position::new(qubit2, time_step);
 
         self.graph
             .replace_node(GateType::CZ, first, None, None, None, None);
@@ -633,10 +639,10 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(first)
+            .connect_qubit_neighbors(first)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(second)
+            .connect_qubit_neighbors(second)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -650,10 +656,10 @@ impl GraphBuilder {
         theta: f64,
         qubit1: usize,
         qubit2: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let first = Position::new(qubit1, column);
-        let second = Position::new(qubit2, column);
+        let first = Position::new(qubit1, time_step);
+        let second = Position::new(qubit2, time_step);
 
         self.graph
             .replace_node(GateType::CP, first, Some(theta), None, None, None);
@@ -665,10 +671,10 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(first)
+            .connect_qubit_neighbors(first)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(second)
+            .connect_qubit_neighbors(second)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -682,11 +688,11 @@ impl GraphBuilder {
         control_qubit: usize,
         target_qubit1: usize,
         target_qubit2: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let control = Position::new(control_qubit, column);
-        let target1 = Position::new(target_qubit1, column);
-        let target2 = Position::new(target_qubit2, column);
+        let control = Position::new(control_qubit, time_step);
+        let target1 = Position::new(target_qubit1, time_step);
+        let target2 = Position::new(target_qubit2, time_step);
 
         self.graph
             .replace_node(GateType::CSwap, control, None, None, None, None);
@@ -706,13 +712,13 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(control)
+            .connect_qubit_neighbors(control)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target1)
+            .connect_qubit_neighbors(target1)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target2)
+            .connect_qubit_neighbors(target2)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -726,11 +732,11 @@ impl GraphBuilder {
         control_qubit1: usize,
         control_qubit2: usize,
         target_qubit: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let control1 = Position::new(control_qubit1, column);
-        let control2 = Position::new(control_qubit2, column);
-        let target = Position::new(target_qubit, column);
+        let control1 = Position::new(control_qubit1, time_step);
+        let control2 = Position::new(control_qubit2, time_step);
+        let target = Position::new(target_qubit, time_step);
 
         self.graph
             .replace_node(GateType::CCX, control1, None, None, None, None);
@@ -750,13 +756,13 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(control1)
+            .connect_qubit_neighbors(control1)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(control2)
+            .connect_qubit_neighbors(control2)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(target)
+            .connect_qubit_neighbors(target)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -770,11 +776,11 @@ impl GraphBuilder {
         qubit1: usize,
         qubit2: usize,
         qubit3: usize,
-        column: usize,
+        time_step: usize,
     ) -> &mut Self {
-        let first = Position::new(qubit1, column);
-        let second = Position::new(qubit2, column);
-        let third = Position::new(qubit3, column);
+        let first = Position::new(qubit1, time_step);
+        let second = Position::new(qubit2, time_step);
+        let third = Position::new(qubit3, time_step);
 
         self.graph
             .replace_node(GateType::CCZ, first, None, None, None, None);
@@ -794,13 +800,13 @@ impl GraphBuilder {
             .expect("Both nodes should exist");
 
         self.graph
-            .connect_row_neighbors(first)
+            .connect_qubit_neighbors(first)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(second)
+            .connect_qubit_neighbors(second)
             .expect("The added node should exist");
         self.graph
-            .connect_row_neighbors(third)
+            .connect_qubit_neighbors(third)
             .expect("The added node should exist");
 
         #[cfg(debug_assertions)]
@@ -808,11 +814,15 @@ impl GraphBuilder {
         self
     }
 
-    fn find_push_column(&self, qubits: &[usize]) -> usize {
+    fn find_push_time_step(&self, qubits: &[usize]) -> usize {
         // Complexity: O(qubits · log n).
         qubits
             .iter()
-            .filter_map(|&row| self.graph.last_column_in_row(row).map(|column| column + 1))
+            .filter_map(|&qubit| {
+                self.graph
+                    .last_time_step_in_qubit(qubit)
+                    .map(|time_step| time_step + 1)
+            })
             .max()
             .unwrap_or(0)
     }

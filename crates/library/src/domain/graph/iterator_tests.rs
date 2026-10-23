@@ -2,7 +2,7 @@ use crate::{GateType::*, Graph};
 use crate::{GraphBuilder, Position};
 
 #[test]
-fn iter_positions_ordered_by_row() {
+fn iter_positions_ordered_by_qubit() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
@@ -11,7 +11,7 @@ fn iter_positions_ordered_by_row() {
         .push_x(1)
         .build();
 
-    let positions: Vec<_> = graph.iter_positions_ordered_by_row().collect();
+    let positions: Vec<_> = graph.iter_positions_ordered_by_qubit().collect();
 
     assert_eq!(positions.len(), 5);
     assert_eq!(positions[0], Position::new(0, 0));
@@ -22,7 +22,7 @@ fn iter_positions_ordered_by_row() {
 }
 
 #[test]
-fn iter_positions_ordered_by_column() {
+fn iter_positions_ordered_by_time_step() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
@@ -31,7 +31,7 @@ fn iter_positions_ordered_by_column() {
         .push_x(1)
         .build();
 
-    let positions: Vec<_> = graph.iter_positions_ordered_by_column().collect();
+    let positions: Vec<_> = graph.iter_positions_ordered_by_time_step().collect();
 
     assert_eq!(positions.len(), 5);
     assert_eq!(positions[0], Position::new(0, 0));
@@ -42,14 +42,14 @@ fn iter_positions_ordered_by_column() {
 }
 
 #[test]
-fn iter_positions_ordered_by_column_in_sparse_graph() {
+fn iter_positions_ordered_by_time_step_in_sparse_graph() {
     let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(2, 4), None, None, None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
     graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
 
-    let positions: Vec<_> = graph.iter_positions_ordered_by_column().collect();
+    let positions: Vec<_> = graph.iter_positions_ordered_by_time_step().collect();
     assert_eq!(positions.len(), 3);
     assert_eq!(positions[0], Position::new(1, 0));
     assert_eq!(positions[1], Position::new(0, 2));
@@ -57,7 +57,7 @@ fn iter_positions_ordered_by_column_in_sparse_graph() {
 }
 
 #[test]
-fn iter_nodes_ordered_by_row() {
+fn iter_nodes_ordered_by_qubit() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
@@ -65,7 +65,7 @@ fn iter_nodes_ordered_by_row() {
         .unwrap()
         .build();
 
-    let nodes: Vec<_> = graph.iter_nodes_ordered_by_row().collect();
+    let nodes: Vec<_> = graph.iter_nodes_ordered_by_qubit().collect();
 
     assert_eq!(nodes.len(), 4);
     assert_eq!(nodes[0].position(), Position::new(0, 0));
@@ -79,14 +79,14 @@ fn iter_nodes_ordered_by_row() {
 }
 
 #[test]
-fn iter_positions_ordered_by_row_in_sparse_graph() {
+fn iter_positions_ordered_by_qubit_in_sparse_graph() {
     let mut graph = Graph::default();
 
     graph.replace_node(X, Position::new(2, 4), None, None, None, None);
     graph.replace_node(Y, Position::new(0, 2), None, None, None, None);
     graph.replace_node(Z, Position::new(1, 0), None, None, None, None);
 
-    let positions: Vec<_> = graph.iter_positions_ordered_by_row().collect();
+    let positions: Vec<_> = graph.iter_positions_ordered_by_qubit().collect();
     assert_eq!(positions.len(), 3);
     assert_eq!(positions[0], Position::new(0, 2));
     assert_eq!(positions[1], Position::new(1, 0));
@@ -94,7 +94,7 @@ fn iter_positions_ordered_by_row_in_sparse_graph() {
 }
 
 #[test]
-fn iter_nodes_ordered_by_column() {
+fn iter_nodes_ordered_by_time_step() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_h(1)
@@ -102,7 +102,7 @@ fn iter_nodes_ordered_by_column() {
         .unwrap()
         .build();
 
-    let nodes: Vec<_> = graph.iter_nodes_ordered_by_column().collect();
+    let nodes: Vec<_> = graph.iter_nodes_ordered_by_time_step().collect();
 
     assert_eq!(nodes.len(), 4);
     assert_eq!(nodes[0].position(), Position::new(0, 0));

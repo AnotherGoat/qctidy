@@ -1,12 +1,12 @@
-use qctidy_ports::{PythonAnalysis, PythonPort};
+use qctidy_ports::{PythonAnalysis, PythonAstPort};
 
 use crate::qiskit::analyze;
 
 /// Parses Qiskit Python source into a circuit analysis.
 #[derive(Debug, Default, Clone, Copy)]
-pub struct PythonAdapter;
+pub struct PythonAstAdapter;
 
-impl PythonPort for PythonAdapter {
+impl PythonAstPort for PythonAstAdapter {
     fn parse(&self, source: &str) -> PythonAnalysis {
         analyze(source)
     }

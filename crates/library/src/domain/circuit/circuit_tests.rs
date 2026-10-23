@@ -21,13 +21,13 @@ fn operation_positions_match_the_built_graph() {
     assert_eq!(positions.len(), circuit.operations().len());
 
     let from_operations: HashSet<Position> = positions.iter().flatten().copied().collect();
-    let from_graph: HashSet<Position> = graph.iter_positions_ordered_by_row().collect();
+    let from_graph: HashSet<Position> = graph.iter_positions_ordered_by_qubit().collect();
 
     assert_eq!(from_operations, from_graph);
 }
 
 #[test]
-fn operation_positions_advance_each_row_independently() {
+fn operation_positions_advance_each_qubit_independently() {
     let circuit = Circuit::from_operations(vec![
         GateOperation::h(0),
         GateOperation::h(1),

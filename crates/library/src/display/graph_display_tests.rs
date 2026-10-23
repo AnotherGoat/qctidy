@@ -52,7 +52,7 @@ Edges:
 }
 
 #[test]
-fn to_string_skipping_first_row() {
+fn to_string_skipping_first_qubit() {
     let graph = GraphBuilder::default().push_h(1).build();
 
     let result = graph.to_string();
@@ -90,7 +90,7 @@ Edges:
 }
 
 #[test]
-fn to_string_sparse_columns() {
+fn to_string_sparse_time_steps() {
     let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None, None, None);
@@ -181,7 +181,7 @@ Edges:
 }
 
 #[test]
-fn to_string_rows_and_columns() {
+fn to_string_qubits_and_time_steps() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_x(0)
@@ -317,7 +317,7 @@ fn display_grid_single_gate() {
 }
 
 #[test]
-fn display_grid_skipping_first_row() {
+fn display_grid_skipping_first_qubit() {
     let graph = GraphBuilder::default().push_h(1).build();
 
     let result = graph.display_grid(PiFormat::Lowercase);
@@ -329,7 +329,7 @@ fn display_grid_skipping_first_row() {
 }
 
 #[test]
-fn display_grid_multiple_rows_single_column() {
+fn display_grid_multiple_qubits_single_time_step() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_x(1)
@@ -347,7 +347,7 @@ fn display_grid_multiple_rows_single_column() {
 }
 
 #[test]
-fn display_grid_sparse_columns() {
+fn display_grid_sparse_time_steps() {
     let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None, None, None);
@@ -360,7 +360,7 @@ fn display_grid_sparse_columns() {
 }
 
 #[test]
-fn display_grid_multiple_rows_and_columns() {
+fn display_grid_multiple_qubits_and_time_steps() {
     let mut graph = Graph::default();
 
     graph.replace_node(H, Position::new(0, 0), None, None, None, None);
@@ -437,7 +437,7 @@ fn display_grid_measure_with_bit() {
 }
 
 #[test]
-fn display_grid_column_alignment() {
+fn display_grid_time_step_alignment() {
     let graph = GraphBuilder::default()
         .push_h(0)
         .push_x(0)

@@ -9,24 +9,24 @@ pub(super) fn validate(graph: &Graph) -> Result<(), GraphError> {
     check_dangling_nodes(graph)?;
     check_edge_mirroring(graph)?;
     check_duplicate_edges(graph)?;
-    check_row_order_edges(graph)?;
+    check_time_step_order_edges(graph)?;
     Ok(())
 }
 
-/// Check that every node's `Right` edges match its row neighbors.
+/// Check that every node's `Right` edges match its qubit neighbors.
 ///
-/// A `Right` edge must connect a node to the next node in its row (and the previous
+/// A `Right` edge must connect a node to the next node in its qubit (and the previous
 /// one, since `Right` is bidirectional). Any other `Right` edge is inconsistent.
-fn check_row_order_edges(graph: &Graph) -> Result<(), GraphError> {
+fn check_time_step_order_edges(graph: &Graph) -> Result<(), GraphError> {
     for &position in graph.nodes.keys() {
-        let expected_next: Vec<Position> = graph.next_in_row(position).into_iter().collect();
+        let expected_next: Vec<Position> = graph.next_in_qubit(position).into_iter().collect();
         let expected_previous: Vec<Position> =
-            graph.previous_in_row(position).into_iter().collect();
+            graph.previous_in_qubit(position).into_iter().collect();
 
         if right_neighbors(graph.edges_out.get(&position)) != expected_next
             || right_neighbors(graph.edges_in.get(&position)) != expected_previous
         {
-            return Err(GraphError::InvalidRowOrder { position });
+            return Err(GraphError::InvalidTimeStepOrder { position });
         }
     }
 

@@ -41,7 +41,7 @@ fn format_multiple_fields(fields: &[&str]) -> String {
     format!("'{}' and '{}'", fields_except_last.join(", "), last_field)
 }
 
-/// A quantum gate operation, which can be applied to a circuit.
+/// A circuit operation, which can be a gate or a measurement.
 ///
 /// Prefer using the safe constructors instead of directly using the `GateOperation` enum variants.
 #[derive(Debug, Clone, Copy)]

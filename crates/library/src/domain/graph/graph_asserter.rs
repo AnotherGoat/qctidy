@@ -14,23 +14,23 @@ impl<'a> GraphAsserter<'a> {
         self
     }
 
-    pub(crate) fn has_size(&self, size: usize) -> &Self {
-        assert_eq!(self.graph.size(), size);
+    pub(crate) fn has_node_count(&self, node_count: usize) -> &Self {
+        assert_eq!(self.graph.node_count(), node_count);
         self
     }
 
-    pub(crate) fn has_width(&self, width: usize) -> &Self {
-        assert_eq!(self.graph.width(), width);
+    pub(crate) fn has_time_step_count(&self, time_step_count: usize) -> &Self {
+        assert_eq!(self.graph.time_step_count(), time_step_count);
         self
     }
 
-    pub(crate) fn has_height(&self, height: usize) -> &Self {
-        assert_eq!(self.graph.height(), height);
+    pub(crate) fn has_qubit_count(&self, qubit_count: usize) -> &Self {
+        assert_eq!(self.graph.qubit_count(), qubit_count);
         self
     }
 
-    pub(crate) fn has_bits(&self, bits: usize) -> &Self {
-        assert_eq!(self.graph.bits(), bits);
+    pub(crate) fn has_bit_count(&self, bit_count: usize) -> &Self {
+        assert_eq!(self.graph.bit_count(), bit_count);
         self
     }
 
@@ -151,5 +151,5 @@ where
 }
 
 fn sort(positions: &mut [Position]) {
-    positions.sort_unstable_by_key(|position| (position.row(), position.column()));
+    positions.sort_unstable_by_key(|position| (position.qubit(), position.time_step()));
 }

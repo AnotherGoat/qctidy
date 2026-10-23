@@ -11,7 +11,7 @@ fn add_connected_node(graph: &mut Graph, gate: GateType, position: Position) {
         .add_node(gate, position, None, None, None, None)
         .expect("The node position should be free");
     graph
-        .connect_row_neighbors(position)
+        .connect_qubit_neighbors(position)
         .expect("The node was just added");
 }
 
@@ -63,23 +63,23 @@ fn replace_default_pattern_rules_at_offsets() {
 
 /// Clone a graph and move every position by the given offsets.
 fn shift(graph: &Graph, row_offset: usize, column_offset: usize) -> Graph {
-    let target_height = graph.height() + row_offset;
+    let target_qubit_count = graph.qubit_count() + row_offset;
 
     let mut shifted = graph.clone();
     shifted.remap_positions(|position| {
         Position::new(
-            position.row() + row_offset,
-            position.column() + column_offset,
+            position.qubit() + row_offset,
+            position.time_step() + column_offset,
         )
     });
-    pad_height(&mut shifted, target_height);
+    pad_qubit_count(&mut shifted, target_qubit_count);
     shifted
 }
 
-/// Grow the graph height without leaving any node behind.
-fn pad_height(graph: &mut Graph, height: usize) {
-    while graph.height() < height {
-        let position = Position::new(graph.height(), 0);
+/// Grow the graph qubit count without leaving any node behind.
+fn pad_qubit_count(graph: &mut Graph, qubit_count: usize) {
+    while graph.qubit_count() < qubit_count {
+        let position = Position::new(graph.qubit_count(), 0);
         graph
             .add_node(GateType::X, position, None, None, None, None)
             .expect("The filler position should be free");
@@ -89,8 +89,8 @@ fn pad_height(graph: &mut Graph, height: usize) {
 
 #[test]
 fn replacement_is_placed_relative_to_the_matched_anchor() {
-    // The pattern is shifted one column to the right by two leading identities.
-    // The replacement must follow the matched anchor, not the pattern's own column.
+    // The pattern is shifted one time step to the right by two leading identities.
+    // The replacement must follow the matched anchor, not the pattern's own time step.
     let rule = control_reversal::cx_reversal();
     let mut graph = GraphBuilder::new(2)
         .push_id(0)
@@ -116,7 +116,7 @@ fn replacement_is_placed_relative_to_the_matched_anchor() {
 }
 
 #[test]
-fn replacement_is_placed_relative_to_the_matched_rows() {
+fn replacement_is_placed_relative_to_the_matched_qubits() {
     // The pattern sits on qubits 1 and 2, with an unrelated identity on qubit 0.
     let rule = control_reversal::cx_reversal();
     let mut graph = GraphBuilder::new(3)
@@ -153,7 +153,7 @@ fn deletion_rule_removes_a_shifted_match() {
     assert!(rule.apply(&mut graph));
 
     let nodes: Vec<_> = graph
-        .iter_nodes_ordered_by_column()
+        .iter_nodes_ordered_by_time_step()
         .map(|node| (node.position(), node.r#type()))
         .collect();
 

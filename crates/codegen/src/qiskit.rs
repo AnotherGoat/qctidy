@@ -16,16 +16,16 @@ pub(crate) fn generate(graph: &Graph, circuit_name: &str) -> String {
 
     if graph.is_empty() {
         build_steps.push(format!("{circuit_name} = QuantumCircuit()"));
-    } else if graph.bits() == 0 {
+    } else if graph.bit_count() == 0 {
         build_steps.push(format!(
             "{circuit_name} = QuantumCircuit({})",
-            graph.height()
+            graph.qubit_count()
         ));
     } else {
         build_steps.push(format!(
             "{circuit_name} = QuantumCircuit({}, {})",
-            graph.height(),
-            graph.bits()
+            graph.qubit_count(),
+            graph.bit_count()
         ));
     }
 
@@ -66,7 +66,7 @@ fn add_import(imports: &mut Vec<String>, import: &str) {
 /// `numpy.pi`) also need that import in the surrounding source; callers that only
 /// render built-in pattern replacements never hit those cases.
 #[must_use]
-pub fn render_operation(operation: &GateOperation, circuit_name: &str) -> String {
+pub(crate) fn render_operation(operation: &GateOperation, circuit_name: &str) -> String {
     let mut imports = Vec::new();
     let mut build_steps = Vec::new();
 

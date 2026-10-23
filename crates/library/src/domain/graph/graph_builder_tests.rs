@@ -14,10 +14,10 @@ fn empty_graph_builder_builds_empty_valid_graph() {
 
     asserter
         .is_empty()
-        .has_size(0)
-        .has_width(0)
-        .has_height(0)
-        .has_bits(0);
+        .has_node_count(0)
+        .has_time_step_count(0)
+        .has_qubit_count(0)
+        .has_bit_count(0);
 
     graph.validate_internal();
 }
@@ -29,10 +29,10 @@ fn graph_builder_with_initial_size() {
 
     asserter1
         .is_empty()
-        .has_size(0)
-        .has_width(0)
-        .has_height(1)
-        .has_bits(0);
+        .has_node_count(0)
+        .has_time_step_count(0)
+        .has_qubit_count(1)
+        .has_bit_count(0);
 
     size1.validate_internal();
 
@@ -41,10 +41,10 @@ fn graph_builder_with_initial_size() {
 
     asserter2
         .is_empty()
-        .has_size(0)
-        .has_width(0)
-        .has_height(2)
-        .has_bits(0);
+        .has_node_count(0)
+        .has_time_step_count(0)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     size2.validate_internal();
 }
@@ -58,17 +58,25 @@ fn push_id_is_not_noop() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(3).has_width(2).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(3)
+        .has_time_step_count(2)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     graph.validate_internal();
 }
 
 #[test]
-fn push_single_gate_calculates_column() {
+fn push_single_gate_calculates_time_step() {
     let graph = GraphBuilder::default().push_h(0).push_x(0).build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(2).has_width(2).has_height(1).has_bits(0);
+    asserter
+        .has_node_count(2)
+        .has_time_step_count(2)
+        .has_qubit_count(1)
+        .has_bit_count(0);
 
     asserter.node_at(Position::new(0, 0)).is(H);
     asserter.node_at(Position::new(0, 1)).is(X);
@@ -77,7 +85,7 @@ fn push_single_gate_calculates_column() {
 }
 
 #[test]
-fn push_single_gates_links_row_neighbors() {
+fn push_single_gates_links_qubit_neighbors() {
     let graph = GraphBuilder::default()
         .push_x(0)
         .push_y(0)
@@ -85,7 +93,11 @@ fn push_single_gates_links_row_neighbors() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(3).has_width(3).has_height(1).has_bits(0);
+    asserter
+        .has_node_count(3)
+        .has_time_step_count(3)
+        .has_qubit_count(1)
+        .has_bit_count(0);
 
     let x = Position::new(0, 0);
     let y = Position::new(0, 1);
@@ -101,7 +113,7 @@ fn push_single_gates_links_row_neighbors() {
 }
 
 #[test]
-fn push_single_gates_in_different_rows() {
+fn push_single_gates_in_different_qubits() {
     let graph = GraphBuilder::default()
         .push_s(0)
         .push_sdg(0)
@@ -112,7 +124,11 @@ fn push_single_gates_in_different_rows() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(6).has_width(2).has_height(3).has_bits(0);
+    asserter
+        .has_node_count(6)
+        .has_time_step_count(2)
+        .has_qubit_count(3)
+        .has_bit_count(0);
 
     let s = Position::new(0, 0);
     let sdg = Position::new(0, 1);
@@ -151,7 +167,11 @@ fn push_rotation_and_measure_gates_store_payloads() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(5).has_width(2).has_height(3).has_bits(1);
+    asserter
+        .has_node_count(5)
+        .has_time_step_count(2)
+        .has_qubit_count(3)
+        .has_bit_count(1);
 
     asserter
         .node_at(Position::new(0, 0))
@@ -191,7 +211,11 @@ fn push_control_creates_multiple_nodes() {
     let graph = GraphBuilder::default().push_ch(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(2).has_width(1).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(2)
+        .has_time_step_count(1)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     asserter.node_at(Position::new(0, 0)).is(CH);
     asserter.node_at(Position::new(1, 0)).is(CH);
@@ -209,7 +233,11 @@ fn push_control_creates_relationships() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(4).has_width(2).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(4)
+        .has_time_step_count(2)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     let left_control = Position::new(0, 0);
     let left_target = Position::new(1, 0);
@@ -239,7 +267,11 @@ fn push_swap_builds_swap_pair() {
     let graph = GraphBuilder::default().push_swap(0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(2).has_width(1).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(2)
+        .has_time_step_count(1)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     let node1 = Position::new(0, 0);
     let node2 = Position::new(1, 0);
@@ -260,7 +292,11 @@ fn push_cz_builds_symmetric_edges() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(4).has_width(2).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(4)
+        .has_time_step_count(2)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     let left1 = Position::new(0, 0);
     let left2 = Position::new(1, 0);
@@ -289,7 +325,11 @@ fn push_cp_builds_edges_and_payload() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(4).has_width(2).has_height(2).has_bits(0);
+    asserter
+        .has_node_count(4)
+        .has_time_step_count(2)
+        .has_qubit_count(2)
+        .has_bit_count(0);
 
     let left1 = Position::new(0, 0);
     let left2 = Position::new(1, 0);
@@ -329,7 +369,11 @@ fn push_cswap_builds_control_and_swap_edges() {
     let graph = GraphBuilder::default().push_cswap(1, 0, 2).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
+    asserter
+        .has_node_count(3)
+        .has_time_step_count(1)
+        .has_qubit_count(3)
+        .has_bit_count(0);
 
     let control = Position::new(1, 0);
     let target1 = Position::new(0, 0);
@@ -360,7 +404,11 @@ fn push_ccx_builds_two_control_qubits() {
     let graph = GraphBuilder::default().push_ccx(2, 0, 1).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
+    asserter
+        .has_node_count(3)
+        .has_time_step_count(1)
+        .has_qubit_count(3)
+        .has_bit_count(0);
 
     let control1 = Position::new(2, 0);
     let control2 = Position::new(0, 0);
@@ -388,7 +436,11 @@ fn push_ccz_builds_triple_symmetric_edges() {
     let graph = GraphBuilder::default().push_ccz(2, 1, 0).unwrap().build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(3).has_width(1).has_height(3).has_bits(0);
+    asserter
+        .has_node_count(3)
+        .has_time_step_count(1)
+        .has_qubit_count(3)
+        .has_bit_count(0);
 
     let node1 = Position::new(2, 0);
     let node2 = Position::new(1, 0);
@@ -550,7 +602,11 @@ fn push_u_stores_payloads() {
         .build();
     let asserter = GraphAsserter::new(&graph);
 
-    asserter.has_size(1).has_width(1).has_height(4).has_bits(0);
+    asserter
+        .has_node_count(1)
+        .has_time_step_count(1)
+        .has_qubit_count(4)
+        .has_bit_count(0);
 
     asserter
         .node_at(Position::new(3, 0))

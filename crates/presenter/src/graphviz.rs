@@ -163,7 +163,7 @@ fn apply_graph_attributes(statements: &mut Vec<Stmt>, dpi: Option<u32>) {
 }
 
 fn draw_nodes(graph: &Graph, statements: &mut Vec<Stmt>) {
-    for node in graph.iter_nodes_ordered_by_row() {
+    for node in graph.iter_nodes_ordered_by_qubit() {
         let (x, y) = find_draw_position(graph, &node);
 
         let node_id = node_id(&node);
@@ -207,13 +207,17 @@ fn draw_edges(graph: &Graph, statements: &mut Vec<Stmt>) {
 }
 
 fn node_id(node: &NodeView) -> String {
-    format!("\"{}_{}\"", node.position().row(), node.position().column())
+    format!(
+        "\"{}_{}\"",
+        node.position().qubit(),
+        node.position().time_step()
+    )
 }
 
 fn find_draw_position(graph: &Graph, node: &NodeView) -> (usize, usize) {
     (
-        node.position().column(),
-        graph.height() - node.position().row() - 1,
+        node.position().time_step(),
+        graph.qubit_count() - node.position().qubit() - 1,
     )
 }
 

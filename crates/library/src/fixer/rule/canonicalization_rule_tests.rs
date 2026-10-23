@@ -3,10 +3,10 @@ use std::collections::HashSet;
 use crate::{Graph, GraphBuilder, Position, Rule, fixer::rule::default::canonicalization};
 
 #[test]
-fn compact_rows_detects_gap() {
+fn compact_qubits_detects_gap() {
     let graph = GraphBuilder::new(3).push_x(0).push_x(2).build();
 
-    let rule = canonicalization::compact_rows();
+    let rule = canonicalization::compact_qubits();
     let matches = rule.detect(&graph);
 
     assert_eq!(matches.len(), 1);
@@ -16,30 +16,30 @@ fn compact_rows_detects_gap() {
 }
 
 #[test]
-fn compact_rows_no_gap() {
+fn compact_qubits_no_gap() {
     let graph = GraphBuilder::new(2).push_x(0).push_x(1).build();
 
-    let rule = canonicalization::compact_rows();
+    let rule = canonicalization::compact_qubits();
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
 }
 
 #[test]
-fn compact_rows_empty_graph() {
+fn compact_qubits_empty_graph() {
     let graph = Graph::default();
 
-    let rule = canonicalization::compact_rows();
+    let rule = canonicalization::compact_qubits();
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
 }
 
 #[test]
-fn compact_rows_no_first_row() {
+fn compact_qubits_no_first_qubit() {
     let graph = GraphBuilder::new(3).put_x(1, 0).put_x(2, 0).build();
 
-    let rule = canonicalization::compact_rows();
+    let rule = canonicalization::compact_qubits();
     let matches = rule.detect(&graph);
 
     assert_eq!(matches.len(), 1);
@@ -49,20 +49,20 @@ fn compact_rows_no_first_row() {
 }
 
 #[test]
-fn compact_rows_empty_row_at_end_no_gap() {
+fn compact_qubits_empty_qubit_at_end_no_gap() {
     let graph = GraphBuilder::new(2).push_x(0).build();
 
-    let rule = canonicalization::compact_rows();
+    let rule = canonicalization::compact_qubits();
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
 }
 
 #[test]
-fn compact_columns_detects_gap() {
+fn compact_time_steps_detects_gap() {
     let graph = GraphBuilder::new(1).put_x(0, 0).put_x(0, 2).build();
 
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     let matches = rule.detect(&graph);
 
     assert_eq!(matches.len(), 1);
@@ -72,10 +72,10 @@ fn compact_columns_detects_gap() {
 }
 
 #[test]
-fn compact_columns_no_first_column() {
+fn compact_time_steps_no_first_time_step() {
     let graph = GraphBuilder::new(1).put_x(0, 1).build();
 
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     let matches = rule.detect(&graph);
 
     assert_eq!(matches.len(), 1);
@@ -83,14 +83,14 @@ fn compact_columns_no_first_column() {
 }
 
 #[test]
-fn compact_columns_empty_column_after_remove() {
+fn compact_time_steps_empty_time_step_after_remove() {
     let mut builder = GraphBuilder::new(1);
     builder.put_x(0, 0);
     builder.put_x(0, 1);
     builder.put_x(0, 2);
     let mut graph = builder.into_graph();
     graph.remove_node(Position::new(0, 1));
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     let matches = rule.detect(&graph);
 
     assert_eq!(matches.len(), 1);
@@ -100,20 +100,20 @@ fn compact_columns_empty_column_after_remove() {
 }
 
 #[test]
-fn compact_columns_no_gap() {
+fn compact_time_steps_no_gap() {
     let graph = GraphBuilder::default().push_x(0).build();
 
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
 }
 
 #[test]
-fn compact_columns_empty_graph() {
+fn compact_time_steps_empty_graph() {
     let graph = Graph::default();
 
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     let matches = rule.detect(&graph);
 
     assert!(matches.is_empty());
@@ -247,7 +247,7 @@ fn normalize_bits_no_measurements() {
 }
 
 #[test]
-fn compact_columns_preserves_qubit_count() {
+fn compact_time_steps_preserves_qubit_count() {
     // Three qubits, but only qubit 0 has gates, with a gap between columns 0 and 2.
     let mut graph = Graph::new(3);
     graph.replace_node(
@@ -267,10 +267,10 @@ fn compact_columns_preserves_qubit_count() {
         None,
     );
 
-    let rule = canonicalization::compact_columns();
+    let rule = canonicalization::compact_time_steps();
     assert!(rule.apply(&mut graph));
 
-    assert_eq!(graph.height(), 3);
+    assert_eq!(graph.qubit_count(), 3);
     assert!(graph.has_node_at(Position::new(0, 0)));
     assert!(graph.has_node_at(Position::new(0, 1)));
 }

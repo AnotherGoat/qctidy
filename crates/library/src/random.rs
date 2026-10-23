@@ -9,21 +9,21 @@ use crate::{Graph, GraphBuilder};
 
 const GATE_TYPES: usize = 25;
 
-/// Generate a random `Graph` with `height` qubits and `width` time steps.
+/// Generate a random `Graph` with `qubit_count` qubits and `time_step_count` time steps.
 ///
 /// The output only depends on `seed`, so it is reproducible.
 ///
-/// Panics if `width` or `height` are zero.
+/// Panics if `time_step_count` or `qubit_count` are zero.
 #[expect(clippy::unreachable)]
-pub fn generate(seed: u64, width: usize, height: usize) -> Graph {
-    assert!(width > 0);
-    assert!(height > 0);
+pub fn generate(seed: u64, time_step_count: usize, qubit_count: usize) -> Graph {
+    assert!(time_step_count > 0);
+    assert!(qubit_count > 0);
 
     let mut generator = StdRng::seed_from_u64(seed);
-    let mut builder = GraphBuilder::new(height);
+    let mut builder = GraphBuilder::new(qubit_count);
 
-    for _ in 0..width {
-        let mut available_qubits = (0..height).collect::<Vec<_>>();
+    for _ in 0..time_step_count {
+        let mut available_qubits = (0..qubit_count).collect::<Vec<_>>();
 
         while !available_qubits.is_empty() {
             match generator.random_range(0..GATE_TYPES) {

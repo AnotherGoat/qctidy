@@ -6,12 +6,12 @@ The `Graph` is now hand-written in pure Rust, instead of using a library impleme
 
 Internally, the `Graph` stores:
 
-- The height (qubit count) as a `usize`.
+- The qubit count as a `usize`.
 - Every node as a `HashMap<Position, NodeData>`.
 - Outgoing edges as a `HashMap<Position, Vec<EdgeData>>`.
 - Incoming edges as a `HashMap<Position, Vec<EdgeData>>`.
 
-The initial height is stored when the graph is first created, then updated accordingly as the graph is modified. It's required to store it in this version to allow proper equivalent graph comparisons for empty graphs with a specific size.
+The initial qubit count is stored when the graph is first created, then updated accordingly as the graph is modified. It's required to store it in this version to allow proper equivalent graph comparisons for empty graphs with a specific size.
 
 Outgoing edges are the single source of truth for edge connections, and incoming edges are only used for fast lookups of the other end of an edge.
 

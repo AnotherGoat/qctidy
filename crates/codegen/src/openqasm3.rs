@@ -13,10 +13,10 @@ pub(crate) fn generate(graph: &Graph) -> String {
     headers.push("include \"stdgates.inc\";".to_owned());
 
     if !graph.is_empty() {
-        build_steps.push(format!("qubit[{}] q;", graph.height()));
+        build_steps.push(format!("qubit[{}] q;", graph.qubit_count()));
 
-        if graph.bits() > 0 {
-            build_steps.push(format!("bit[{}] c;", graph.bits()));
+        if graph.bit_count() > 0 {
+            build_steps.push(format!("bit[{}] c;", graph.bit_count()));
         }
     }
 
@@ -46,6 +46,20 @@ pub(crate) fn generate(graph: &Graph) -> String {
     }
 
     output.trim_end().to_owned()
+}
+
+/// Render a single gate operation as a line of `OpenQASM 3` code.
+#[must_use]
+pub(crate) fn render_operation(operation: &GateOperation) -> String {
+    let mut has_sy_gate = false;
+    let mut build_steps = Vec::new();
+
+    generate_gate(operation, &mut has_sy_gate, &mut build_steps);
+
+    build_steps
+        .into_iter()
+        .next()
+        .expect("A single operation always produces one build step")
 }
 
 fn generate_gate(operation: &GateOperation, has_sy_gate: &mut bool, build_steps: &mut Vec<String>) {

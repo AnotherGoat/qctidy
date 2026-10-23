@@ -17,7 +17,7 @@ members = [
     "crates/converter",
     "crates/estimator",
     "crates/presenter",
-    "crates/python",
+    "crates/python_ast",
     # Domain
     "crates/library",
 ]

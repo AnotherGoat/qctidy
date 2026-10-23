@@ -1,12 +1,20 @@
 use std::fmt;
 
-use qctidy::Graph;
+use qctidy::{GateOperation, Graph};
 use thiserror::Error;
 
 pub trait CodegenPort {
     fn generate(
         &self,
         graph: &Graph,
+        target: CodeGenerationTarget,
+        circuit_name: Option<&str>,
+    ) -> Result<String, CodeGenerationError>;
+
+    /// Render a single operation as a line of code for the given target.
+    fn render_operation(
+        &self,
+        operation: &GateOperation,
         target: CodeGenerationTarget,
         circuit_name: Option<&str>,
     ) -> Result<String, CodeGenerationError>;

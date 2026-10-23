@@ -285,28 +285,28 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             circuit.column,
             vscode.TreeItemCollapsibleState.Collapsed,
             hasIssues
-                ? `(${circuit.qubits} qubits, ${circuit.clbits} classical bits) — cannot be checked`
-                : `(${circuit.qubits} qubits, ${circuit.clbits} classical bits)`,
+                ? `(${circuit.qubit_count} qubits, ${circuit.bit_count} classical bits) — cannot be checked`
+                : `(${circuit.qubit_count} qubits, ${circuit.bit_count} classical bits)`,
             hasIssues ? 'error' : undefined
         );
 
-        const qubitsMetadata = new AstNodeItem(
-            `Qubits: ${circuit.qubits}`,
+        const qubitCountMetadata = new AstNodeItem(
+            `Qubits: ${circuit.qubit_count}`,
             'metadata',
             circuit.line,
             circuit.column,
             vscode.TreeItemCollapsibleState.None
         );
-        const clbitsMetadata = new AstNodeItem(
-            `Classical bits: ${circuit.clbits}`,
+        const bitCountMetadata = new AstNodeItem(
+            `Classical bits: ${circuit.bit_count}`,
             'metadata',
             circuit.line,
             circuit.column,
             vscode.TreeItemCollapsibleState.None
         );
 
-        circuitItem.children.push(qubitsMetadata);
-        circuitItem.children.push(clbitsMetadata);
+        circuitItem.children.push(qubitCountMetadata);
+        circuitItem.children.push(bitCountMetadata);
 
         // A circuit with issues is not listed as gates, because a partial
         // circuit could make the CLI detect patterns that don't exist.

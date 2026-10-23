@@ -2,7 +2,7 @@ use getset::Getters;
 use qctidy::Circuit;
 use qctidy_facade::{ParsePythonRequest, parse_python};
 use qctidy_ports::{ParsedCircuit, PythonAnalysis, Scope, ScopeChild, SourceLocation};
-use qctidy_python::PythonAdapter;
+use qctidy_python_ast::PythonAstAdapter;
 
 use crate::error::CliError;
 
@@ -68,7 +68,7 @@ pub(crate) fn extract_circuits(
 }
 
 fn parse(source: &str) -> PythonAnalysis {
-    parse_python(&ParsePythonRequest::new(source.into()), &PythonAdapter)
+    parse_python(&ParsePythonRequest::new(source.into()), &PythonAstAdapter)
         .analysis()
         .clone()
 }

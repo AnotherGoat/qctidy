@@ -4,10 +4,10 @@ use std::process::ExitCode;
 use anstream::{AutoStream, ColorChoice};
 use qctidy_facade::{ParsePythonRequest, parse_python};
 use qctidy_ports::{
-    CircuitIssue, GateParameter, ParsedCircuit, ParsedGate, PythonAnalysis, Scope, ScopeChild,
+    GateParameter, ParseIssue, ParsedCircuit, ParsedGate, PythonAnalysis, Scope, ScopeChild,
     ScopeType, SourceLocation,
 };
-use qctidy_python::PythonAdapter;
+use qctidy_python_ast::PythonAstAdapter;
 use serde::Serialize;
 
 use crate::arguments::AstArguments;
@@ -47,7 +47,7 @@ fn analyze(input: &Input) -> Result<String, CliError> {
 
     let source = String::from_utf8_lossy(&bytes).into_owned();
     let request = ParsePythonRequest::new(source.into());
-    let response = parse_python(&request, &PythonAdapter);
+    let response = parse_python(&request, &PythonAstAdapter);
     let analysis = to_json(response.analysis());
 
     serde_json::to_string_pretty(&analysis).map_err(|error| CliError::SerializeJson { error })
@@ -78,8 +78,8 @@ struct JsonScope {
 #[derive(Serialize)]
 struct JsonCircuit {
     name: String,
-    qubits: String,
-    clbits: String,
+    qubit_count: String,
+    bit_count: String,
     line: usize,
     column: usize,
     issues: Vec<JsonIssue>,
@@ -157,8 +157,8 @@ fn child(child: &ScopeChild) -> JsonNode {
 fn circuit_node(circuit: &ParsedCircuit) -> JsonCircuit {
     JsonCircuit {
         name: circuit.name.clone(),
-        qubits: circuit.qubits.clone(),
-        clbits: circuit.clbits.clone(),
+        qubit_count: circuit.qubit_count.clone(),
+        bit_count: circuit.bit_count.clone(),
         line: circuit.line,
         column: circuit.column,
         issues: circuit.issues.iter().map(issue).collect(),
@@ -194,7 +194,7 @@ fn parameter(parameter: &GateParameter) -> JsonParameter {
 }
 
 #[must_use]
-fn issue(issue: &CircuitIssue) -> JsonIssue {
+fn issue(issue: &ParseIssue) -> JsonIssue {
     JsonIssue {
         message: issue.message.clone(),
         line: issue.line,

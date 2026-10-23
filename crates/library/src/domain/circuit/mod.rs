@@ -48,27 +48,27 @@ impl Circuit {
     /// The positions match the graph built from this circuit with [`Graph::from`](crate::Graph).
     #[must_use]
     pub fn operation_positions(&self) -> Vec<Vec<Position>> {
-        let mut last_column: Vec<Option<usize>> = vec![None; self.qubit_count];
+        let mut last_time_step: Vec<Option<usize>> = vec![None; self.qubit_count];
         let mut positions = Vec::with_capacity(self.operations.len());
 
         for operation in &self.operations {
             let qubits = operation.qubits();
-            let column = qubits
+            let time_step = qubits
                 .iter()
-                .filter_map(|&row| last_column.get(row).copied().flatten())
+                .filter_map(|&qubit| last_time_step.get(qubit).copied().flatten())
                 .max()
                 .map_or(0, |last| last + 1);
 
-            for &row in &qubits {
-                if let Some(slot) = last_column.get_mut(row) {
-                    *slot = Some(column);
+            for &qubit in &qubits {
+                if let Some(slot) = last_time_step.get_mut(qubit) {
+                    *slot = Some(time_step);
                 }
             }
 
             positions.push(
                 qubits
                     .into_iter()
-                    .map(|row| Position::new(row, column))
+                    .map(|qubit| Position::new(qubit, time_step))
                     .collect(),
             );
         }

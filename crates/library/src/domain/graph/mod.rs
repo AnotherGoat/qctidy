@@ -63,8 +63,8 @@ struct EdgeData {
 /// Represents a quantum circuit as a hybrid of a directed graph and a 2D matrix.
 ///
 /// This structured graph makes it easier to analyze and fix circuits.
-/// Position values of the form (row, column) are used to index the graph's nodes.
-/// Each qubit is represented by a row in the grid.
+/// Position values of the form `(qubit, time step)` are used to index the graph's nodes.
+/// A qubit can be seen as a row and a time step as a column of the matrix.
 /// Single-qubit gates occupy a single node, while multi-qubit gates use multiple related nodes (one for each qubit involved).
 /// Empty spaces have no nodes.
 /// No duplicate edges (same origin, type and target) are allowed.
@@ -74,12 +74,12 @@ struct EdgeData {
 pub struct Graph {
     qubit_count: usize,
     time_step_count: usize,
-    row_node_counts: Vec<usize>,
-    column_node_counts: Vec<usize>,
-    // Note: `row_columns[row]` holds the columns that have a node in that row, in order
-    row_columns: Vec<BTreeSet<usize>>,
-    // Note: `column_rows[column]` holds the rows that have a node in that column, in order
-    column_rows: Vec<BTreeSet<usize>>,
+    qubit_node_counts: Vec<usize>,
+    time_step_node_counts: Vec<usize>,
+    // Note: `qubit_time_steps[qubit]` holds the time steps that have a node in that qubit, in order
+    qubit_time_steps: Vec<BTreeSet<usize>>,
+    // Note: `time_step_qubits[time_step]` holds the qubits that have a node in that time step, in order
+    time_step_qubits: Vec<BTreeSet<usize>>,
     bit_count: usize,
     pub(self) nodes: FxHashMap<Position, NodeData>,
     // Note: `edges_out` is the single source of truth for a graph's edges
@@ -101,7 +101,7 @@ impl PartialEq for Graph {
     /// Check whether two graphs are equal.
     ///
     /// Node positions and data must match, as well as edges.
-    /// Edge insertion order and graph width are not taken into account.
+    /// Edge insertion order and graph time step count are not taken into account.
     /// Floating point values are compared using a relative tolerance of 1e-5 and an absolute tolerance of 1e-8.
     /// This means that graph equality is non-transitive, but in practice this should be fine because floats are already non-deterministic across different hardware.
     fn eq(&self, other: &Self) -> bool {
@@ -156,24 +156,24 @@ impl Graph {
     pub fn new(initial_qubit_count: usize) -> Self {
         Self {
             qubit_count: initial_qubit_count,
-            row_node_counts: vec![0; initial_qubit_count],
-            row_columns: vec![BTreeSet::new(); initial_qubit_count],
+            qubit_node_counts: vec![0; initial_qubit_count],
+            qubit_time_steps: vec![BTreeSet::new(); initial_qubit_count],
             ..Default::default()
         }
     }
 
-    /// The number of columns (time steps) in the graph. Also known as the graph depth.
+    /// The number of time steps (columns) in the graph.
     ///
     /// Complexity: O(1).
     #[must_use]
-    pub const fn width(&self) -> usize {
+    pub const fn time_step_count(&self) -> usize {
         self.time_step_count
     }
 
-    fn ensure_column_capacity(&mut self, column: usize) {
-        if column >= self.column_node_counts.len() {
-            self.column_node_counts.resize(column + 1, 0);
-            self.column_rows.resize(column + 1, BTreeSet::new());
+    fn ensure_time_step_capacity(&mut self, time_step: usize) {
+        if time_step >= self.time_step_node_counts.len() {
+            self.time_step_node_counts.resize(time_step + 1, 0);
+            self.time_step_qubits.resize(time_step + 1, BTreeSet::new());
         }
     }
 
@@ -181,14 +181,14 @@ impl Graph {
     ///
     /// Complexity: O(1).
     #[must_use]
-    pub const fn height(&self) -> usize {
+    pub const fn qubit_count(&self) -> usize {
         self.qubit_count
     }
 
-    fn ensure_row_capacity(&mut self, row: usize) {
-        if row >= self.row_node_counts.len() {
-            self.row_node_counts.resize(row + 1, 0);
-            self.row_columns.resize(row + 1, BTreeSet::new());
+    fn ensure_qubit_capacity(&mut self, qubit: usize) {
+        if qubit >= self.qubit_node_counts.len() {
+            self.qubit_node_counts.resize(qubit + 1, 0);
+            self.qubit_time_steps.resize(qubit + 1, BTreeSet::new());
         }
     }
 
@@ -196,11 +196,51 @@ impl Graph {
     ///
     /// Complexity: O(1).
     #[must_use]
-    pub const fn bits(&self) -> usize {
+    pub const fn bit_count(&self) -> usize {
         self.bit_count
     }
 
-    /// Check whether this graph is empty (has no gates) or not.
+    /// The number of operations (gates and measurements) in the graph.
+    ///
+    /// A multi-qubit gate counts once, regardless of how many nodes represent it.
+    ///
+    /// Complexity: O(n).
+    #[must_use]
+    pub fn operation_count(&self) -> usize {
+        let mut node_counts: FxHashMap<GateType, usize> = FxHashMap::default();
+
+        for node in self.iter_nodes() {
+            *node_counts.entry(node.r#type()).or_insert(0) += 1;
+        }
+
+        node_counts
+            .iter()
+            .map(|(gate_type, node_count)| node_count.checked_div(gate_type.arity()).unwrap_or(0))
+            .sum()
+    }
+
+    /// The number of gate operations (excluding measurements) in the graph.
+    ///
+    /// Complexity: O(n).
+    #[must_use]
+    pub fn gate_count(&self) -> usize {
+        self.operation_count() - self.measurement_count()
+    }
+
+    /// The number of measurement operations in the graph.
+    ///
+    /// Complexity: O(n).
+    #[must_use]
+    pub fn measurement_count(&self) -> usize {
+        self.iter_nodes()
+            .filter(|node| node.r#type() == GateType::Measure)
+            .count()
+    }
+
+    /// Check whether this graph has no nodes.
+    ///
+    /// A graph that only contains measurements is not empty: measurements are
+    /// operations and therefore nodes.
     ///
     /// Complexity: O(1).
     #[must_use]
@@ -208,19 +248,30 @@ impl Graph {
         self.nodes.is_empty()
     }
 
+    /// Check whether this graph has no operations (neither gates nor measurements).
+    ///
+    /// This is equivalent to [`is_empty`](Self::is_empty); it exists to express
+    /// the circuit-level intent.
+    ///
+    /// Complexity: O(1).
+    #[must_use]
+    pub fn has_no_operations(&self) -> bool {
+        self.nodes.is_empty()
+    }
+
     /// Get the total number of nodes in the graph.
     ///
     /// Complexity: O(1).
     #[must_use]
-    pub fn size(&self) -> usize {
+    pub fn node_count(&self) -> usize {
         self.nodes.len()
     }
 
     /// Add a new node to the graph.
     ///
     /// Returns an error if a node already exists at the specified position.
-    /// Increases the graph height if necessary.
-    /// Connects the node to its row neighbors with `Right` edges.
+    /// Increases the graph qubit count if necessary.
+    /// Connects the node to its qubit neighbors with `Right` edges.
     ///
     /// Complexity: O(log n).
     pub fn add_node(
@@ -244,22 +295,22 @@ impl Graph {
             bit,
         };
         self.insert_new_node(position, node);
-        self.connect_row_neighbors(position)?;
+        self.connect_qubit_neighbors(position)?;
         Ok(())
     }
 
     fn insert_new_node(&mut self, position: Position, node: NodeData) {
         // Complexity: O(log n).
-        self.ensure_row_capacity(position.row());
-        self.ensure_column_capacity(position.column());
+        self.ensure_qubit_capacity(position.qubit());
+        self.ensure_time_step_capacity(position.time_step());
 
-        self.row_node_counts[position.row()] += 1;
-        self.column_node_counts[position.column()] += 1;
-        self.row_columns[position.row()].insert(position.column());
-        self.column_rows[position.column()].insert(position.row());
+        self.qubit_node_counts[position.qubit()] += 1;
+        self.time_step_node_counts[position.time_step()] += 1;
+        self.qubit_time_steps[position.qubit()].insert(position.time_step());
+        self.time_step_qubits[position.time_step()].insert(position.qubit());
 
-        self.qubit_count = self.row_node_counts.len();
-        self.time_step_count = self.time_step_count.max(position.column() + 1);
+        self.qubit_count = self.qubit_node_counts.len();
+        self.time_step_count = self.time_step_count.max(position.time_step() + 1);
 
         if let Some(bit) = node.bit {
             self.bit_count = self.bit_count.max(bit + 1);
@@ -271,8 +322,8 @@ impl Graph {
     /// Replace the node at the specified position with the one provided.
     ///
     /// The node at the specified position is overwritten if present, or inserted if not.
-    /// Increases the graph height if necessary (when the node is inserted).
-    /// When a node is inserted, it is connected to its row neighbors with `Right` edges.
+    /// Increases the graph qubit count if necessary (when the node is inserted).
+    /// When a node is inserted, it is connected to its qubit neighbors with `Right` edges.
     ///
     /// Complexity: O(log n).
     pub fn replace_node(
@@ -298,7 +349,7 @@ impl Graph {
         }
 
         self.insert_new_node(position, node);
-        self.connect_row_neighbors(position)
+        self.connect_qubit_neighbors(position)
             .expect("The node was just inserted");
     }
 
@@ -323,10 +374,10 @@ impl Graph {
     ///
     /// If the node does not exist, nothing happens.
     /// If the removed node is horizontally between two nodes, these two nodes are joined.
-    /// Note that removing nodes does not affect the graph height.
+    /// Note that removing nodes does not affect the graph qubit count.
     pub fn remove_node(&mut self, position: Position) {
-        let previous = self.previous_in_row(position);
-        let next = self.next_in_row(position);
+        let previous = self.previous_in_qubit(position);
+        let next = self.next_in_qubit(position);
 
         if self.detach_node(position).is_none() {
             return;
@@ -343,10 +394,10 @@ impl Graph {
     ) -> Option<(NodeData, Vec<EdgeData>, Vec<EdgeData>)> {
         let node = self.nodes.remove(&position)?;
 
-        self.row_node_counts[position.row()] -= 1;
-        self.column_node_counts[position.column()] -= 1;
-        self.row_columns[position.row()].remove(&position.column());
-        self.column_rows[position.column()].remove(&position.row());
+        self.qubit_node_counts[position.qubit()] -= 1;
+        self.time_step_node_counts[position.time_step()] -= 1;
+        self.qubit_time_steps[position.qubit()].remove(&position.time_step());
+        self.time_step_qubits[position.time_step()].remove(&position.qubit());
 
         let outgoing = self.edges_out.remove(&position).unwrap_or_default();
         let incoming = self.edges_in.remove(&position).unwrap_or_default();
@@ -367,8 +418,8 @@ impl Graph {
             }
         }
 
-        if position.column() + 1 == self.time_step_count
-            && self.column_node_counts[position.column()] == 0
+        if position.time_step() + 1 == self.time_step_count
+            && self.time_step_node_counts[position.time_step()] == 0
         {
             self.update_time_step_count();
         }
@@ -385,11 +436,11 @@ impl Graph {
 
     fn update_time_step_count(&mut self) {
         while self.time_step_count > 0 {
-            let last_column = self.time_step_count - 1;
+            let last_time_step = self.time_step_count - 1;
 
             let occupied = self
-                .column_node_counts
-                .get(last_column)
+                .time_step_node_counts
+                .get(last_time_step)
                 .is_some_and(|count| *count > 0);
 
             if occupied {
@@ -416,7 +467,7 @@ impl Graph {
     /// Using this with multi-qubit gates will most likely break the graph's semantic integrity.
     /// If no node exists at the start position, an error is returned.
     /// An error is also returned if the start and end positions are the same.
-    /// Increases the graph height if necessary.
+    /// Increases the graph qubit count if necessary.
     pub fn move_node(&mut self, start: Position, end: Position) -> Result<(), GraphError> {
         if !self.has_node_at(start) {
             return Err(GraphError::NodeNotFound { position: start });
@@ -432,7 +483,7 @@ impl Graph {
             .cloned()
             .expect("Node at start position should exist");
 
-        // Only the semantic edges move with the node; the row-order (`Right`) edges are
+        // Only the semantic edges move with the node; the qubit-order (`Right`) edges are
         // recomputed from the destination position.
         let outgoing = self
             .edges_out
@@ -458,7 +509,7 @@ impl Graph {
         Ok(())
     }
 
-    /// Check whether the graph has a node at the specified row and column.
+    /// Check whether the graph has a node at the specified qubit and time step.
     ///
     /// Complexity: O(1).
     #[must_use]
@@ -466,7 +517,7 @@ impl Graph {
         self.nodes.contains_key(&position)
     }
 
-    /// Check whether the graph has a node at the specified row and column.
+    /// Check whether the graph has a node at the specified qubit and time step.
     ///
     /// Complexity: O(1).
     #[must_use]
@@ -601,10 +652,10 @@ impl Graph {
         self.time_step_count = 0;
         self.bit_count = 0;
 
-        self.row_node_counts.clear();
-        self.column_node_counts.clear();
-        self.row_columns.clear();
-        self.column_rows.clear();
+        self.qubit_node_counts.clear();
+        self.time_step_node_counts.clear();
+        self.qubit_time_steps.clear();
+        self.time_step_qubits.clear();
     }
 
     /// Remove all the edges from the graph.
@@ -615,67 +666,67 @@ impl Graph {
         self.edges_in.clear();
     }
 
-    /// Get the next node in the same row starting from the specified position, or `None` if there is none.
+    /// Get the next node in the same qubit starting from the specified position, or `None` if there is none.
     ///
     /// Complexity: O(log n).
     #[must_use]
-    pub fn next_in_row(&self, position: Position) -> Option<Position> {
-        let row = position.row();
-        let column = position.column();
+    pub fn next_in_qubit(&self, position: Position) -> Option<Position> {
+        let qubit = position.qubit();
+        let time_step = position.time_step();
 
-        self.row_columns
-            .get(row)?
-            .range(column + 1..)
+        self.qubit_time_steps
+            .get(qubit)?
+            .range(time_step + 1..)
             .next()
-            .map(|&column| Position::new(row, column))
+            .map(|&time_step| Position::new(qubit, time_step))
     }
 
-    /// Get the previous node in the same row starting from the specified position, or `None` if there is none.
+    /// Get the previous node in the same qubit starting from the specified position, or `None` if there is none.
     ///
     /// Complexity: O(log n).
     #[must_use]
-    pub fn previous_in_row(&self, position: Position) -> Option<Position> {
-        let row = position.row();
-        let column = position.column();
+    pub fn previous_in_qubit(&self, position: Position) -> Option<Position> {
+        let qubit = position.qubit();
+        let time_step = position.time_step();
 
-        self.row_columns
-            .get(row)?
-            .range(..column)
+        self.qubit_time_steps
+            .get(qubit)?
+            .range(..time_step)
             .next_back()
-            .map(|&column| Position::new(row, column))
+            .map(|&time_step| Position::new(qubit, time_step))
     }
 
-    /// Get the largest column that has a node in the given row, or `None` if the row is empty.
+    /// Get the largest time step that has a node in the given qubit, or `None` if the qubit is empty.
     ///
     /// Complexity: O(log n).
     #[must_use]
-    pub fn last_column_in_row(&self, row: usize) -> Option<usize> {
-        self.row_columns.get(row)?.last().copied()
+    pub fn last_time_step_in_qubit(&self, qubit: usize) -> Option<usize> {
+        self.qubit_time_steps.get(qubit)?.last().copied()
     }
 
-    /// Connect the positional row neighbors of the node at the specified position.
+    /// Connect the positional qubit neighbors of the node at the specified position.
     ///
     /// Returns an error if the node at the specified position does not exist.
     /// If there's an existing connection between the neighbors, it is removed and split into two.
     ///
     /// Complexity: O(degree + log n).
-    pub fn connect_row_neighbors(&mut self, position: Position) -> Result<(), GraphError> {
+    pub fn connect_qubit_neighbors(&mut self, position: Position) -> Result<(), GraphError> {
         if !self.has_node_at(position) {
             return Err(GraphError::NodeNotFound { position });
         }
 
-        let previous_in_row = self.previous_in_row(position);
-        let next_in_row = self.next_in_row(position);
+        let previous_in_qubit = self.previous_in_qubit(position);
+        let next_in_qubit = self.next_in_qubit(position);
 
-        if let (Some(previous), Some(next)) = (previous_in_row, next_in_row) {
+        if let (Some(previous), Some(next)) = (previous_in_qubit, next_in_qubit) {
             self.remove_edge_internal(EdgeType::Right, previous, next);
         }
 
-        if let Some(previous) = previous_in_row {
+        if let Some(previous) = previous_in_qubit {
             self.add_edge_internal(EdgeType::Right, previous, position);
         }
 
-        if let Some(next) = next_in_row {
+        if let Some(next) = next_in_qubit {
             self.add_edge_internal(EdgeType::Right, position, next);
         }
 
@@ -763,7 +814,7 @@ impl Graph {
 
     /// Remap every node and edge position with the given function.
     ///
-    /// The graph height is preserved: a remap must not silently drop qubits (for
+    /// The graph qubit count is preserved: a remap must not silently drop qubits (for
     /// example, when the graph has trailing rows without nodes).
     pub(crate) fn remap_positions(&mut self, mut function: impl FnMut(Position) -> Position) {
         // Complexity: O(n + edges).
@@ -773,10 +824,10 @@ impl Graph {
         self.time_step_count = 0;
         self.bit_count = 0;
 
-        self.row_node_counts.clear();
-        self.column_node_counts.clear();
-        self.row_columns.clear();
-        self.column_rows.clear();
+        self.qubit_node_counts.clear();
+        self.time_step_node_counts.clear();
+        self.qubit_time_steps.clear();
+        self.time_step_qubits.clear();
 
         let mut new_nodes = FxHashMap::with_capacity_and_hasher(self.nodes.len(), FxBuildHasher);
         let mut new_edges_out = FxHashMap::default();
@@ -825,21 +876,21 @@ impl Graph {
             .collect::<Vec<_>>();
 
         for (position, bit) in node_data {
-            self.ensure_row_capacity(position.row());
-            self.ensure_column_capacity(position.column());
+            self.ensure_qubit_capacity(position.qubit());
+            self.ensure_time_step_capacity(position.time_step());
 
-            self.row_node_counts[position.row()] += 1;
-            self.column_node_counts[position.column()] += 1;
-            self.row_columns[position.row()].insert(position.column());
-            self.column_rows[position.column()].insert(position.row());
+            self.qubit_node_counts[position.qubit()] += 1;
+            self.time_step_node_counts[position.time_step()] += 1;
+            self.qubit_time_steps[position.qubit()].insert(position.time_step());
+            self.time_step_qubits[position.time_step()].insert(position.qubit());
 
-            self.time_step_count = self.time_step_count.max(position.column() + 1);
+            self.time_step_count = self.time_step_count.max(position.time_step() + 1);
 
             if let Some(bit) = bit {
                 self.bit_count = self.bit_count.max(bit + 1);
             }
         }
 
-        self.qubit_count = self.row_node_counts.len().max(previous_height);
+        self.qubit_count = self.qubit_node_counts.len().max(previous_height);
     }
 }

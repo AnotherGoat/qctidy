@@ -26,6 +26,21 @@ fn empty_graph_does_not_panic() {
     let graph = Graph::new(0);
     let detailed = calculate_detailed_metrics(&graph);
     assert!(are_floats_equal(detailed.average_density, 0.0));
-    assert!(are_floats_equal(detailed.single_qubit_percent, 0.0));
+    assert!(are_floats_equal(detailed.single_gate_percent, 0.0));
     assert!(are_floats_equal(detailed.cnot_qubit_percent, 0.0));
+}
+
+#[test]
+fn excludes_measurements_from_gate_counts() {
+    let mut builder = GraphBuilder::new(2);
+    builder.push_h(0);
+    builder.push_measure(0, 0);
+    let graph = builder.into_graph();
+
+    let metrics = calculate_metrics(&graph);
+
+    assert_eq!(metrics.operation_count, 2);
+    assert_eq!(metrics.gate_count, 1);
+    assert_eq!(metrics.measurement_count, 1);
+    assert_eq!(metrics.single_gate_count, 1);
 }

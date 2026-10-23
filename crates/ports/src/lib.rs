@@ -17,6 +17,6 @@ pub use estimator::{
 };
 pub use presenter::{PresentationError, PresentationFormat, PresenterPort};
 pub use python::{
-    CircuitBuild, CircuitIssue, GateParameter, ParsedCircuit, ParsedGate, PythonAnalysis,
-    PythonPort, Scope, ScopeChild, ScopeType, SourceLocation,
+    CircuitBuild, GateParameter, ParseIssue, ParsedCircuit, ParsedGate, PythonAnalysis,
+    PythonAstPort, Scope, ScopeChild, ScopeType, SourceLocation,
 };

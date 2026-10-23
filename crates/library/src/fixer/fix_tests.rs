@@ -45,7 +45,7 @@ fn configuration_selects_by_rule_or_category_code() {
 }
 
 #[test]
-fn detect_reports_issues_without_modifying_the_graph() {
+fn detect_reports_diagnostics_without_modifying_the_graph() {
     let graph = GraphBuilder::new(1).push_h(0).push_h(0).build();
 
     let diagnostics = fixer::detect(&graph, &RuleConfiguration::new(RuleSeverity::Warn));
@@ -94,7 +94,7 @@ fn angles_very_close_to_zero_are_removed() {
 
     fixer_mother::default().fix(&mut graph, 10);
 
-    let nodes: Vec<_> = graph.iter_nodes_ordered_by_column().collect();
+    let nodes: Vec<_> = graph.iter_nodes_ordered_by_time_step().collect();
     assert_eq!(nodes.len(), 0);
 }
 
@@ -115,7 +115,7 @@ fn angles_close_to_zero_are_kept() {
 
     fixer_mother::default().fix(&mut graph, 10);
 
-    assert_eq!(graph.iter_nodes_ordered_by_column().count(), 6);
+    assert_eq!(graph.iter_nodes_ordered_by_time_step().count(), 6);
 }
 
 #[test]
@@ -131,10 +131,10 @@ fn x_on_control_between_cx_with_identities_compacts_and_propagates() {
     fixer_mother::default().fix(&mut graph, 10);
 
     let mut nodes: Vec<_> = graph
-        .iter_nodes_ordered_by_row()
-        .map(|node| (node.position().row(), node.r#type()))
+        .iter_nodes_ordered_by_qubit()
+        .map(|node| (node.position().qubit(), node.r#type()))
         .collect();
-    nodes.sort_by_key(|(row, _)| *row);
+    nodes.sort_by_key(|(qubit, _)| *qubit);
 
     assert_eq!(nodes.len(), 2);
     assert_eq!(nodes[0], (0, GateType::X));
@@ -151,7 +151,7 @@ fn double_x_with_gap_compacts_and_cancels() {
 
     fixer_mother::default().fix(&mut graph, 10);
 
-    assert_eq!(graph.iter_nodes_ordered_by_column().count(), 0);
+    assert_eq!(graph.iter_nodes_ordered_by_time_step().count(), 0);
 }
 
 #[test]

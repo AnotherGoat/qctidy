@@ -64,7 +64,7 @@
 - [x] Graph builder for fluent programmatic construction
 - [x] Mapping between graphs and lists of operations
 - [x] Accept common gate aliases to build operation lists
-- [X] Validate operations on construction
+- [x] Validate operations on construction
 
 #### Structural Validation
 
@@ -108,7 +108,7 @@
 - [x] SX, SY (Square root)
 - [x] Measure (Measurement)
 
-##### Two-qubit Gates (6)
+##### Two-qubit gates (6)
 
 - [x] Swap
 - [x] CH (Controlled Hadamard)
@@ -116,7 +116,7 @@
 - [x] CP (Controlled phase)
 - [ ] CRX, CRY, CRZ (Controlled rotation)
 
-##### Three-qubit Gates (4)
+##### Three-qubit gates (4)
 
 - [x] CSwap (Fredkin)
 - [x] CCX (Toffoli)
@@ -129,9 +129,9 @@
 ### Format Conversion (converter)
 
 - [x] JSON and XML parsing and serialization
-- [X] Customizable JSON and XML pretty-printing
-- [X] MessagePack and CBOR  binary parsing and serialization
-- [X] Add format version when serializing
+- [x] Customizable JSON and XML pretty-printing
+- [x] MessagePack and CBOR binary parsing and serialization
+- [x] Add format version when serializing
 - [ ] Try all the parsers from newest to oldest until one works when no version is specified
 
 ### Circuit Visualization (presenter)
@@ -143,7 +143,7 @@
 
 ### Code Generation (codegen)
 
-- [X] Generate Qiskit code
+- [x] Generate Qiskit code
 - [ ] Generate OpenQASM 2 code
 
 ### Circuit Analysis (analyzer)
@@ -173,25 +173,25 @@
 - [x] Present use case
 - [x] Parse use case
 - [x] Serialize use case
-- [X] Generate code use case
+- [x] Generate code use case
 - [x] Analyze use case
 - [x] Estimate use case
 - [ ] Support for pipeline execution of use cases without unnecessary transformations
 
 ### Python Bindings (qiskit)
 
-- [X] Documented and typed .pyi stubs
-- [X] Conversion to and from Qiskit's QuantumCircuit
+- [x] Documented and typed .pyi stubs
+- [x] Conversion to and from Qiskit's QuantumCircuit
 
 #### Expose bindings
 
-- [X] Graph display (library)
-- [X] Circuit fixing (library)
-- [X] Format conversion (converter)
-- [X] Circuit visualization (presenter)
-- [X] Code generation (codegen)
-- [X] Circuit analysis (analyzer)
-- [X] Execution estimation (estimator)
+- [x] Graph display (library)
+- [x] Circuit fixing (library)
+- [x] Format conversion (converter)
+- [x] Circuit visualization (presenter)
+- [x] Code generation (codegen)
+- [x] Circuit analysis (analyzer)
+- [x] Execution estimation (estimator)
 
 ### CLI (cli)
 

@@ -13,7 +13,11 @@ pub enum GateTypeError {
     UnknownGateName { name: String },
 }
 
-/// Type of a quantum gate supported by this library.
+/// Type of a node in a graph.
+///
+/// This includes [`Measure`](Self::Measure), which is a circuit operation but
+/// not a gate. Gate counts (for example, [`Graph::gate_count`](crate::Graph::gate_count))
+/// exclude it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum GateType {
@@ -213,8 +217,8 @@ impl FromStr for GateType {
 impl GateType {
     /// Get the number of qubits used by this type of gate.
     #[must_use]
-    pub fn qubit_count(self) -> usize {
-        GATE_METADATAS[self as usize].qubit_count()
+    pub fn arity(self) -> usize {
+        GATE_METADATAS[self as usize].arity()
     }
 
     /// Get the number of control qubits used by this type of gate.

@@ -12,8 +12,8 @@ type DetectFunction = Box<dyn Fn(&Graph) -> Vec<HashSet<Position>> + Send + Sync
 pub struct CanonicalizationRule {
     metadata: RuleMetadata,
     gate_types: HashSet<GateType>,
-    width: usize,
-    height: usize,
+    time_step_count: usize,
+    qubit_count: usize,
     detect_function: DetectFunction,
     apply_function: Box<dyn Fn(&mut Graph) -> bool + Send + Sync>,
 }
@@ -23,8 +23,8 @@ impl fmt::Debug for CanonicalizationRule {
         f.debug_struct("CanonicalizationRule")
             .field("metadata", &self.metadata)
             .field("gate_types", &self.gate_types)
-            .field("width", &self.width)
-            .field("height", &self.height)
+            .field("time_step_count", &self.time_step_count)
+            .field("qubit_count", &self.qubit_count)
             .finish()
     }
 }
@@ -34,16 +34,16 @@ impl CanonicalizationRule {
     pub fn new(
         metadata: RuleMetadata,
         gate_types: HashSet<GateType>,
-        width: usize,
-        height: usize,
+        time_step_count: usize,
+        qubit_count: usize,
         detect_function: DetectFunction,
         apply_function: Box<dyn Fn(&mut Graph) -> bool + Send + Sync>,
     ) -> Self {
         Self {
             metadata,
             gate_types,
-            width,
-            height,
+            time_step_count,
+            qubit_count,
             detect_function,
             apply_function,
         }
@@ -59,12 +59,12 @@ impl Rule for CanonicalizationRule {
         &self.gate_types
     }
 
-    fn minimum_width(&self) -> usize {
-        self.width
+    fn minimum_time_step_count(&self) -> usize {
+        self.time_step_count
     }
 
-    fn minimum_height(&self) -> usize {
-        self.height
+    fn minimum_qubit_count(&self) -> usize {
+        self.qubit_count
     }
 
     fn detect(&self, graph: &Graph) -> Vec<HashSet<Position>> {

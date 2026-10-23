@@ -36,19 +36,21 @@ pub enum RuleBuildError {
     },
     #[error("Pattern LHS cannot be empty")]
     EmptyPattern,
-    #[error("RHS height of {rhs_height} cannot exceed LHS height of {lhs_height}")]
-    InvalidHeight {
-        lhs_height: usize,
-        rhs_height: usize,
+    #[error("RHS qubit count of {rhs_qubit_count} must match LHS qubit count of {lhs_qubit_count}")]
+    InvalidQubitCount {
+        lhs_qubit_count: usize,
+        rhs_qubit_count: usize,
     },
     #[error("LHS graph contains gaps between rows")]
     NonContiguousPattern,
     #[error("LHS and RHS are identical")]
     IdenticalGraphs,
-    #[error("RHS contains more gates ({rhs_gate_count}) than LHS ({lhs_gate_count})")]
+    #[error(
+        "RHS must contain fewer operations than LHS (RHS: {rhs_operation_count}, LHS: {lhs_operation_count})"
+    )]
     NonCompactingRule {
-        lhs_gate_count: usize,
-        rhs_gate_count: usize,
+        lhs_operation_count: usize,
+        rhs_operation_count: usize,
     },
     #[error("LHS and RHS are not equivalent")]
     NonEquivalentGraphs,
@@ -67,17 +69,17 @@ pub trait Rule: Debug + Send + Sync {
     /// If the value is empty, it can be applied to any graph.
     fn required_gate_types(&self) -> &HashSet<GateType>;
 
-    /// Return the minimum width (time steps) required to apply this rule.
+    /// Return the minimum number of time steps required to apply this rule.
     ///
     /// This is useful to quickly skip rules that cannot be applied to a given graph.
     /// If the value is 1 or 0, it can be applied to any graph.
-    fn minimum_width(&self) -> usize;
+    fn minimum_time_step_count(&self) -> usize;
 
-    /// Return the minimum height (qubits) required to apply this rule.
+    /// Return the minimum number of qubits required to apply this rule.
     ///
     /// This is useful to quickly skip rules that cannot be applied to a given graph.
     /// If the value is 1 or 0, it can be applied to any graph.
-    fn minimum_height(&self) -> usize;
+    fn minimum_qubit_count(&self) -> usize;
 
     /// Return all matches of the rule in the given graph, where each match is a set of affected positions.
     fn detect(&self, graph: &Graph) -> Vec<HashSet<Position>>;

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use getset::{CloneGetters, Getters};
 use newgen::New;
-use qctidy_ports::{PythonAnalysis, PythonPort};
+use qctidy_ports::{PythonAnalysis, PythonAstPort};
 
 #[derive(Debug, Clone, CloneGetters, New)]
 #[new(pub, const)]
@@ -23,7 +23,7 @@ pub struct ParsePythonResponse {
 }
 
 /// Parse Python source into the circuits and scopes it defines.
-pub fn parse_python<P: PythonPort>(
+pub fn parse_python<P: PythonAstPort>(
     request: &ParsePythonRequest,
     parser: &P,
 ) -> ParsePythonResponse {

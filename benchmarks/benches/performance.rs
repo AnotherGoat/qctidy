@@ -315,13 +315,13 @@ fn random_circuit(criterion: &mut Criterion) {
     // Random circuits with varying numbers of qubits and time steps.
     let mut group = criterion.benchmark_group("Random Circuit");
 
-    for (width, height) in [(5, 4), (10, 8), (25, 16), (50, 32)] {
+    for (time_step_count, qubit_count) in [(5, 4), (10, 8), (25, 16), (50, 32)] {
         group.bench_with_input(
-            BenchmarkId::from_parameter(format!("{width}x{height}")),
-            &(width, height),
-            |bencher, &(width, height)| {
+            BenchmarkId::from_parameter(format!("{time_step_count}x{qubit_count}")),
+            &(time_step_count, qubit_count),
+            |bencher, &(time_step_count, qubit_count)| {
                 bencher.iter_batched(
-                    || random::generate(0, width, height),
+                    || random::generate(0, time_step_count, qubit_count),
                     |graph| fix(black_box(graph), MAX_ITERATIONS),
                     BatchSize::SmallInput,
                 )

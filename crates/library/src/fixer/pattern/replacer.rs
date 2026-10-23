@@ -19,9 +19,9 @@ pub(crate) fn replacement_operations(
         Position::new(
             pattern_match
                 .mapping()
-                .graph_row(position.row())
-                .expect("RHS rows should be mapped"),
-            position.column(),
+                .graph_qubit(position.qubit())
+                .expect("RHS qubits should be mapped"),
+            position.time_step(),
         )
     });
 
@@ -114,15 +114,15 @@ fn map_rhs_position_to_graph(
     rhs_position: Position,
 ) -> Option<Position> {
     let mapping = pattern_match.mapping();
-    let graph_row = mapping.graph_row(rhs_position.row())?;
+    let graph_qubit = mapping.graph_qubit(rhs_position.qubit())?;
 
     // Offset between the anchor's position in the graph and in the pattern.
-    let column_offset = pattern_match
+    let time_step_offset = pattern_match
         .anchor_position()
-        .column()
-        .checked_sub(rule.anchor().position().column())?;
+        .time_step()
+        .checked_sub(rule.anchor().position().time_step())?;
 
-    let graph_column = column_offset.checked_add(rhs_position.column())?;
+    let graph_time_step = time_step_offset.checked_add(rhs_position.time_step())?;
 
-    Some(Position::new(graph_row, graph_column))
+    Some(Position::new(graph_qubit, graph_time_step))
 }

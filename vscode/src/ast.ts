@@ -19,8 +19,8 @@ export interface AstScope {
 export interface AstCircuit {
     type: 'circuit';
     name: string;
-    qubits: string;
-    clbits: string;
+    qubit_count: string;
+    bit_count: string;
     line: number;
     column: number;
     issues: AstIssue[];

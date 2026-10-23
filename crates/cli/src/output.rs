@@ -16,8 +16,8 @@ use crate::fix::Edit;
 const MAX_POSITIONS: usize = 8;
 
 const SNIPPET_MARGIN: usize = 1;
-const SNIPPET_MAX_ROWS: usize = 10;
-const SNIPPET_MAX_COLUMNS: usize = 20;
+const SNIPPET_MAX_QUBITS: usize = 10;
+const SNIPPET_MAX_TIME_STEPS: usize = 20;
 const SNIPPET_MAX_POSITIONS: usize = 64;
 
 const HEADER: Style = Style::new()
@@ -65,9 +65,15 @@ pub(crate) struct CircuitReport {
     #[get_copy = "pub(crate)"]
     qubit_count: usize,
     #[get_copy = "pub(crate)"]
-    time_step_count: usize,
+    bit_count: usize,
+    /// The number of gate operations, excluding measurements.
     #[get_copy = "pub(crate)"]
     gate_count: usize,
+    /// The number of measurement operations.
+    #[get_copy = "pub(crate)"]
+    measurement_count: usize,
+    #[get_copy = "pub(crate)"]
+    time_step_count: usize,
     #[get = "pub(crate)"]
     diagnostics: Vec<Diagnostic>,
     /// One optional snippet per diagnostic, only filled when snippets are enabled.
@@ -89,8 +95,10 @@ impl CircuitReport {
         circuit_name: Option<String>,
         format: &'static str,
         qubit_count: usize,
-        time_step_count: usize,
+        bit_count: usize,
         gate_count: usize,
+        measurement_count: usize,
+        time_step_count: usize,
         diagnostics: Vec<Diagnostic>,
         snippets: Vec<Option<String>>,
         source_map: Option<Vec<SourceLocation>>,
@@ -101,8 +109,10 @@ impl CircuitReport {
             circuit_name,
             format,
             qubit_count,
-            time_step_count,
+            bit_count,
             gate_count,
+            measurement_count,
+            time_step_count,
             diagnostics,
             snippets,
             source_map,
@@ -155,13 +165,17 @@ pub(crate) fn human_report(writer: &mut dyn Write, report: &CircuitReport, quiet
         paint(
             DIM,
             &format!(
-                "{} {}, {} {}, {} {}",
+                "{} {}, {} {}, {} {}, {} {}, {} {}",
                 report.qubit_count(),
                 plural(report.qubit_count(), "qubit", "qubits"),
-                report.time_step_count(),
-                plural(report.time_step_count(), "time step", "time steps"),
+                report.bit_count(),
+                plural(report.bit_count(), "classical bit", "classical bits"),
                 report.gate_count(),
                 plural(report.gate_count(), "gate", "gates"),
+                report.measurement_count(),
+                plural(report.measurement_count(), "measurement", "measurements"),
+                report.time_step_count(),
+                plural(report.time_step_count(), "time step", "time steps"),
             ),
         ),
     );
@@ -220,7 +234,7 @@ pub(crate) fn human_summary(writer: &mut dyn Write, stats: &Stats) {
             plural(stats.diagnostics(), "diagnostic", "diagnostics")
         );
     } else if stats.errors() == 0 {
-        text.push_str(": no fixable patterns found");
+        text.push_str(": no diagnostics found");
     } else {
         // Failures are already reported on standard error.
     }
@@ -308,18 +322,19 @@ pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Optio
         return None;
     }
 
-    let min_row = positions.iter().map(Position::row).min()?;
-    let max_row = positions.iter().map(Position::row).max()?;
-    let min_column = positions.iter().map(Position::column).min()?;
-    let max_column = positions.iter().map(Position::column).max()?;
+    let min_qubit = positions.iter().map(Position::qubit).min()?;
+    let max_qubit = positions.iter().map(Position::qubit).max()?;
+    let min_time_step = positions.iter().map(Position::time_step).min()?;
+    let max_time_step = positions.iter().map(Position::time_step).max()?;
 
-    let first_row = min_row.saturating_sub(SNIPPET_MARGIN);
-    let last_row = (max_row + SNIPPET_MARGIN).min(graph.height().saturating_sub(1));
-    let first_column = min_column.saturating_sub(SNIPPET_MARGIN);
-    let last_column = (max_column + SNIPPET_MARGIN).min(graph.width().saturating_sub(1));
+    let first_qubit = min_qubit.saturating_sub(SNIPPET_MARGIN);
+    let last_qubit = (max_qubit + SNIPPET_MARGIN).min(graph.qubit_count().saturating_sub(1));
+    let first_time_step = min_time_step.saturating_sub(SNIPPET_MARGIN);
+    let last_time_step =
+        (max_time_step + SNIPPET_MARGIN).min(graph.time_step_count().saturating_sub(1));
 
-    if last_row - first_row + 1 > SNIPPET_MAX_ROWS
-        || last_column - first_column + 1 > SNIPPET_MAX_COLUMNS
+    if last_qubit - first_qubit + 1 > SNIPPET_MAX_QUBITS
+        || last_time_step - first_time_step + 1 > SNIPPET_MAX_TIME_STEPS
     {
         return None;
     }
@@ -327,11 +342,11 @@ pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Optio
     let mut cells: Vec<Vec<String>> = Vec::new();
     let mut cell_width = 2;
 
-    for row in first_row..=last_row {
+    for qubit in first_qubit..=last_qubit {
         let mut line = Vec::new();
 
-        for column in first_column..=last_column {
-            let position = Position::new(row, column);
+        for time_step in first_time_step..=last_time_step {
+            let position = Position::new(qubit, time_step);
             let text = graph.get_node(position).map_or_else(String::new, |node| {
                 let name = node.r#type().to_string().to_ascii_uppercase();
 
@@ -349,26 +364,26 @@ pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Optio
         cells.push(line);
     }
 
-    let label_width = (first_row..=last_row)
-        .map(|row| row.to_string().len() + 1)
+    let label_width = (first_qubit..=last_qubit)
+        .map(|qubit| qubit.to_string().len() + 1)
         .max()
         .unwrap_or(2);
 
     let mut output = String::new();
     let _header_result = write!(output, "{}", " ".repeat(4 + label_width + 1));
 
-    for column in first_column..=last_column {
-        let _column_result = write!(output, "{column:>cell_width$} ");
+    for time_step in first_time_step..=last_time_step {
+        let _time_step_result = write!(output, "{time_step:>cell_width$} ");
     }
 
     output.push('\n');
 
-    for (row, line) in (first_row..=last_row).zip(cells.iter()) {
-        let label = format!("q{row}");
-        let _row_result = write!(output, "    {label:<label_width$} ");
+    for (qubit, line) in (first_qubit..=last_qubit).zip(cells.iter()) {
+        let label = format!("q{qubit}");
+        let _qubit_result = write!(output, "    {label:<label_width$} ");
 
         for (offset, text) in line.iter().enumerate() {
-            let column = first_column + offset;
+            let time_step = first_time_step + offset;
 
             if offset > 0 {
                 output.push(' ');
@@ -376,7 +391,7 @@ pub(crate) fn diagnostic_snippet(graph: &Graph, positions: &[Position]) -> Optio
 
             let padded = format!("{text:<cell_width$}");
 
-            if positions.contains(&Position::new(row, column)) {
+            if positions.contains(&Position::new(qubit, time_step)) {
                 let _match_result = write!(output, "{}", paint(MATCH, &padded));
             } else {
                 output.push_str(&padded);
@@ -399,7 +414,7 @@ pub(crate) struct JsonDiagnostic {
     category: String,
     severity: String,
     message: &'static str,
-    circuit_positions: Vec<JsonCircuitPosition>,
+    graph_positions: Vec<JsonCircuitPosition>,
     operation_indices: Vec<usize>,
     source_locations: Vec<JsonSourceLocation>,
     fixes: Option<Vec<Edit>>,
@@ -446,8 +461,8 @@ pub(crate) struct JsonReport {
 
 #[derive(Debug, Serialize)]
 struct JsonCircuitPosition {
-    row: usize,
-    column: usize,
+    qubit: usize,
+    time_step: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -475,12 +490,12 @@ impl JsonDiagnostic {
             category: metadata.category().to_string(),
             severity: diagnostic.severity().to_string(),
             message: metadata.description(),
-            circuit_positions: diagnostic
+            graph_positions: diagnostic
                 .positions()
                 .iter()
                 .map(|position| JsonCircuitPosition {
-                    row: position.row(),
-                    column: position.column(),
+                    qubit: position.qubit(),
+                    time_step: position.time_step(),
                 })
                 .collect(),
             operation_indices: diagnostic.operation_indices().clone(),
@@ -541,7 +556,7 @@ fn format_positions(positions: &[Position]) -> String {
             text.push_str(", ");
         }
 
-        let _position_result = write!(text, "({}, {})", position.row(), position.column());
+        let _position_result = write!(text, "({}, {})", position.qubit(), position.time_step());
     }
 
     if positions.len() > MAX_POSITIONS {

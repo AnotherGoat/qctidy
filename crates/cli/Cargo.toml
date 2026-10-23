@@ -22,7 +22,7 @@ qctidy-converter = { path = "../converter" }
 qctidy-facade = { path = "../facade" }
 qctidy-ports = { path = "../ports" }
 qctidy-presenter = { path = "../presenter" }
-qctidy-python = { path = "../python" }
+qctidy-python-ast = { path = "../python_ast" }
 anstream = { workspace = true }
 anstyle = { workspace = true }
 clap = { workspace = true, features = ["derive"] }

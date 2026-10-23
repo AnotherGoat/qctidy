@@ -1,45 +1,45 @@
 use crate::{GateType, Graph};
 
-/// A fast cache for gate types present in rows and columns of a `Graph`.
+/// A fast cache for gate types present in qubits and time steps of a `Graph`.
 ///
-/// Rows correspond to qubits.
-/// Columns correspond to timesteps.
+/// Qubits correspond to matrix rows.
+/// Time steps correspond to matrix columns.
 #[derive(Debug, Clone)]
 pub struct GraphCache {
-    rows: Vec<GateTypeBitset>,
-    columns: Vec<GateTypeBitset>,
+    qubits: Vec<GateTypeBitset>,
+    time_steps: Vec<GateTypeBitset>,
 }
 
 impl GraphCache {
     pub fn from_graph(graph: &Graph) -> Self {
-        let mut rows = vec![GateTypeBitset::new(); graph.height()];
-        let mut columns = vec![GateTypeBitset::new(); graph.width()];
+        let mut qubits = vec![GateTypeBitset::new(); graph.qubit_count()];
+        let mut time_steps = vec![GateTypeBitset::new(); graph.time_step_count()];
 
         for node in graph.iter_nodes() {
             let position = node.position();
             let gate_type = node.r#type();
 
-            rows[position.row()].insert(gate_type);
-            columns[position.column()].insert(gate_type);
+            qubits[position.qubit()].insert(gate_type);
+            time_steps[position.time_step()].insert(gate_type);
         }
 
-        Self { rows, columns }
+        Self { qubits, time_steps }
     }
 
-    pub fn rows(&self) -> &[GateTypeBitset] {
-        &self.rows
+    pub fn qubits(&self) -> &[GateTypeBitset] {
+        &self.qubits
     }
 
-    pub fn columns(&self) -> &[GateTypeBitset] {
-        &self.columns
+    pub fn time_steps(&self) -> &[GateTypeBitset] {
+        &self.time_steps
     }
 
-    pub fn row(&self, row: usize) -> Option<&GateTypeBitset> {
-        self.rows.get(row)
+    pub fn qubit(&self, qubit: usize) -> Option<&GateTypeBitset> {
+        self.qubits.get(qubit)
     }
 
-    pub fn column(&self, column: usize) -> Option<&GateTypeBitset> {
-        self.columns.get(column)
+    pub fn time_step(&self, time_step: usize) -> Option<&GateTypeBitset> {
+        self.time_steps.get(time_step)
     }
 }
 

@@ -1,7 +1,10 @@
+use std::sync::Arc;
+
 use serde::Serialize;
 
-use qctidy::{Circuit, Graph, fixer};
-use qctidy_facade::Diagnostic;
+use qctidy::Circuit;
+use qctidy_codegen::CodegenAdapter;
+use qctidy_facade::{ApplyFixRequest, Diagnostic, FixEdit, apply_fix};
 use qctidy_ports::SourceLocation;
 
 /// A source edit that applies a single fix.
@@ -17,6 +20,18 @@ pub(crate) struct Edit {
     new_text: String,
 }
 
+impl From<&FixEdit> for Edit {
+    fn from(edit: &FixEdit) -> Self {
+        Self {
+            line: edit.line(),
+            column: edit.column(),
+            end_line: edit.end_line(),
+            end_column: edit.end_column(),
+            new_text: edit.new_text().clone(),
+        }
+    }
+}
+
 /// Compute the edits that apply the fix described by `diagnostic`.
 ///
 /// Returns `None` when the diagnostic has no source-level fix (for example,
@@ -28,66 +43,20 @@ pub(crate) fn edits_for(
     source_map: &[SourceLocation],
     circuit_name: &str,
 ) -> Option<Vec<Edit>> {
-    let library_diagnostic = fixer::Diagnostic::new(
-        diagnostic.metadata(),
-        diagnostic.severity(),
-        diagnostic.positions().clone(),
+    let request = ApplyFixRequest::new(
+        Arc::from(source),
+        Arc::new(circuit.clone()),
+        diagnostic.clone(),
+        Arc::from(source_map),
+        Arc::from(circuit_name),
     );
+    let response = apply_fix(&request, &CodegenAdapter).ok()?;
 
-    let mut graph = Graph::from(circuit);
-    let replacements = fixer::apply(&mut graph, &library_diagnostic)?;
-
-    let removed: Vec<&SourceLocation> = diagnostic
-        .operation_indices()
-        .iter()
-        .filter_map(|index| source_map.get(*index))
-        .collect();
-
-    let (start_line, start_column) = removed
-        .iter()
-        .map(|location| (location.line, location.column))
-        .min()?;
-    let (end_line, end_column) = removed
-        .iter()
-        .map(|location| (location.end_line, location.end_column))
-        .max()?;
-
-    let rendered = replacements
-        .iter()
-        .map(|operation| qctidy_codegen::render_operation(operation, circuit_name))
-        .collect::<Vec<_>>()
-        .join("\n");
-    let new_text = reindent(source, start_line, start_column, &rendered);
-
-    Some(vec![Edit {
-        line: start_line,
-        column: start_column,
-        end_line,
-        end_column,
-        new_text,
-    }])
-}
-
-/// Re-indent a multi-line replacement to match the indentation of the replaced region.
-fn reindent(source: &str, start_line: usize, start_column: usize, new_text: &str) -> String {
-    if !new_text.contains('\n') {
-        return new_text.to_owned();
+    if response.edits().is_empty() {
+        return None;
     }
 
-    let indent = line_indentation(source, start_line, start_column);
-    new_text.replace('\n', &format!("\n{indent}"))
-}
-
-/// The leading whitespace before `column` on the given source line.
-fn line_indentation(source: &str, line: usize, column: usize) -> String {
-    let line_text = source.split_inclusive('\n').nth(line).unwrap_or("");
-    let prefix = line_text.get(..column).unwrap_or(line_text);
-
-    if prefix.chars().all(char::is_whitespace) {
-        prefix.to_owned()
-    } else {
-        String::new()
-    }
+    Some(response.edits().iter().map(Edit::from).collect())
 }
 
 /// Apply a set of non-overlapping edits to `source`, returning the new source.

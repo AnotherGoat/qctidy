@@ -1,9 +1,9 @@
 use std::f64::consts::PI;
 
 use qctidy::{GateOperation, GateType};
-use qctidy_ports::{ParsedCircuit, PythonPort, Scope, ScopeChild, ScopeType};
+use qctidy_ports::{ParsedCircuit, PythonAstPort, Scope, ScopeChild, ScopeType};
 
-use crate::PythonAdapter;
+use crate::PythonAstAdapter;
 
 const ALL_GATES: &str = r#""""Sample circuit that uses every gate supported by the QCTidy Rust crates.
 
@@ -104,7 +104,7 @@ fn circuits_in_scope(scope: &Scope) -> Vec<&ParsedCircuit> {
 
 #[test]
 fn finds_the_function_and_every_circuit_it_defines() {
-    let analysis = PythonAdapter.parse(ALL_GATES);
+    let analysis = PythonAstAdapter.parse(ALL_GATES);
 
     assert_eq!(
         analysis.module_circuits.len(),
@@ -121,8 +121,8 @@ fn finds_the_function_and_every_circuit_it_defines() {
     let circuits = circuits_in_scope(scope);
     let first = circuits[0];
     assert_eq!(first.name, "circuit");
-    assert_eq!(first.qubits, "4");
-    assert_eq!(first.clbits, "4");
+    assert_eq!(first.qubit_count, "4");
+    assert_eq!(first.bit_count, "4");
     assert_eq!(first.gates.len(), 30);
     assert!(first.issues.is_empty());
 
@@ -132,18 +132,18 @@ fn finds_the_function_and_every_circuit_it_defines() {
     assert_eq!(build.source_map.len(), 30);
 
     assert_eq!(circuits[1].name, "another");
-    assert_eq!(circuits[1].qubits, "2");
-    assert_eq!(circuits[1].clbits, "0");
+    assert_eq!(circuits[1].qubit_count, "2");
+    assert_eq!(circuits[1].bit_count, "0");
     assert_eq!(circuits[1].gates.len(), 2);
 
     assert_eq!(circuits[2].name, "circuit");
-    assert_eq!(circuits[2].qubits, "2");
+    assert_eq!(circuits[2].qubit_count, "2");
     assert_eq!(circuits[2].gates.len(), 3);
 }
 
 #[test]
 fn maps_gate_calls_to_canonical_operations() {
-    let analysis = PythonAdapter.parse(ALL_GATES);
+    let analysis = PythonAstAdapter.parse(ALL_GATES);
     let first = circuits_in_scope(&analysis.scopes[0])[0];
 
     let hadamard = first
@@ -177,9 +177,9 @@ fn maps_gate_calls_to_canonical_operations() {
 }
 
 #[test]
-fn reports_uncheckable_circuits_as_issues() {
+fn reports_uncheckable_circuits_as_parse_issues() {
     let source = "qc = QuantumCircuit(2)\nqc.h(0)\nqc.foo(0)\n";
-    let analysis = PythonAdapter.parse(source);
+    let analysis = PythonAstAdapter.parse(source);
 
     assert_eq!(analysis.module_circuits.len(), 1);
 

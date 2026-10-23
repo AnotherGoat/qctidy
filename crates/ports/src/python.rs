@@ -1,7 +1,7 @@
 use qctidy::{Circuit, GateOperation};
 
 /// Parses Python source into a circuit analysis.
-pub trait PythonPort {
+pub trait PythonAstPort {
     /// Parse a Python source file into the circuits and scopes it defines.
     fn parse(&self, source: &str) -> PythonAnalysis;
 }
@@ -54,9 +54,9 @@ pub struct ParsedCircuit {
     /// The name of the variable that holds the circuit.
     pub name: String,
     /// The raw text of the qubit count argument, such as `4` or `NUM_QUBITS`.
-    pub qubits: String,
+    pub qubit_count: String,
     /// The raw text of the classical bit count argument.
-    pub clbits: String,
+    pub bit_count: String,
     /// The line where the assignment starts.
     pub line: usize,
     /// The column where the assignment starts.
@@ -64,7 +64,7 @@ pub struct ParsedCircuit {
     /// The gate calls applied to this circuit, in source order.
     pub gates: Vec<ParsedGate>,
     /// Every problem that prevents the circuit from being checked.
-    pub issues: Vec<CircuitIssue>,
+    pub issues: Vec<ParseIssue>,
     /// The checkable circuit and its source map, when there are no issues.
     pub build: Option<CircuitBuild>,
 }
@@ -107,9 +107,9 @@ pub struct GateParameter {
     pub column: usize,
 }
 
-/// A problem that prevents a circuit from being checked.
+/// A problem found while parsing a circuit that prevents it from being checked.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CircuitIssue {
+pub struct ParseIssue {
     /// A human-readable description of the problem.
     pub message: String,
     /// The line where the problem was found.

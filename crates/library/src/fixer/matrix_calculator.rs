@@ -129,8 +129,8 @@ fn compute_global_phase(first: &Mat<Complex64>, second: &Mat<Complex64>) -> Comp
 /// Measurement gates are completely ignored.
 /// The output will always be a square matrix (rows == columns).
 pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
-    let height = graph.height();
-    let size = calculate_size(height);
+    let qubit_count = graph.qubit_count();
+    let size = calculate_size(qubit_count);
 
     if graph.is_empty() {
         return identity(size);
@@ -140,7 +140,7 @@ pub(crate) fn graph_circuit_matrix(graph: &Graph) -> Mat<Complex64> {
     let circuit = Circuit::from(graph);
 
     for operation in circuit.operations() {
-        if let Some(unitary) = operation_to_matrix(operation, height) {
+        if let Some(unitary) = operation_to_matrix(operation, qubit_count) {
             result = &unitary * &result;
         }
     }
@@ -160,25 +160,25 @@ fn zeros(side: usize) -> Mat<Complex64> {
     Mat::zeros(side, side)
 }
 
-fn operation_to_matrix(operation: &GateOperation, height: usize) -> Option<Mat<Complex64>> {
+fn operation_to_matrix(operation: &GateOperation, qubit_count: usize) -> Option<Mat<Complex64>> {
     use GateOperation::*;
 
     let matrix = match *operation {
         ID { .. } | Measure { .. } => return None,
-        H { qubit } => embed_single_gate(height, qubit, &H_MATRIX),
-        X { qubit } => embed_single_gate(height, qubit, &X_MATRIX),
-        Y { qubit } => embed_single_gate(height, qubit, &Y_MATRIX),
-        Z { qubit } => embed_single_gate(height, qubit, &Z_MATRIX),
-        P { theta, qubit } => embed_single_gate(height, qubit, &phase_matrix(theta)),
-        RX { theta, qubit } => embed_single_gate(height, qubit, &rx_matrix(theta)),
-        RY { theta, qubit } => embed_single_gate(height, qubit, &ry_matrix(theta)),
-        RZ { phi, qubit } => embed_single_gate(height, qubit, &rz_matrix(phi)),
-        S { qubit } => embed_single_gate(height, qubit, &S_MATRIX),
-        SDG { qubit } => embed_single_gate(height, qubit, &SDG_MATRIX),
-        SX { qubit } => embed_single_gate(height, qubit, &SX_MATRIX),
-        SY { qubit } => embed_single_gate(height, qubit, &SY_MATRIX),
-        T { qubit } => embed_single_gate(height, qubit, &T_MATRIX),
-        TDG { qubit } => embed_single_gate(height, qubit, &TDG_MATRIX),
+        H { qubit } => embed_single_gate(qubit_count, qubit, &H_MATRIX),
+        X { qubit } => embed_single_gate(qubit_count, qubit, &X_MATRIX),
+        Y { qubit } => embed_single_gate(qubit_count, qubit, &Y_MATRIX),
+        Z { qubit } => embed_single_gate(qubit_count, qubit, &Z_MATRIX),
+        P { theta, qubit } => embed_single_gate(qubit_count, qubit, &phase_matrix(theta)),
+        RX { theta, qubit } => embed_single_gate(qubit_count, qubit, &rx_matrix(theta)),
+        RY { theta, qubit } => embed_single_gate(qubit_count, qubit, &ry_matrix(theta)),
+        RZ { phi, qubit } => embed_single_gate(qubit_count, qubit, &rz_matrix(phi)),
+        S { qubit } => embed_single_gate(qubit_count, qubit, &S_MATRIX),
+        SDG { qubit } => embed_single_gate(qubit_count, qubit, &SDG_MATRIX),
+        SX { qubit } => embed_single_gate(qubit_count, qubit, &SX_MATRIX),
+        SY { qubit } => embed_single_gate(qubit_count, qubit, &SY_MATRIX),
+        T { qubit } => embed_single_gate(qubit_count, qubit, &T_MATRIX),
+        TDG { qubit } => embed_single_gate(qubit_count, qubit, &TDG_MATRIX),
         U {
             theta,
             phi,
@@ -186,42 +186,42 @@ fn operation_to_matrix(operation: &GateOperation, height: usize) -> Option<Mat<C
             qubit,
         } => {
             let matrix = u_matrix(theta, phi, lambda);
-            embed_single_gate(height, qubit, &matrix)
+            embed_single_gate(qubit_count, qubit, &matrix)
         }
-        Swap { qubit1, qubit2 } => swap_gate(height, qubit1, qubit2),
-        CH { control, target } => control_gate(height, &[control], target, &H_MATRIX),
-        CX { control, target } => control_gate(height, &[control], target, &X_MATRIX),
-        CY { control, target } => control_gate(height, &[control], target, &Y_MATRIX),
-        CZ { qubit1, qubit2 } => control_gate(height, &[qubit1], qubit2, &Z_MATRIX),
+        Swap { qubit1, qubit2 } => swap_gate(qubit_count, qubit1, qubit2),
+        CH { control, target } => control_gate(qubit_count, &[control], target, &H_MATRIX),
+        CX { control, target } => control_gate(qubit_count, &[control], target, &X_MATRIX),
+        CY { control, target } => control_gate(qubit_count, &[control], target, &Y_MATRIX),
+        CZ { qubit1, qubit2 } => control_gate(qubit_count, &[qubit1], qubit2, &Z_MATRIX),
         CP {
             theta,
             qubit1,
             qubit2,
-        } => control_gate(height, &[qubit1], qubit2, &phase_matrix(theta)),
+        } => control_gate(qubit_count, &[qubit1], qubit2, &phase_matrix(theta)),
         CSwap {
             control,
             target1,
             target2,
-        } => control_swap(height, control, target1, target2),
+        } => control_swap(qubit_count, control, target1, target2),
         CCX {
             control1,
             control2,
             target,
-        } => control_gate(height, &[control1, control2], target, &X_MATRIX),
+        } => control_gate(qubit_count, &[control1, control2], target, &X_MATRIX),
         CCZ {
             qubit1,
             qubit2,
             qubit3,
-        } => control_gate(height, &[qubit1, qubit2], qubit3, &Z_MATRIX),
+        } => control_gate(qubit_count, &[qubit1, qubit2], qubit3, &Z_MATRIX),
     };
 
     Some(matrix)
 }
 
-fn embed_single_gate(height: usize, qubit: usize, base: &Mat<Complex64>) -> Mat<Complex64> {
+fn embed_single_gate(qubit_count: usize, qubit: usize, base: &Mat<Complex64>) -> Mat<Complex64> {
     let mut result = identity(1);
 
-    for row in 0..height {
+    for row in 0..qubit_count {
         if row == qubit {
             result = result.kron(base);
         } else {
@@ -286,16 +286,19 @@ fn u_matrix(theta: f64, phi: f64, lambda: f64) -> Mat<Complex64> {
 }
 
 fn control_gate(
-    height: usize,
+    qubit_count: usize,
     controls: &[usize],
     target: usize,
     base: &Mat<Complex64>,
 ) -> Mat<Complex64> {
-    let size = calculate_size(height);
+    let size = calculate_size(qubit_count);
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
+        let bits: Vec<usize> = (0..qubit_count)
+            .rev()
+            .map(|row| (column >> row) & 1)
+            .collect();
 
         if controls.iter().all(|&control| bits[control] == 1) {
             let target_bit = bits[target];
@@ -318,12 +321,15 @@ fn control_gate(
     unitary
 }
 
-fn swap_gate(height: usize, qubit1: usize, qubit2: usize) -> Mat<Complex64> {
-    let size = calculate_size(height);
+fn swap_gate(qubit_count: usize, qubit1: usize, qubit2: usize) -> Mat<Complex64> {
+    let size = calculate_size(qubit_count);
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let mut bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
+        let mut bits: Vec<usize> = (0..qubit_count)
+            .rev()
+            .map(|row| (column >> row) & 1)
+            .collect();
 
         bits.swap(qubit1, qubit2);
 
@@ -337,12 +343,20 @@ fn swap_gate(height: usize, qubit1: usize, qubit2: usize) -> Mat<Complex64> {
     unitary
 }
 
-fn control_swap(height: usize, control: usize, target1: usize, target2: usize) -> Mat<Complex64> {
-    let size = calculate_size(height);
+fn control_swap(
+    qubit_count: usize,
+    control: usize,
+    target1: usize,
+    target2: usize,
+) -> Mat<Complex64> {
+    let size = calculate_size(qubit_count);
     let mut unitary = zeros(size);
 
     for column in 0..size {
-        let mut bits: Vec<usize> = (0..height).rev().map(|row| (column >> row) & 1).collect();
+        let mut bits: Vec<usize> = (0..qubit_count)
+            .rev()
+            .map(|row| (column >> row) & 1)
+            .collect();
 
         if bits[control] == 1 {
             bits.swap(target1, target2);

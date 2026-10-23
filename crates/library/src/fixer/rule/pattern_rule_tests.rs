@@ -76,9 +76,9 @@ fn fails_with_bigger_lhs() {
 
     assert!(matches!(
         result,
-        Err(RuleBuildError::InvalidHeight {
-            lhs_height: 2,
-            rhs_height: 1,
+        Err(RuleBuildError::InvalidQubitCount {
+            lhs_qubit_count: 2,
+            rhs_qubit_count: 1,
         })
     ));
 }
@@ -96,9 +96,9 @@ fn fails_with_bigger_rhs() {
 
     assert!(matches!(
         result,
-        Err(RuleBuildError::InvalidHeight {
-            lhs_height: 1,
-            rhs_height: 2,
+        Err(RuleBuildError::InvalidQubitCount {
+            lhs_qubit_count: 1,
+            rhs_qubit_count: 2,
         })
     ));
 }
@@ -135,8 +135,8 @@ fn fails_with_non_compacting_rule() {
     assert!(matches!(
         result,
         Err(RuleBuildError::NonCompactingRule {
-            lhs_gate_count: 2,
-            rhs_gate_count: 2,
+            lhs_operation_count: 2,
+            rhs_operation_count: 2,
         })
     ));
 }

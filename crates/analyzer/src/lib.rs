@@ -42,8 +42,8 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
     let new_metrics = calculate_detailed(new);
 
     DeltaDetailedAnalysisMetrics {
-        width: delta_usize(old_metrics.width, new_metrics.width),
-        depth: delta_usize(old_metrics.depth, new_metrics.depth),
+        qubit_count: delta_usize(old_metrics.qubit_count, new_metrics.qubit_count),
+        time_step_count: delta_usize(old_metrics.time_step_count, new_metrics.time_step_count),
         max_density: delta_usize(old_metrics.max_density, new_metrics.max_density),
         average_density: delta_f64(old_metrics.average_density, new_metrics.average_density),
         x_count: delta_usize(old_metrics.x_count, new_metrics.x_count),
@@ -55,17 +55,17 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
             old_metrics.initial_superposition_percent,
             new_metrics.initial_superposition_percent,
         ),
-        other_single_qubit_count: delta_usize(
-            old_metrics.other_single_qubit_count,
-            new_metrics.other_single_qubit_count,
+        other_single_gate_count: delta_usize(
+            old_metrics.other_single_gate_count,
+            new_metrics.other_single_gate_count,
         ),
-        single_qubit_count: delta_usize(
-            old_metrics.single_qubit_count,
-            new_metrics.single_qubit_count,
+        single_gate_count: delta_usize(
+            old_metrics.single_gate_count,
+            new_metrics.single_gate_count,
         ),
-        single_controlled_qubit_count: delta_usize(
-            old_metrics.single_controlled_qubit_count,
-            new_metrics.single_controlled_qubit_count,
+        single_controlled_gate_count: delta_usize(
+            old_metrics.single_controlled_gate_count,
+            new_metrics.single_controlled_gate_count,
         ),
         swap_count: delta_usize(old_metrics.swap_count, new_metrics.swap_count),
         cnot_count: delta_usize(old_metrics.cnot_count, new_metrics.cnot_count),
@@ -74,26 +74,40 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
             new_metrics.cnot_qubit_percent,
         ),
         average_cnot: delta_f64(old_metrics.average_cnot, new_metrics.average_cnot),
-        max_cnot: delta_usize(old_metrics.max_cnot, new_metrics.max_cnot),
+        max_cnot_count: delta_usize(old_metrics.max_cnot_count, new_metrics.max_cnot_count),
         toffoli_count: delta_usize(old_metrics.toffoli_count, new_metrics.toffoli_count),
         toffoli_qubit_percent: delta_f64(
             old_metrics.toffoli_qubit_percent,
             new_metrics.toffoli_qubit_percent,
         ),
         average_toffoli: delta_f64(old_metrics.average_toffoli, new_metrics.average_toffoli),
-        max_toffoli: delta_usize(old_metrics.max_toffoli, new_metrics.max_toffoli),
+        max_toffoli_count: delta_usize(
+            old_metrics.max_toffoli_count,
+            new_metrics.max_toffoli_count,
+        ),
+        operation_count: delta_usize(old_metrics.operation_count, new_metrics.operation_count),
         gate_count: delta_usize(old_metrics.gate_count, new_metrics.gate_count),
+        measurement_count: delta_usize(
+            old_metrics.measurement_count,
+            new_metrics.measurement_count,
+        ),
         controlled_gate_count: delta_usize(
             old_metrics.controlled_gate_count,
             new_metrics.controlled_gate_count,
         ),
-        single_qubit_percent: delta_f64(
-            old_metrics.single_qubit_percent,
-            new_metrics.single_qubit_percent,
+        single_gate_percent: delta_f64(
+            old_metrics.single_gate_percent,
+            new_metrics.single_gate_percent,
         ),
-        measure_count: delta_usize(old_metrics.measure_count, new_metrics.measure_count),
+        measured_qubit_count: delta_usize(
+            old_metrics.measured_qubit_count,
+            new_metrics.measured_qubit_count,
+        ),
         measure_percent: delta_f64(old_metrics.measure_percent, new_metrics.measure_percent),
-        auxiliary_percent: delta_f64(old_metrics.auxiliary_percent, new_metrics.auxiliary_percent),
+        unmeasured_qubit_percent: delta_f64(
+            old_metrics.unmeasured_qubit_percent,
+            new_metrics.unmeasured_qubit_percent,
+        ),
     }
 }
 
@@ -101,7 +115,7 @@ impl From<stats::Metrics> for AnalysisMetrics {
     fn from(metrics: stats::Metrics) -> Self {
         Self {
             qubit_count: metrics.qubit_count,
-            depth: metrics.depth,
+            time_step_count: metrics.time_step_count,
             x_count: metrics.x_count,
             y_count: metrics.y_count,
             z_count: metrics.z_count,
@@ -109,13 +123,15 @@ impl From<stats::Metrics> for AnalysisMetrics {
             hadamard_count: metrics.hadamard_count,
             rotation_count: metrics.rotation_count,
             square_root_count: metrics.square_root_count,
-            measure_count: metrics.measure_count,
+            measured_qubit_count: metrics.measured_qubit_count,
             swap_count: metrics.swap_count,
             cx_count: metrics.cx_count,
+            operation_count: metrics.operation_count,
             gate_count: metrics.gate_count,
+            measurement_count: metrics.measurement_count,
             single_gate_count: metrics.single_gate_count,
             controlled_gate_count: metrics.controlled_gate_count,
-            auxiliary_qubit_count: metrics.auxiliary_qubit_count,
+            unmeasured_qubit_count: metrics.unmeasured_qubit_count,
             gate_types_count: metrics.gate_types_count,
         }
     }
@@ -125,7 +141,7 @@ impl From<stats::DeltaMetrics> for DeltaAnalysisMetrics {
     fn from(metrics: stats::DeltaMetrics) -> Self {
         Self {
             qubit_count: metrics.qubit_count,
-            depth: metrics.depth,
+            time_step_count: metrics.time_step_count,
             x_count: metrics.x_count,
             y_count: metrics.y_count,
             z_count: metrics.z_count,
@@ -133,13 +149,15 @@ impl From<stats::DeltaMetrics> for DeltaAnalysisMetrics {
             hadamard_count: metrics.hadamard_count,
             rotation_count: metrics.rotation_count,
             square_root_count: metrics.square_root_count,
-            measure_count: metrics.measure_count,
+            measured_qubit_count: metrics.measured_qubit_count,
             swap_count: metrics.swap_count,
             cx_count: metrics.cx_count,
+            operation_count: metrics.operation_count,
             gate_count: metrics.gate_count,
+            measurement_count: metrics.measurement_count,
             single_gate_count: metrics.single_gate_count,
             controlled_gate_count: metrics.controlled_gate_count,
-            auxiliary_qubit_count: metrics.auxiliary_qubit_count,
+            unmeasured_qubit_count: metrics.unmeasured_qubit_count,
             gate_types_count: metrics.gate_types_count,
         }
     }
@@ -148,8 +166,8 @@ impl From<stats::DeltaMetrics> for DeltaAnalysisMetrics {
 impl From<stats::DetailedMetrics> for DetailedAnalysisMetrics {
     fn from(metrics: stats::DetailedMetrics) -> Self {
         Self {
-            width: metrics.width,
-            depth: metrics.depth,
+            qubit_count: metrics.qubit_count,
+            time_step_count: metrics.time_step_count,
             max_density: metrics.max_density,
             average_density: metrics.average_density,
             x_count: metrics.x_count,
@@ -158,24 +176,26 @@ impl From<stats::DetailedMetrics> for DetailedAnalysisMetrics {
             pauli_count: metrics.pauli_count,
             hadamard_count: metrics.hadamard_count,
             initial_superposition_percent: metrics.initial_superposition_percent,
-            other_single_qubit_count: metrics.other_single_qubit_count,
-            single_qubit_count: metrics.single_qubit_count,
-            single_controlled_qubit_count: metrics.single_controlled_qubit_count,
+            other_single_gate_count: metrics.other_single_gate_count,
+            single_gate_count: metrics.single_gate_count,
+            single_controlled_gate_count: metrics.single_controlled_gate_count,
             swap_count: metrics.swap_count,
             cnot_count: metrics.cnot_count,
             cnot_qubit_percent: metrics.cnot_qubit_percent,
             average_cnot: metrics.average_cnot,
-            max_cnot: metrics.max_cnot,
+            max_cnot_count: metrics.max_cnot_count,
             toffoli_count: metrics.toffoli_count,
             toffoli_qubit_percent: metrics.toffoli_qubit_percent,
             average_toffoli: metrics.average_toffoli,
-            max_toffoli: metrics.max_toffoli,
+            max_toffoli_count: metrics.max_toffoli_count,
+            operation_count: metrics.operation_count,
             gate_count: metrics.gate_count,
+            measurement_count: metrics.measurement_count,
             controlled_gate_count: metrics.controlled_gate_count,
-            single_qubit_percent: metrics.single_qubit_percent,
-            measure_count: metrics.measure_count,
+            single_gate_percent: metrics.single_gate_percent,
+            measured_qubit_count: metrics.measured_qubit_count,
             measure_percent: metrics.measure_percent,
-            auxiliary_percent: metrics.auxiliary_percent,
+            unmeasured_qubit_percent: metrics.unmeasured_qubit_percent,
         }
     }
 }

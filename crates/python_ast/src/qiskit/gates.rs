@@ -250,7 +250,7 @@ pub(crate) fn parse_gate_call(
             }
             "measure" => {
                 add_optional_parameter(&mut parameters, args, "qubit", 0, line, column);
-                add_optional_parameter(&mut parameters, args, "clbit", 1, line, column);
+                add_optional_parameter(&mut parameters, args, "bit", 1, line, column);
 
                 description = format!("q: {} → c: {}", raw_arg(&raw, 0), raw_arg(&raw, 1));
 
@@ -371,7 +371,7 @@ fn append_parameters(
     }
 
     if args.len() > 2 {
-        add_parameter(parameters, args, "clbits", 2, None, line, column);
+        add_parameter(parameters, args, "bits", 2, None, line, column);
     }
 }
 

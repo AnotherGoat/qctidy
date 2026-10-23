@@ -2687,7 +2687,7 @@ dependencies = [
  "qctidy-facade",
  "qctidy-ports",
  "qctidy-presenter",
- "qctidy-python",
+ "qctidy-python-ast",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -2758,7 +2758,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "qctidy-python"
+name = "qctidy-python-ast"
 version = "0.1.0"
 dependencies = [
  "qctidy",

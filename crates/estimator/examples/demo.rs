@@ -16,9 +16,9 @@ async fn main() {
 
     let graph = builder.into_graph();
     println!(
-        "Circuit built: {} qubits high and {} levels of depth.",
-        graph.height(),
-        graph.width()
+        "Circuit built: {} qubits high and {} levels of time steps.",
+        graph.qubit_count(),
+        graph.time_step_count()
     );
 
     println!("\n=== 2. Simulating Execution Times (Critical Path) ===");

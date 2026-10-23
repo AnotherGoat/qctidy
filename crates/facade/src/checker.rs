@@ -4,7 +4,10 @@ use getset::{CopyGetters, Getters};
 use newgen::New;
 use qctidy::{Circuit, Graph, Position, RuleConfiguration, RuleMetadata, RuleSeverity, fixer};
 
-/// A fixable pattern found in a circuit.
+/// A diagnostic describing a fixable pattern found in a circuit.
+///
+/// Follows the Language Server Protocol notion of a diagnostic: a severity, the
+/// affected circuit positions, and the operations they belong to.
 #[derive(Debug, Clone, Getters, CopyGetters, New)]
 #[new(pub)]
 #[must_use]
@@ -15,7 +18,7 @@ pub struct Diagnostic {
     /// Severity reported for the detected match.
     #[get_copy = "pub"]
     severity: RuleSeverity,
-    /// Positions affected by the detected match, sorted by row and then column.
+    /// Positions affected by the detected match, sorted by qubit and then time step.
     #[get = "pub"]
     positions: Vec<Position>,
     /// Indices of the operations that occupy the affected positions, sorted and deduplicated.
@@ -32,9 +35,18 @@ pub struct CheckResponse {
     #[get_copy = "pub"]
     qubit_count: usize,
     #[get_copy = "pub"]
-    time_step_count: usize,
+    bit_count: usize,
+    /// The number of operations (gates and measurements) in the circuit.
+    #[get_copy = "pub"]
+    operation_count: usize,
+    /// The number of gate operations, excluding measurements.
     #[get_copy = "pub"]
     gate_count: usize,
+    /// The number of measurement operations.
+    #[get_copy = "pub"]
+    measurement_count: usize,
+    #[get_copy = "pub"]
+    time_step_count: usize,
 }
 
 /// A checking session that reuses a single rule configuration across circuits.
@@ -61,9 +73,12 @@ impl Session {
 
         CheckResponse::new(
             diagnostics,
-            graph.height(),
-            graph.width(),
-            circuit.operations().len(),
+            graph.qubit_count(),
+            graph.bit_count(),
+            graph.operation_count(),
+            graph.gate_count(),
+            graph.measurement_count(),
+            graph.time_step_count(),
         )
     }
 }

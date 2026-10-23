@@ -3,38 +3,42 @@ use std::collections::HashSet;
 use crate::{EdgeType, EdgeView, Graph, NodeView, Position, domain::graph::EdgeData};
 
 impl Graph {
-    /// Iterate over the graph's positions that have nodes, first row and then by column.
+    /// Iterate over the graph's positions that have nodes, ordered by qubit and then by time step.
     ///
     /// Positions without nodes are skipped.
     ///
     /// Complexity: O(n).
-    pub fn iter_positions_ordered_by_row(&self) -> impl Iterator<Item = Position> + '_ {
-        self.row_columns
+    pub fn iter_positions_ordered_by_qubit(&self) -> impl Iterator<Item = Position> + '_ {
+        self.qubit_time_steps
             .iter()
             .enumerate()
-            .flat_map(|(row, columns)| {
-                columns
+            .flat_map(|(qubit, time_steps)| {
+                time_steps
                     .iter()
-                    .map(move |&column| Position::new(row, column))
+                    .map(move |&time_step| Position::new(qubit, time_step))
             })
     }
 
-    /// Iterate over the graph's positions that have nodes, first column and then by row.
+    /// Iterate over the graph's positions that have nodes, ordered by time step and then by qubit.
     ///
     /// Positions without nodes are skipped.
     ///
     /// Complexity: O(n).
-    pub fn iter_positions_ordered_by_column(&self) -> impl Iterator<Item = Position> + '_ {
-        self.column_rows
+    pub fn iter_positions_ordered_by_time_step(&self) -> impl Iterator<Item = Position> + '_ {
+        self.time_step_qubits
             .iter()
             .enumerate()
-            .flat_map(|(column, rows)| rows.iter().map(move |&row| Position::new(row, column)))
+            .flat_map(|(time_step, qubits)| {
+                qubits
+                    .iter()
+                    .map(move |&qubit| Position::new(qubit, time_step))
+            })
     }
 
     /// Iterate over all nodes in arbitrary order.
     ///
     /// The iteration order is not guaranteed and depends on the internal `HashMap`.
-    /// Use `iter_nodes_by_row` or `iter_nodes_by_column` for deterministic traversal.
+    /// Use `iter_nodes_ordered_by_qubit` or `iter_nodes_ordered_by_time_step` for deterministic traversal.
     ///
     /// Complexity: O(n).
     pub fn iter_nodes(&self) -> impl Iterator<Item = NodeView> + '_ {
@@ -50,33 +54,33 @@ impl Graph {
         })
     }
 
-    /// Iterate over the graph's nodes, first row by row and then column by column.
+    /// Iterate over the graph's nodes, ordered by qubit and then by time step.
     ///
     /// This provides deterministic traversal based on a grid structure.
     /// Positions without nodes are skipped.
     ///
     /// Complexity: O(n).
-    pub fn iter_nodes_ordered_by_row(&self) -> impl Iterator<Item = NodeView> + '_ {
-        self.iter_positions_ordered_by_row()
+    pub fn iter_nodes_ordered_by_qubit(&self) -> impl Iterator<Item = NodeView> + '_ {
+        self.iter_positions_ordered_by_qubit()
             .filter_map(|position| self.get_node(position))
     }
 
-    /// Iterate over the graph's nodes, first column by column and then row by row.
+    /// Iterate over the graph's nodes, ordered by time step and then by qubit.
     ///
     /// This provides deterministic traversal based on a grid structure.
     /// Positions without nodes are skipped.
     ///
     /// Complexity: O(n).
-    pub fn iter_nodes_ordered_by_column(&self) -> impl Iterator<Item = NodeView> + '_ {
-        self.iter_positions_ordered_by_column()
+    pub fn iter_nodes_ordered_by_time_step(&self) -> impl Iterator<Item = NodeView> + '_ {
+        self.iter_positions_ordered_by_time_step()
             .filter_map(|position| self.get_node(position))
     }
 
-    pub(crate) fn iter_edges_by_column(&self) -> impl Iterator<Item = EdgeView> + '_ {
-        self.iter_positions_ordered_by_column()
+    pub(crate) fn iter_edges_by_time_step(&self) -> impl Iterator<Item = EdgeView> + '_ {
+        self.iter_positions_ordered_by_time_step()
             .flat_map(move |position| {
                 self.sorted_node_edges(position, |edge| {
-                    (edge.edge_type, edge.other.column(), edge.other.row())
+                    (edge.edge_type, edge.other.time_step(), edge.other.qubit())
                 })
             })
     }

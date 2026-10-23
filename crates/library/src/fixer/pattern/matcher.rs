@@ -19,9 +19,9 @@ pub(crate) fn find_matches_with_cache(
     graph_cache: &GraphCache,
 ) -> Vec<PatternMatch> {
     let mut matches = Vec::new();
-    let mut occupancy = OccupancyMap::new(graph.height(), graph.width());
+    let mut occupancy = OccupancyMap::new(graph.qubit_count(), graph.time_step_count());
 
-    for node in graph.iter_nodes_ordered_by_column() {
+    for node in graph.iter_nodes_ordered_by_time_step() {
         if !is_anchor_candidate(rule, node) || !anchor_fits(rule, graph, node.position()) {
             continue;
         }
@@ -45,11 +45,12 @@ fn is_anchor_candidate(rule: &PatternRule, node: NodeView) -> bool {
 
 fn anchor_fits(rule: &PatternRule, graph: &Graph, anchor_position: Position) -> bool {
     // Whether the pattern can fit in the graph with the anchor at the given position.
-    let anchor_pattern_column = rule.anchor().position().column();
-    let last_pattern_column = rule.width() - 1;
+    let anchor_pattern_time_step = rule.anchor().position().time_step();
+    let last_pattern_time_step = rule.time_step_count() - 1;
 
-    anchor_position.column() >= anchor_pattern_column
-        && anchor_position.column() + (last_pattern_column - anchor_pattern_column) < graph.width()
+    anchor_position.time_step() >= anchor_pattern_time_step
+        && anchor_position.time_step() + (last_pattern_time_step - anchor_pattern_time_step)
+            < graph.time_step_count()
 }
 
 /// State shared by the recursive search for a mapping.
@@ -58,10 +59,10 @@ struct SearchContext<'a> {
     rule: &'a PatternRule,
     anchor_position: Position,
     occupancy: &'a OccupancyMap,
-    /// Pattern rows that still need a graph row, most constrained first.
-    pattern_rows: &'a [usize],
-    /// Candidate graph rows for the pattern row at the same index of `pattern_rows`.
-    candidate_rows: &'a [Vec<usize>],
+    /// Pattern rows that still need a graph qubit, most constrained first.
+    pattern_qubits: &'a [usize],
+    /// Candidate graph rows for the pattern qubit at the same index of `pattern_qubits`.
+    candidate_qubits: &'a [Vec<usize>],
 }
 
 fn find_match_at_anchor(
@@ -72,29 +73,29 @@ fn find_match_at_anchor(
     occupancy: &OccupancyMap,
 ) -> Option<PatternMatch> {
     // Find the first match of the rule with its anchor at the given graph position.
-    // The anchor row is fixed, so its pattern nodes must match before searching.
-    if !anchor_row_matches(graph, rule, anchor_position) {
+    // The anchor qubit is fixed, so its pattern nodes must match before searching.
+    if !anchor_qubit_matches(graph, rule, anchor_position) {
         return None;
     }
 
-    let mut rows_to_assign: Vec<(usize, Vec<usize>)> = collect_non_anchor_pattern_rows(rule)
+    let mut qubits_to_assign: Vec<(usize, Vec<usize>)> = collect_non_anchor_pattern_qubits(rule)
         .into_iter()
-        .map(|pattern_row| {
+        .map(|pattern_qubit| {
             let candidates =
-                candidate_graph_rows(graph, rule, graph_cache, anchor_position, pattern_row);
+                candidate_graph_qubits(graph, rule, graph_cache, anchor_position, pattern_qubit);
 
-            (pattern_row, candidates)
+            (pattern_qubit, candidates)
         })
         .collect();
 
     // Assign the most constrained pattern rows first, so impossible branches fail early.
-    rows_to_assign.sort_by_key(|(_, candidates)| candidates.len());
+    qubits_to_assign.sort_by_key(|(_, candidates)| candidates.len());
 
-    let pattern_rows: Vec<usize> = rows_to_assign
+    let pattern_qubits: Vec<usize> = qubits_to_assign
         .iter()
-        .map(|(pattern_row, _)| *pattern_row)
+        .map(|(pattern_qubit, _)| *pattern_qubit)
         .collect();
-    let candidate_rows: Vec<Vec<usize>> = rows_to_assign
+    let candidate_qubits: Vec<Vec<usize>> = qubits_to_assign
         .into_iter()
         .map(|(_, candidates)| candidates)
         .collect();
@@ -104,50 +105,50 @@ fn find_match_at_anchor(
         rule,
         anchor_position,
         occupancy,
-        pattern_rows: &pattern_rows,
-        candidate_rows: &candidate_rows,
+        pattern_qubits: &pattern_qubits,
+        candidate_qubits: &candidate_qubits,
     };
 
-    let mut mapping = QubitMapping::new(rule.height());
-    mapping.add_mapping(rule.anchor().position().row(), anchor_position.row());
+    let mut mapping = QubitMapping::new(rule.qubit_count());
+    mapping.add_mapping(rule.anchor().position().qubit(), anchor_position.qubit());
 
-    let mut used_graph_rows = vec![false; graph.height()];
-    used_graph_rows[anchor_position.row()] = true;
+    let mut used_graph_qubits = vec![false; graph.qubit_count()];
+    used_graph_qubits[anchor_position.qubit()] = true;
 
-    search_mapping(&context, 0, &mut mapping, &mut used_graph_rows)
+    search_mapping(&context, 0, &mut mapping, &mut used_graph_qubits)
 }
 
 fn search_mapping(
     context: &SearchContext<'_>,
     depth: usize,
     mapping: &mut QubitMapping,
-    used_graph_rows: &mut [bool],
+    used_graph_qubits: &mut [bool],
 ) -> Option<PatternMatch> {
-    // Assign a distinct graph row to every pattern row, trying the candidates in order.
+    // Assign a distinct graph qubit to every pattern qubit, trying the candidates in order.
     //
     // Already-assigned pattern edges are checked after each assignment to prune the search.
-    if depth == context.pattern_rows.len() {
+    if depth == context.pattern_qubits.len() {
         return finish_match(context, mapping);
     }
 
-    let pattern_row = context.pattern_rows[depth];
+    let pattern_qubit = context.pattern_qubits[depth];
 
-    for &graph_row in &context.candidate_rows[depth] {
-        if used_graph_rows[graph_row] {
+    for &graph_qubit in &context.candidate_qubits[depth] {
+        if used_graph_qubits[graph_qubit] {
             continue;
         }
 
-        mapping.add_mapping(pattern_row, graph_row);
-        used_graph_rows[graph_row] = true;
+        mapping.add_mapping(pattern_qubit, graph_qubit);
+        used_graph_qubits[graph_qubit] = true;
 
         let found_match = if assigned_edges_match(context, mapping) {
-            search_mapping(context, depth + 1, mapping, used_graph_rows)
+            search_mapping(context, depth + 1, mapping, used_graph_qubits)
         } else {
             None
         };
 
-        used_graph_rows[graph_row] = false;
-        mapping.remove_mapping(pattern_row);
+        used_graph_qubits[graph_qubit] = false;
+        mapping.remove_mapping(pattern_qubit);
 
         if found_match.is_some() {
             return found_match;
@@ -172,67 +173,67 @@ fn finish_match(context: &SearchContext<'_>, mapping: &QubitMapping) -> Option<P
         .then_some(pattern_match)
 }
 
-fn anchor_row_matches(graph: &Graph, rule: &PatternRule, anchor_position: Position) -> bool {
-    // Check the pattern nodes that share the anchor's row, whose graph row is fixed.
-    let anchor_pattern_row = rule.anchor().position().row();
+fn anchor_qubit_matches(graph: &Graph, rule: &PatternRule, anchor_position: Position) -> bool {
+    // Check the pattern nodes that share the anchor's qubit, whose graph qubit is fixed.
+    let anchor_pattern_qubit = rule.anchor().position().qubit();
 
-    pattern_nodes_in_row(rule, anchor_pattern_row).all(|pattern_node| {
+    pattern_nodes_in_qubit(rule, anchor_pattern_qubit).all(|pattern_node| {
         pattern_node_matches_at(
             graph,
             rule,
             anchor_position,
             pattern_node,
-            anchor_position.row(),
+            anchor_position.qubit(),
         )
     })
 }
 
-fn candidate_graph_rows(
+fn candidate_graph_qubits(
     graph: &Graph,
     rule: &PatternRule,
     graph_cache: &GraphCache,
     anchor_position: Position,
-    pattern_row: usize,
+    pattern_qubit: usize,
 ) -> Vec<usize> {
-    // Graph rows that can host the given pattern row, excluding the anchor row.
-    (0..graph.height())
-        .filter(|&graph_row| graph_row != anchor_position.row())
-        .filter(|&graph_row| {
-            graph_row_matches_pattern_row(
+    // Graph rows that can host the given pattern qubit, excluding the anchor qubit.
+    (0..graph.qubit_count())
+        .filter(|&graph_qubit| graph_qubit != anchor_position.qubit())
+        .filter(|&graph_qubit| {
+            graph_qubit_matches_pattern_qubit(
                 graph,
                 rule,
                 graph_cache,
                 anchor_position,
-                pattern_row,
-                graph_row,
+                pattern_qubit,
+                graph_qubit,
             )
         })
         .collect()
 }
 
-fn graph_row_matches_pattern_row(
+fn graph_qubit_matches_pattern_qubit(
     graph: &Graph,
     rule: &PatternRule,
     graph_cache: &GraphCache,
     anchor_position: Position,
-    pattern_row: usize,
-    graph_row: usize,
+    pattern_qubit: usize,
+    graph_qubit: usize,
 ) -> bool {
-    // Whether the graph row can host every pattern node of the given pattern row.
-    // Fast filter: the row must contain every gate type of the pattern row.
-    let Some(rule_row_cache) = rule.lhs_cache().row(pattern_row) else {
+    // Whether the graph qubit can host every pattern node of the given pattern qubit.
+    // Fast filter: the qubit must contain every gate type of the pattern qubit.
+    let Some(rule_qubit_cache) = rule.lhs_cache().qubit(pattern_qubit) else {
         return false;
     };
-    let Some(graph_row_cache) = graph_cache.row(graph_row) else {
+    let Some(graph_qubit_cache) = graph_cache.qubit(graph_qubit) else {
         return false;
     };
-    if !graph_row_cache.is_superset_of(*rule_row_cache) {
+    if !graph_qubit_cache.is_superset_of(*rule_qubit_cache) {
         return false;
     }
 
     // Exact filter: every pattern node must match at its mapped position.
-    pattern_nodes_in_row(rule, pattern_row).all(|pattern_node| {
-        pattern_node_matches_at(graph, rule, anchor_position, pattern_node, graph_row)
+    pattern_nodes_in_qubit(rule, pattern_qubit).all(|pattern_node| {
+        pattern_node_matches_at(graph, rule, anchor_position, pattern_node, graph_qubit)
     })
 }
 
@@ -241,28 +242,28 @@ fn pattern_node_matches_at(
     rule: &PatternRule,
     anchor_position: Position,
     pattern_node: NodeView,
-    graph_row: usize,
+    graph_qubit: usize,
 ) -> bool {
     // Whether the pattern node matches the graph node at its mapped position.
-    let Some(graph_column) =
-        map_pattern_column_to_graph(rule, anchor_position, pattern_node.position().column())
+    let Some(graph_time_step) =
+        map_pattern_time_step_to_graph(rule, anchor_position, pattern_node.position().time_step())
     else {
         return false;
     };
 
     graph
-        .get_node(Position::new(graph_row, graph_column))
+        .get_node(Position::new(graph_qubit, graph_time_step))
         .is_some_and(|graph_node| nodes_match(pattern_node, graph_node))
 }
 
-fn pattern_nodes_in_row(
+fn pattern_nodes_in_qubit(
     rule: &PatternRule,
-    pattern_row: usize,
+    pattern_qubit: usize,
 ) -> impl Iterator<Item = NodeView> + '_ {
-    // The pattern nodes that belong to the given pattern row.
+    // The pattern nodes that belong to the given pattern qubit.
     rule.lhs()
         .iter_nodes()
-        .filter(move |pattern_node| pattern_node.position().row() == pattern_row)
+        .filter(move |pattern_node| pattern_node.position().qubit() == pattern_qubit)
 }
 
 fn assigned_edges_match(context: &SearchContext<'_>, mapping: &QubitMapping) -> bool {
@@ -304,11 +305,11 @@ fn assigned_edge_matches(
     })
 }
 
-fn collect_non_anchor_pattern_rows(rule: &PatternRule) -> Vec<usize> {
-    let anchor_row = rule.anchor().position().row();
+fn collect_non_anchor_pattern_qubits(rule: &PatternRule) -> Vec<usize> {
+    let anchor_qubit = rule.anchor().position().qubit();
 
-    (0..rule.height())
-        .filter(|&row| row != anchor_row)
+    (0..rule.qubit_count())
+        .filter(|&qubit| qubit != anchor_qubit)
         .collect()
 }
 
@@ -356,9 +357,9 @@ fn pattern_region_is_clear(
     mapping: &QubitMapping,
     anchor_graph_position: Position,
 ) -> bool {
-    for row in 0..rule.height() {
-        for column in 0..rule.width() {
-            let pattern_position = Position::new(row, column);
+    for qubit in 0..rule.qubit_count() {
+        for time_step in 0..rule.time_step_count() {
+            let pattern_position = Position::new(qubit, time_step);
 
             if rule.lhs().has_node_at(pattern_position) {
                 continue;
@@ -407,24 +408,24 @@ fn map_pattern_position_to_graph(
     anchor_graph_position: Position,
     pattern_position: Position,
 ) -> Option<Position> {
-    let graph_row = mapping.graph_row(pattern_position.row())?;
+    let graph_qubit = mapping.graph_qubit(pattern_position.qubit())?;
 
-    let graph_column =
-        map_pattern_column_to_graph(rule, anchor_graph_position, pattern_position.column())?;
+    let graph_time_step =
+        map_pattern_time_step_to_graph(rule, anchor_graph_position, pattern_position.time_step())?;
 
-    Some(Position::new(graph_row, graph_column))
+    Some(Position::new(graph_qubit, graph_time_step))
 }
 
-fn map_pattern_column_to_graph(
+fn map_pattern_time_step_to_graph(
     rule: &PatternRule,
     anchor_graph_position: Position,
-    pattern_column: usize,
+    pattern_time_step: usize,
 ) -> Option<usize> {
     let base = anchor_graph_position
-        .column()
-        .checked_sub(rule.anchor().position().column())?;
+        .time_step()
+        .checked_sub(rule.anchor().position().time_step())?;
 
-    base.checked_add(pattern_column)
+    base.checked_add(pattern_time_step)
 }
 
 fn nodes_match(pattern_node: NodeView, graph_node: NodeView) -> bool {

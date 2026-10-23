@@ -12,15 +12,15 @@ pub(super) struct OccupancyMap {
 
 impl OccupancyMap {
     /// Create a new `OccupancyMap` with the specified dimensions.
-    pub(super) fn new(rows: usize, columns: usize) -> Self {
+    pub(super) fn new(qubit_count: usize, time_step_count: usize) -> Self {
         Self {
-            occupied: vec![BitVec::from_elem(columns, false); rows],
+            occupied: vec![BitVec::from_elem(time_step_count, false); qubit_count],
         }
     }
 
     /// Check whether a position is occupied or not.
     pub(super) fn is_occupied(&self, position: Position) -> bool {
-        self.occupied[position.row()][position.column()]
+        self.occupied[position.qubit()][position.time_step()]
     }
 
     /// Check whether a set of positions is occupied or not.
@@ -32,7 +32,7 @@ impl OccupancyMap {
 
     /// Occupy a position.
     pub(super) fn occupy(&mut self, position: Position) {
-        self.occupied[position.row()].set(position.column(), true);
+        self.occupied[position.qubit()].set(position.time_step(), true);
     }
 
     /// Occupy a set of positions.

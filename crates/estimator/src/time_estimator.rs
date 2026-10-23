@@ -22,11 +22,11 @@ pub fn estimate_execution_time(graph: &Graph, shots: usize, profile: &BackendPro
         return truncate_usize_to_f64(shots) * profile.repetition_delay_cost;
     }
 
-    let num_qubits = graph.height();
+    let num_qubits = graph.qubit_count();
     let mut qubit_times = vec![0.0; num_qubits];
     let mut processed_nodes: HashSet<Position> = HashSet::new();
 
-    for node in graph.iter_nodes_ordered_by_column() {
+    for node in graph.iter_nodes_ordered_by_time_step() {
         let position = node.position();
         if processed_nodes.contains(&position) {
             continue;
@@ -41,7 +41,7 @@ pub fn estimate_execution_time(graph: &Graph, shots: usize, profile: &BackendPro
                 continue;
             }
 
-            involved_qubits.push(current_position.row());
+            involved_qubits.push(current_position.qubit());
 
             queue.extend(
                 graph
