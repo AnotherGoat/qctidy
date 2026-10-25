@@ -214,6 +214,8 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "qctidy",
+ "qctidy-codegen",
+ "qctidy-ports",
  "serde_json",
  "sysinfo",
 ]
@@ -2670,7 +2672,6 @@ version = "0.1.0"
 dependencies = [
  "qctidy",
  "qctidy-ports",
- "serde",
 ]
 
 [[package]]
@@ -2682,6 +2683,7 @@ dependencies = [
  "clap",
  "getset",
  "qctidy",
+ "qctidy-analyzer",
  "qctidy-codegen",
  "qctidy-converter",
  "qctidy-facade",
@@ -2699,6 +2701,7 @@ version = "0.1.0"
 dependencies = [
  "qctidy",
  "qctidy-ports",
+ "qctidy-python-ast",
 ]
 
 [[package]]
@@ -2737,7 +2740,11 @@ dependencies = [
  "getset",
  "newgen",
  "qctidy",
+ "qctidy-analyzer",
+ "qctidy-codegen",
+ "qctidy-converter",
  "qctidy-ports",
+ "qctidy-python-ast",
 ]
 
 [[package]]
@@ -2745,6 +2752,7 @@ name = "qctidy-ports"
 version = "0.1.0"
 dependencies = [
  "qctidy",
+ "serde",
  "thiserror 2.0.20",
 ]
 

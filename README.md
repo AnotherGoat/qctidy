@@ -27,6 +27,7 @@ Detailed benchmark results are published in the [`benchmarks` branch](https://gi
   - [Supported Gates](#supported-gates)
 - [Contributing](#contributing)
   - [Coding Conventions](#coding-conventions)
+- [Profiling](#profiling)
 - [License](#license)
 
 ## Features
@@ -275,6 +276,12 @@ Each gate has a canonical name, and parsers also accept the aliases listed below
 ### Coding Conventions
 
 Check the [CONVENTIONS.md](docs/CONVENTIONS.md) file for a detailed list of repository and coding conventions.
+
+## Profiling
+
+To profile the code and find hot spots, see [docs/PROFILING.md](docs/PROFILING.md).
+It covers installing [samply](https://github.com/mstange/samply), generating a
+reproducible large circuit, and reading the resulting flame graph.
 
 ## License
 

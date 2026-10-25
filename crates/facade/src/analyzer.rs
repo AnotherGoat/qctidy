@@ -3,9 +3,7 @@ use std::sync::Arc;
 use getset::{CloneGetters, CopyGetters};
 use newgen::New;
 use qctidy::{Circuit, Graph};
-use qctidy_ports::{
-    AnalysisError, AnalysisMode, AnalysisResult, AnalyzerPort, DeltaAnalysisResult,
-};
+use qctidy_ports::{AnalysisMode, AnalysisResult, AnalyzerPort, DeltaAnalysisResult};
 
 #[derive(Debug, Clone, CloneGetters, CopyGetters, New)]
 #[new(pub, const)]
@@ -45,27 +43,15 @@ pub struct ComparisonResponse {
     result: DeltaAnalysisResult,
 }
 
-pub fn analyze<A: AnalyzerPort>(
-    request: &AnalysisRequest,
-    analyzer: &A,
-) -> Result<AnalysisResponse, AnalysisError> {
+pub fn analyze<A: AnalyzerPort>(request: &AnalysisRequest, analyzer: &A) -> AnalysisResponse {
     let graph = Graph::from(request.circuit().as_ref());
 
-    Ok(AnalysisResponse::new(
-        analyzer.analyze(&graph, request.mode()),
-    ))
+    AnalysisResponse::new(analyzer.analyze(&graph, request.mode()))
 }
 
-pub fn compare<A: AnalyzerPort>(
-    request: &ComparisonRequest,
-    analyzer: &A,
-) -> Result<ComparisonResponse, AnalysisError> {
+pub fn compare<A: AnalyzerPort>(request: &ComparisonRequest, analyzer: &A) -> ComparisonResponse {
     let old_graph = Graph::from(request.old_circuit().as_ref());
     let new_graph = Graph::from(request.new_circuit().as_ref());
 
-    Ok(ComparisonResponse::new(analyzer.compare(
-        &old_graph,
-        &new_graph,
-        request.mode(),
-    )))
+    ComparisonResponse::new(analyzer.compare(&old_graph, &new_graph, request.mode()))
 }

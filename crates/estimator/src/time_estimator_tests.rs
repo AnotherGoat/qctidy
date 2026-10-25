@@ -1,4 +1,4 @@
-use qctidy::{GateType, GraphBuilder};
+use qctidy::{GateType, GraphBuilder, math::are_floats_equal};
 
 use crate::models::BackendProfile;
 use crate::time_estimator::{estimate_execution_time, get_gate_cost};
@@ -7,9 +7,15 @@ use crate::time_estimator::{estimate_execution_time, get_gate_cost};
 fn gets_gate_cost_from_backend_profile() {
     let profile = BackendProfile::default();
 
-    assert_eq!(get_gate_cost(GateType::H, &profile), 1.0);
-    assert_eq!(get_gate_cost(GateType::CX, &profile), 15.0);
-    assert_eq!(get_gate_cost(GateType::CCX, &profile), 80.0);
+    assert!(are_floats_equal(get_gate_cost(GateType::H, &profile), 1.0));
+    assert!(are_floats_equal(
+        get_gate_cost(GateType::CX, &profile),
+        15.0
+    ));
+    assert!(are_floats_equal(
+        get_gate_cost(GateType::CCX, &profile),
+        80.0
+    ));
 }
 
 #[test]
@@ -25,5 +31,5 @@ fn estimates_execution_time_with_parallel_gates() {
 
     let time = estimate_execution_time(&graph, shots, &profile);
 
-    assert_eq!(time, 1160.0);
+    assert!(are_floats_equal(time, 1160.0));
 }

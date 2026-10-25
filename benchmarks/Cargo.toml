@@ -12,11 +12,13 @@ keywords.workspace = true
 categories = ["science", "development-tools"]
 
 [dependencies]
+qctidy = { path = "../crates/library" }
+qctidy-codegen = { path = "../crates/codegen" }
+qctidy-ports = { path = "../crates/ports" }
 serde_json = { workspace = true }
 sysinfo = { workspace = true }
 
 [dev-dependencies]
-qctidy = { path = "../crates/library" }
 criterion = { workspace = true }
 
 [[bench]]

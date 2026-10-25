@@ -18,6 +18,9 @@ doctest = false
 qctidy = { path = "../library" }
 qctidy-ports = { path = "../ports" }
 
+[dev-dependencies]
+qctidy-python-ast = { path = "../python_ast" }
+
 [features]
 default = [
     "codegen-qiskit",

@@ -9,6 +9,43 @@ pub(crate) struct GraphAsserter<'a> {
 }
 
 impl<'a> GraphAsserter<'a> {
+    /// Assert every basic property of the graph.
+    ///
+    /// This validates the graph (structure and semantics) and checks that the
+    /// derived counts, dimensions, and node lookups are internally consistent.
+    pub(crate) fn is_consistent(&self) -> &Self {
+        self.graph
+            .validate()
+            .expect("The graph should be structurally and semantically valid");
+
+        let node_count = self.graph.iter_nodes().count();
+
+        assert_eq!(self.graph.node_count(), node_count);
+        assert_eq!(
+            self.graph.operation_count(),
+            self.graph.gate_count() + self.graph.measurement_count()
+        );
+        assert_eq!(self.graph.is_empty(), node_count == 0);
+        assert_eq!(self.graph.has_no_operations(), node_count == 0);
+
+        for node in self.graph.iter_nodes() {
+            let position = node.position();
+
+            assert!(
+                position.qubit() < self.graph.qubit_count(),
+                "Node qubit must be inside the graph"
+            );
+            assert!(
+                position.time_step() < self.graph.time_step_count(),
+                "Node time step must be inside the graph"
+            );
+            assert!(self.graph.has_node_at(position));
+            assert_eq!(self.graph.get_node(position), Some(node));
+        }
+
+        self
+    }
+
     pub(crate) fn is_empty(&self) -> &Self {
         assert!(self.graph.is_empty());
         self
@@ -16,6 +53,21 @@ impl<'a> GraphAsserter<'a> {
 
     pub(crate) fn has_node_count(&self, node_count: usize) -> &Self {
         assert_eq!(self.graph.node_count(), node_count);
+        self
+    }
+
+    pub(crate) fn has_operation_count(&self, operation_count: usize) -> &Self {
+        assert_eq!(self.graph.operation_count(), operation_count);
+        self
+    }
+
+    pub(crate) fn has_gate_count(&self, gate_count: usize) -> &Self {
+        assert_eq!(self.graph.gate_count(), gate_count);
+        self
+    }
+
+    pub(crate) fn has_measurement_count(&self, measurement_count: usize) -> &Self {
+        assert_eq!(self.graph.measurement_count(), measurement_count);
         self
     }
 
@@ -35,10 +87,25 @@ impl<'a> GraphAsserter<'a> {
     }
 
     pub(crate) fn node_at(&self, position: Position) -> NodeAsserter<'a> {
+        assert!(
+            self.graph.has_node_at(position),
+            "Expected a node at {position:?}"
+        );
+
         NodeAsserter {
             graph: self.graph,
             position,
         }
+    }
+
+    pub(crate) fn no_node_at(&self, position: Position) -> &Self {
+        assert!(
+            !self.graph.has_node_at(position),
+            "Expected no node at {position:?}"
+        );
+        assert!(self.graph.get_node(position).is_none());
+
+        self
     }
 }
 
@@ -91,6 +158,21 @@ impl NodeAsserter<'_> {
         self
     }
 
+    pub(crate) fn has_left(self, expected: Position) -> Self {
+        let actual = self
+            .contextual_view()
+            .left()
+            .as_ref()
+            .map(NodeView::position);
+        assert_eq!(actual, Some(expected));
+        self
+    }
+
+    pub(crate) fn has_no_left(self) -> Self {
+        assert!(self.contextual_view().left().is_none());
+        self
+    }
+
     pub(crate) fn targets(self, expected: &[Position]) -> Self {
         compare_positions(
             self.contextual_view()
@@ -125,6 +207,32 @@ impl NodeAsserter<'_> {
             .as_ref()
             .map(NodeView::position);
         assert_eq!(actual, Some(expected));
+        self
+    }
+
+    pub(crate) fn controlled_by(self, expected: &[Position]) -> Self {
+        compare_positions(
+            self.contextual_view()
+                .controlled_by()
+                .iter()
+                .map(NodeView::position),
+            expected,
+        );
+        self
+    }
+
+    pub(crate) fn controlled_by_none(self) -> Self {
+        assert!(self.contextual_view().controlled_by().is_empty());
+        self
+    }
+
+    pub(crate) fn works_with_none(self) -> Self {
+        assert!(self.contextual_view().works_with().is_empty());
+        self
+    }
+
+    pub(crate) fn swaps_with_none(self) -> Self {
+        assert!(self.contextual_view().swaps_with().is_none());
         self
     }
 

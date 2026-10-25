@@ -19,7 +19,7 @@ fn empty_graph_builder_builds_empty_valid_graph() {
         .has_qubit_count(0)
         .has_bit_count(0);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -34,9 +34,9 @@ fn graph_builder_with_initial_size() {
         .has_qubit_count(1)
         .has_bit_count(0);
 
-    size1.validate_internal();
+    asserter1.is_consistent();
 
-    let size2: crate::Graph = GraphBuilder::new(2).build();
+    let size2 = GraphBuilder::new(2).build();
     let asserter2 = GraphAsserter::new(&size2);
 
     asserter2
@@ -46,7 +46,7 @@ fn graph_builder_with_initial_size() {
         .has_qubit_count(2)
         .has_bit_count(0);
 
-    size2.validate_internal();
+    asserter2.is_consistent();
 }
 
 #[test]
@@ -62,9 +62,8 @@ fn push_id_is_not_noop() {
         .has_node_count(3)
         .has_time_step_count(2)
         .has_qubit_count(2)
-        .has_bit_count(0);
-
-    graph.validate_internal();
+        .has_bit_count(0)
+        .is_consistent();
 }
 
 #[test]
@@ -76,12 +75,20 @@ fn push_single_gate_calculates_time_step() {
         .has_node_count(2)
         .has_time_step_count(2)
         .has_qubit_count(1)
-        .has_bit_count(0);
+        .has_bit_count(0)
+        .is_consistent();
 
-    asserter.node_at(Position::new(0, 0)).is(H);
-    asserter.node_at(Position::new(0, 1)).is(X);
-
-    graph.validate_internal();
+    asserter
+        .node_at(Position::new(0, 0))
+        .is(H)
+        .has_no_left()
+        .controlled_by_none()
+        .works_with_none()
+        .swaps_with_none();
+    asserter
+        .node_at(Position::new(0, 1))
+        .is(X)
+        .has_left(Position::new(0, 0));
 }
 
 #[test]
@@ -97,19 +104,18 @@ fn push_single_gates_links_qubit_neighbors() {
         .has_node_count(3)
         .has_time_step_count(3)
         .has_qubit_count(1)
-        .has_bit_count(0);
+        .has_bit_count(0)
+        .is_consistent();
 
     let x = Position::new(0, 0);
     let y = Position::new(0, 1);
     let z = Position::new(0, 2);
 
-    asserter.node_at(x).has_right(y);
+    asserter.node_at(x).has_right(y).has_no_left();
 
-    asserter.node_at(y).has_right(z);
+    asserter.node_at(y).has_right(z).has_left(x);
 
-    asserter.node_at(z).has_no_right();
-
-    graph.validate_internal();
+    asserter.node_at(z).has_no_right().has_left(y);
 }
 
 #[test]
@@ -128,7 +134,8 @@ fn push_single_gates_in_different_qubits() {
         .has_node_count(6)
         .has_time_step_count(2)
         .has_qubit_count(3)
-        .has_bit_count(0);
+        .has_bit_count(0)
+        .is_consistent();
 
     let s = Position::new(0, 0);
     let sdg = Position::new(0, 1);
@@ -148,8 +155,6 @@ fn push_single_gates_in_different_qubits() {
     asserter.node_at(t).is(T).has_right(tdg);
 
     asserter.node_at(tdg).is(TDG).has_no_right();
-
-    graph.validate_internal();
 }
 
 #[test]
@@ -171,7 +176,8 @@ fn push_rotation_and_measure_gates_store_payloads() {
         .has_node_count(5)
         .has_time_step_count(2)
         .has_qubit_count(3)
-        .has_bit_count(1);
+        .has_bit_count(1)
+        .is_consistent();
 
     asserter
         .node_at(Position::new(0, 0))
@@ -202,8 +208,6 @@ fn push_rotation_and_measure_gates_store_payloads() {
         .is(Measure)
         .has_no_angle()
         .has_bit(0);
-
-    graph.validate_internal();
 }
 
 #[test]
@@ -215,12 +219,11 @@ fn push_control_creates_multiple_nodes() {
         .has_node_count(2)
         .has_time_step_count(1)
         .has_qubit_count(2)
-        .has_bit_count(0);
+        .has_bit_count(0)
+        .is_consistent();
 
     asserter.node_at(Position::new(0, 0)).is(CH);
     asserter.node_at(Position::new(1, 0)).is(CH);
-
-    graph.validate_internal();
 }
 
 #[test]
@@ -237,7 +240,8 @@ fn push_control_creates_relationships() {
         .has_node_count(4)
         .has_time_step_count(2)
         .has_qubit_count(2)
-        .has_bit_count(0);
+        .has_bit_count(0)
+        .is_consistent();
 
     let left_control = Position::new(0, 0);
     let left_target = Position::new(1, 0);
@@ -245,9 +249,14 @@ fn push_control_creates_relationships() {
     asserter
         .node_at(left_control)
         .is(CX)
-        .targets(&[left_target]);
+        .targets(&[left_target])
+        .controlled_by_none();
 
-    asserter.node_at(left_target).is(CX).targets_none();
+    asserter
+        .node_at(left_target)
+        .is(CX)
+        .targets_none()
+        .controlled_by(&[left_control]);
 
     let right_control = Position::new(1, 1);
     let right_target = Position::new(0, 1);
@@ -255,11 +264,14 @@ fn push_control_creates_relationships() {
     asserter
         .node_at(right_control)
         .is(CY)
-        .targets(&[right_target]);
+        .targets(&[right_target])
+        .controlled_by_none();
 
-    asserter.node_at(right_target).is(CY).targets_none();
-
-    graph.validate_internal();
+    asserter
+        .node_at(right_target)
+        .is(CY)
+        .targets_none()
+        .controlled_by(&[right_control]);
 }
 
 #[test]
@@ -279,7 +291,7 @@ fn push_swap_builds_swap_pair() {
     asserter.node_at(node1).is(Swap).swaps_with(node2);
     asserter.node_at(node2).is(Swap).swaps_with(node1);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -312,7 +324,7 @@ fn push_cz_builds_symmetric_edges() {
 
     asserter.node_at(right2).is(CZ).works_with(&[right1]);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -361,7 +373,7 @@ fn push_cp_builds_edges_and_payload() {
         .has_angle(-PI)
         .works_with(&[right2]);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -396,7 +408,7 @@ fn push_cswap_builds_control_and_swap_edges() {
         .targets_none()
         .swaps_with(target1);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -428,7 +440,7 @@ fn push_ccx_builds_two_control_qubits() {
 
     asserter.node_at(target).is(CCX).targets_none();
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -452,7 +464,7 @@ fn push_ccz_builds_triple_symmetric_edges() {
 
     asserter.node_at(node3).is(CCZ).works_with(&[node1, node2]);
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]
@@ -614,7 +626,7 @@ fn push_u_stores_payloads() {
         .has_angle(theta)
         .has_no_bit();
 
-    graph.validate_internal();
+    asserter.is_consistent();
 }
 
 #[test]

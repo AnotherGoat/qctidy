@@ -1,12 +1,10 @@
 use axum::extract::Json;
 use qctidy_analyzer::AnalyzerAdapter;
 use qctidy_facade::AnalysisRequest;
-use qctidy_ports::DetailedAnalysisMetrics;
 use qctidy_ports::{AnalysisMode, AnalysisResult};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
-use serde_json::json;
 use utoipa::ToSchema;
 
 use crate::circuit;
@@ -47,12 +45,12 @@ pub(crate) async fn handler(
         circuit::from_json(&body.circuit)?,
         parse_mode(body.mode.as_deref())?,
     );
-    let response = qctidy_facade::analyze(&request, &AnalyzerAdapter)
-        .map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response = qctidy_facade::analyze(&request, &AnalyzerAdapter);
     let metrics = match response.result() {
-        Simple(metrics) => metrics_to_json(metrics),
-        Detailed(metrics) => detailed_metrics_to_json(metrics),
-    };
+        Simple(metrics) => serde_json::to_value(metrics),
+        Detailed(metrics) => serde_json::to_value(metrics),
+    }
+    .expect("metrics should serialize");
 
     Ok(Json(AnalyzeCircuitResponse { metrics }))
 }
@@ -65,63 +63,4 @@ pub(crate) fn parse_mode(mode: Option<&str>) -> Result<AnalysisMode, ApiError> {
             "Unknown analysis mode: {other}"
         ))),
     }
-}
-
-pub(crate) fn metrics_to_json(metrics: qctidy_ports::AnalysisMetrics) -> Value {
-    json!({
-        "qubit_count": metrics.qubit_count,
-        "time_step_count": metrics.time_step_count,
-        "x_count": metrics.x_count,
-        "y_count": metrics.y_count,
-        "z_count": metrics.z_count,
-        "pauli_count": metrics.pauli_count,
-        "hadamard_count": metrics.hadamard_count,
-        "rotation_count": metrics.rotation_count,
-        "square_root_count": metrics.square_root_count,
-        "measured_qubit_count": metrics.measured_qubit_count,
-        "swap_count": metrics.swap_count,
-        "cx_count": metrics.cx_count,
-        "operation_count": metrics.operation_count,
-        "gate_count": metrics.gate_count,
-        "measurement_count": metrics.measurement_count,
-        "single_gate_count": metrics.single_gate_count,
-        "controlled_gate_count": metrics.controlled_gate_count,
-        "unmeasured_qubit_count": metrics.unmeasured_qubit_count,
-        "gate_types_count": metrics.gate_types_count,
-    })
-}
-
-pub(crate) fn detailed_metrics_to_json(metrics: DetailedAnalysisMetrics) -> Value {
-    json!({
-        "qubit_count": metrics.qubit_count,
-        "time_step_count": metrics.time_step_count,
-        "max_density": metrics.max_density,
-        "average_density": metrics.average_density,
-        "x_count": metrics.x_count,
-        "y_count": metrics.y_count,
-        "z_count": metrics.z_count,
-        "pauli_count": metrics.pauli_count,
-        "hadamard_count": metrics.hadamard_count,
-        "initial_superposition_percent": metrics.initial_superposition_percent,
-        "other_single_gate_count": metrics.other_single_gate_count,
-        "single_gate_count": metrics.single_gate_count,
-        "single_controlled_gate_count": metrics.single_controlled_gate_count,
-        "swap_count": metrics.swap_count,
-        "cnot_count": metrics.cnot_count,
-        "cnot_qubit_percent": metrics.cnot_qubit_percent,
-        "average_cnot": metrics.average_cnot,
-        "max_cnot_count": metrics.max_cnot_count,
-        "toffoli_count": metrics.toffoli_count,
-        "toffoli_qubit_percent": metrics.toffoli_qubit_percent,
-        "average_toffoli": metrics.average_toffoli,
-        "max_toffoli_count": metrics.max_toffoli_count,
-        "operation_count": metrics.operation_count,
-        "gate_count": metrics.gate_count,
-        "measurement_count": metrics.measurement_count,
-        "controlled_gate_count": metrics.controlled_gate_count,
-        "single_gate_percent": metrics.single_gate_percent,
-        "measured_qubit_count": metrics.measured_qubit_count,
-        "measure_percent": metrics.measure_percent,
-        "unmeasured_qubit_percent": metrics.unmeasured_qubit_percent,
-    })
 }

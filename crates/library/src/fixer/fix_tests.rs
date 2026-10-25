@@ -1,6 +1,6 @@
 use crate::{
     GateOperation, GateType, GraphBuilder, Position, RuleConfiguration, RuleSeverity, fixer,
-    fixer::fixer_mother,
+    fixer::fixer_mother, random,
 };
 
 #[test]
@@ -94,8 +94,7 @@ fn angles_very_close_to_zero_are_removed() {
 
     fixer_mother::default().fix(&mut graph, 10);
 
-    let nodes: Vec<_> = graph.iter_nodes_ordered_by_time_step().collect();
-    assert_eq!(nodes.len(), 0);
+    assert_eq!(graph.iter_nodes_ordered_by_time_step().count(), 0);
 }
 
 #[test]
@@ -159,7 +158,7 @@ fn fix_preserves_matrix_equivalence() {
     let mut any_changed = false;
 
     for seed in 0..40 {
-        let graph = crate::random::generate(seed, 20, 4);
+        let graph = random::generate(seed, 20, 4);
         let fixed = fixer::fix(graph.clone(), 10);
 
         assert!(

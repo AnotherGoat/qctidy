@@ -1,5 +1,6 @@
 use crate::{
     GateType, Graph, GraphBuilder, PatternRule, Position, Rule,
+    domain::graph::graph_asserter::GraphAsserter,
     fixer::rule::{
         default::{control_reversal, redundancy},
         registry::DEFAULT_RULE_REGISTRY,
@@ -26,6 +27,7 @@ fn replace_default_pattern_rules() {
 
             let changed = pattern_rule.apply(&mut lhs);
             assert!(changed);
+            GraphAsserter::new(&lhs).is_consistent();
             assert_eq!(lhs, *rhs);
         }
     }
@@ -45,6 +47,7 @@ fn replace_default_pattern_rules_at_offsets() {
             let expected = shift(pattern_rule.rhs(), row_offset, column_offset);
 
             let changed = pattern_rule.apply(&mut graph);
+            GraphAsserter::new(&graph).is_consistent();
 
             assert!(
                 changed,
@@ -104,6 +107,7 @@ fn replacement_is_placed_relative_to_the_matched_anchor() {
         .build();
 
     assert!(rule.apply(&mut graph));
+    GraphAsserter::new(&graph).is_consistent();
 
     let expected = GraphBuilder::new(2)
         .push_id(0)
@@ -132,6 +136,7 @@ fn replacement_is_placed_relative_to_the_matched_qubits() {
         .build();
 
     assert!(rule.apply(&mut graph));
+    GraphAsserter::new(&graph).is_consistent();
 
     let expected = GraphBuilder::new(3)
         .push_id(0)
@@ -151,6 +156,7 @@ fn deletion_rule_removes_a_shifted_match() {
     let mut graph = GraphBuilder::new(1).push_x(0).push_h(0).push_h(0).build();
 
     assert!(rule.apply(&mut graph));
+    GraphAsserter::new(&graph).is_consistent();
 
     let nodes: Vec<_> = graph
         .iter_nodes_ordered_by_time_step()
@@ -172,6 +178,7 @@ fn deletion_reconnects_neighbors_across_gaps() {
     add_connected_node(&mut graph, GateType::X, Position::new(0, 5));
 
     assert!(rule.apply(&mut graph));
+    GraphAsserter::new(&graph).is_consistent();
 
     let mut expected = Graph::default();
     add_connected_node(&mut expected, GateType::X, Position::new(0, 0));

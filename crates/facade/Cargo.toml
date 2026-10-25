@@ -20,6 +20,12 @@ qctidy-ports = { path = "../ports" }
 getset = { workspace = true }
 newgen = { workspace = true }
 
+[dev-dependencies]
+qctidy-analyzer = { path = "../analyzer" }
+qctidy-codegen = { path = "../codegen" }
+qctidy-converter = { path = "../converter" }
+qctidy-python-ast = { path = "../python_ast" }
+
 [features]
 default = [
     "analyzer",

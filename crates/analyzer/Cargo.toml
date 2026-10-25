@@ -17,7 +17,6 @@ doctest = false
 [dependencies]
 qctidy = { path = "../library" }
 qctidy-ports = { path = "../ports" }
-serde = { workspace = true, features = ["derive"] }
 
 [features]
 default = ["analyzer"]

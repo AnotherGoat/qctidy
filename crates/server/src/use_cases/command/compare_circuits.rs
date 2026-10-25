@@ -1,12 +1,9 @@
 use axum::extract::Json;
 use qctidy_analyzer::AnalyzerAdapter;
 use qctidy_facade::ComparisonRequest;
-use qctidy_ports::DeltaAnalysisMetrics;
 use qctidy_ports::DeltaAnalysisResult;
-use qctidy_ports::DeltaDetailedAnalysisMetrics;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::Map;
 use serde_json::Value;
 use utoipa::ToSchema;
 
@@ -60,123 +57,12 @@ pub(crate) async fn handler(
         circuit::from_json(&body.new_circuit)?,
         super::analyze_circuit::parse_mode(body.mode.as_deref())?,
     );
-    let response = qctidy_facade::compare(&request, &AnalyzerAdapter)
-        .map_err(|error| ApiError::Internal(error.to_string()))?;
+    let response = qctidy_facade::compare(&request, &AnalyzerAdapter);
     let metrics = match response.result() {
-        Simple(metrics) => delta_to_json(&metrics),
-        Detailed(metrics) => detailed_delta_to_json(&metrics),
-    };
+        Simple(metrics) => serde_json::to_value(metrics),
+        Detailed(metrics) => serde_json::to_value(metrics),
+    }
+    .expect("metrics should serialize");
 
     Ok(Json(CompareCircuitsResponse { metrics }))
-}
-
-fn delta_to_json(metrics: &DeltaAnalysisMetrics) -> Value {
-    let mut json = Map::new();
-    insert_delta(&mut json, "qubit_count", metrics.qubit_count);
-    insert_delta(&mut json, "time_step_count", metrics.time_step_count);
-    insert_delta(&mut json, "x_count", metrics.x_count);
-    insert_delta(&mut json, "y_count", metrics.y_count);
-    insert_delta(&mut json, "z_count", metrics.z_count);
-    insert_delta(&mut json, "pauli_count", metrics.pauli_count);
-    insert_delta(&mut json, "hadamard_count", metrics.hadamard_count);
-    insert_delta(&mut json, "rotation_count", metrics.rotation_count);
-    insert_delta(&mut json, "square_root_count", metrics.square_root_count);
-    insert_delta(
-        &mut json,
-        "measured_qubit_count",
-        metrics.measured_qubit_count,
-    );
-    insert_delta(&mut json, "swap_count", metrics.swap_count);
-    insert_delta(&mut json, "cx_count", metrics.cx_count);
-    insert_delta(&mut json, "operation_count", metrics.operation_count);
-    insert_delta(&mut json, "gate_count", metrics.gate_count);
-    insert_delta(&mut json, "measurement_count", metrics.measurement_count);
-    insert_delta(&mut json, "single_gate_count", metrics.single_gate_count);
-    insert_delta(
-        &mut json,
-        "controlled_gate_count",
-        metrics.controlled_gate_count,
-    );
-    insert_delta(
-        &mut json,
-        "unmeasured_qubit_count",
-        metrics.unmeasured_qubit_count,
-    );
-    insert_delta(&mut json, "gate_types_count", metrics.gate_types_count);
-    Value::Object(json)
-}
-
-fn detailed_delta_to_json(metrics: &DeltaDetailedAnalysisMetrics) -> Value {
-    let mut json = Map::new();
-    insert_delta(&mut json, "qubit_count", metrics.qubit_count);
-    insert_delta(&mut json, "time_step_count", metrics.time_step_count);
-    insert_delta(&mut json, "max_density", metrics.max_density);
-    insert_delta(&mut json, "average_density", metrics.average_density);
-    insert_delta(&mut json, "x_count", metrics.x_count);
-    insert_delta(&mut json, "y_count", metrics.y_count);
-    insert_delta(&mut json, "z_count", metrics.z_count);
-    insert_delta(&mut json, "pauli_count", metrics.pauli_count);
-    insert_delta(&mut json, "hadamard_count", metrics.hadamard_count);
-    insert_delta(
-        &mut json,
-        "initial_superposition_percent",
-        metrics.initial_superposition_percent,
-    );
-    insert_delta(
-        &mut json,
-        "other_single_gate_count",
-        metrics.other_single_gate_count,
-    );
-    insert_delta(&mut json, "single_gate_count", metrics.single_gate_count);
-    insert_delta(
-        &mut json,
-        "single_controlled_gate_count",
-        metrics.single_controlled_gate_count,
-    );
-    insert_delta(&mut json, "swap_count", metrics.swap_count);
-    insert_delta(&mut json, "cnot_count", metrics.cnot_count);
-    insert_delta(&mut json, "cnot_qubit_percent", metrics.cnot_qubit_percent);
-    insert_delta(&mut json, "average_cnot", metrics.average_cnot);
-    insert_delta(&mut json, "max_cnot_count", metrics.max_cnot_count);
-    insert_delta(&mut json, "toffoli_count", metrics.toffoli_count);
-    insert_delta(
-        &mut json,
-        "toffoli_qubit_percent",
-        metrics.toffoli_qubit_percent,
-    );
-    insert_delta(&mut json, "average_toffoli", metrics.average_toffoli);
-    insert_delta(&mut json, "max_toffoli_count", metrics.max_toffoli_count);
-    insert_delta(&mut json, "operation_count", metrics.operation_count);
-    insert_delta(&mut json, "gate_count", metrics.gate_count);
-    insert_delta(&mut json, "measurement_count", metrics.measurement_count);
-    insert_delta(
-        &mut json,
-        "controlled_gate_count",
-        metrics.controlled_gate_count,
-    );
-    insert_delta(
-        &mut json,
-        "single_gate_percent",
-        metrics.single_gate_percent,
-    );
-    insert_delta(
-        &mut json,
-        "measured_qubit_count",
-        metrics.measured_qubit_count,
-    );
-    insert_delta(&mut json, "measure_percent", metrics.measure_percent);
-    insert_delta(
-        &mut json,
-        "unmeasured_qubit_percent",
-        metrics.unmeasured_qubit_percent,
-    );
-    Value::Object(json)
-}
-
-fn insert_delta<T: Serialize>(json: &mut Map<String, Value>, key: &str, value: Option<T>) {
-    if let Some(value) = value
-        && let Ok(value) = serde_json::to_value(value)
-    {
-        json.insert(key.to_owned(), value);
-    }
 }

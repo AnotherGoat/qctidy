@@ -23,6 +23,8 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     /// Analyze a Python file and dump its circuits as JSON.
     Ast(AstArguments),
+    /// Analyze circuits and report their metrics.
+    Analyze(AnalyzeArguments),
     /// Report fixable diagnostics in circuits without modifying them.
     Check(CheckArguments),
     /// Convert a circuit between formats.
@@ -43,6 +45,46 @@ pub(crate) struct AstArguments {
     input: Option<PathBuf>,
 
     /// File to write the analysis to (writes to standard output when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    #[get = "pub(crate)"]
+    output: Option<PathBuf>,
+}
+
+#[derive(Debug, Args, Getters, CopyGetters)]
+pub(crate) struct AnalyzeArguments {
+    /// Circuit files to analyze (reads from standard input when omitted).
+    #[arg(short, long, value_name = "FILE")]
+    #[get = "pub(crate)"]
+    input: Vec<PathBuf>,
+
+    /// Input format, overriding the guessed format.
+    ///
+    /// Accepted values: json, xml, msgpack, cbor.
+    #[arg(long, value_name = "FORMAT", value_parser = parse_conversion_format)]
+    #[get_copy = "pub(crate)"]
+    input_format: Option<ConversionFormat>,
+
+    /// Name reported for standard input, instead of `<stdin>`.
+    #[arg(long, value_name = "NAME")]
+    #[get = "pub(crate)"]
+    input_name: Option<String>,
+
+    /// Select a single circuit from a Python file, by variable name or `name:line`.
+    #[arg(long, value_name = "NAME")]
+    #[get = "pub(crate)"]
+    circuit: Option<String>,
+
+    /// Include detailed metrics, such as density and gate ratios.
+    #[arg(long)]
+    #[get_copy = "pub(crate)"]
+    detailed: bool,
+
+    /// Format used to report the results.
+    #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
+    #[get_copy = "pub(crate)"]
+    output_format: OutputFormat,
+
+    /// File to write the report to (writes to standard output when omitted).
     #[arg(short, long, value_name = "FILE")]
     #[get = "pub(crate)"]
     output: Option<PathBuf>,
