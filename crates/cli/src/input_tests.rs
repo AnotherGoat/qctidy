@@ -50,3 +50,29 @@ fn contents_guess_json_and_xml() {
     );
     assert_eq!(guess_from_contents(b"\x81\xa1a\x01"), None);
 }
+
+#[test]
+fn stdin_with_python_name_is_python() {
+    use std::path::PathBuf;
+    use crate::input::Input;
+
+    let stdin_named_py = Input::resolve(&[])
+        .into_iter()
+        .next()
+        .expect("stdin should resolve")
+        .named(Some("circuit.py"));
+    assert!(stdin_named_py.is_python());
+
+    let file_py = Input::resolve(&[PathBuf::from("circuit.py")])
+        .into_iter()
+        .next()
+        .expect("file should resolve");
+    assert!(file_py.is_python());
+
+    let stdin_unnamed = Input::resolve(&[])
+        .into_iter()
+        .next()
+        .expect("stdin should resolve");
+    assert!(!stdin_unnamed.is_python());
+}
+

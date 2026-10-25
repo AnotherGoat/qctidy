@@ -1,21 +1,62 @@
 import * as vscode from 'vscode';
-import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache } from './cli';
+import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache, runAst, runCheck } from './cli';
+import { convertReportToVsCodeDiagnostics } from './diagnostics';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
 import { QCTidyTreeDataProvider } from './treeDataProvider';
+
+let diagnosticCollection: vscode.DiagnosticCollection | undefined;
+let debounceTimer: NodeJS.Timeout | undefined;
+const DEBOUNCE_DELAY_MS = 400;
 
 export async function activate(context: vscode.ExtensionContext) {
     console.log('QCTidy VS Code extension is now active!');
 
     try {
-        // 1. Registrar el Sidebar (Tree View)
+        // 1. VS Code diagnostic collection to report editor diagnostics
+        diagnosticCollection = vscode.languages.createDiagnosticCollection('qctidy');
+        context.subscriptions.push(diagnosticCollection);
+
+        // 2. Register sidebar tree view
         const treeDataProvider = new QCTidyTreeDataProvider();
         const treeView = vscode.window.createTreeView('qctidy-ast-view', { treeDataProvider });
         context.subscriptions.push(treeView);
 
-        // Canal de salida unificado
+        // Unified output channel
         context.subscriptions.push(cliOutputChannel());
 
-        // Detección del CLI de QCTidy
+        // Central function to update editor diagnostics and sidebar tree data
+        const updateDiagnosticsAndSidebar = async (document: vscode.TextDocument): Promise<void> => {
+            if (document.languageId !== 'python') {
+                return;
+            }
+
+            const status = await detectQctidyVersion();
+            if (!status.available) {
+                diagnosticCollection?.delete(document.uri);
+                return;
+            }
+
+            const source = document.getText();
+            const inputPath = document.uri.fsPath;
+
+            try {
+                const [analysis, report] = await Promise.all([
+                    runAst(source),
+                    runCheck(source, inputPath),
+                ]);
+
+                // Convert and publish diagnostics to the source editor
+                const vsDiagnostics = convertReportToVsCodeDiagnostics(report);
+                diagnosticCollection?.set(document.uri, vsDiagnostics);
+
+                // Fused AST + diagnostics in the sidebar
+                treeDataProvider.setData(analysis, report, source);
+            } catch (error) {
+                console.error('Failed to update diagnostics and AST:', error);
+            }
+        };
+
+        // QCTidy CLI detection
         const checkQctidyStatus = async (showError = true): Promise<void> => {
             const status = await detectQctidyVersion();
             await vscode.commands.executeCommand('setContext', 'qctidy.available', status.available);
@@ -30,12 +71,14 @@ export async function activate(context: vscode.ExtensionContext) {
                         vscode.commands.executeCommand('workbench.action.openSettings', 'qctidy.path');
                     }
                 });
+            } else if (status.available && vscode.window.activeTextEditor?.document.languageId === 'python') {
+                void updateDiagnosticsAndSidebar(vscode.window.activeTextEditor.document);
             }
         };
 
         void checkQctidyStatus(true);
 
-        // Volver a detectar cuando cambie la ruta configurada de QCTidy
+        // Re-detect when the configured QCTidy path changes
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (event.affectsConfiguration('qctidy.path')) {
@@ -45,7 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
             })
         );
 
-        // Detectar la versión de Qiskit (mejor esfuerzo) y mostrarla en la sidebar
+        // Detect Qiskit version (best effort) and display in the sidebar
         let qiskitResource: string | undefined;
 
         const refreshQiskitVersion = (): void => {
@@ -56,25 +99,51 @@ export async function activate(context: vscode.ExtensionContext) {
         };
         refreshQiskitVersion();
 
-        // Volver a detectar cuando cambie el intérprete configurado de Python
+        // Re-detect when the configured Python interpreter changes
         context.subscriptions.push(...watchInterpreter(refreshQiskitVersion));
 
-        // 2. Refrescar el sidebar cuando el usuario cambia de pestaña o edita el texto
-        vscode.window.onDidChangeActiveTextEditor(() => {
-            treeDataProvider.refresh();
+        // 3. Reactivity on active editor changes and text edits with debounce
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (editor && editor.document.languageId === 'python') {
+                void updateDiagnosticsAndSidebar(editor.document);
+            } else {
+                treeDataProvider.refresh();
+            }
 
-            // Si al activar no había editor para resolver el intérprete, reintentar ahora
+            // If no active editor was available on activation to resolve interpreter, retry now
             if (qiskitResource === undefined) {
                 refreshQiskitVersion();
             }
         });
-        vscode.workspace.onDidChangeTextDocument(e => {
-            if (vscode.window.activeTextEditor && e.document === vscode.window.activeTextEditor.document) {
-                treeDataProvider.refresh();
-            }
-        });
 
-        // 3. Comandos de navegación
+        // Debounce text document edits before re-running diagnostics
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeTextDocument((event) => {
+                const activeEditor = vscode.window.activeTextEditor;
+                if (activeEditor && event.document === activeEditor.document && event.document.languageId === 'python') {
+                    if (debounceTimer) {
+                        clearTimeout(debounceTimer);
+                    }
+                    debounceTimer = setTimeout(() => {
+                        void updateDiagnosticsAndSidebar(event.document);
+                    }, DEBOUNCE_DELAY_MS);
+                }
+            })
+        );
+
+        // Clear diagnostics when a text document is closed
+        context.subscriptions.push(
+            vscode.workspace.onDidCloseTextDocument((document) => {
+                diagnosticCollection?.delete(document.uri);
+            })
+        );
+
+        // Initial analysis if an editor is already active
+        if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId === 'python') {
+            void updateDiagnosticsAndSidebar(vscode.window.activeTextEditor.document);
+        }
+
+        // 4. Navigation and reload commands
         const jumpToLine = (line: number, column: number, endLine?: number, endColumn?: number): void => {
             const editor = vscode.window.activeTextEditor;
             if (editor) {
@@ -94,9 +163,11 @@ export async function activate(context: vscode.ExtensionContext) {
                 void checkQctidyStatus(false);
                 treeDataProvider.reload();
                 refreshQiskitVersion();
+                if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.languageId === 'python') {
+                    void updateDiagnosticsAndSidebar(vscode.window.activeTextEditor.document);
+                }
             }),
             vscode.commands.registerCommand('qctidy.jumpToLine', jumpToLine),
-            // Al hacer click, además se expande el nodo si puede
             vscode.commands.registerCommand('qctidy.openNode', async (key: string, line: number, column: number, endLine?: number, endColumn?: number) => {
                 const node = treeDataProvider.findByKey(key);
 
@@ -104,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     try {
                         await treeView.reveal(node, { expand: true });
                     } catch {
-                        // El nodo puede estar obsoleto tras un refresco; saltar a la línea sigue siendo útil.
+                        // The node may be outdated after a refresh; jumping to line is still helpful.
                     }
                 }
 
@@ -117,6 +188,12 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+    if (debounceTimer) {
+        clearTimeout(debounceTimer);
+    }
+    if (diagnosticCollection) {
+        diagnosticCollection.clear();
+        diagnosticCollection.dispose();
+    }
     invalidateQctidyCache();
 }
-

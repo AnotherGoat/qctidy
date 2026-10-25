@@ -110,13 +110,14 @@ impl Input {
     /// Whether this input is a Python source file.
     #[must_use]
     pub(crate) fn is_python(&self) -> bool {
-        match &self.source {
-            Source::Stdin => false,
-            Source::File(path) => path
-                .extension()
-                .and_then(|extension| extension.to_str())
-                .is_some_and(|extension| extension.eq_ignore_ascii_case("py")),
-        }
+        let path = match &self.source {
+            Source::Stdin => Path::new(&self.name),
+            Source::File(path) => path.as_path(),
+        };
+
+        path.extension()
+            .and_then(|extension| extension.to_str())
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("py"))
     }
 }
 

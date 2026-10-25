@@ -183,9 +183,12 @@ export async function detectQctidyVersion(forceRefresh = false): Promise<QctidyS
     return statusPromise;
 }
 
+import type { CheckReport } from './diagnostics';
+
 export interface ExecuteOptions {
     stdin?: string;
     timeoutMs?: number;
+    validExitCodes?: number[];
 }
 
 /**
@@ -200,6 +203,7 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
 
     const executable = status.executable;
     const timeout = options.timeoutMs ?? 10000;
+    const validExitCodes = options.validExitCodes ?? [0];
 
     return new Promise((resolve, reject) => {
         const child = spawn(executable, args, {
@@ -242,7 +246,7 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
                 reject(spawnError);
                 return;
             }
-            if (code !== 0) {
+            if (code === null || !validExitCodes.includes(code)) {
                 reject(new Error(stderr.trim() || `qctidy exited with code ${code}`));
                 return;
             }
@@ -268,3 +272,23 @@ export async function runAst(source: string): Promise<AstAnalysis> {
         throw new Error(`Failed to parse qctidy AST output: ${String(error)}`);
     }
 }
+
+/**
+ * Runs `qctidy check --output-format json --color never --input-name <inputPath>`
+ * passing `source` via stdin, accepting exit codes 0, 1, and 2.
+ */
+export async function runCheck(source: string, inputPath: string): Promise<CheckReport> {
+    const stdout = await executeQctidy(
+        ['check', '--output-format', 'json', '--color', 'never', '--input-name', inputPath],
+        {
+            stdin: source,
+            validExitCodes: [0, 1, 2],
+        }
+    );
+    try {
+        return JSON.parse(stdout) as CheckReport;
+    } catch (error) {
+        throw new Error(`Failed to parse qctidy check output: ${String(error)}`);
+    }
+}
+
