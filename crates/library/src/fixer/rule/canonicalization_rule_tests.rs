@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 
-use crate::{Graph, GraphBuilder, Position, Rule, fixer::rule::default::canonicalization};
+use crate::{
+    Graph, GraphBuilder, Position, Rule, domain::graph::graph_asserter::GraphAsserter,
+    fixer::rule::default::canonicalization,
+};
 
 #[test]
 fn compact_qubits_detects_gap() {
@@ -269,6 +272,7 @@ fn compact_time_steps_preserves_qubit_count() {
 
     let rule = canonicalization::compact_time_steps();
     assert!(rule.apply(&mut graph));
+    GraphAsserter::new(&graph).is_consistent();
 
     assert_eq!(graph.qubit_count(), 3);
     assert!(graph.has_node_at(Position::new(0, 0)));

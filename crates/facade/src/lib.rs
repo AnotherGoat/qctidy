@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod integration_tests;
+
 #[cfg(feature = "analyzer")]
 mod analyzer;
 mod checker;

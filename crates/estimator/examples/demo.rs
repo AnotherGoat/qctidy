@@ -1,3 +1,5 @@
+#![allow(clippy::print_stdout, clippy::unwrap_used)]
+
 use qctidy::GraphBuilder;
 use qctidy_estimator::{
     BackendProfile, calculate_costs, estimate_execution_time, get_pricing_data,
@@ -26,11 +28,8 @@ async fn main() {
     let shots = 1000;
 
     let heuristic_time = estimate_execution_time(&graph, shots, &profile);
-    println!(
-        "The abstract heuristic time is: {} (using the default BackendProfile)",
-        heuristic_time
-    );
-    println!("Number of shots: {}", shots);
+    println!("The abstract heuristic time is: {heuristic_time} (using the default BackendProfile)");
+    println!("Number of shots: {shots}");
     println!(
         "Equivalent to: {:.6} real seconds.",
         (heuristic_time * profile.base_time_ns) / 1_000_000_000.0

@@ -1,5 +1,6 @@
 #![allow(clippy::exit, clippy::print_stderr, clippy::print_stdout)]
 
+mod analyze;
 mod arguments;
 mod ast;
 mod check;
@@ -34,6 +35,7 @@ fn main() -> ExitCode {
 
     match cli.get_command() {
         Command::Ast(arguments) => ast::run(arguments, color),
+        Command::Analyze(arguments) => analyze::run(arguments, color),
         Command::Check(arguments) => check::run(arguments, color),
         Command::Convert(arguments) => convert::run(arguments, color),
         Command::Display(arguments) => display::run(arguments, color),

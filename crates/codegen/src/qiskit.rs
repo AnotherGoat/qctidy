@@ -106,7 +106,10 @@ fn generate_gate(
             generate_rotation_gate(circuit_name, phi, qubit, operation, imports, build_steps);
         }
         SY { qubit } => {
-            imports.push("from qiskit.circuit.library.standard_gates import YGate".to_owned());
+            add_import(
+                imports,
+                "from qiskit.circuit.library.standard_gates import YGate",
+            );
 
             build_steps.push(format!(
                 "{circuit_name}.append(YGate().power(1 / 2), [{qubit}])"
@@ -118,8 +121,6 @@ fn generate_gate(
             lambda,
             qubit,
         } => {
-            imports.push("from qiskit.circuit.library.standard_gates import UGate".to_owned());
-
             let formatted_theta = format_angle(theta, AngleFormat::Code, PI_FORMAT);
             let formatted_phi = format_angle(phi, AngleFormat::Code, PI_FORMAT);
             let formatted_lambda = format_angle(lambda, AngleFormat::Code, PI_FORMAT);
@@ -137,9 +138,7 @@ fn generate_gate(
                     format!("{theta}, {phi}, {lambda}")
                 };
 
-            build_steps.push(format!(
-                "{circuit_name}.append(UGate({angle_str}), [{qubit}])"
-            ));
+            build_steps.push(format!("{circuit_name}.u({angle_str}, {qubit})"));
         }
         Measure { qubit, bit } => {
             add_build_step_with_parameters(circuit_name, &[qubit, bit], operation, build_steps);

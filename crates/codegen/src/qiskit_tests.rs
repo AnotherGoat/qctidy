@@ -1,4 +1,6 @@
 use qctidy::GraphBuilder;
+use qctidy_ports::PythonAstPort;
+use qctidy_python_ast::PythonAstAdapter;
 use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4, PI};
 
 use crate::qiskit;
@@ -155,6 +157,64 @@ circuit = QuantumCircuit(1)
 circuit.append(YGate().power(1 / 2), [0])";
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn generate_circuit_with_repeated_sy_gates_imports_ygate_once() {
+    let graph = GraphBuilder::default().push_sy(0).push_sy(1).build();
+    let actual = qiskit::generate(&graph, "circuit");
+
+    let expected = "\
+from qiskit import QuantumCircuit
+from qiskit.circuit.library.standard_gates import YGate
+
+circuit = QuantumCircuit(2)
+circuit.append(YGate().power(1 / 2), [0])
+circuit.append(YGate().power(1 / 2), [1])";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn generate_circuit_with_u_gate() {
+    let graph = GraphBuilder::default()
+        .push_u(PI, FRAC_PI_2, PI, 0)
+        .unwrap()
+        .build();
+    let actual = qiskit::generate(&graph, "circuit");
+
+    let expected = "\
+import numpy
+from qiskit import QuantumCircuit
+
+circuit = QuantumCircuit(1)
+circuit.u(numpy.pi, numpy.pi / 2, numpy.pi, 0)";
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn generated_code_round_trips_through_python_ast() {
+    let graph = GraphBuilder::default()
+        .push_u(PI, FRAC_PI_2, PI, 0)
+        .unwrap()
+        .push_sy(1)
+        .build();
+    let code = qiskit::generate(&graph, "circuit");
+
+    let analysis = PythonAstAdapter.parse(&code);
+    let circuit = &analysis.module_circuits[0];
+
+    let unsupported: Vec<&str> = circuit
+        .gates
+        .iter()
+        .filter_map(|gate| gate.reason.as_deref())
+        .collect();
+
+    assert!(
+        unsupported.is_empty(),
+        "generated code has unsupported gates: {unsupported:?}"
+    );
 }
 
 #[test]

@@ -78,6 +78,13 @@ test-crate crate:
 bench-sysinfo:
     cargo run -p benchmarks --bin sysinfo
 
+# Build with debug symbols, generate a large random circuit, and profile `check` with samply
+profile:
+    CARGO_PROFILE_RELEASE_DEBUG=1 CARGO_PROFILE_RELEASE_STRIP=none cargo build --release -p qctidy-cli
+    cargo run --release -p benchmarks --bin generate_circuit -- -o /tmp/profile_circuit.py
+    samply record --save-only -o /tmp/check_profile.json -- target/release/qctidy check -i /tmp/profile_circuit.py
+    samply load /tmp/check_profile.json
+
 # Set up Cargo for coverage reporting
 setup-coverage:
     cargo install cargo-llvm-cov

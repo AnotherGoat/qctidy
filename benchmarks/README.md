@@ -6,6 +6,7 @@ This directory contains the full performance benchmark ecosystem designed to str
 
 The benchmark ecosystem is divided into the following modular subdirectories:
 
+- **`src/`**: Contains the crate root (`lib.rs`) and the utility binaries (`bin/sysinfo.rs` and `bin/generate_circuit.rs`).
 - **`benches/`**: Contains the pure Rust source code (`performance.rs`) that defines and runs the benchmark algorithms using the statistically rigorous **`criterion`** library.
 - **`scripts/`**: Contains utility scripts written in Python (`export_rust_json.py`, `generate_speedup_table.py`, `plot_rust_results.py`). They collect Criterion's raw output, format it as JSON, and generate comparison charts and tables.
 - **`results/`**: The automatically generated output directory. This is where the scripts write the final charts (`.png`), consolidated JSON (`rust_benchmark_results.json`), cross-implementation speedup tables (`.csv` and `.md`), and the machine specifications (`system_info.json`).
