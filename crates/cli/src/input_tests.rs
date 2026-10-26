@@ -1,8 +1,8 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use qctidy_ports::ConversionFormat;
 
-use crate::input::{format_from_extension, guess_from_contents};
+use crate::input::{Input, format_from_extension, guess_from_contents};
 
 #[test]
 fn extension_guesses_every_supported_format() {
@@ -53,9 +53,6 @@ fn contents_guess_json_and_xml() {
 
 #[test]
 fn stdin_with_python_name_is_python() {
-    use std::path::PathBuf;
-    use crate::input::Input;
-
     let stdin_named_py = Input::resolve(&[])
         .into_iter()
         .next()
@@ -75,4 +72,3 @@ fn stdin_with_python_name_is_python() {
         .expect("stdin should resolve");
     assert!(!stdin_unnamed.is_python());
 }
-

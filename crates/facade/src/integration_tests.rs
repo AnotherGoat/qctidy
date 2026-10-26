@@ -84,7 +84,6 @@ fn applies_the_use_cases_to_the_vscode_test_circuit() {
         for diagnostic in check.diagnostics() {
             let request = ApplyFixRequest::new(
                 Arc::from(source),
-                Arc::new(original.clone()),
                 diagnostic.clone(),
                 Arc::from(build.source_map.as_slice()),
                 Arc::from(name.as_str()),

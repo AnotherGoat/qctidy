@@ -10,7 +10,7 @@ use qctidy_ports::{
     CircuitBuild, ParseIssue, ParsedCircuit, PythonAnalysis, Scope, ScopeChild, ScopeType,
     SourceLocation,
 };
-use tree_sitter::{Node, Parser};
+use tree_sitter::{Node, Parser, TreeCursor};
 
 use gates::{Argument, parse_gate_call};
 
@@ -108,31 +108,24 @@ fn extract_circuits(scope_node: Node, source: &str) -> Vec<ParsedCircuit> {
     let mut circuits = Vec::new();
     let mut variable_map = HashMap::new();
 
-    find_assignments(
-        scope_node,
-        scope_node,
-        source,
-        &mut circuits,
-        &mut variable_map,
-    );
-    find_gate_calls(scope_node, scope_node, source, &mut circuits, &variable_map);
+    find_assignments(scope_node, source, &mut circuits, &mut variable_map);
+    find_gate_calls(scope_node, source, &mut circuits, &variable_map);
     finalize_circuits(&mut circuits);
 
     circuits
 }
 
 fn find_assignments(
-    node: Node,
     scope_node: Node,
     source: &str,
     circuits: &mut Vec<ParsedCircuit>,
     variable_map: &mut HashMap<String, Vec<usize>>,
 ) {
-    if node != scope_node && is_scope(node) {
-        return;
-    }
+    walk_named(scope_node, |node| {
+        if node.kind() != "assignment" {
+            return;
+        }
 
-    if node.kind() == "assignment" {
         let left = node.child_by_field_name("left");
         let right = node.child_by_field_name("right");
 
@@ -164,28 +157,28 @@ fn find_assignments(
                 variable_map.entry(variable_name).or_default().push(index);
             }
         }
-    }
-
-    for child in named_children(node) {
-        find_assignments(child, scope_node, source, circuits, variable_map);
-    }
+    });
 }
 
 fn find_gate_calls(
-    node: Node,
     scope_node: Node,
     source: &str,
     circuits: &mut [ParsedCircuit],
     variable_map: &HashMap<String, Vec<usize>>,
 ) {
-    if node != scope_node && is_scope(node) {
-        return;
-    }
+    walk_named(scope_node, |node| {
+        if node.kind() != "call" {
+            return;
+        }
 
-    if node.kind() == "call"
-        && let Some(function) = node.child_by_field_name("function")
-        && function.kind() == "attribute"
-    {
+        let Some(function) = node.child_by_field_name("function") else {
+            return;
+        };
+
+        if function.kind() != "attribute" {
+            return;
+        }
+
         let object = function.child_by_field_name("object");
         let attribute = function.child_by_field_name("attribute");
 
@@ -220,10 +213,60 @@ fn find_gate_calls(
                 }
             }
         }
+    });
+}
+
+/// Visit `scope_node` and its named descendants in pre-order with a single cursor.
+///
+/// Nested scopes are visited but not descended into, matching the previous
+/// recursive walk.
+fn walk_named(scope_node: Node, mut visit: impl FnMut(Node)) {
+    let mut cursor = scope_node.walk();
+
+    loop {
+        let node = cursor.node();
+
+        if node == scope_node || !is_scope(node) {
+            visit(node);
+
+            if goto_first_named_child(&mut cursor) {
+                continue;
+            }
+        }
+
+        loop {
+            if cursor.node() == scope_node {
+                return;
+            }
+
+            if !cursor.goto_next_sibling() {
+                if !cursor.goto_parent() {
+                    return;
+                }
+
+                continue;
+            }
+
+            if cursor.node().is_named() {
+                break;
+            }
+        }
+    }
+}
+
+fn goto_first_named_child(cursor: &mut TreeCursor) -> bool {
+    if !cursor.goto_first_child() {
+        return false;
     }
 
-    for child in named_children(node) {
-        find_gate_calls(child, scope_node, source, circuits, variable_map);
+    loop {
+        if cursor.node().is_named() {
+            return true;
+        }
+
+        if !cursor.goto_next_sibling() {
+            return false;
+        }
     }
 }
 

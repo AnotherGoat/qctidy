@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache, runAst, runCheck } from './cli';
+import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache, runCheck } from './cli';
 import { convertReportToVsCodeDiagnostics } from './diagnostics';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
 import { QCTidyTreeDataProvider } from './treeDataProvider';
@@ -40,17 +40,14 @@ export async function activate(context: vscode.ExtensionContext) {
             const inputPath = document.uri.fsPath;
 
             try {
-                const [analysis, report] = await Promise.all([
-                    runAst(source),
-                    runCheck(source, inputPath),
-                ]);
+                const report = await runCheck(source, inputPath);
 
                 // Convert and publish diagnostics to the source editor
                 const vsDiagnostics = convertReportToVsCodeDiagnostics(report);
                 diagnosticCollection?.set(document.uri, vsDiagnostics);
 
                 // Fused AST + diagnostics in the sidebar
-                treeDataProvider.setData(analysis, report, source);
+                treeDataProvider.setData(report, source);
             } catch (error) {
                 console.error('Failed to update diagnostics and AST:', error);
             }

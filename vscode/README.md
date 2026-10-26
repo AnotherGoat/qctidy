@@ -6,7 +6,7 @@ Esta es la extensión oficial de Visual Studio Code para **QCTidy**. Su propósi
 
 La extensión se integra directamente en la barra lateral (Activity Bar) de VS Code y proporciona las siguientes funcionalidades:
 
-* **Análisis AST en Tiempo Real**: Invoca el comando `qctidy ast` del CLI para generar el Árbol de Sintaxis Abstracta (AST) del archivo Python actualmente abierto en el editor.
+* **Análisis AST en Tiempo Real**: Invoca `qctidy check --output-format json`, cuyo informe incluye el análisis del archivo Python actualmente abierto en el editor.
 * **Jerarquía Completa**: Estructura en árbol colapsable y expandible similar al explorador de archivos:
   $$\text{Función/Método/Clase} \longrightarrow \text{Circuito Cuántico} \longrightarrow \text{Metadatos y Compuertas} \longrightarrow \text{Parámetros}$$
 * **Detección Multivariable y Nombres de Circuitos**: Identifica todas las variables asignadas a `QuantumCircuit` mostrando el nombre exacto de la variable. Si varios circuitos comparten el mismo nombre de variable, se desambiguan como `nombre:línea`.
@@ -26,8 +26,8 @@ Para mantener el proyecto ligero y sin dependencias innecesarias, la extensión 
 Los componentes principales son:
 
 1. **`src/extension.ts`**: Punto de entrada de la extensión. Inicializa el entorno, crea la vista de árbol, supervisa la disponibilidad de QCTidy y registra los comandos de navegación y recarga (`qctidy.openNode`, `qctidy.refresh`).
-2. **`src/cli.ts`**: Cliente unificado del CLI de QCTidy. Gestiona la resolución del ejecutable (`qctidy.path` o `PATH`, con soporte multiplataforma y expansión de `~`), verificación de disponibilidad (`qctidy --version`) con timeout y caché, ejecución desacoplada por `spawn` (sin shell y con soporte de `stdin`), y canal de subcomandos (`ast`, etc.).
-3. **`src/ast.ts`**: Tipos y modelos de datos del análisis AST emitido por `qctidy ast`. Reexporta la ejecución delegando al runner de `cli.ts`.
+2. **`src/cli.ts`**: Cliente unificado del CLI de QCTidy. Gestiona la resolución del ejecutable (`qctidy.path` o `PATH`, con soporte multiplataforma y expansión de `~`), verificación de disponibilidad (`qctidy --version`) con timeout y caché, ejecución desacoplada por `spawn` (sin shell y con soporte de `stdin`), y ejecución de `check`.
+3. **`src/ast.ts`**: Tipos y modelos de datos del análisis Python incluido en el informe de `qctidy check`.
 4. **`src/treeDataProvider.ts`**: Implementa la interfaz `vscode.TreeDataProvider`. Recorre el análisis devuelto por el CLI y construye la jerarquía de Clases/Funciones, Circuitos, Metadatos, Compuertas y Parámetros con sus respectivos íconos nativos y comandos de navegación. También reporta el estado y versión tanto de QCTidy como de Qiskit.
 5. **`src/qiskit.ts`**: Detecta la versión de Qiskit usando el intérprete configurado en la extensión de Python (con el `PATH` como respaldo) y se vuelve a detectar cuando cambia el intérprete.
 

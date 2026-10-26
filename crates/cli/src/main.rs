@@ -2,7 +2,6 @@
 
 mod analyze;
 mod arguments;
-mod ast;
 mod check;
 mod convert;
 mod display;
@@ -21,6 +20,8 @@ mod check_tests;
 mod fix_tests;
 #[cfg(test)]
 mod input_tests;
+#[cfg(test)]
+mod python_tests;
 
 use std::process::ExitCode;
 
@@ -34,7 +35,6 @@ fn main() -> ExitCode {
     let color = ColorChoice::from(cli.color());
 
     match cli.get_command() {
-        Command::Ast(arguments) => ast::run(arguments, color),
         Command::Analyze(arguments) => analyze::run(arguments, color),
         Command::Check(arguments) => check::run(arguments, color),
         Command::Convert(arguments) => convert::run(arguments, color),

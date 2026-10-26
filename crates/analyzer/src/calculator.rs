@@ -105,14 +105,14 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedAnalysisMetrics {
     let cx_count = count_gates(graph, CX);
     let ccx_count = count_gates(graph, CCX);
 
-    let single_gate_percent = if gate_count == 0 {
+    let single_gate_ratio = if gate_count == 0 {
         0.0
     } else {
         truncate_usize_to_f64(single_gate_count) / truncate_usize_to_f64(gate_count)
     };
 
     let measured_qubit_count = count_measured_qubits(graph);
-    let measure_percent = if graph.is_empty() || graph.qubit_count() == 0 {
+    let measure_ratio = if graph.is_empty() || graph.qubit_count() == 0 {
         0.0
     } else {
         truncate_usize_to_f64(measured_qubit_count) / truncate_usize_to_f64(graph.qubit_count())
@@ -128,7 +128,7 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedAnalysisMetrics {
         z_count,
         pauli_count,
         hadamard_count,
-        initial_superposition_percent: calculate_superposition_percent(graph),
+        initial_superposition_ratio: calculate_superposition_ratio(graph),
         single_gate_count,
         other_single_gate_count: single_gate_count
             .saturating_sub(pauli_count)
@@ -136,7 +136,7 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedAnalysisMetrics {
         single_controlled_gate_count: count_single_controlled_gates(graph),
         swap_count: count_gates(graph, Swap),
         cx_count,
-        cx_qubit_percent: calculate_cx_qubit_percent(graph),
+        cx_qubit_ratio: calculate_cx_qubit_ratio(graph),
         average_cx: if graph.is_empty() || graph.qubit_count() == 0 {
             0.0
         } else {
@@ -144,7 +144,7 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedAnalysisMetrics {
         },
         max_cx_count: count_max_cx(graph),
         ccx_count,
-        ccx_qubit_percent: calculate_ccx_qubit_percent(graph),
+        ccx_qubit_ratio: calculate_ccx_qubit_ratio(graph),
         average_ccx: if graph.is_empty() || graph.qubit_count() == 0 {
             0.0
         } else {
@@ -155,10 +155,10 @@ pub fn calculate_detailed_metrics(graph: &Graph) -> DetailedAnalysisMetrics {
         gate_count,
         measurement_count,
         controlled_gate_count: count_controlled_gates(graph),
-        single_gate_percent,
+        single_gate_ratio,
         measured_qubit_count,
-        measure_percent,
-        unmeasured_qubit_percent: 1.0 - measure_percent,
+        measure_ratio,
+        unmeasured_qubit_ratio: 1.0 - measure_ratio,
     }
 }
 
@@ -176,7 +176,7 @@ fn count_gates(graph: &Graph, gate_type: GateType) -> usize {
     nodes / size
 }
 
-fn calculate_superposition_percent(graph: &Graph) -> f64 {
+fn calculate_superposition_ratio(graph: &Graph) -> f64 {
     if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }
@@ -288,7 +288,7 @@ fn calculate_average_density(graph: &Graph) -> f64 {
     truncate_usize_to_f64(total) / truncate_usize_to_f64(graph.time_step_count())
 }
 
-fn calculate_cx_qubit_percent(graph: &Graph) -> f64 {
+fn calculate_cx_qubit_ratio(graph: &Graph) -> f64 {
     if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }
@@ -316,7 +316,7 @@ fn count_max_cx(graph: &Graph) -> usize {
     counts.into_values().max().unwrap_or(0)
 }
 
-fn calculate_ccx_qubit_percent(graph: &Graph) -> f64 {
+fn calculate_ccx_qubit_ratio(graph: &Graph) -> f64 {
     if graph.is_empty() || graph.qubit_count() == 0 {
         return 0.0;
     }

@@ -1,9 +1,10 @@
 
 /**
- * The JSON emitted by `qctidy ast`.
+ * The Python analysis emitted in the `analyses` array of
+ * `qctidy check --output-format json`.
  *
- * These types mirror the `qctidy ast` output so the tree view can be built
- * without parsing the Python source in the extension.
+ * These types mirror that payload so the tree view can be built without parsing
+ * the Python source in the extension.
  */
 
 export type ScopeType = 'function' | 'class';
@@ -31,6 +32,7 @@ export interface AstCircuit {
 export type AstChild = AstScope | AstCircuit;
 
 export interface AstAnalysis {
+    filename: string;
     scopes: AstScope[];
     module_circuits: AstCircuit[];
 }
@@ -65,6 +67,4 @@ export interface SourceLocation {
     end_line: number;
     end_column: number;
 }
-
-export { runAst } from './cli';
 

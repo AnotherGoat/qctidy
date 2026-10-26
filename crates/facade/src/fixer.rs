@@ -61,8 +61,6 @@ pub struct ApplyFixRequest {
     #[get_clone = "pub"]
     source: Arc<str>,
     #[get_clone = "pub"]
-    circuit: Arc<Circuit>,
-    #[get_clone = "pub"]
     diagnostic: Diagnostic,
     #[get_clone = "pub"]
     source_map: Arc<[SourceLocation]>,
@@ -92,11 +90,11 @@ pub fn apply_fix<C: CodegenPort>(
         diagnostic.metadata(),
         diagnostic.severity(),
         diagnostic.positions().clone(),
+        diagnostic.pattern_match().clone(),
     );
 
     let source_map = request.source_map();
-    let mut graph = Graph::from(request.circuit().as_ref());
-    let Some(replacements) = fixer::apply(&mut graph, &library_diagnostic) else {
+    let Some(replacements) = fixer::replacement(&library_diagnostic) else {
         return Ok(ApplyFixResponse::new(Vec::new()));
     };
 

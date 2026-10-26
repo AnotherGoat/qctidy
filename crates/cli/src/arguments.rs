@@ -21,8 +21,6 @@ pub(crate) struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
-    /// Analyze a Python file and dump its circuits as JSON.
-    Ast(AstArguments),
     /// Analyze circuits and report their metrics.
     Analyze(AnalyzeArguments),
     /// Report fixable diagnostics in circuits without modifying them.
@@ -35,19 +33,6 @@ pub(crate) enum Command {
     Present(PresentArguments),
     /// List all the available fix rules.
     Rules,
-}
-
-#[derive(Debug, Args, Getters)]
-pub(crate) struct AstArguments {
-    /// Python file to analyze (reads from standard input when omitted).
-    #[arg(short, long, value_name = "FILE")]
-    #[get = "pub(crate)"]
-    input: Option<PathBuf>,
-
-    /// File to write the analysis to (writes to standard output when omitted).
-    #[arg(short, long, value_name = "FILE")]
-    #[get = "pub(crate)"]
-    output: Option<PathBuf>,
 }
 
 #[derive(Debug, Args, Getters, CopyGetters)]

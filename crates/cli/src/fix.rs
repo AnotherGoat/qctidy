@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use serde::Serialize;
 
-use qctidy::Circuit;
 use qctidy_codegen::CodegenAdapter;
 use qctidy_facade::{ApplyFixRequest, Diagnostic, FixEdit, apply_fix};
 use qctidy_ports::SourceLocation;
@@ -37,19 +36,12 @@ impl From<&FixEdit> for Edit {
 /// Returns `None` when the diagnostic has no source-level fix (for example,
 /// canonicalization rules).
 pub(crate) fn edits_for(
-    source: &str,
-    circuit: &Circuit,
+    source: Arc<str>,
     diagnostic: &Diagnostic,
-    source_map: &[SourceLocation],
-    circuit_name: &str,
+    source_map: Arc<[SourceLocation]>,
+    circuit_name: Arc<str>,
 ) -> Option<Vec<Edit>> {
-    let request = ApplyFixRequest::new(
-        Arc::from(source),
-        Arc::new(circuit.clone()),
-        diagnostic.clone(),
-        Arc::from(source_map),
-        Arc::from(circuit_name),
-    );
+    let request = ApplyFixRequest::new(source, diagnostic.clone(), source_map, circuit_name);
     let response = apply_fix(&request, &CodegenAdapter).ok()?;
 
     if response.edits().is_empty() {

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { AstAnalysis, AstCircuit, AstGate, AstScope, runAst } from './ast';
+import { AstAnalysis, AstCircuit, AstGate, AstScope } from './ast';
 import { QctidyStatus, runCheck } from './cli';
 import { CheckReport, CliDiagnostic, CliError } from './diagnostics';
 
@@ -103,8 +103,8 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
     }
 
     /** Store the external analysis and diagnostic results and refresh the sidebar. */
-    setData(analysis: AstAnalysis, report: CheckReport, source?: string): void {
-        this.astAnalysis = analysis;
+    setData(report: CheckReport, source?: string): void {
+        this.astAnalysis = report.analyses[0] ?? null;
         this.checkReport = report;
         if (source !== undefined) {
             this.lastSource = source;
@@ -201,18 +201,15 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             let report = this.checkReport;
 
             if (!analysis || this.lastSource !== source) {
-                const [astRes, checkRes] = await Promise.all([
-                    runAst(source),
-                    runCheck(source, inputPath),
-                ]);
-                analysis = astRes;
+                const checkRes = await runCheck(source, inputPath);
+                analysis = checkRes.analyses[0] ?? { filename: inputPath, scopes: [], module_circuits: [] };
                 report = checkRes;
-                this.astAnalysis = astRes;
+                this.astAnalysis = analysis;
                 this.checkReport = checkRes;
                 this.lastSource = source;
             }
 
-            const astItems = this.buildHierarchy(analysis, report ?? { diagnostics: [], errors: [] });
+            const astItems = this.buildHierarchy(analysis, report ?? { diagnostics: [], errors: [], analyses: [] });
             this.disambiguateCircuitNames(astItems);
 
             if (this.foundCircuits === 0) {

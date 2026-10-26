@@ -12,6 +12,7 @@ use serde::Serialize;
 
 use crate::error::CliError;
 use crate::fix::Edit;
+use crate::python::JsonAnalysis;
 
 const MAX_POSITIONS: usize = 8;
 
@@ -457,6 +458,7 @@ impl JsonError {
 pub(crate) struct JsonReport {
     diagnostics: Vec<JsonDiagnostic>,
     errors: Vec<JsonError>,
+    analyses: Vec<JsonAnalysis>,
 }
 
 #[derive(Debug, Serialize)]
@@ -522,13 +524,15 @@ pub(crate) fn json_report(
     writer: &mut dyn Write,
     diagnostics: Vec<JsonDiagnostic>,
     errors: Vec<JsonError>,
+    analyses: Vec<JsonAnalysis>,
 ) {
     let report = JsonReport {
         diagnostics,
         errors,
+        analyses,
     };
 
-    if let Ok(json) = serde_json::to_string_pretty(&report) {
+    if let Ok(json) = serde_json::to_string(&report) {
         let _json_result = writeln!(writer, "{json}");
     }
 }

@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import type { AstAnalysis } from './ast';
 
 import { qiskitOutputChannel } from './qiskit';
 
@@ -259,18 +258,6 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
             child.stdin.end();
         }
     });
-}
-
-/**
- * Runs `qctidy ast --color never` through stdin and returns the parsed AST analysis.
- */
-export async function runAst(source: string): Promise<AstAnalysis> {
-    const stdout = await executeQctidy(['ast', '--color', 'never'], { stdin: source });
-    try {
-        return JSON.parse(stdout) as AstAnalysis;
-    } catch (error) {
-        throw new Error(`Failed to parse qctidy AST output: ${String(error)}`);
-    }
 }
 
 /**

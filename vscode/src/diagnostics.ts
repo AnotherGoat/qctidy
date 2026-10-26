@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+import type { AstAnalysis } from './ast';
+
 /**
  * A source code range in 0-based coordinates, matching `vscode.Range`.
  */
@@ -46,6 +48,7 @@ export interface CliError {
 export interface CheckReport {
     diagnostics: CliDiagnostic[];
     errors: CliError[];
+    analyses: AstAnalysis[];
 }
 
 /**

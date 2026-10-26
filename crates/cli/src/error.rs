@@ -55,8 +55,6 @@ pub(crate) enum CliError {
     UnknownRuleSelector { selector: String },
     #[error("failed to serialize the circuit: {error}")]
     Serialize { error: SerializeError },
-    #[error("failed to serialize the analysis: {error}")]
-    SerializeJson { error: serde_json::Error },
     #[error("failed to render the circuit: {error}")]
     Render { error: PresentationError },
 }

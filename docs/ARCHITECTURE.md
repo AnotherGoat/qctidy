@@ -86,8 +86,8 @@ exist to showcase the strengths of the architecture.
 
 - **`vscode`**: TypeScript extension for Visual Studio Code. Shows a sidebar
   with the AST analysis (scopes, circuits, gates, issues) and supports
-  jump-to-line navigation. It runs the `qctidy ast` subcommand, which is why it
-  depends on `cli`.
+  jump-to-line navigation. It runs `qctidy check --output-format json`, whose
+  report includes the Python analysis, which is why it depends on `cli`.
 - **`client`** (Web UI): React/Vite frontend with a drag-and-drop gate editor
   that talks to `server`, showcasing circuit fixing in a visual way.
 - **`External code`**: Any user-created Python code that imports the `qiskit`

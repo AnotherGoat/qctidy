@@ -115,8 +115,8 @@ fn detailed_metrics_to_dict(
     dict.set_item("pauli_count", metrics.pauli_count)?;
     dict.set_item("hadamard_count", metrics.hadamard_count)?;
     dict.set_item(
-        "initial_superposition_percent",
-        metrics.initial_superposition_percent,
+        "initial_superposition_ratio",
+        metrics.initial_superposition_ratio,
     )?;
     dict.set_item("other_single_gate_count", metrics.other_single_gate_count)?;
     dict.set_item("single_gate_count", metrics.single_gate_count)?;
@@ -126,21 +126,21 @@ fn detailed_metrics_to_dict(
     )?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cx_count", metrics.cx_count)?;
-    dict.set_item("cx_qubit_percent", metrics.cx_qubit_percent)?;
+    dict.set_item("cx_qubit_ratio", metrics.cx_qubit_ratio)?;
     dict.set_item("average_cx", metrics.average_cx)?;
     dict.set_item("max_cx_count", metrics.max_cx_count)?;
     dict.set_item("ccx_count", metrics.ccx_count)?;
-    dict.set_item("ccx_qubit_percent", metrics.ccx_qubit_percent)?;
+    dict.set_item("ccx_qubit_ratio", metrics.ccx_qubit_ratio)?;
     dict.set_item("average_ccx", metrics.average_ccx)?;
     dict.set_item("max_ccx_count", metrics.max_ccx_count)?;
     dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
     dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("single_gate_percent", metrics.single_gate_percent)?;
+    dict.set_item("single_gate_ratio", metrics.single_gate_ratio)?;
     dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
-    dict.set_item("measure_percent", metrics.measure_percent)?;
-    dict.set_item("unmeasured_qubit_percent", metrics.unmeasured_qubit_percent)?;
+    dict.set_item("measure_ratio", metrics.measure_ratio)?;
+    dict.set_item("unmeasured_qubit_ratio", metrics.unmeasured_qubit_ratio)?;
     Ok(dict.into())
 }
 
@@ -190,8 +190,8 @@ fn detailed_delta_to_dict(
     dict.set_item("pauli_count", metrics.pauli_count)?;
     dict.set_item("hadamard_count", metrics.hadamard_count)?;
     dict.set_item(
-        "initial_superposition_percent",
-        metrics.initial_superposition_percent,
+        "initial_superposition_ratio",
+        metrics.initial_superposition_ratio,
     )?;
     dict.set_item("other_single_gate_count", metrics.other_single_gate_count)?;
     dict.set_item("single_gate_count", metrics.single_gate_count)?;
@@ -201,20 +201,20 @@ fn detailed_delta_to_dict(
     )?;
     dict.set_item("swap_count", metrics.swap_count)?;
     dict.set_item("cx_count", metrics.cx_count)?;
-    dict.set_item("cx_qubit_percent", metrics.cx_qubit_percent)?;
+    dict.set_item("cx_qubit_ratio", metrics.cx_qubit_ratio)?;
     dict.set_item("average_cx", metrics.average_cx)?;
     dict.set_item("max_cx_count", metrics.max_cx_count)?;
     dict.set_item("ccx_count", metrics.ccx_count)?;
-    dict.set_item("ccx_qubit_percent", metrics.ccx_qubit_percent)?;
+    dict.set_item("ccx_qubit_ratio", metrics.ccx_qubit_ratio)?;
     dict.set_item("average_ccx", metrics.average_ccx)?;
     dict.set_item("max_ccx_count", metrics.max_ccx_count)?;
     dict.set_item("operation_count", metrics.operation_count)?;
     dict.set_item("gate_count", metrics.gate_count)?;
     dict.set_item("measurement_count", metrics.measurement_count)?;
     dict.set_item("controlled_gate_count", metrics.controlled_gate_count)?;
-    dict.set_item("single_gate_percent", metrics.single_gate_percent)?;
+    dict.set_item("single_gate_ratio", metrics.single_gate_ratio)?;
     dict.set_item("measured_qubit_count", metrics.measured_qubit_count)?;
-    dict.set_item("measure_percent", metrics.measure_percent)?;
-    dict.set_item("unmeasured_qubit_percent", metrics.unmeasured_qubit_percent)?;
+    dict.set_item("measure_ratio", metrics.measure_ratio)?;
+    dict.set_item("unmeasured_qubit_ratio", metrics.unmeasured_qubit_ratio)?;
     Ok(dict.into())
 }

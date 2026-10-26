@@ -365,7 +365,7 @@ fn write_detailed(writer: &mut dyn Write, metrics: &DetailedAnalysisMetrics) -> 
     writeln!(
         writer,
         "    initial superposition ratio: {:.2}",
-        metrics.initial_superposition_percent
+        metrics.initial_superposition_ratio
     )?;
     writeln!(
         writer,
@@ -384,18 +384,14 @@ fn write_detailed(writer: &mut dyn Write, metrics: &DetailedAnalysisMetrics) -> 
     )?;
     writeln!(writer, "    swap gates: {}", metrics.swap_count)?;
     writeln!(writer, "    cx gates: {}", metrics.cx_count)?;
-    writeln!(
-        writer,
-        "    cx qubit ratio: {:.2}",
-        metrics.cx_qubit_percent
-    )?;
+    writeln!(writer, "    cx qubit ratio: {:.2}", metrics.cx_qubit_ratio)?;
     writeln!(writer, "    average cx: {:.2}", metrics.average_cx)?;
     writeln!(writer, "    max cx: {}", metrics.max_cx_count)?;
     writeln!(writer, "    ccx gates: {}", metrics.ccx_count)?;
     writeln!(
         writer,
         "    ccx qubit ratio: {:.2}",
-        metrics.ccx_qubit_percent
+        metrics.ccx_qubit_ratio
     )?;
     writeln!(writer, "    average ccx: {:.2}", metrics.average_ccx)?;
     writeln!(writer, "    max ccx: {}", metrics.max_ccx_count)?;
@@ -410,18 +406,18 @@ fn write_detailed(writer: &mut dyn Write, metrics: &DetailedAnalysisMetrics) -> 
     writeln!(
         writer,
         "    single gate ratio: {:.2}",
-        metrics.single_gate_percent
+        metrics.single_gate_ratio
     )?;
     writeln!(
         writer,
         "    measured qubits: {}",
         metrics.measured_qubit_count
     )?;
-    writeln!(writer, "    measured ratio: {:.2}", metrics.measure_percent)?;
+    writeln!(writer, "    measured ratio: {:.2}", metrics.measure_ratio)?;
     writeln!(
         writer,
         "    unmeasured ratio: {:.2}",
-        metrics.unmeasured_qubit_percent
+        metrics.unmeasured_qubit_ratio
     )
 }
 

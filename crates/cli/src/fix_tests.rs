@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use qctidy::{Circuit, GateOperation};
 use qctidy_facade::Session;
 use qctidy_ports::SourceLocation;
@@ -36,8 +38,13 @@ fn fix_replaces_double_s_with_a_z() {
     ];
 
     let source = "qc.s(0)\nqc.s(0)\n";
-    let edits = fix::edits_for(source, &circuit, &diagnostic, &source_map, "qc")
-        .expect("P001 should have a source fix");
+    let edits = fix::edits_for(
+        Arc::from(source),
+        &diagnostic,
+        Arc::from(source_map),
+        Arc::from("qc"),
+    )
+    .expect("P001 should have a source fix");
 
     assert_eq!(fix::apply_edits(source, &edits), "qc.z(0)\n");
 }
@@ -64,8 +71,13 @@ fn fix_removes_consecutive_hadamards() {
     ];
 
     let source = "qc.h(0)\nqc.h(0)\n";
-    let edits = fix::edits_for(source, &circuit, &diagnostic, &source_map, "qc")
-        .expect("R002 should have a source fix");
+    let edits = fix::edits_for(
+        Arc::from(source),
+        &diagnostic,
+        Arc::from(source_map),
+        Arc::from("qc"),
+    )
+    .expect("R002 should have a source fix");
 
     assert_eq!(fix::apply_edits(source, &edits), "\n");
 }
@@ -90,7 +102,15 @@ fn canonicalization_rules_have_no_fix() {
         end_column: 7,
     }];
 
-    assert!(fix::edits_for("", &circuit, &diagnostic, &source_map, "qc").is_none());
+    assert!(
+        fix::edits_for(
+            Arc::from(""),
+            &diagnostic,
+            Arc::from(source_map),
+            Arc::from("qc")
+        )
+        .is_none()
+    );
 }
 
 #[test]
@@ -126,8 +146,13 @@ fn fix_indents_multi_gate_replacements() {
     ];
 
     let source = "    qc.cx(1, 2)\n    qc.cx(0, 1)\n    qc.cx(0, 2)\n";
-    let edits = fix::edits_for(source, &circuit, &diagnostic, &source_map, "qc")
-        .expect("X003 should have a source fix");
+    let edits = fix::edits_for(
+        Arc::from(source),
+        &diagnostic,
+        Arc::from(source_map),
+        Arc::from("qc"),
+    )
+    .expect("X003 should have a source fix");
 
     assert_eq!(
         fix::apply_edits(source, &edits),

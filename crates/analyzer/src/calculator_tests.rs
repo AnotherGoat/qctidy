@@ -32,8 +32,8 @@ fn empty_graph_does_not_panic() {
     let graph = Graph::new(0);
     let detailed = calculate_detailed_metrics(&graph);
     assert!(are_floats_equal(detailed.average_density, 0.0));
-    assert!(are_floats_equal(detailed.single_gate_percent, 0.0));
-    assert!(are_floats_equal(detailed.cx_qubit_percent, 0.0));
+    assert!(are_floats_equal(detailed.single_gate_ratio, 0.0));
+    assert!(are_floats_equal(detailed.cx_qubit_ratio, 0.0));
 }
 
 #[test]

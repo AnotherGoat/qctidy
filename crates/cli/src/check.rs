@@ -4,12 +4,13 @@ use std::io;
 use std::mem;
 use std::path::Path;
 use std::process::ExitCode;
+use std::sync::Arc;
 
 use anstream::{AutoStream, ColorChoice};
 use qctidy::{Graph, RuleConfiguration, RuleSeverity, fixer};
 use qctidy_converter::ConverterAdapter;
 use qctidy_facade::{ParseRequest, Session, parse};
-use qctidy_ports::ConversionFormat;
+use qctidy_ports::{ConversionFormat, PythonAnalysis, SourceLocation};
 
 use crate::arguments::{CheckArguments, OutputFormat};
 use crate::error::CliError;
@@ -17,7 +18,7 @@ use crate::fix::{self, Edit};
 use crate::input::{Input, format_name};
 use crate::output::{self, CircuitReport, JsonDiagnostic, JsonError, Stats};
 use crate::progress::Progress;
-use crate::python;
+use crate::python::{self, JsonAnalysis};
 
 /// Run the `check` command.
 pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
@@ -34,6 +35,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
         .map(|input| input.named(arguments.input_name().as_deref()))
         .collect();
     let snippets = arguments.verbose() && arguments.output_format() == OutputFormat::Human;
+    let needs_fixes = arguments.fix() || arguments.output_format() == OutputFormat::Json;
     let mut reporter = match Reporter::new(
         arguments.output_format(),
         color,
@@ -59,6 +61,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
                 input,
                 snippets,
                 arguments.fix(),
+                needs_fixes,
                 &session,
                 arguments.circuit().as_deref(),
                 &mut reporter,
@@ -155,10 +158,12 @@ fn analyze(
     ))
 }
 
+#[expect(clippy::too_many_arguments)]
 fn report_python(
     input: &Input,
     snippets: bool,
     fix: bool,
+    needs_fixes: bool,
     session: &Session,
     selector: Option<&str>,
     reporter: &mut Reporter,
@@ -176,8 +181,11 @@ fn report_python(
         }
     };
 
-    let source = String::from_utf8_lossy(&bytes).into_owned();
-    let outcomes = match python::extract_circuits(&source, input.name(), selector) {
+    let source: Arc<str> = Arc::from(String::from_utf8_lossy(&bytes).into_owned());
+    let analysis = python::analyze(&source);
+    reporter.record_analysis(input.name(), &analysis);
+
+    let outcomes = match python::circuits(analysis, input.name(), selector) {
         Ok(outcomes) => outcomes,
         Err(error) => {
             *stats.errors_mut() += 1;
@@ -206,19 +214,25 @@ fn report_python(
                     Vec::new()
                 };
 
-                let fixes: Vec<Option<Vec<Edit>>> = check
-                    .diagnostics()
-                    .iter()
-                    .map(|diagnostic| {
-                        fix::edits_for(
-                            &source,
-                            info.circuit(),
-                            diagnostic,
-                            info.source_map(),
-                            info.circuit_name(),
-                        )
-                    })
-                    .collect();
+                let fixes: Vec<Option<Vec<Edit>>> = if needs_fixes {
+                    let source_map: Arc<[SourceLocation]> = Arc::from(info.source_map().as_slice());
+                    let circuit_name: Arc<str> = Arc::from(info.circuit_name().as_str());
+
+                    check
+                        .diagnostics()
+                        .iter()
+                        .map(|diagnostic| {
+                            fix::edits_for(
+                                Arc::clone(&source),
+                                diagnostic,
+                                Arc::clone(&source_map),
+                                Arc::clone(&circuit_name),
+                            )
+                        })
+                        .collect()
+                } else {
+                    Vec::new()
+                };
 
                 if fix {
                     for edits in fixes.iter().flatten() {
@@ -327,6 +341,7 @@ struct Reporter {
     stderr: AutoStream<io::Stderr>,
     diagnostics: Vec<JsonDiagnostic>,
     errors: Vec<JsonError>,
+    analyses: Vec<JsonAnalysis>,
 }
 
 impl Reporter {
@@ -355,6 +370,7 @@ impl Reporter {
             stderr: AutoStream::new(io::stderr(), color),
             diagnostics: Vec::new(),
             errors: Vec::new(),
+            analyses: Vec::new(),
         })
     }
 
@@ -382,6 +398,12 @@ impl Reporter {
         }
     }
 
+    fn record_analysis(&mut self, filename: &str, analysis: &PythonAnalysis) {
+        if self.output_format == OutputFormat::Json {
+            self.analyses.push(JsonAnalysis::new(filename, analysis));
+        }
+    }
+
     fn error(&mut self, error: &CliError) {
         if self.output_format == OutputFormat::Json {
             self.errors.push(JsonError::new(error));
@@ -401,6 +423,7 @@ impl Reporter {
                 &mut self.stdout,
                 mem::take(&mut self.diagnostics),
                 mem::take(&mut self.errors),
+                mem::take(&mut self.analyses),
             ),
         }
     }

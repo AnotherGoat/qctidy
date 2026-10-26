@@ -48,9 +48,9 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
         z_count: delta_usize(old_metrics.z_count, new_metrics.z_count),
         pauli_count: delta_usize(old_metrics.pauli_count, new_metrics.pauli_count),
         hadamard_count: delta_usize(old_metrics.hadamard_count, new_metrics.hadamard_count),
-        initial_superposition_percent: delta_f64(
-            old_metrics.initial_superposition_percent,
-            new_metrics.initial_superposition_percent,
+        initial_superposition_ratio: delta_f64(
+            old_metrics.initial_superposition_ratio,
+            new_metrics.initial_superposition_ratio,
         ),
         other_single_gate_count: delta_usize(
             old_metrics.other_single_gate_count,
@@ -66,11 +66,11 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
         ),
         swap_count: delta_usize(old_metrics.swap_count, new_metrics.swap_count),
         cx_count: delta_usize(old_metrics.cx_count, new_metrics.cx_count),
-        cx_qubit_percent: delta_f64(old_metrics.cx_qubit_percent, new_metrics.cx_qubit_percent),
+        cx_qubit_ratio: delta_f64(old_metrics.cx_qubit_ratio, new_metrics.cx_qubit_ratio),
         average_cx: delta_f64(old_metrics.average_cx, new_metrics.average_cx),
         max_cx_count: delta_usize(old_metrics.max_cx_count, new_metrics.max_cx_count),
         ccx_count: delta_usize(old_metrics.ccx_count, new_metrics.ccx_count),
-        ccx_qubit_percent: delta_f64(old_metrics.ccx_qubit_percent, new_metrics.ccx_qubit_percent),
+        ccx_qubit_ratio: delta_f64(old_metrics.ccx_qubit_ratio, new_metrics.ccx_qubit_ratio),
         average_ccx: delta_f64(old_metrics.average_ccx, new_metrics.average_ccx),
         max_ccx_count: delta_usize(old_metrics.max_ccx_count, new_metrics.max_ccx_count),
         operation_count: delta_usize(old_metrics.operation_count, new_metrics.operation_count),
@@ -83,18 +83,15 @@ fn compare_detailed_metrics(old: &Graph, new: &Graph) -> DeltaDetailedAnalysisMe
             old_metrics.controlled_gate_count,
             new_metrics.controlled_gate_count,
         ),
-        single_gate_percent: delta_f64(
-            old_metrics.single_gate_percent,
-            new_metrics.single_gate_percent,
-        ),
+        single_gate_ratio: delta_f64(old_metrics.single_gate_ratio, new_metrics.single_gate_ratio),
         measured_qubit_count: delta_usize(
             old_metrics.measured_qubit_count,
             new_metrics.measured_qubit_count,
         ),
-        measure_percent: delta_f64(old_metrics.measure_percent, new_metrics.measure_percent),
-        unmeasured_qubit_percent: delta_f64(
-            old_metrics.unmeasured_qubit_percent,
-            new_metrics.unmeasured_qubit_percent,
+        measure_ratio: delta_f64(old_metrics.measure_ratio, new_metrics.measure_ratio),
+        unmeasured_qubit_ratio: delta_f64(
+            old_metrics.unmeasured_qubit_ratio,
+            new_metrics.unmeasured_qubit_ratio,
         ),
     }
 }
