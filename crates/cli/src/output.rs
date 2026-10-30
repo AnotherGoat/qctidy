@@ -13,6 +13,7 @@ use serde::Serialize;
 use crate::error::CliError;
 use crate::fix::Edit;
 use crate::python::JsonAnalysis;
+use crate::text;
 
 const MAX_POSITIONS: usize = 8;
 
@@ -482,6 +483,7 @@ impl JsonDiagnostic {
         diagnostic: &Diagnostic,
         source_map: Option<&[SourceLocation]>,
         fixes: Option<Vec<Edit>>,
+        lines: &[&str],
     ) -> Self {
         let metadata = diagnostic.metadata();
 
@@ -508,13 +510,22 @@ impl JsonDiagnostic {
                     .filter_map(|index| source_map.get(*index))
                     .map(|location| JsonSourceLocation {
                         line: location.line,
-                        column: location.column,
+                        column: text::utf16_column(lines, location.line, location.column),
                         end_line: location.end_line,
-                        end_column: location.end_column,
+                        end_column: text::utf16_column(
+                            lines,
+                            location.end_line,
+                            location.end_column,
+                        ),
                     })
                     .collect()
             }),
-            fixes,
+            fixes: fixes.map(|edits| {
+                edits
+                    .iter()
+                    .map(|edit| edit.with_utf16_columns(lines))
+                    .collect()
+            }),
         }
     }
 }

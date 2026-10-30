@@ -28,7 +28,7 @@ pub(crate) fn cx_reversal() -> PatternRule {
         RuleMetadata::new(
             "V001",
             function_name!(),
-            "Reverses CX",
+            "CX direction can be reversed",
             RuleCategory::ControlReversal,
             100,
         ),

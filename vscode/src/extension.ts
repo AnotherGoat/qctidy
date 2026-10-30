@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache, runCheck } from './cli';
 import { convertReportToVsCodeDiagnostics } from './diagnostics';
+import { applyFixes, registerFixActions, rememberAnalyzedSource } from './fixes';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
-import { QCTidyTreeDataProvider } from './treeDataProvider';
+import { AstNodeItem, QCTidyTreeDataProvider } from './treeDataProvider';
 
 let diagnosticCollection: vscode.DiagnosticCollection | undefined;
 let debounceTimer: NodeJS.Timeout | undefined;
@@ -15,6 +16,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // 1. VS Code diagnostic collection to report editor diagnostics
         diagnosticCollection = vscode.languages.createDiagnosticCollection('qctidy');
         context.subscriptions.push(diagnosticCollection);
+        registerFixActions(context);
 
         // 2. Register sidebar tree view
         const treeDataProvider = new QCTidyTreeDataProvider();
@@ -41,6 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             try {
                 const report = await runCheck(source, inputPath);
+                rememberAnalyzedSource(document.uri, source);
 
                 // Convert and publish diagnostics to the source editor
                 const vsDiagnostics = convertReportToVsCodeDiagnostics(report);
@@ -165,6 +168,24 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             }),
             vscode.commands.registerCommand('qctidy.jumpToLine', jumpToLine),
+            vscode.commands.registerCommand('qctidy.applyFix', async (item?: AstNodeItem) => {
+                const editor = vscode.window.activeTextEditor;
+
+                if (!editor || editor.document.languageId !== 'python' || !item?.fixes?.length) {
+                    return;
+                }
+
+                await applyFixes(editor.document, item.fixes);
+            }),
+            vscode.commands.registerCommand('qctidy.fixAll', async () => {
+                const editor = vscode.window.activeTextEditor;
+
+                if (!editor || editor.document.languageId !== 'python') {
+                    return;
+                }
+
+                await applyFixes(editor.document, treeDataProvider.allFixes());
+            }),
             vscode.commands.registerCommand('qctidy.openNode', async (key: string, line: number, column: number, endLine?: number, endColumn?: number) => {
                 const node = treeDataProvider.findByKey(key);
 

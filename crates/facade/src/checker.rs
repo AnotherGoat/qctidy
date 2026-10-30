@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use getset::{CopyGetters, Getters};
 use newgen::New;
 use qctidy::{
-    Circuit, Graph, PatternMatch, Position, RuleConfiguration, RuleMetadata, RuleSeverity, fixer,
+    Circuit, GateOperation, Graph, PatternMatch, Position, RuleConfiguration, RuleMetadata,
+    RuleSeverity, fixer,
 };
 
-/// A diagnostic describing a fixable pattern found in a circuit.
+/// A diagnostic describing a fixable issue found in a circuit.
 ///
 /// Follows the Language Server Protocol notion of a diagnostic: a severity, the
 /// affected circuit positions, and the operations they belong to.
@@ -29,6 +30,9 @@ pub struct Diagnostic {
     /// The matched pattern, when the rule is a pattern rule.
     #[get = "pub"]
     pattern_match: Option<PatternMatch>,
+    /// The operations that replace the match, when the rule computes them per match.
+    #[get = "pub"]
+    replacement: Option<Vec<GateOperation>>,
 }
 
 #[derive(Debug, Clone, Getters, CopyGetters, New)]
@@ -123,5 +127,6 @@ fn map_diagnostic(
         diagnostic.positions().clone(),
         operation_indices,
         diagnostic.pattern_match().clone(),
+        diagnostic.replacement().clone(),
     )
 }

@@ -299,6 +299,57 @@ pub(crate) fn parse_gate_call(
     })
 }
 
+/// Expand Qiskit's `measure_all()` into one measurement per qubit.
+///
+/// Qiskit always adds a new classical register, so qubit `i` is measured into
+/// classical bit `bit_offset + i`, where `bit_offset` is the circuit's current
+/// classical bit count. Returns no measurements when the qubit count cannot be
+/// evaluated; the circuit is already reported as uncheckable for its size.
+pub(crate) fn parse_measure_all(
+    qubit_count: Option<usize>,
+    bit_offset: usize,
+    line: usize,
+    column: usize,
+    end_line: usize,
+    end_column: usize,
+) -> Vec<ParsedGate> {
+    let Some(qubit_count) = qubit_count else {
+        return Vec::new();
+    };
+
+    (0..qubit_count)
+        .map(|qubit| {
+            let bit = bit_offset + qubit;
+
+            ParsedGate {
+                gate_name: "measure".to_owned(),
+                display_name: "measure".to_owned(),
+                description: format!("q: {qubit} → c: {bit}"),
+                line,
+                column,
+                end_line,
+                end_column,
+                parameters: vec![
+                    GateParameter {
+                        name: "qubit".to_owned(),
+                        value: qubit.to_string(),
+                        line,
+                        column,
+                    },
+                    GateParameter {
+                        name: "bit".to_owned(),
+                        value: bit.to_string(),
+                        line,
+                        column,
+                    },
+                ],
+                operation: Some(GateOperation::Measure { qubit, bit }),
+                reason: None,
+            }
+        })
+        .collect()
+}
+
 #[expect(clippy::unreachable)]
 fn single_qubit_operation(method: &str, qubit: usize) -> GateOperation {
     match method {

@@ -36,7 +36,7 @@ pub(crate) fn remove_identity() -> PatternRule {
         RuleMetadata::new(
             "R001",
             function_name!(),
-            "Removes identity gates.",
+            "Identity gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),
@@ -55,7 +55,7 @@ pub(crate) fn double_hadamard() -> PatternRule {
         RuleMetadata::new(
             "R002",
             function_name!(),
-            "Removes consecutive Hadamard gates.",
+            "Consecutive Hadamard gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -74,7 +74,7 @@ pub(crate) fn double_x() -> PatternRule {
         RuleMetadata::new(
             "R003",
             function_name!(),
-            "Removes consecutive X gates.",
+            "Consecutive X gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -93,7 +93,7 @@ pub(crate) fn double_y() -> PatternRule {
         RuleMetadata::new(
             "R004",
             function_name!(),
-            "Removes consecutive Y gates.",
+            "Consecutive Y gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -112,7 +112,7 @@ pub(crate) fn double_z() -> PatternRule {
         RuleMetadata::new(
             "R005",
             function_name!(),
-            "Removes consecutive Z gates.",
+            "Consecutive Z gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -137,7 +137,7 @@ pub(crate) fn double_cx() -> PatternRule {
         RuleMetadata::new(
             "R006",
             function_name!(),
-            "Removes consecutive CX gates.",
+            "Consecutive CX gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -162,7 +162,7 @@ pub(crate) fn double_cy() -> PatternRule {
         RuleMetadata::new(
             "R007",
             function_name!(),
-            "Removes consecutive CY gates.",
+            "Consecutive CY gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -187,7 +187,7 @@ pub(crate) fn double_cz() -> PatternRule {
         RuleMetadata::new(
             "R008",
             function_name!(),
-            "Removes consecutive CZ gates.",
+            "Consecutive CZ gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -212,7 +212,7 @@ pub(crate) fn double_ch() -> PatternRule {
         RuleMetadata::new(
             "R009",
             function_name!(),
-            "Removes consecutive CH gates.",
+            "Consecutive CH gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -237,7 +237,7 @@ pub(crate) fn double_swap() -> PatternRule {
         RuleMetadata::new(
             "R010",
             function_name!(),
-            "Removes consecutive SWAP gates.",
+            "Consecutive SWAP gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -262,7 +262,7 @@ pub(crate) fn double_cswap() -> PatternRule {
         RuleMetadata::new(
             "R011",
             function_name!(),
-            "Removes consecutive CSWAP gates.",
+            "Consecutive CSWAP gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -287,7 +287,7 @@ pub(crate) fn double_ccx() -> PatternRule {
         RuleMetadata::new(
             "R012",
             function_name!(),
-            "Removes consecutive CCX gates.",
+            "Consecutive CCX gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -312,7 +312,7 @@ pub(crate) fn double_ccz() -> PatternRule {
         RuleMetadata::new(
             "R013",
             function_name!(),
-            "Removes consecutive CCZ gates.",
+            "Consecutive CCZ gates cancel out",
             RuleCategory::Redundancy,
             100,
         ),
@@ -334,7 +334,7 @@ pub(crate) fn null_phase() -> PatternRule {
         RuleMetadata::new(
             "R014",
             function_name!(),
-            "Removes phase gates that have no phase angle.",
+            "Zero-angle phase gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),
@@ -356,7 +356,7 @@ pub(crate) fn null_rx() -> PatternRule {
         RuleMetadata::new(
             "R015",
             function_name!(),
-            "Removes RX gates that have no rotation angle.",
+            "Zero-angle RX gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),
@@ -378,7 +378,7 @@ pub(crate) fn null_ry() -> PatternRule {
         RuleMetadata::new(
             "R016",
             function_name!(),
-            "Removes RY gates that have no rotation angle.",
+            "Zero-angle RY gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),
@@ -400,7 +400,7 @@ pub(crate) fn null_rz() -> PatternRule {
         RuleMetadata::new(
             "R017",
             function_name!(),
-            "Removes RZ gates that have no rotation angle.",
+            "Zero-angle RZ gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),
@@ -422,7 +422,7 @@ pub(crate) fn null_cp() -> PatternRule {
         RuleMetadata::new(
             "R018",
             function_name!(),
-            "Removes CP gates that have no phase angle.",
+            "Zero-angle CP gate is redundant",
             RuleCategory::Redundancy,
             100,
         ),

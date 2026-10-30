@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { AstAnalysis, AstCircuit, AstGate, AstScope } from './ast';
 import { QctidyStatus, runCheck } from './cli';
-import { CheckReport, CliDiagnostic, CliError } from './diagnostics';
+import { CheckReport, CliDiagnostic, CliError, FixEdit } from './diagnostics';
+import { FIXABLE_CONTEXT } from './fixes';
 
 export type AstNodeType =
     | 'class'
@@ -17,6 +18,8 @@ export type AstNodeType =
 export class AstNodeItem extends vscode.TreeItem {
     public children: AstNodeItem[] = [];
     public readonly key: string;
+    /** Source edits that fix the diagnostic this item represents. */
+    public fixes?: FixEdit[];
 
     constructor(
         public label: string,
@@ -110,6 +113,15 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             this.lastSource = source;
         }
         this.refresh();
+    }
+
+    /** Every fix in the latest report, for the "fix all" action. */
+    allFixes(): FixEdit[] {
+        if (this.checkReport === null) {
+            return [];
+        }
+
+        return this.checkReport.diagnostics.flatMap((diagnostic) => diagnostic.fixes ?? []);
     }
 
     /** Store the detected QCTidy status and refresh the sidebar. */
@@ -332,6 +344,16 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
         return scopeItem;
     }
 
+    /** Mark a diagnostic item as fixable and keep its edits for the apply command. */
+    private attachFix(item: AstNodeItem, diagnostic: CliDiagnostic): void {
+        const fixes = diagnostic.fixes ?? [];
+
+        if (fixes.length > 0) {
+            item.fixes = fixes;
+            item.contextValue = FIXABLE_CONTEXT;
+        }
+    }
+
     private createCircuitItem(
         circuit: AstCircuit,
         diagnosticsByCircuit: Map<string, CliDiagnostic[]>,
@@ -528,6 +550,7 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                     loc.end_line,
                     loc.end_column
                 );
+                this.attachFix(diagItem, diag);
                 gateItem.children.push(diagItem);
             }
 
@@ -552,6 +575,7 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
                 loc?.end_line,
                 loc?.end_column
             );
+            this.attachFix(diagItem, diag);
             circuitItem.children.push(diagItem);
         }
 

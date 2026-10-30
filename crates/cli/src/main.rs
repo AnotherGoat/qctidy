@@ -13,6 +13,7 @@ mod present;
 mod progress;
 mod python;
 mod rules;
+mod text;
 
 #[cfg(test)]
 mod check_tests;
@@ -22,6 +23,8 @@ mod fix_tests;
 mod input_tests;
 #[cfg(test)]
 mod python_tests;
+#[cfg(test)]
+mod text_tests;
 
 use std::process::ExitCode;
 

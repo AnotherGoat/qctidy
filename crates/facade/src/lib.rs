@@ -42,7 +42,7 @@ pub use display::{DisplayFormat, DisplayRequest, DisplayResponse, display};
 #[cfg(feature = "estimator")]
 pub use estimator::{EstimationRequest, EstimationResponse, estimate};
 pub use fixer::{
-    ApplyFixRequest, ApplyFixResponse, FixEdit, FixRequest, FixResponse, apply_fix, fix,
+    ApplyFixRequest, ApplyFixResponse, FixContext, FixEdit, FixRequest, FixResponse, apply_fix, fix,
 };
 #[cfg(feature = "presenter-graphviz")]
 pub use presenter::{PresentationRequest, PresentationResponse, present};

@@ -37,7 +37,7 @@ pub(crate) fn cx_double_ladder_down() -> PatternRule {
         RuleMetadata::new(
             "X001",
             function_name!(),
-            "Collapses alternating CX ladder into a single CX.",
+            "Alternating CX ladder is equivalent to a single CX",
             RuleCategory::CxReduction,
             100,
         ),
@@ -69,7 +69,7 @@ pub(crate) fn cx_double_ladder_up() -> PatternRule {
         RuleMetadata::new(
             "X002",
             function_name!(),
-            "Collapses reversed alternating CX ladder into a single CX.",
+            "Reversed alternating CX ladder is equivalent to a single CX",
             RuleCategory::CxReduction,
             100,
         ),
@@ -101,7 +101,7 @@ pub(crate) fn cx_commutation_forward() -> PatternRule {
         RuleMetadata::new(
             "X003",
             function_name!(),
-            "Compacts triangular CX interaction into a linear CX chain.",
+            "Triangular CX interaction is equivalent to a linear CX chain",
             RuleCategory::CxReduction,
             100,
         ),
@@ -133,7 +133,7 @@ pub(crate) fn cx_commutation_backward() -> PatternRule {
         RuleMetadata::new(
             "X004",
             function_name!(),
-            "Compacts reordered triangular CX interaction into a linear CX chain.",
+            "Reordered triangular CX interaction is equivalent to a linear CX chain",
             RuleCategory::CxReduction,
             100,
         ),
@@ -165,7 +165,7 @@ pub(crate) fn cx_commutation_alternate_forward() -> PatternRule {
         RuleMetadata::new(
             "X005",
             function_name!(),
-            "Reorders and compacts triangular CX interaction.",
+            "Triangular CX interaction can be reordered into a linear CX chain",
             RuleCategory::CxReduction,
             100,
         ),
@@ -197,7 +197,7 @@ pub(crate) fn cx_commutation_alternate_backward() -> PatternRule {
         RuleMetadata::new(
             "X006",
             function_name!(),
-            "Reorders and compacts reversed triangular CX interaction.",
+            "Reversed triangular CX interaction can be reordered into a linear CX chain",
             RuleCategory::CxReduction,
             100,
         ),

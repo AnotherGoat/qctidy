@@ -9,6 +9,7 @@ use qctidy_python_ast::PythonAstAdapter;
 use serde::Serialize;
 
 use crate::error::CliError;
+use crate::text;
 
 /// A checkable circuit extracted from a Python file.
 #[derive(Getters)]
@@ -158,11 +159,19 @@ pub(crate) struct JsonAnalysis {
 
 impl JsonAnalysis {
     #[must_use]
-    pub(crate) fn new(filename: &str, analysis: &PythonAnalysis) -> Self {
+    pub(crate) fn new(filename: &str, analysis: &PythonAnalysis, lines: &[&str]) -> Self {
         Self {
             filename: filename.to_owned(),
-            scopes: analysis.scopes.iter().map(scope_node).collect(),
-            module_circuits: analysis.module_circuits.iter().map(circuit_node).collect(),
+            scopes: analysis
+                .scopes
+                .iter()
+                .map(|scope| scope_node(scope, lines))
+                .collect(),
+            module_circuits: analysis
+                .module_circuits
+                .iter()
+                .map(|circuit| circuit_node(circuit, lines))
+                .collect(),
         }
     }
 }
@@ -231,12 +240,16 @@ struct JsonSourceLocation {
 }
 
 #[must_use]
-fn scope_node(scope: &Scope) -> JsonNode {
+fn scope_node(scope: &Scope, lines: &[&str]) -> JsonNode {
     let fields = JsonScope {
         name: scope.name.clone(),
         line: scope.line,
-        column: scope.column,
-        children: scope.children.iter().map(child).collect(),
+        column: text::utf16_column(lines, scope.line, scope.column),
+        children: scope
+            .children
+            .iter()
+            .map(|item| child(item, lines))
+            .collect(),
     };
 
     match scope.scope_type {
@@ -246,69 +259,80 @@ fn scope_node(scope: &Scope) -> JsonNode {
 }
 
 #[must_use]
-fn child(child: &ScopeChild) -> JsonNode {
+fn child(child: &ScopeChild, lines: &[&str]) -> JsonNode {
     match child {
-        ScopeChild::Scope(scope) => scope_node(scope),
-        ScopeChild::Circuit(circuit) => JsonNode::Circuit(circuit_node(circuit)),
+        ScopeChild::Scope(scope) => scope_node(scope, lines),
+        ScopeChild::Circuit(circuit) => JsonNode::Circuit(circuit_node(circuit, lines)),
     }
 }
 
 #[must_use]
-fn circuit_node(circuit: &ParsedCircuit) -> JsonCircuit {
+fn circuit_node(circuit: &ParsedCircuit, lines: &[&str]) -> JsonCircuit {
     JsonCircuit {
         name: circuit.name.clone(),
         qubit_count: circuit.qubit_count.clone(),
         bit_count: circuit.bit_count.clone(),
         line: circuit.line,
-        column: circuit.column,
-        issues: circuit.issues.iter().map(issue).collect(),
-        gates: circuit.gates.iter().map(gate).collect(),
-        source_map: circuit
-            .build
-            .as_ref()
-            .map(|build| build.source_map.iter().map(source_location).collect()),
+        column: text::utf16_column(lines, circuit.line, circuit.column),
+        issues: circuit
+            .issues
+            .iter()
+            .map(|item| issue(item, lines))
+            .collect(),
+        gates: circuit.gates.iter().map(|item| gate(item, lines)).collect(),
+        source_map: circuit.build.as_ref().map(|build| {
+            build
+                .source_map
+                .iter()
+                .map(|location| source_location(location, lines))
+                .collect()
+        }),
     }
 }
 
 #[must_use]
-fn gate(gate: &ParsedGate) -> JsonGate {
+fn gate(gate: &ParsedGate, lines: &[&str]) -> JsonGate {
     JsonGate {
         display_name: gate.display_name.clone(),
         description: gate.description.clone(),
         line: gate.line,
-        column: gate.column,
+        column: text::utf16_column(lines, gate.line, gate.column),
         end_line: gate.end_line,
-        end_column: gate.end_column,
-        parameters: gate.parameters.iter().map(parameter).collect(),
+        end_column: text::utf16_column(lines, gate.end_line, gate.end_column),
+        parameters: gate
+            .parameters
+            .iter()
+            .map(|item| parameter(item, lines))
+            .collect(),
     }
 }
 
 #[must_use]
-fn parameter(parameter: &GateParameter) -> JsonParameter {
+fn parameter(parameter: &GateParameter, lines: &[&str]) -> JsonParameter {
     JsonParameter {
         name: parameter.name.clone(),
         value: parameter.value.clone(),
         line: parameter.line,
-        column: parameter.column,
+        column: text::utf16_column(lines, parameter.line, parameter.column),
     }
 }
 
 #[must_use]
-fn issue(issue: &ParseIssue) -> JsonIssue {
+fn issue(issue: &ParseIssue, lines: &[&str]) -> JsonIssue {
     JsonIssue {
         message: issue.message.clone(),
         line: issue.line,
-        column: issue.column,
+        column: text::utf16_column(lines, issue.line, issue.column),
     }
 }
 
 #[must_use]
-const fn source_location(location: &SourceLocation) -> JsonSourceLocation {
+fn source_location(location: &SourceLocation, lines: &[&str]) -> JsonSourceLocation {
     JsonSourceLocation {
         index: location.index,
         line: location.line,
-        column: location.column,
+        column: text::utf16_column(lines, location.line, location.column),
         end_line: location.end_line,
-        end_column: location.end_column,
+        end_column: text::utf16_column(lines, location.end_line, location.end_column),
     }
 }

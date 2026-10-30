@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     AnalysisRequest, ApplyFixRequest, CodeGenerationRequest, ComparisonRequest, EstimationRequest,
-    FixRequest, ParsePythonRequest, ParseRequest, SerializeRequest, Session, analyze, apply_fix,
-    compare, estimate, fix, generate_code, parse, parse_python, serialize,
+    FixContext, FixRequest, ParsePythonRequest, ParseRequest, SerializeRequest, Session, analyze,
+    apply_fix, compare, estimate, fix, generate_code, parse, parse_python, serialize,
 };
 use qctidy::Graph;
 use qctidy_analyzer::AnalyzerAdapter;
@@ -51,6 +51,7 @@ fn collect_scope(scope: Scope, circuits: &mut Vec<ParsedCircuit>) {
 #[test]
 fn applies_the_use_cases_to_the_vscode_test_circuit() {
     let source = include_str!("../../../vscode/test/test_file.py");
+    let fix_context = FixContext::from_source(source);
 
     // 1. Parse the Python source.
     let python_analysis = parse_python(
@@ -90,7 +91,10 @@ fn applies_the_use_cases_to_the_vscode_test_circuit() {
             );
 
             // `apply_fix` must not fail; the response itself is not needed here.
-            drop(apply_fix(&request, &CodegenAdapter).expect("apply_fix should succeed"));
+            drop(
+                apply_fix(&request, &fix_context, &CodegenAdapter)
+                    .expect("apply_fix should succeed"),
+            );
         }
 
         // 4. Fix the whole circuit.

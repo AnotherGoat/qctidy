@@ -9,7 +9,7 @@ use std::sync::Arc;
 use anstream::{AutoStream, ColorChoice};
 use qctidy::{Graph, RuleConfiguration, RuleSeverity, fixer};
 use qctidy_converter::ConverterAdapter;
-use qctidy_facade::{ParseRequest, Session, parse};
+use qctidy_facade::{FixContext, ParseRequest, Session, parse};
 use qctidy_ports::{ConversionFormat, PythonAnalysis, SourceLocation};
 
 use crate::arguments::{CheckArguments, OutputFormat};
@@ -19,6 +19,7 @@ use crate::input::{Input, format_name};
 use crate::output::{self, CircuitReport, JsonDiagnostic, JsonError, Stats};
 use crate::progress::Progress;
 use crate::python::{self, JsonAnalysis};
+use crate::text;
 
 /// Run the `check` command.
 pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
@@ -41,6 +42,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
         color,
         arguments.quiet(),
         arguments.output().as_deref(),
+        !arguments.no_analysis(),
     ) {
         Ok(reporter) => reporter,
         Err(error) => {
@@ -83,7 +85,7 @@ pub(crate) fn run(arguments: &CheckArguments, color: ColorChoice) -> ExitCode {
 
                 *stats.circuits_mut() += 1;
                 *stats.diagnostics_mut() += report.diagnostics().len();
-                reporter.report(&report);
+                reporter.report(&report, &[]);
             }
             Err(error) => {
                 drop(progress);
@@ -182,8 +184,10 @@ fn report_python(
     };
 
     let source: Arc<str> = Arc::from(String::from_utf8_lossy(&bytes).into_owned());
+    let lines = text::lines(&source);
+    let fix_context = FixContext::from_source(&source);
     let analysis = python::analyze(&source);
-    reporter.record_analysis(input.name(), &analysis);
+    reporter.record_analysis(input.name(), &analysis, &lines);
 
     let outcomes = match python::circuits(analysis, input.name(), selector) {
         Ok(outcomes) => outcomes,
@@ -227,6 +231,7 @@ fn report_python(
                                 diagnostic,
                                 Arc::clone(&source_map),
                                 Arc::clone(&circuit_name),
+                                &fix_context,
                             )
                         })
                         .collect()
@@ -257,7 +262,7 @@ fn report_python(
 
                 *stats.circuits_mut() += 1;
                 *stats.diagnostics_mut() += report.diagnostics().len();
-                reporter.report(&report);
+                reporter.report(&report, &lines);
             }
             Err(error) => {
                 *stats.errors_mut() += 1;
@@ -337,6 +342,7 @@ fn exit_code(stats: &Stats, no_fail: bool) -> ExitCode {
 struct Reporter {
     output_format: OutputFormat,
     quiet: bool,
+    include_analysis: bool,
     stdout: Box<dyn io::Write>,
     stderr: AutoStream<io::Stderr>,
     diagnostics: Vec<JsonDiagnostic>,
@@ -350,6 +356,7 @@ impl Reporter {
         color: ColorChoice,
         quiet: bool,
         output: Option<&Path>,
+        include_analysis: bool,
     ) -> Result<Self, CliError> {
         let stdout: Box<dyn io::Write> = match output {
             Some(path) => {
@@ -366,6 +373,7 @@ impl Reporter {
         Ok(Self {
             output_format,
             quiet,
+            include_analysis,
             stdout,
             stderr: AutoStream::new(io::stderr(), color),
             diagnostics: Vec::new(),
@@ -374,7 +382,7 @@ impl Reporter {
         })
     }
 
-    fn report(&mut self, report: &CircuitReport) {
+    fn report(&mut self, report: &CircuitReport, lines: &[&str]) {
         match self.output_format {
             OutputFormat::Human => output::human_report(&mut self.stdout, report, self.quiet),
             OutputFormat::Json => {
@@ -391,6 +399,7 @@ impl Reporter {
                                     diagnostic,
                                     report.source_map().as_deref(),
                                     report.fixes().get(index).cloned().flatten(),
+                                    lines,
                                 )
                             }),
                     );
@@ -398,9 +407,10 @@ impl Reporter {
         }
     }
 
-    fn record_analysis(&mut self, filename: &str, analysis: &PythonAnalysis) {
-        if self.output_format == OutputFormat::Json {
-            self.analyses.push(JsonAnalysis::new(filename, analysis));
+    fn record_analysis(&mut self, filename: &str, analysis: &PythonAnalysis, lines: &[&str]) {
+        if self.output_format == OutputFormat::Json && self.include_analysis {
+            self.analyses
+                .push(JsonAnalysis::new(filename, analysis, lines));
         }
     }
 

@@ -38,14 +38,41 @@
         "command": "qctidy.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "qctidy.applyFix",
+        "title": "Apply Fix",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "qctidy.fixAll",
+        "title": "Fix All",
+        "icon": "$(check-all)"
       }
     ],
     "menus": {
       "view/title": [
         {
+          "command": "qctidy.fixAll",
+          "when": "view == qctidy-ast-view",
+          "group": "navigation"
+        },
+        {
           "command": "qctidy.refresh",
           "when": "view == qctidy-ast-view",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "qctidy.applyFix",
+          "when": "view == qctidy-ast-view && viewItem == qctidyFixable",
+          "group": "inline"
+        },
+        {
+          "command": "qctidy.applyFix",
+          "when": "view == qctidy-ast-view && viewItem == qctidyFixable",
+          "group": "1_fix@1"
         }
       ]
     },

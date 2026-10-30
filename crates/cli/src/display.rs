@@ -16,7 +16,8 @@ use crate::python;
 /// Run the `display` command.
 pub(crate) fn run(arguments: &DisplayArguments, color: ColorChoice) -> ExitCode {
     let mut stderr = AutoStream::new(io::stderr(), color);
-    let input = Input::resolve_one(arguments.input().as_deref());
+    let input =
+        Input::resolve_one(arguments.input().as_deref()).named(arguments.input_name().as_deref());
 
     let result = if input.is_python() {
         display_python(&input, arguments, &mut stderr)

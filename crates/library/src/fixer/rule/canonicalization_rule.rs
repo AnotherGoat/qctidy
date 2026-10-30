@@ -1,10 +1,14 @@
 use std::fmt;
 use std::{any::Any, collections::HashSet};
 
-use crate::{GateType, Graph, Position, Rule, RuleMetadata};
+use crate::{GateOperation, GateType, Graph, Position, Rule, RuleMetadata};
 
 /// A function that detects the positions a canonicalization rule applies to.
 type DetectFunction = Box<dyn Fn(&Graph) -> Vec<HashSet<Position>> + Send + Sync>;
+
+/// A function that computes the replacement operations for one canonicalization match.
+pub(crate) type FixFunction =
+    Box<dyn Fn(&Graph, &HashSet<Position>) -> Option<Vec<GateOperation>> + Send + Sync>;
 
 /// A fix rule that applies a canonicalization transformation to the entire graph.
 ///
@@ -16,6 +20,7 @@ pub struct CanonicalizationRule {
     qubit_count: usize,
     detect_function: DetectFunction,
     apply_function: Box<dyn Fn(&mut Graph) -> bool + Send + Sync>,
+    fix_function: Option<FixFunction>,
 }
 
 impl fmt::Debug for CanonicalizationRule {
@@ -46,7 +51,15 @@ impl CanonicalizationRule {
             qubit_count,
             detect_function,
             apply_function,
+            fix_function: None,
         }
+    }
+
+    /// Attach a function that computes the replacement operations for one match.
+    #[must_use]
+    pub(crate) fn with_fix(mut self, fix_function: FixFunction) -> Self {
+        self.fix_function = Some(fix_function);
+        self
     }
 }
 
@@ -73,6 +86,14 @@ impl Rule for CanonicalizationRule {
 
     fn apply(&self, graph: &mut Graph) -> bool {
         (self.apply_function)(graph)
+    }
+
+    fn fix_operations(
+        &self,
+        graph: &Graph,
+        positions: &HashSet<Position>,
+    ) -> Option<Vec<GateOperation>> {
+        (self.fix_function.as_ref()?)(graph, positions)
     }
 
     fn as_any(&self) -> &dyn Any {

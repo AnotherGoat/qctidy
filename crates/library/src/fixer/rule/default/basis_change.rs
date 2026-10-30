@@ -28,7 +28,7 @@ pub(crate) fn hadamard_x_hadamard() -> PatternRule {
         RuleMetadata::new(
             "B001",
             function_name!(),
-            "Transforms H X H into Z.",
+            "H X H is equivalent to Z",
             RuleCategory::BasisChange,
             90,
         ),
@@ -52,7 +52,7 @@ pub(crate) fn hadamard_z_hadamard() -> PatternRule {
         RuleMetadata::new(
             "B002",
             function_name!(),
-            "Transforms H Z H into X.",
+            "H Z H is equivalent to X",
             RuleCategory::BasisChange,
             90,
         ),
@@ -80,7 +80,7 @@ pub(crate) fn hadamard_cx_hadamard() -> PatternRule {
         RuleMetadata::new(
             "B003",
             function_name!(),
-            "Transforms H CX H into CZ.",
+            "H CX H is equivalent to CZ",
             RuleCategory::BasisChange,
             90,
         ),
@@ -108,7 +108,7 @@ pub(crate) fn hadamard_cz_hadamard() -> PatternRule {
         RuleMetadata::new(
             "B004",
             function_name!(),
-            "Transforms H CZ H into CX.",
+            "H CZ H is equivalent to CX",
             RuleCategory::BasisChange,
             90,
         ),
@@ -136,7 +136,7 @@ pub(crate) fn hadamard_ccx_hadamard() -> PatternRule {
         RuleMetadata::new(
             "B005",
             function_name!(),
-            "Transforms H CCX H into CCZ.",
+            "H CCX H is equivalent to CCZ",
             RuleCategory::BasisChange,
             90,
         ),

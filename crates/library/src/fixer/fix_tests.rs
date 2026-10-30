@@ -1,6 +1,8 @@
+use std::f64::consts::FRAC_PI_2;
+
 use crate::{
-    GateOperation, GateType, GraphBuilder, Position, RuleConfiguration, RuleSeverity, fixer,
-    fixer::fixer_mother, random,
+    GateOperation, GateType, GraphBuilder, Position, RuleConfiguration, RuleSeverity, domain::math,
+    fixer, fixer::fixer_mother, random,
 };
 
 #[test]
@@ -252,4 +254,71 @@ fn apply_returns_none_for_canonicalization_rules() {
 
     assert!(fixer::apply(&mut graph, canonicalization).is_none());
     assert_eq!(graph, GraphBuilder::new(3).push_x(0).push_x(2).build());
+}
+
+#[test]
+fn detects_an_out_of_range_angle_when_other_angle_gates_are_missing() {
+    let graph = GraphBuilder::new(1)
+        .push_rz(-1.0, 0)
+        .expect("Angle should be valid")
+        .build();
+
+    let diagnostics = fixer::detect(&graph, &RuleConfiguration::new(RuleSeverity::Warn));
+
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| *diagnostic.metadata().code() == "C003"),
+        "C003 should apply to any phase or rotation gate on its own"
+    );
+}
+
+#[test]
+fn replacement_normalizes_an_out_of_range_angle() {
+    let angle = -FRAC_PI_2;
+    let graph = GraphBuilder::new(1)
+        .push_rz(angle, 0)
+        .expect("Angle should be valid")
+        .build();
+
+    let diagnostics = fixer::detect(&graph, &RuleConfiguration::new(RuleSeverity::Warn));
+    let c003 = diagnostics
+        .iter()
+        .find(|diagnostic| *diagnostic.metadata().code() == "C003")
+        .expect("C003 should be detected");
+
+    let operations = fixer::replacement(c003).expect("C003 should have a replacement");
+    let GateOperation::RZ { phi, qubit } = operations[0] else {
+        panic!("C003 should replace the RZ gate with another RZ gate");
+    };
+
+    assert!(math::are_floats_equal(phi, 7.0 * FRAC_PI_2));
+    assert_eq!(qubit, 0);
+}
+
+#[test]
+fn replacement_normalizes_an_out_of_range_control_phase() {
+    let graph = GraphBuilder::new(2)
+        .push_cp(-1.0, 0, 1)
+        .expect("Angle should be valid")
+        .build();
+
+    let diagnostics = fixer::detect(&graph, &RuleConfiguration::new(RuleSeverity::Warn));
+    let c003 = diagnostics
+        .iter()
+        .find(|diagnostic| *diagnostic.metadata().code() == "C003")
+        .expect("C003 should be detected");
+
+    let operations = fixer::replacement(c003).expect("C003 should have a replacement");
+    let GateOperation::CP {
+        theta,
+        qubit1,
+        qubit2,
+    } = operations[0]
+    else {
+        panic!("C003 should replace the CP gate with another CP gate");
+    };
+
+    assert!(math::are_floats_equal(theta, math::FULL_CYCLE - 1.0));
+    assert_eq!((qubit1, qubit2), (0, 1));
 }

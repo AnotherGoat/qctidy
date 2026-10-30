@@ -17,8 +17,8 @@ use getset::{CopyGetters, Getters};
 use newgen::New;
 
 use crate::{
-    GateOperation, Graph, PatternMatch, PatternRule, Position, Rule, RuleConfiguration,
-    RuleMetadata, RuleRegistry, RuleSeverity,
+    CanonicalizationRule, GateOperation, Graph, PatternMatch, PatternRule, Position, Rule,
+    RuleConfiguration, RuleMetadata, RuleRegistry, RuleSeverity,
     fixer::{
         pattern::{
             cache::{GateTypeBitset, GraphCache},
@@ -28,7 +28,7 @@ use crate::{
     },
 };
 
-/// A diagnostic describing a fixable pattern in a graph.
+/// A diagnostic describing a fixable match in a graph.
 ///
 /// Follows the Language Server Protocol (LSP) notion of a diagnostic: a severity and
 /// the positions affected by the match, produced by the rule that was detected.
@@ -48,6 +48,9 @@ pub struct Diagnostic {
     /// The matched pattern, when the rule is a pattern rule.
     #[get = "pub"]
     pattern_match: Option<PatternMatch>,
+    /// The operations that replace the match, when the rule can compute them per match.
+    #[get = "pub"]
+    replacement: Option<Vec<GateOperation>>,
 }
 
 /// A fixer for quantum graphs.
@@ -118,15 +121,23 @@ impl Fixer {
                         severity,
                         positions,
                         Some(pattern_match),
+                        None,
                     ));
                 }
             } else {
                 for matched_positions in rule.detect(graph) {
+                    let replacement = rule.fix_operations(graph, &matched_positions);
                     let mut positions: Vec<Position> = matched_positions.into_iter().collect();
 
                     positions.sort_unstable();
 
-                    diagnostics.push(Diagnostic::new(*rule.metadata(), severity, positions, None));
+                    diagnostics.push(Diagnostic::new(
+                        *rule.metadata(),
+                        severity,
+                        positions,
+                        None,
+                        replacement,
+                    ));
                 }
             }
         }
@@ -171,13 +182,16 @@ impl Fixer {
             .iter()
             .find(|rule| rule.metadata().code() == diagnostic.metadata().code())?;
 
-        let pattern_rule = rule.as_any().downcast_ref::<PatternRule>()?;
-        let pattern_match = diagnostic.pattern_match().as_ref()?;
+        if let Some(pattern_rule) = rule.as_any().downcast_ref::<PatternRule>() {
+            let pattern_match = diagnostic.pattern_match().as_ref()?;
 
-        Some(replacer::replacement_operations(
-            pattern_rule,
-            pattern_match,
-        ))
+            return Some(replacer::replacement_operations(
+                pattern_rule,
+                pattern_match,
+            ));
+        }
+
+        diagnostic.replacement().clone()
     }
 }
 
@@ -268,10 +282,27 @@ fn is_applicable(rule: &dyn Rule, graph: &Graph, gate_types: GateTypeBitset) -> 
     // Whether a rule can possibly match the graph, based on its quick checks.
     //
     // Skipping impossible rules avoids running their matcher over the whole graph.
-    rule.minimum_qubit_count() <= graph.qubit_count()
-        && rule.minimum_time_step_count() <= graph.time_step_count()
-        && rule
-            .required_gate_types()
+    if rule.minimum_qubit_count() > graph.qubit_count()
+        || rule.minimum_time_step_count() > graph.time_step_count()
+    {
+        return false;
+    }
+
+    let required = rule.required_gate_types();
+
+    if required.is_empty() {
+        return true;
+    }
+
+    // Pattern rules need every gate type of their pattern. Canonicalization rules
+    // list the gate types they can act on, so any of them is enough.
+    if rule.as_any().is::<CanonicalizationRule>() {
+        required
+            .iter()
+            .any(|gate_type| gate_types.contains(*gate_type))
+    } else {
+        required
             .iter()
             .all(|gate_type| gate_types.contains(*gate_type))
+    }
 }

@@ -3,13 +3,15 @@ use std::sync::Arc;
 use serde::Serialize;
 
 use qctidy_codegen::CodegenAdapter;
-use qctidy_facade::{ApplyFixRequest, Diagnostic, FixEdit, apply_fix};
+use qctidy_facade::{ApplyFixRequest, Diagnostic, FixContext, FixEdit, apply_fix};
 use qctidy_ports::SourceLocation;
+
+use crate::text;
 
 /// A source edit that applies a single fix.
 ///
-/// Positions use the same convention as [`SourceLocation`]: zero-based line and
-/// byte column, with an exclusive end.
+/// Internally the columns are zero-based byte offsets, matching [`SourceLocation`].
+/// The JSON report converts them to UTF-16 code units, which is what editors use.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct Edit {
     line: usize,
@@ -17,6 +19,20 @@ pub(crate) struct Edit {
     end_line: usize,
     end_column: usize,
     new_text: String,
+}
+
+impl Edit {
+    /// The same edit with columns in UTF-16 code units, as VS Code expects.
+    #[must_use]
+    pub(crate) fn with_utf16_columns(&self, lines: &[&str]) -> Self {
+        Self {
+            line: self.line,
+            column: text::utf16_column(lines, self.line, self.column),
+            end_line: self.end_line,
+            end_column: text::utf16_column(lines, self.end_line, self.end_column),
+            new_text: self.new_text.clone(),
+        }
+    }
 }
 
 impl From<&FixEdit> for Edit {
@@ -40,9 +56,10 @@ pub(crate) fn edits_for(
     diagnostic: &Diagnostic,
     source_map: Arc<[SourceLocation]>,
     circuit_name: Arc<str>,
+    context: &FixContext,
 ) -> Option<Vec<Edit>> {
     let request = ApplyFixRequest::new(source, diagnostic.clone(), source_map, circuit_name);
-    let response = apply_fix(&request, &CodegenAdapter).ok()?;
+    let response = apply_fix(&request, context, &CodegenAdapter).ok()?;
 
     if response.edits().is_empty() {
         return None;

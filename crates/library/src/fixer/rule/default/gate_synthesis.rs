@@ -33,7 +33,7 @@ pub(crate) fn swap_synthesis() -> PatternRule {
         RuleMetadata::new(
             "G001",
             function_name!(),
-            "Synthesize SWAP using its decomposition of 3 CX gates.",
+            "SWAP can be synthesized from 3 CX gates",
             RuleCategory::GateSynthesis,
             100,
         ),
@@ -65,7 +65,7 @@ pub(crate) fn ch_synthesis() -> PatternRule {
         RuleMetadata::new(
             "G002",
             function_name!(),
-            "Synthesize CH using its decomposition of S, H, T, CX, Tdg, H and Sdg gates.",
+            "CH can be synthesized from S, H, T, CX, Tdg, H and Sdg gates",
             RuleCategory::GateSynthesis,
             100,
         ),
@@ -93,7 +93,7 @@ pub(crate) fn cy_synthesis() -> PatternRule {
         RuleMetadata::new(
             "G003",
             function_name!(),
-            "Synthesize CY using its decomposition of Sdg, CX and S gates.",
+            "CY can be synthesized from Sdg, CX and S gates",
             RuleCategory::GateSynthesis,
             100,
         ),
@@ -123,7 +123,7 @@ pub(crate) fn cswap_synthesis() -> PatternRule {
         RuleMetadata::new(
             "G004",
             function_name!(),
-            "Synthesize CSWAP using its decomposition of CX and CCX gates.",
+            "CSWAP can be synthesized from CX and CCX gates",
             RuleCategory::GateSynthesis,
             100,
         ),

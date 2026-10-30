@@ -12,7 +12,7 @@ use qctidy_ports::{
 };
 use tree_sitter::{Node, Parser, TreeCursor};
 
-use gates::{Argument, parse_gate_call};
+use gates::{Argument, parse_gate_call, parse_measure_all};
 
 /// Parse Python source and return the circuits and scopes it defines.
 ///
@@ -121,7 +121,19 @@ fn find_assignments(
     circuits: &mut Vec<ParsedCircuit>,
     variable_map: &mut HashMap<String, Vec<usize>>,
 ) {
+    let mut constants: HashMap<String, String> = HashMap::new();
+
     walk_named(scope_node, |node| {
+        if node.kind() == "augmented_assignment" {
+            if let Some(left) = node.child_by_field_name("left")
+                && left.kind() == "identifier"
+            {
+                constants.remove(&node_text(left, source));
+            }
+
+            return;
+        }
+
         if node.kind() != "assignment" {
             return;
         }
@@ -129,8 +141,23 @@ fn find_assignments(
         let left = node.child_by_field_name("left");
         let right = node.child_by_field_name("right");
 
-        if let (Some(left), Some(right)) = (left, right)
-            && right.kind() == "call"
+        let (Some(left), Some(right)) = (left, right) else {
+            return;
+        };
+
+        if left.kind() == "identifier" {
+            let name = node_text(left, source);
+
+            if !is_conditional(node, scope_node)
+                && let Some(value) = constant_text(right, source, &constants)
+            {
+                constants.insert(name, value);
+            } else {
+                constants.remove(&name);
+            }
+        }
+
+        if right.kind() == "call"
             && let Some(function) = right.child_by_field_name("function")
         {
             let function_text = node_text(function, source);
@@ -138,7 +165,7 @@ fn find_assignments(
             if function_text == "QuantumCircuit" || function_text.ends_with(".QuantumCircuit") {
                 let variable_name = node_text(left, source);
                 let arguments = right.child_by_field_name("arguments");
-                let (qubit_count, bit_count) = circuit_counts(arguments, source);
+                let (qubit_count, bit_count) = circuit_counts(arguments, source, &constants);
                 let start = node.start_position();
 
                 let circuit = ParsedCircuit {
@@ -201,16 +228,37 @@ fn find_gate_calls(
                 let start = node.start_position();
                 let end = node.end_position();
 
-                if let Some(gate) = parse_gate_call(
-                    &gate_method,
-                    &call_arguments,
-                    start.row,
-                    start.column,
-                    end.row,
-                    end.column,
-                ) {
-                    circuits[target].gates.push(gate);
-                }
+                let gates = if gate_method == "measure_all" && call_arguments.is_empty() {
+                    let qubit_count = expressions::evaluate_integer(&circuits[target].qubit_count);
+                    let bit_count = expressions::evaluate_integer(&circuits[target].bit_count);
+                    let gates = parse_measure_all(
+                        qubit_count,
+                        bit_count.unwrap_or(0),
+                        start.row,
+                        start.column,
+                        end.row,
+                        end.column,
+                    );
+
+                    if let (Some(qubit_count), Some(bit_count)) = (qubit_count, bit_count) {
+                        circuits[target].bit_count = (bit_count + qubit_count).to_string();
+                    }
+
+                    gates
+                } else {
+                    parse_gate_call(
+                        &gate_method,
+                        &call_arguments,
+                        start.row,
+                        start.column,
+                        end.row,
+                        end.column,
+                    )
+                    .into_iter()
+                    .collect()
+                };
+
+                circuits[target].gates.extend(gates);
             }
         }
     });
@@ -287,7 +335,11 @@ fn collect_arguments(arguments: Option<Node>, source: &str) -> Vec<Argument> {
 }
 
 #[must_use]
-fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
+fn circuit_counts(
+    arguments: Option<Node>,
+    source: &str,
+    constants: &HashMap<String, String>,
+) -> (String, String) {
     let mut qubit_count = "0".to_owned();
     let mut bit_count = "0".to_owned();
 
@@ -304,7 +356,7 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
                 .map(|name| node_text(name, source));
             let value = child
                 .child_by_field_name("value")
-                .map(|value| node_text(value, source));
+                .map(|value| resolve_constant(&node_text(value, source), constants));
 
             match key_name.as_deref() {
                 Some("qubits" | "num_qubits") => {
@@ -316,7 +368,7 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
                 _ => {}
             }
         } else {
-            positional.push(node_text(child, source));
+            positional.push(resolve_constant(&node_text(child, source), constants));
         }
     }
 
@@ -329,6 +381,63 @@ fn circuit_counts(arguments: Option<Node>, source: &str) -> (String, String) {
     }
 
     (qubit_count, bit_count)
+}
+
+/// Whether `node` sits inside control flow between it and `scope_node`.
+///
+/// Assignments in a branch may not run, so their values are never propagated.
+fn is_conditional(node: Node, scope_node: Node) -> bool {
+    let mut current = node.parent();
+
+    while let Some(parent) = current {
+        if parent == scope_node {
+            return false;
+        }
+
+        if matches!(
+            parent.kind(),
+            "if_statement"
+                | "elif_clause"
+                | "else_clause"
+                | "for_statement"
+                | "while_statement"
+                | "try_statement"
+                | "except_clause"
+                | "finally_clause"
+                | "with_statement"
+                | "match_statement"
+                | "case_clause"
+        ) {
+            return true;
+        }
+
+        current = parent.parent();
+    }
+
+    false
+}
+
+/// The value of a trivial constant assignment: an integer literal or an alias of one.
+fn constant_text(node: Node, source: &str, constants: &HashMap<String, String>) -> Option<String> {
+    match node.kind() {
+        "integer" => {
+            let text = node_text(node, source);
+
+            text.bytes()
+                .all(|byte| byte.is_ascii_digit())
+                .then_some(text)
+        }
+        "identifier" => constants.get(&node_text(node, source)).cloned(),
+        _ => None,
+    }
+}
+
+/// Replace a bare identifier with its constant value, leaving anything else as is.
+fn resolve_constant(text: &str, constants: &HashMap<String, String>) -> String {
+    constants
+        .get(text.trim())
+        .cloned()
+        .unwrap_or_else(|| text.to_owned())
 }
 
 fn finalize_circuits(circuits: &mut [ParsedCircuit]) {

@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use qctidy::{GateOperation, GateType};
+use qctidy::{Circuit, GateOperation, GateType};
 use qctidy_ports::{ParsedCircuit, PythonAstPort, Scope, ScopeChild, ScopeType};
 
 use crate::PythonAstAdapter;
@@ -102,6 +102,20 @@ fn circuits_in_scope(scope: &Scope) -> Vec<&ParsedCircuit> {
         .collect()
 }
 
+fn measurement_pairs(circuit: &Circuit) -> Vec<(usize, usize)> {
+    circuit
+        .operations()
+        .iter()
+        .filter_map(|operation| {
+            if let GateOperation::Measure { qubit, bit } = operation {
+                Some((*qubit, *bit))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 #[test]
 fn finds_the_function_and_every_circuit_it_defines() {
     let analysis = PythonAstAdapter.parse(ALL_GATES);
@@ -187,4 +201,142 @@ fn reports_uncheckable_circuits_as_parse_issues() {
     assert_eq!(circuit.issues.len(), 1);
     assert_eq!(circuit.issues[0].message, "unsupported gate: foo");
     assert!(circuit.build.is_none());
+}
+
+#[test]
+fn expands_measure_all_into_one_measurement_per_qubit() {
+    let source = "qc = QuantumCircuit(3)\nqc.h(0)\nqc.cx(0, 1)\nqc.measure_all()\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert!(circuit.issues.is_empty());
+    assert_eq!(circuit.qubit_count, "3");
+    assert_eq!(circuit.bit_count, "3");
+
+    let build = circuit
+        .build
+        .as_ref()
+        .expect("measure_all should keep the circuit checkable");
+
+    assert_eq!(build.circuit.qubit_count(), 3);
+    assert_eq!(build.circuit.operations().len(), 5);
+    assert_eq!(build.source_map.len(), 5);
+
+    let measurements: Vec<(usize, usize)> = build
+        .circuit
+        .operations()
+        .iter()
+        .filter_map(|operation| {
+            if let GateOperation::Measure { qubit, bit } = operation {
+                Some((*qubit, *bit))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    assert_eq!(measurements, vec![(0, 0), (1, 1), (2, 2)]);
+}
+
+#[test]
+fn repeated_measure_all_adds_new_classical_bits() {
+    let source = "qc = QuantumCircuit(3)\nqc.measure_all()\nqc.measure_all()\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert!(circuit.issues.is_empty());
+    assert_eq!(circuit.bit_count, "6");
+
+    let build = circuit.build.as_ref().expect("the circuit is checkable");
+    assert_eq!(
+        measurement_pairs(&build.circuit),
+        vec![(0, 0), (1, 1), (2, 2), (0, 3), (1, 4), (2, 5)]
+    );
+}
+
+#[test]
+fn measure_all_adds_bits_to_a_circuit_that_already_has_them() {
+    let source = "qc = QuantumCircuit(3, 2)\nqc.measure_all()\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert_eq!(circuit.bit_count, "5");
+
+    let build = circuit.build.as_ref().expect("the circuit is checkable");
+    assert_eq!(
+        measurement_pairs(&build.circuit),
+        vec![(0, 2), (1, 3), (2, 4)]
+    );
+}
+
+#[test]
+fn resolves_trivial_constant_sizes() {
+    let source = "qubits = 3\nbits = qubits\nqc = QuantumCircuit(qubits, bits)\nqc.h(0)\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert_eq!(circuit.qubit_count, "3");
+    assert_eq!(circuit.bit_count, "3");
+    assert!(circuit.issues.is_empty());
+
+    let build = circuit.build.as_ref().expect("the circuit is checkable");
+    assert_eq!(build.circuit.qubit_count(), 3);
+}
+
+#[test]
+fn does_not_resolve_constants_assigned_after_the_circuit() {
+    let source = "qc = QuantumCircuit(qubits)\nqubits = 3\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert_eq!(circuit.qubit_count, "qubits");
+    assert!(circuit.build.is_none());
+}
+
+#[test]
+fn invalidates_constants_that_are_reassigned() {
+    for source in [
+        "qubits = 3\nqubits = compute()\nqc = QuantumCircuit(qubits)\n",
+        "qubits = 3\nqubits += 1\nqc = QuantumCircuit(qubits)\n",
+    ] {
+        let analysis = PythonAstAdapter.parse(source);
+
+        assert!(analysis.module_circuits[0].build.is_none(), "{source}");
+    }
+}
+
+#[test]
+fn does_not_propagate_constants_assigned_in_a_branch() {
+    let source = "qubits = 3\nif flag:\n    qubits = 5\nqc = QuantumCircuit(qubits)\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+    assert_eq!(circuit.qubit_count, "qubits");
+    assert!(circuit.build.is_none());
+}
+
+#[test]
+fn resolves_constants_inside_a_function_scope() {
+    let source = "def build():\n    qubits = 3\n    qc = QuantumCircuit(qubits)\n    qc.h(0)\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &circuits_in_scope(&analysis.scopes[0])[0];
+    assert_eq!(circuit.qubit_count, "3");
+    assert!(circuit.issues.is_empty());
+    assert!(circuit.build.is_some());
+}
+
+#[test]
+fn measure_all_is_skipped_when_the_qubit_count_is_not_a_number() {
+    let source = "qc = QuantumCircuit(qubits)\nqc.measure_all()\n";
+    let analysis = PythonAstAdapter.parse(source);
+
+    let circuit = &analysis.module_circuits[0];
+
+    assert!(circuit.build.is_none());
+    assert_eq!(circuit.issues.len(), 1);
+    assert_eq!(
+        circuit.issues[0].message,
+        "qubit count is not a number: qubits"
+    );
 }

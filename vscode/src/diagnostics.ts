@@ -18,6 +18,24 @@ export interface JsonCircuitPosition {
 }
 
 /**
+ * A source edit that applies a fix, in UTF-16 code unit columns.
+ */
+export interface FixEdit {
+    line: number;
+    column: number;
+    end_line: number;
+    end_column: number;
+    new_text: string;
+}
+
+const fixesByDiagnostic = new WeakMap<vscode.Diagnostic, FixEdit[]>();
+
+/** The fixes attached to a QCTidy diagnostic, empty when it has none. */
+export function fixesFor(diagnostic: vscode.Diagnostic): FixEdit[] {
+    return fixesByDiagnostic.get(diagnostic) ?? [];
+}
+
+/**
  * A single diagnostic emitted by `qctidy check --output-format json`.
  */
 export interface CliDiagnostic {
@@ -30,7 +48,7 @@ export interface CliDiagnostic {
     graph_positions: JsonCircuitPosition[];
     operation_indices: number[];
     source_locations: JsonSourceLocation[];
-    fixes?: unknown;
+    fixes?: FixEdit[] | null;
 }
 
 /**
@@ -79,7 +97,8 @@ export function mapSeverity(severity: string): vscode.DiagnosticSeverity {
  * - severity: mapped via `mapSeverity`
  * - code: `diag.code`
  * - source: `'qctidy'`
- * - message: includes category and description
+ * - message: `diag.message`
+ * - fixes: attached out of band, so code actions can apply them
  */
 export function toVsCodeDiagnostic(
     diag: CliDiagnostic,
@@ -87,11 +106,11 @@ export function toVsCodeDiagnostic(
 ): vscode.Diagnostic {
     const range = new vscode.Range(loc.line, loc.column, loc.end_line, loc.end_column);
     const severity = mapSeverity(diag.severity);
-    const message = diag.category ? `(${diag.category}) ${diag.message}` : diag.message;
 
-    const vsDiagnostic = new vscode.Diagnostic(range, message, severity);
+    const vsDiagnostic = new vscode.Diagnostic(range, diag.message, severity);
     vsDiagnostic.code = diag.code;
     vsDiagnostic.source = 'qctidy';
+    fixesByDiagnostic.set(vsDiagnostic, diag.fixes ?? []);
     return vsDiagnostic;
 }
 

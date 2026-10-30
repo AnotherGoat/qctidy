@@ -20,7 +20,7 @@ use std::{any::Any, collections::HashSet};
 
 use thiserror::Error;
 
-use crate::{GateType, Graph, GraphError, PatternRuleSide, Position, RuleMetadata};
+use crate::{GateOperation, GateType, Graph, GraphError, PatternRuleSide, Position, RuleMetadata};
 
 #[derive(Debug, Clone, Copy, Error)]
 pub enum RuleBuildError {
@@ -86,6 +86,18 @@ pub trait Rule: Debug + Send + Sync {
 
     /// Apply the rule once, then return true if a change occurred.
     fn apply(&self, graph: &mut Graph) -> bool;
+
+    /// Return the operations that fix one match, when they can be computed per match.
+    ///
+    /// Pattern rules leave this to the matcher; canonicalization rules may provide
+    /// a per-match replacement here.
+    fn fix_operations(
+        &self,
+        _graph: &Graph,
+        _positions: &HashSet<Position>,
+    ) -> Option<Vec<GateOperation>> {
+        None
+    }
 
     /// Downcast to `Any` for type-safe downcasting.
     fn as_any(&self) -> &dyn Any;

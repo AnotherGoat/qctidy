@@ -4,8 +4,8 @@ use std::sync::Arc;
 use function_name::named;
 
 use crate::{
-    CanonicalizationRule, GateType, Graph, NodeView, Position, RuleCategory, RuleMetadata,
-    RuleRegistry, domain::math,
+    CanonicalizationRule, GateOperation, GateType, Graph, NodeView, Position, RuleCategory,
+    RuleMetadata, RuleRegistry, domain::math,
 };
 
 pub(crate) fn register(registry: &mut RuleRegistry) {
@@ -23,7 +23,7 @@ pub(crate) fn compact_qubits() -> CanonicalizationRule {
         RuleMetadata::new(
             "C001",
             function_name!(),
-            "Compacts qubits by removing gaps between qubit indices.",
+            "Qubit indices contain gaps",
             RuleCategory::Canonicalization,
             0,
         ),
@@ -101,7 +101,7 @@ pub(crate) fn compact_time_steps() -> CanonicalizationRule {
         RuleMetadata::new(
             "C002",
             function_name!(),
-            "Compacts time steps by removing gaps between time steps.",
+            "Time steps contain gaps",
             RuleCategory::Canonicalization,
             0,
         ),
@@ -165,7 +165,7 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
         RuleMetadata::new(
             "C003",
             function_name!(),
-            "Normalizes all gate angles to the [0, 4pi) range.",
+            "Gate angle is outside the [0, 4pi) range",
             RuleCategory::Canonicalization,
             0,
         ),
@@ -229,6 +229,42 @@ pub(crate) fn normalize_angles() -> CanonicalizationRule {
             changed
         }),
     )
+    .with_fix(Box::new(|graph: &Graph, positions: &HashSet<Position>| {
+        let mut operations = Vec::with_capacity(positions.len());
+
+        for position in positions {
+            let node = graph.get_node(*position)?;
+            let angle = node.semantic_angle()?;
+            let normalized = if math::is_float_close_to_zero(angle) {
+                0.0
+            } else {
+                math::normalize_angle(angle, math::FULL_CYCLE).ok()?
+            };
+            let qubit = position.qubit();
+
+            let operation = match node.r#type() {
+                P => GateOperation::try_p(normalized, qubit).ok()?,
+                RX => GateOperation::try_rx(normalized, qubit).ok()?,
+                RY => GateOperation::try_ry(normalized, qubit).ok()?,
+                RZ => GateOperation::try_rz(normalized, qubit).ok()?,
+                CP => {
+                    let other = graph
+                        .get_contextual_view(*position)?
+                        .works_with()
+                        .first()?
+                        .position();
+
+                    GateOperation::try_cp(normalized, qubit, other.qubit()).ok()?
+                }
+                ID | H | X | Y | Z | S | SDG | SX | SY | T | TDG | U | Measure | Swap | CH | CX
+                | CY | CZ | CSwap | CCX | CCZ => return None,
+            };
+
+            operations.push(operation);
+        }
+
+        Some(operations)
+    }))
 }
 
 #[named]
@@ -237,7 +273,7 @@ pub(crate) fn normalize_bits() -> CanonicalizationRule {
         RuleMetadata::new(
             "C004",
             function_name!(),
-            "Normalizes measurement bit indices to a compact range starting from 0.",
+            "Measurement bit indices contain gaps",
             RuleCategory::Canonicalization,
             0,
         ),

@@ -143,6 +143,14 @@ pub(crate) struct CheckArguments {
     #[arg(long)]
     #[get_copy = "pub(crate)"]
     fix: bool,
+
+    /// Omit the Python analysis payload from the JSON report.
+    ///
+    /// Useful for editor integrations that poll diagnostics frequently and only
+    /// need the analysis on demand.
+    #[arg(long)]
+    #[get_copy = "pub(crate)"]
+    no_analysis: bool,
 }
 
 #[derive(Debug, Args, Getters, CopyGetters)]
@@ -194,6 +202,13 @@ pub(crate) struct DisplayArguments {
     #[get = "pub(crate)"]
     input: Option<PathBuf>,
 
+    /// Name reported for standard input, instead of `<stdin>`.
+    ///
+    /// Use a `.py` name to treat standard input as Python source.
+    #[arg(long, value_name = "NAME")]
+    #[get = "pub(crate)"]
+    input_name: Option<String>,
+
     /// Input format, overriding the guessed format.
     ///
     /// Accepted values: json, xml, msgpack, cbor.
@@ -223,6 +238,13 @@ pub(crate) struct PresentArguments {
     #[arg(short, long, value_name = "FILE")]
     #[get = "pub(crate)"]
     input: Option<PathBuf>,
+
+    /// Name reported for standard input, instead of `<stdin>`.
+    ///
+    /// Use a `.py` name to treat standard input as Python source.
+    #[arg(long, value_name = "NAME")]
+    #[get = "pub(crate)"]
+    input_name: Option<String>,
 
     /// Input format, overriding the guessed format.
     ///

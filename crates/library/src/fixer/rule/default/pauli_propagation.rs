@@ -31,7 +31,7 @@ pub(crate) fn x_on_control_qubit_between_cx() -> PatternRule {
         RuleMetadata::new(
             "Q001",
             function_name!(),
-            "Propagate X on control qubit between two CX gates.",
+            "X on the control qubit can be propagated between two CX gates",
             RuleCategory::PauliPropagation,
             100,
         ),
@@ -57,7 +57,7 @@ pub(crate) fn x_on_target_qubit_between_cx() -> PatternRule {
         RuleMetadata::new(
             "Q002",
             function_name!(),
-            "Propagate X on target qubit between two CX gates.",
+            "X on the target qubit can be propagated between two CX gates",
             RuleCategory::PauliPropagation,
             100,
         ),
@@ -83,7 +83,7 @@ pub(crate) fn z_on_control_qubit_between_cx() -> PatternRule {
         RuleMetadata::new(
             "Q003",
             function_name!(),
-            "Propagate Z on control qubit between two CX gates.",
+            "Z on the control qubit can be propagated between two CX gates",
             RuleCategory::PauliPropagation,
             100,
         ),
@@ -109,7 +109,7 @@ pub(crate) fn z_on_target_qubit_between_cx() -> PatternRule {
         RuleMetadata::new(
             "Q004",
             function_name!(),
-            "Propagate Z on target qubit between two CX gates.",
+            "Z on the target qubit can be propagated between two CX gates",
             RuleCategory::PauliPropagation,
             100,
         ),
@@ -135,7 +135,7 @@ pub(crate) fn x_between_cz() -> PatternRule {
         RuleMetadata::new(
             "Q005",
             function_name!(),
-            "Propagate X between two CZ gates.",
+            "X can be propagated between two CZ gates",
             RuleCategory::PauliPropagation,
             100,
         ),
@@ -161,7 +161,7 @@ pub(crate) fn z_between_cz() -> PatternRule {
         RuleMetadata::new(
             "Q006",
             function_name!(),
-            "Propagate Z between two CZ gates.",
+            "Z can be propagated between two CZ gates",
             RuleCategory::PauliPropagation,
             100,
         ),
