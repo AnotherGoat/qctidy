@@ -15,11 +15,23 @@ La extensión se integra directamente en la barra lateral (Activity Bar) de VS C
 * **Detección Especial para $\sqrt{Y}$**: Reconoce construcciones como `circuit.append(YGate().power(1 / 2), [0])` como compuerta $\sqrt{Y}$ (`SY`), identificando su potencia y cúbit.
 * **Desglose de Parámetros**: Permite desplegar cada compuerta para inspeccionar sus parámetros individuales (ángulos, cúbits de control y objetivo).
 * **Navegación Rápida**: Al hacer clic en cualquier función, circuito, compuerta o parámetro, el editor salta a su línea y columna exacta y, si el nodo es expandible, también se expande automáticamente. Los parámetros de una llamada multilínea saltan a su propia línea.
-* **Correcciones Rápidas**: Los diagnósticos con corrección disponible se pueden aplicar con `Ctrl + .` en el editor o desde el icono 💡 del panel lateral. La edición se aplica como un `WorkspaceEdit` (undo normal) y el análisis se relanza automáticamente. Las reglas de canonicalización (`C*`) no tienen edición de código y no ofrecen la acción.
+* **Feedback Visual y Rendimiento en Tiempo Real**: Durante el análisis del código, se despliega un spinner animado (`$(sync~spin)`) con cronómetro en vivo tanto en la barra de estado de VS Code como en el encabezado del panel lateral (`treeView.description`), informando con precisión los segundos de ejecución del comando.
+* **Correcciones Rápidas y Refresco Instantáneo**: Los diagnósticos con corrección disponible se pueden aplicar con `Ctrl + .` en el editor o desde el icono 💡 del panel lateral. La edición se aplica como un `WorkspaceEdit` (undo normal) y desencadena un refresco automático instantáneo sin esperar el retardo de debounce. Las reglas de canonicalización (`C*`) no tienen edición de código y no ofrecen la acción.
+* **Control de Procesos y Concurrencia**:
+  - **Manejo de tokens de generación**: Previene solapamientos y condiciones de carrera descartando resultados de ejecuciones anteriores que lleguen a destiempo.
+  - **Terminación de procesos obsoletos**: Mata automáticamente el proceso hijo anterior de `qctidy check` en cuanto se programa o inicia una nueva comprobación.
 * **Corregir Todo**: Botón en la cabecera del panel para aplicar de una vez todas las correcciones del informe, descartando las que se solapen.
 * **Versión de Qiskit**: Muestra la versión de Qiskit detectada en el entorno, o `Qiskit: not found` si no se encuentra.
 * **Mensajes de Estado**: Si el archivo abierto no es `.py`, o si no contiene circuitos, el panel lo indica explícitamente.
 * **Recarga Manual**: Botón en la esquina superior derecha del panel para volver a analizar el archivo y redetectar la versión de Qiskit.
+
+## Configuración
+
+La extensión ofrece las siguientes opciones de configuración en los ajustes de VS Code:
+
+* `qctidy.path`: Ruta al ejecutable de QCTidy (por defecto `"qctidy"` desde el `PATH`). Admite expansión de tilde (`~`) y rutas relativas al workspace.
+* `qctidy.debounceDelay`: Tiempo de retardo en milisegundos tras dejar de escribir antes de analizar el archivo activo (por defecto `400` ms).
+* `qctidy.checkTimeout`: Límite máximo de tiempo en segundos para la ejecución de `qctidy check` (por defecto `5` segundos).
 
 ## Arquitectura Técnica
 

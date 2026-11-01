@@ -83,6 +83,18 @@
           "type": "string",
           "default": "qctidy",
           "description": "Path to the QCTidy executable (default: 'qctidy' from PATH)."
+        },
+        "qctidy.debounceDelay": {
+          "type": "integer",
+          "default": 400,
+          "minimum": 0,
+          "description": "Debounce delay in milliseconds before analyzing the code after typing (default: 400 ms)."
+        },
+        "qctidy.checkTimeout": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "Timeout in seconds for 'qctidy check' executions (default: 5 seconds)."
         }
       }
     }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { AstAnalysis, AstCircuit, AstGate, AstScope } from './ast';
-import { QctidyStatus, runCheck } from './cli';
+import { isCancellationError, QctidyStatus, runCheck } from './cli';
 import { CheckReport, CliDiagnostic, CliError, FixEdit } from './diagnostics';
 import { FIXABLE_CONTEXT } from './fixes';
 
@@ -230,6 +230,16 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
 
             items.push(...astItems);
         } catch (error) {
+            if (isCancellationError(error)) {
+                if (this.astAnalysis) {
+                    const astItems = this.buildHierarchy(this.astAnalysis, this.checkReport ?? { diagnostics: [], errors: [], analyses: [] });
+                    this.disambiguateCircuitNames(astItems);
+                    items.push(...astItems);
+                    this.rootItems = items;
+                    return items;
+                }
+                return this.rootItems;
+            }
             console.error('Failed to analyze the Python file:', error);
             items.push(this.createMessageItem('Failed to analyze the Python file'));
         }
