@@ -10,16 +10,22 @@ use qctidy::{AngleFormat, EdgeType, EdgeView, GateType, Graph, NodeView, PiForma
 use qctidy_ports::{PresentationError, PresentationFormat, PresenterPort};
 use std::io;
 
-const WHITE: &str = "#FFFFFF";
-const RED: &str = "#EF9A9A";
+// Gate colors match the frontend (Tailwind CSS v4 palette), lightened 65% toward white
+// so the black labels stay readable on the graph.
+const GRAY: &str = "#C8CED7"; // slate-500
+const RED: &str = "#FFB1C4"; // rose-500
+const GREEN: &str = "#A6E8D2"; // emerald-500
+const BLUE: &str = "#B5D2FF"; // blue-500
+const PINK: &str = "#F5B4FE"; // fuchsia-500
+const ORANGE: &str = "#FFCBA6"; // orange-500
+const YELLOW: &str = "#FFE7A6"; // amber-400
+const CYAN: &str = "#A6E6F2"; // cyan-500
+const BLACK: &str = "#000000";
+
+// Edge colors.
 const DARK_RED: &str = "#B71C1C";
-const GREEN: &str = "#A5D6A7";
 const DARK_GREEN: &str = "#1B5E20";
-const BLUE: &str = "#90CAF9";
 const DARK_BLUE: &str = "#0D47A1";
-const ORANGE: &str = "#FFCC80";
-const PURPLE: &str = "#CE93D8";
-const GRAY: &str = "#EEEEEE";
 const DARK_GRAY: &str = "#424242";
 
 #[derive(Debug, Clone, Copy)]
@@ -167,10 +173,10 @@ fn draw_nodes(graph: &Graph, statements: &mut Vec<Stmt>) {
         let (x, y) = find_draw_position(graph, &node);
 
         let node_id = node_id(&node);
+        let node_color = gate_color(node.r#type());
         let node_label = find_node_label(&node);
-        let node_color = find_node_color(&node);
         let position = format!("\"{x},{y}!\"");
-
+        let node_color = format!("\"{node_color}\"");
         let graphviz_node = Stmt::Node(node!(
             node_id;
             attr!("label", node_label),
@@ -269,27 +275,25 @@ fn find_node_label(node: &NodeView) -> String {
     };
 
     format!(
-        "<<font point-size=\"18\"><b>{}</b></font><br/><font point-size=\"14\" color=\"{}\">{}</font>>",
-        top_label,
-        DARK_GRAY,
+        "<<font point-size=\"18\" color=\"{BLACK}\"><b>{top_label}</b></font><br/><font point-size=\"14\" color=\"{BLACK}\">{}</font>>",
         node.position()
     )
 }
 
-fn find_node_color(node: &NodeView) -> String {
+/// The fill color of a gate, matching the frontend palette but lightened.
+const fn gate_color(gate: GateType) -> &'static str {
     use GateType::*;
 
-    let color = match node.r#type() {
-        ID => WHITE,
-        H | CH => RED,
-        X | RX | SX | CX | CCX => BLUE,
-        Y | RY | SY | CY => ORANGE,
-        Z | P | RZ | S | SDG | T | TDG | U | CZ | CP | CCZ => GREEN,
-        Swap | CSwap => PURPLE,
-        Measure => GRAY,
-    };
-
-    format!("\"{color}\"")
+    match gate {
+        ID | Measure => GRAY,
+        H | CH => PINK,
+        X | RX | SX | CX | CCX => RED,
+        Y | RY | SY | CY => GREEN,
+        Z | RZ | S | SDG | CZ | Swap | CCZ => BLUE,
+        P | CP | U => ORANGE,
+        T | TDG => YELLOW,
+        CSwap => CYAN,
+    }
 }
 
 fn edge_label(edge: &EdgeView) -> String {
