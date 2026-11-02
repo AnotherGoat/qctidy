@@ -1,13 +1,92 @@
 import * as vscode from 'vscode';
-import { cliOutputChannel, detectQctidyVersion, invalidateQctidyCache, runCheck } from './cli';
+import {
+    cliOutputChannel,
+    detectQctidyVersion,
+    invalidateQctidyCache,
+    isCancellationError,
+    killActiveCheck,
+    runCheck
+} from './cli';
 import { convertReportToVsCodeDiagnostics } from './diagnostics';
+import { detectGraphviz, disposeDisplayPanels, showCircuitAsGraph, showCircuitAsText } from './display';
 import { applyFixes, registerFixActions, rememberAnalyzedSource } from './fixes';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
 import { AstNodeItem, QCTidyTreeDataProvider } from './treeDataProvider';
 
 let diagnosticCollection: vscode.DiagnosticCollection | undefined;
 let debounceTimer: NodeJS.Timeout | undefined;
-const DEBOUNCE_DELAY_MS = 400;
+let checkGeneration = 0;
+let lastInstantRefreshTime = 0;
+
+/** Gets the configured debounce delay in milliseconds (default: 400). */
+function getDebounceDelayMs(): number {
+    const config = vscode.workspace.getConfiguration('qctidy');
+    const delay = config.get<number>('debounceDelay', 400);
+    return typeof delay === 'number' && delay >= 0 ? delay : 400;
+}
+
+/** Controls the visual spinner and running timer in the status bar and sidebar. */
+class AnalysisFeedback {
+    private readonly statusBarItem: vscode.StatusBarItem;
+    private treeView?: vscode.TreeView<AstNodeItem>;
+    private timer?: NodeJS.Timeout;
+    private startTime = 0;
+    private isRunning = false;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+        this.statusBarItem.name = 'QCTidy Analysis Status';
+        context.subscriptions.push(this.statusBarItem);
+    }
+
+    setTreeView(treeView: vscode.TreeView<AstNodeItem>): void {
+        this.treeView = treeView;
+    }
+
+    start(): void {
+        this.startTime = Date.now();
+        this.isRunning = true;
+        this.update(0);
+        this.statusBarItem.show();
+
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
+        this.timer = setInterval(() => {
+            if (!this.isRunning) {
+                return;
+            }
+            const elapsed = (Date.now() - this.startTime) / 1000;
+            this.update(elapsed);
+        }, 100);
+    }
+
+    private update(elapsedSeconds: number): void {
+        const timeText = `${elapsedSeconds.toFixed(1)}s`;
+        this.statusBarItem.text = `$(sync~spin) QCTidy: Analizando... (${timeText})`;
+        this.statusBarItem.tooltip = `QCTidy está analizando los circuitos cuánticos (${timeText})`;
+        if (this.treeView) {
+            this.treeView.description = `$(sync~spin) Analizando (${timeText})...`;
+        }
+    }
+
+    stop(): void {
+        this.isRunning = false;
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = undefined;
+        }
+        this.statusBarItem.hide();
+        if (this.treeView) {
+            this.treeView.description = undefined;
+        }
+    }
+
+    dispose(): void {
+        this.stop();
+        this.statusBarItem.dispose();
+    }
+}
 
 export async function activate(context: vscode.ExtensionContext) {
     console.log('QCTidy VS Code extension is now active!');
@@ -22,6 +101,11 @@ export async function activate(context: vscode.ExtensionContext) {
         const treeDataProvider = new QCTidyTreeDataProvider();
         const treeView = vscode.window.createTreeView('qctidy-ast-view', { treeDataProvider });
         context.subscriptions.push(treeView);
+
+        // Visual feedback coordinator (spinner and live execution time)
+        const feedback = new AnalysisFeedback(context);
+        feedback.setTreeView(treeView);
+        context.subscriptions.push({ dispose: () => feedback.dispose() });
 
         // Unified output channel
         context.subscriptions.push(cliOutputChannel());
@@ -38,11 +122,21 @@ export async function activate(context: vscode.ExtensionContext) {
                 return;
             }
 
+            // Generation token to prevent race conditions and reject stale results
+            const generation = ++checkGeneration;
             const source = document.getText();
             const inputPath = document.uri.fsPath;
 
+            feedback.start();
+
             try {
                 const report = await runCheck(source, inputPath);
+
+                // Reject results from older executions if superseded
+                if (generation !== checkGeneration) {
+                    return;
+                }
+
                 rememberAnalyzedSource(document.uri, source);
 
                 // Convert and publish diagnostics to the source editor
@@ -52,7 +146,34 @@ export async function activate(context: vscode.ExtensionContext) {
                 // Fused AST + diagnostics in the sidebar
                 treeDataProvider.setData(report, source);
             } catch (error) {
+                if (generation !== checkGeneration || isCancellationError(error)) {
+                    // Superseded or cancelled process; ignore cleanly
+                    return;
+                }
                 console.error('Failed to update diagnostics and AST:', error);
+                cliOutputChannel().appendLine(`Analysis error: ${String(error)}`);
+            } finally {
+                if (generation === checkGeneration) {
+                    feedback.stop();
+                }
+            }
+        };
+
+        // Instant refresh without debounce delay
+        const triggerInstantCheck = async (targetUri?: vscode.Uri): Promise<void> => {
+            lastInstantRefreshTime = Date.now();
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+                debounceTimer = undefined;
+            }
+
+            const activeDoc = vscode.window.activeTextEditor?.document;
+            const document = targetUri
+                ? vscode.workspace.textDocuments.find(d => d.uri.toString() === targetUri.toString()) ?? activeDoc
+                : activeDoc;
+
+            if (document && document.languageId === 'python') {
+                await updateDiagnosticsAndSidebar(document);
             }
         };
 
@@ -78,6 +199,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
         void checkQctidyStatus(true);
 
+        // Detect Graphviz once at activation to gate graph visualization
+        void detectGraphviz();
+
         // Re-detect when the configured QCTidy path changes
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((event) => {
@@ -102,11 +226,12 @@ export async function activate(context: vscode.ExtensionContext) {
         // Re-detect when the configured Python interpreter changes
         context.subscriptions.push(...watchInterpreter(refreshQiskitVersion));
 
-        // 3. Reactivity on active editor changes and text edits with debounce
+        // 3. Reactivity on active editor changes and text edits with configurable debounce
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             if (editor && editor.document.languageId === 'python') {
                 void updateDiagnosticsAndSidebar(editor.document);
             } else {
+                feedback.stop();
                 treeDataProvider.refresh();
             }
 
@@ -121,12 +246,18 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.workspace.onDidChangeTextDocument((event) => {
                 const activeEditor = vscode.window.activeTextEditor;
                 if (activeEditor && event.document === activeEditor.document && event.document.languageId === 'python') {
+                    // Skip debounce if an instant refresh was just triggered
+                    if (Date.now() - lastInstantRefreshTime < 100) {
+                        return;
+                    }
+
                     if (debounceTimer) {
                         clearTimeout(debounceTimer);
                     }
+                    const delay = getDebounceDelayMs();
                     debounceTimer = setTimeout(() => {
                         void updateDiagnosticsAndSidebar(event.document);
-                    }, DEBOUNCE_DELAY_MS);
+                    }, delay);
                 }
             })
         );
@@ -143,7 +274,7 @@ export async function activate(context: vscode.ExtensionContext) {
             void updateDiagnosticsAndSidebar(vscode.window.activeTextEditor.document);
         }
 
-        // 4. Navigation and reload commands
+        // 4. Navigation, reload and fix commands
         const jumpToLine = (line: number, column: number, endLine?: number, endColumn?: number): void => {
             const editor = vscode.window.activeTextEditor;
             if (editor) {
@@ -158,6 +289,7 @@ export async function activate(context: vscode.ExtensionContext) {
         };
 
         context.subscriptions.push(
+            vscode.commands.registerCommand('qctidy.triggerInstantCheck', triggerInstantCheck),
             vscode.commands.registerCommand('qctidy.refresh', () => {
                 invalidateQctidyCache();
                 void checkQctidyStatus(false);
@@ -168,6 +300,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             }),
             vscode.commands.registerCommand('qctidy.jumpToLine', jumpToLine),
+            vscode.commands.registerCommand('qctidy.showAsText', (item?: AstNodeItem) => showCircuitAsText(item)),
+            vscode.commands.registerCommand('qctidy.showAsGraph', (item?: AstNodeItem) => showCircuitAsGraph(item)),
             vscode.commands.registerCommand('qctidy.applyFix', async (item?: AstNodeItem) => {
                 const editor = vscode.window.activeTextEditor;
 
@@ -209,6 +343,8 @@ export function deactivate() {
     if (debounceTimer) {
         clearTimeout(debounceTimer);
     }
+    killActiveCheck();
+    disposeDisplayPanels();
     if (diagnosticCollection) {
         diagnosticCollection.clear();
         diagnosticCollection.dispose();

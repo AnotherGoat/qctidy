@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -184,10 +184,65 @@ export async function detectQctidyVersion(forceRefresh = false): Promise<QctidyS
 
 import type { CheckReport } from './diagnostics';
 
+interface TrackedChild extends ChildProcess {
+    wasCancelled?: boolean;
+}
+
+let activeCheckProcess: TrackedChild | null = null;
+
+/** Error thrown when a `qctidy check` execution was superseded or cancelled. */
+export class CancellationError extends Error {
+    public readonly isCancelled = true;
+
+    constructor(message = 'qctidy check execution cancelled') {
+        super(message);
+        this.name = 'CancellationError';
+    }
+}
+
+/** Check if an error was caused by cancellation/superseding. */
+export function isCancellationError(error: unknown): boolean {
+    return error instanceof CancellationError
+        || (typeof error === 'object' && error !== null && 'isCancelled' in error && (error as { isCancelled: boolean }).isCancelled === true);
+}
+
+/**
+ * Automatically kills any currently running `qctidy check` process.
+ */
+export function killActiveCheck(): void {
+    if (activeCheckProcess) {
+        activeCheckProcess.wasCancelled = true;
+        try {
+            activeCheckProcess.kill();
+        } catch {
+            // Process may have already exited
+        }
+        activeCheckProcess = null;
+    }
+}
+
+/**
+ * Gets the configured timeout for `qctidy check` in seconds (default: 5).
+ */
+export function getCheckTimeoutSeconds(): number {
+    const config = vscode.workspace.getConfiguration('qctidy');
+    const timeout = config.get<number>('checkTimeout', 5);
+    return typeof timeout === 'number' && timeout > 0 ? timeout : 5;
+}
+
+/**
+ * Gets the configured timeout for `qctidy check` in milliseconds.
+ */
+export function getCheckTimeoutMs(): number {
+    return getCheckTimeoutSeconds() * 1000;
+}
+
 export interface ExecuteOptions {
     stdin?: string;
     timeoutMs?: number;
     validExitCodes?: number[];
+    onSpawn?: (child: ChildProcess) => void;
+    timeoutMessage?: string;
 }
 
 /**
@@ -208,7 +263,11 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
         const child = spawn(executable, args, {
             shell: false,
             windowsHide: true,
-        });
+        }) as TrackedChild;
+
+        if (options.onSpawn) {
+            options.onSpawn(child);
+        }
 
         let stdout = '';
         let stderr = '';
@@ -220,14 +279,14 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
             child.kill();
         }, timeout);
 
-        child.stdout.setEncoding('utf8');
-        child.stderr.setEncoding('utf8');
+        child.stdout?.setEncoding('utf8');
+        child.stderr?.setEncoding('utf8');
 
-        child.stdout.on('data', (chunk: string) => {
+        child.stdout?.on('data', (chunk: string) => {
             stdout += chunk;
         });
 
-        child.stderr.on('data', (chunk: string) => {
+        child.stderr?.on('data', (chunk: string) => {
             stderr += chunk;
         });
 
@@ -237,8 +296,12 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
 
         child.on('close', (code: number | null) => {
             clearTimeout(timer);
+            if (child.wasCancelled) {
+                reject(new CancellationError('qctidy process was cancelled'));
+                return;
+            }
             if (timedOut) {
-                reject(new Error(`qctidy process timed out after ${timeout}ms`));
+                reject(new Error(options.timeoutMessage ?? `qctidy process timed out after ${timeout}ms`));
                 return;
             }
             if (spawnError) {
@@ -253,29 +316,59 @@ export async function executeQctidy(args: string[], options: ExecuteOptions = {}
         });
 
         if (options.stdin !== undefined) {
-            child.stdin.end(options.stdin, 'utf8');
+            child.stdin?.end(options.stdin, 'utf8');
         } else {
-            child.stdin.end();
+            child.stdin?.end();
         }
     });
+}
+
+export interface RunCheckOptions {
+    timeoutMs?: number;
 }
 
 /**
  * Runs `qctidy check --output-format json --color never --input-name <inputPath>`
  * passing `source` via stdin, accepting exit codes 0, 1, and 2.
+ * Automatically kills any previously running check process before starting.
  */
-export async function runCheck(source: string, inputPath: string): Promise<CheckReport> {
-    const stdout = await executeQctidy(
-        ['check', '--output-format', 'json', '--color', 'never', '--input-name', inputPath],
-        {
-            stdin: source,
-            validExitCodes: [0, 1, 2],
-        }
-    );
+export async function runCheck(
+    source: string,
+    inputPath: string,
+    options: RunCheckOptions = {}
+): Promise<CheckReport> {
+    // 1. Automatically kill the previously running check process
+    killActiveCheck();
+
+    const timeoutMs = options.timeoutMs ?? getCheckTimeoutMs();
+    const timeoutSeconds = Math.round(timeoutMs / 1000);
+
     try {
+        const stdout = await executeQctidy(
+            ['check', '--output-format', 'json', '--color', 'never', '--input-name', inputPath],
+            {
+                stdin: source,
+                timeoutMs,
+                timeoutMessage: `qctidy check timed out after ${timeoutSeconds}s`,
+                validExitCodes: [0, 1, 2],
+                onSpawn: (child) => {
+                    activeCheckProcess = child as TrackedChild;
+                },
+            }
+        );
         return JSON.parse(stdout) as CheckReport;
     } catch (error) {
-        throw new Error(`Failed to parse qctidy check output: ${String(error)}`);
+        if (isCancellationError(error)) {
+            throw error;
+        }
+        if (error instanceof SyntaxError) {
+            throw new Error(`Failed to parse qctidy check output: ${String(error)}`);
+        }
+        throw error;
+    } finally {
+        if (activeCheckProcess && activeCheckProcess.exitCode !== null) {
+            activeCheckProcess = null;
+        }
     }
 }
 

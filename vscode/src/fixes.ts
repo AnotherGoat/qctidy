@@ -72,7 +72,10 @@ export async function applyFixes(
         workspaceEdit.replace(document.uri, toRange(edit), edit.new_text);
     }
 
-    await vscode.workspace.applyEdit(workspaceEdit);
+    const applied = await vscode.workspace.applyEdit(workspaceEdit);
+    if (applied) {
+        await vscode.commands.executeCommand('qctidy.triggerInstantCheck', document.uri);
+    }
 }
 
 /** Offers the fixes computed by QCTidy as quick fixes (Ctrl+.). */
@@ -107,6 +110,12 @@ class QctidyCodeActionProvider implements vscode.CodeActionProvider {
             for (const edit of nonOverlapping(edits)) {
                 action.edit.replace(document.uri, toRange(edit), edit.new_text);
             }
+
+            action.command = {
+                command: 'qctidy.triggerInstantCheck',
+                title: 'Instant Refresh',
+                arguments: [document.uri],
+            };
 
             actions.push(action);
         }

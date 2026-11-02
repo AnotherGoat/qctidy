@@ -48,6 +48,16 @@
         "command": "qctidy.fixAll",
         "title": "Fix All",
         "icon": "$(check-all)"
+      },
+      {
+        "command": "qctidy.showAsText",
+        "title": "Show as text",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "qctidy.showAsGraph",
+        "title": "Show as graph",
+        "icon": "$(type-hierarchy)"
       }
     ],
     "menus": {
@@ -64,6 +74,16 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "qctidy.showAsText",
+          "when": "view == qctidy-ast-view && viewItem == qcCircuit",
+          "group": "inline"
+        },
+        {
+          "command": "qctidy.showAsGraph",
+          "when": "view == qctidy-ast-view && viewItem == qcCircuit",
+          "group": "inline"
+        },
         {
           "command": "qctidy.applyFix",
           "when": "view == qctidy-ast-view && viewItem == qctidyFixable",
@@ -83,6 +103,18 @@
           "type": "string",
           "default": "qctidy",
           "description": "Path to the QCTidy executable (default: 'qctidy' from PATH)."
+        },
+        "qctidy.debounceDelay": {
+          "type": "integer",
+          "default": 400,
+          "minimum": 0,
+          "description": "Debounce delay in milliseconds before analyzing the code after typing (default: 400 ms)."
+        },
+        "qctidy.checkTimeout": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "Timeout in seconds for 'qctidy check' executions (default: 5 seconds)."
         }
       }
     }
