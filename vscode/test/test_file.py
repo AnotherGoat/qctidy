@@ -20,133 +20,156 @@ def build_single_qubit_gates_circuit():
     return circuit
 
 
-def build_rotation_gates_circuit():
-    circuit = QuantumCircuit(4, 4)
+def build_desambiguation_circuit():
+    circuit = QuantumCircuit(2, 2)
 
-    circuit.p(numpy.pi / 4, 0)
-    circuit.rx(numpy.pi / 8, 1)
-    circuit.ry(2 * numpy.pi / 3, 2)
-    circuit.rz(-numpy.pi / 2, 3)
+    circuit.x(0)
 
     return circuit
+
+def build_rotation_gates_circuit():
+    rotations = QuantumCircuit(4, 4)
+
+    rotations.p(numpy.pi / 4, 0)
+    rotations.rx(numpy.pi / 8, 1)
+    rotations.ry(2 * numpy.pi / 3, 2)
+    rotations.rz(-numpy.pi / 2, 3)
+
+    return rotations
 
 
 def build_append_circuit():
-    circuit = QuantumCircuit(4, 4)
+    append = QuantumCircuit(4, 4)
 
     # sqrt(Y) and general unitary have no named method
-    circuit.append(YGate().power(1 / 2), [1])
-    circuit.u(numpy.pi / 2, numpy.pi / 3, numpy.pi, 2)
+    append.append(YGate().power(1 / 2), [1])
+    append.u(numpy.pi / 2, numpy.pi / 3, numpy.pi, 2)
 
-    return circuit
+    return append
 
 
 def build_two_qubit_gates_circuit():
-    circuit = QuantumCircuit(4, 4)
+    two = QuantumCircuit(4, 4)
 
-    circuit.swap(0, 3)
-    circuit.ch(1, 2)
-    circuit.cx(2, 0)
-    circuit.cy(3, 1)
-    circuit.cz(0, 1)
-    circuit.cp(numpy.pi / 4, 2, 3)
+    two.swap(0, 3)
+    two.ch(1, 2)
+    two.cx(2, 0)
+    two.cy(3, 1)
+    two.cz(0, 1)
+    two.cp(numpy.pi / 4, 2, 3)
 
-    return circuit
+    return two
 
 
 def build_three_qubit_gates_circuit():
-    circuit = QuantumCircuit(4, 4)
+    three = QuantumCircuit(4, 4)
 
-    circuit.cswap(0, 1, 2)
-    circuit.ccx(1, 2, 3)
-    circuit.ccz(2, 3, 0)
+    three.cswap(0, 1, 2)
+    three.ccx(1, 2, 3)
+    three.ccz(2, 3, 0)
 
-    return circuit
+    return three
 
 
 def build_multiline_circuit():
-    circuit = QuantumCircuit(4, 4)
+    multiline = QuantumCircuit(4, 4)
 
     # fmt: off
-    circuit.ccx(
+    multiline.ccx(
         0,
         1,
         2
     )
     # fmt: on
 
-    return circuit
+    return multiline
 
 
 def build_measurements_circuit():
-    circuit = QuantumCircuit(4, 4)
+    measured1 = QuantumCircuit(4, 4)
 
-    circuit.measure(0, 2)
-    circuit.measure(1, 0)
-    circuit.measure(2, 3)
-    circuit.measure(3, 1)
+    measured1.measure(0, 2)
+    measured1.measure(1, 0)
+    measured1.measure(2, 3)
+    measured1.measure(3, 1)
 
-    return circuit
+    return measured1
 
 
 def build_measure_all_circuit():
-    circuit = QuantumCircuit(3)
+    measured2 = QuantumCircuit(3)
 
-    circuit.h(0)
-    circuit.cx(0, 1)
-    circuit.measure_all()
+    measured2.h(0)
+    measured2.cx(0, 1)
+    measured2.measure_all()
 
-    return circuit
+    return measured2
 
 
 def build_repeated_measure_all_circuit():
-    circuit = QuantumCircuit(3)
+    measured3 = QuantumCircuit(3)
 
-    circuit.h(0)
-    circuit.measure_all()
-    circuit.measure_all()
+    measured3.h(0)
+    measured3.measure_all()
+    measured3.measure_all()
 
-    return circuit
+    return measured3
 
 
 def build_constant_sized_circuit():
     qubit_count = 3
-    circuit = QuantumCircuit(qubit_count)
+    sized = QuantumCircuit(qubit_count)
 
-    circuit.h(0)
-    circuit.cx(0, 1)
+    sized.h(0)
+    sized.cx(0, 1)
 
-    return circuit
+    return sized
 
 
 def build_empty_circuit():
-    circuit = QuantumCircuit(0)
+    empty = QuantumCircuit(0)
 
-    return circuit
+    return empty
 
 
 def build_fixable_circuit():
-    circuit = QuantumCircuit(3)
+    fixable = QuantumCircuit(3)
 
-    circuit.id(0)       # R001: identity gate
-    circuit.h(1)        # R002: two Hadamards
-    circuit.h(1)
-    circuit.s(0)        # P001: two S gates
-    circuit.s(0)
-    circuit.x(2)        # R003: two X gates
-    circuit.x(2)
-    circuit.cx(0, 1)    # R006: two CX gates
-    circuit.cx(0, 1)
-    circuit.cx(0, 1)    # G001: 3 CX -> SWAP
-    circuit.cx(1, 0)
-    circuit.cx(0, 1)
-    circuit.h(2)        # B001: H X H
-    circuit.x(2)
-    circuit.h(2)
-    circuit.cx(1, 2)    # X003: triangular CX chain
-    circuit.cx(0, 1)
-    circuit.cx(0, 2)
-    circuit.rz(-numpy.pi / 2, 0)  # C003: angle normalization
+    # R001: identity gate
+    fixable.id(0)
 
-    return circuit
+    # R002: two Hadamards
+    fixable.h(1)
+    fixable.h(1)
 
+    # P001: two S gates
+    fixable.s(0)
+    fixable.s(0)
+
+    # R003: two X gates
+    fixable.x(2)
+    fixable.x(2)
+
+    # R006: two CX gates
+    fixable.cx(0, 1)
+    fixable.cx(0, 1)
+    fixable.cx(0, 1)
+
+    # G001: 3 CX -> SWAP
+    fixable.cx(1, 0)
+    fixable.cx(0, 1)
+
+    # B001: H X H
+    fixable.h(2)
+    fixable.x(2)
+    fixable.h(2)
+
+    # X003: triangular CX chain
+    fixable.cx(1, 2)
+    fixable.cx(0, 1)
+    fixable.cx(0, 2)
+
+    # C003: angle normalization
+    fixable.rz(-numpy.pi / 2, 0)
+
+    return fixable
