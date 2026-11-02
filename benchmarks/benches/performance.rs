@@ -7,14 +7,14 @@ use qctidy::random;
 
 const MAX_ITERATIONS: u32 = 5;
 
-fn already_fixed(criterion: &mut Criterion) {
+fn already_simplified(criterion: &mut Criterion) {
     // Large circuit without obvious fix opportunities.
     //
     // Example:
     // q0: H T S H T S ...
     // q1: T S H T S H ...
     // q2: S H T S H T ...
-    let mut group = criterion.benchmark_group("Already Fixed");
+    let mut group = criterion.benchmark_group("Already Simplified");
 
     for qubits in [1, 2, 4, 8, 16, 32].iter() {
         group.bench_with_input(
@@ -334,7 +334,7 @@ fn random_circuit(criterion: &mut Criterion) {
 
 criterion_group!(
     benches,
-    already_fixed,
+    already_simplified,
     deep_narrow_circuit,
     wide_shallow_circuit,
     cancellation_chain,
