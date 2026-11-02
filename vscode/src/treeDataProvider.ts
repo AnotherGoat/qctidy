@@ -4,6 +4,9 @@ import { isCancellationError, QctidyStatus, runCheck } from './cli';
 import { CheckReport, CliDiagnostic, CliError, FixEdit } from './diagnostics';
 import { FIXABLE_CONTEXT } from './fixes';
 
+/** Context value that identifies quantum circuit nodes in menu contributions. */
+export const CIRCUIT_CONTEXT = 'qcCircuit';
+
 export type AstNodeType =
     | 'class'
     | 'function'
@@ -18,6 +21,8 @@ export type AstNodeType =
 export class AstNodeItem extends vscode.TreeItem {
     public children: AstNodeItem[] = [];
     public readonly key: string;
+    /** Original variable name when this item represents a quantum circuit. */
+    public circuitName?: string;
     /** Source edits that fix the diagnostic this item represents. */
     public fixes?: FixEdit[];
 
@@ -420,6 +425,9 @@ export class QCTidyTreeDataProvider implements vscode.TreeDataProvider<AstNodeIt
             `(${circuit.qubit_count} qubits, ${circuit.bit_count} classical bits)${statusSummary}`,
             circuitIcon
         );
+
+        circuitItem.circuitName = circuit.name;
+        circuitItem.contextValue = CIRCUIT_CONTEXT;
 
         const qubitCountMetadata = new AstNodeItem(
             `Qubits: ${circuit.qubit_count}`,

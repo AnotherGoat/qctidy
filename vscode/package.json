@@ -48,6 +48,16 @@
         "command": "qctidy.fixAll",
         "title": "Fix All",
         "icon": "$(check-all)"
+      },
+      {
+        "command": "qctidy.showAsText",
+        "title": "Show as text",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "qctidy.showAsGraph",
+        "title": "Show as graph",
+        "icon": "$(type-hierarchy)"
       }
     ],
     "menus": {
@@ -64,6 +74,16 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "qctidy.showAsText",
+          "when": "view == qctidy-ast-view && viewItem == qcCircuit",
+          "group": "inline"
+        },
+        {
+          "command": "qctidy.showAsGraph",
+          "when": "view == qctidy-ast-view && viewItem == qcCircuit",
+          "group": "inline"
+        },
         {
           "command": "qctidy.applyFix",
           "when": "view == qctidy-ast-view && viewItem == qctidyFixable",

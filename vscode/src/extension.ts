@@ -8,6 +8,7 @@ import {
     runCheck
 } from './cli';
 import { convertReportToVsCodeDiagnostics } from './diagnostics';
+import { detectGraphviz, disposeDisplayPanels, showCircuitAsGraph, showCircuitAsText } from './display';
 import { applyFixes, registerFixActions, rememberAnalyzedSource } from './fixes';
 import { detectQiskitVersion, qiskitOutputChannel, watchInterpreter } from './qiskit';
 import { AstNodeItem, QCTidyTreeDataProvider } from './treeDataProvider';
@@ -198,6 +199,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
         void checkQctidyStatus(true);
 
+        // Detect Graphviz once at activation to gate graph visualization
+        void detectGraphviz();
+
         // Re-detect when the configured QCTidy path changes
         context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration((event) => {
@@ -296,6 +300,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             }),
             vscode.commands.registerCommand('qctidy.jumpToLine', jumpToLine),
+            vscode.commands.registerCommand('qctidy.showAsText', (item?: AstNodeItem) => showCircuitAsText(item)),
+            vscode.commands.registerCommand('qctidy.showAsGraph', (item?: AstNodeItem) => showCircuitAsGraph(item)),
             vscode.commands.registerCommand('qctidy.applyFix', async (item?: AstNodeItem) => {
                 const editor = vscode.window.activeTextEditor;
 
@@ -338,6 +344,7 @@ export function deactivate() {
         clearTimeout(debounceTimer);
     }
     killActiveCheck();
+    disposeDisplayPanels();
     if (diagnosticCollection) {
         diagnosticCollection.clear();
         diagnosticCollection.dispose();
