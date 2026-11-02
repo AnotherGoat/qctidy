@@ -6,3 +6,9 @@
 !criterion/**
 !README.md
 !system_info.json
+
+# Benchmark summary generator (Python/uv).
+!plot_benchmarks.py
+!benchmarks_summary.png
+!pyproject.toml
+!uv.lock
